@@ -22,10 +22,29 @@
   --medium-bg: rgba(255, 184, 0, 0.12);
   --hard-bg: rgba(255, 55, 95, 0.12);
   --accent-bg: rgba(255, 161, 22, 0.12);
+  /* The accent worn down to an outline — enough to mark the open section, not
+     enough to compete with the row cursor drawn in the accent proper. */
+  --accent-line: rgba(255, 161, 22, 0.32);
+  /* Ambient spill around that outline. Low enough that it reads as light off
+     the border rather than a second border. */
+  --accent-glow: rgba(255, 161, 22, 0.13);
 
   --danger: #ff375f;
   --focus: #4c9aff;
   --shadow: rgba(0, 0, 0, 0.45);
+
+  /* Syntax highlighting for the guide code blocks. The bracket trio is VS
+     Code's own palette — gold, orchid, sky — so nested pairs read the way they
+     do in the editor people are coming from. */
+  --syn-comment: #7d8590;
+  --syn-key: #c792ea;
+  --syn-type: #82aaff;
+  --syn-str: #c3e88d;
+  --syn-num: #f78c6c;
+  --syn-fn: #ffcb6b;
+  --syn-br1: #ffd700;
+  --syn-br2: #da70d6;
+  --syn-br3: #179fff;
 
   /* Activity ramp: single hue, monotone lightness, faintest step clears the
      panel surface at 2.38:1. Validated — do not hand-tweak these. */
@@ -58,10 +77,27 @@
   --medium-bg: rgba(178, 94, 0, 0.1);
   --hard-bg: rgba(209, 41, 61, 0.1);
   --accent-bg: rgba(224, 134, 0, 0.12);
+  /* Carries more alpha than the dark theme's: the same wash reads fainter
+     against a light surface. */
+  --accent-line: rgba(224, 134, 0, 0.45);
+  --accent-glow: rgba(224, 134, 0, 0.16);
 
   --danger: #d1293d;
   --focus: #0b66e4;
   --shadow: rgba(16, 22, 26, 0.15);
+
+  /* Re-picked for a light background rather than lightened — the dark theme's
+     pastels wash out completely on white. Brackets stay recognisably gold /
+     orchid / blue, darkened enough to read. */
+  --syn-comment: #6a737d;
+  --syn-key: #a626a4;
+  --syn-type: #4078f2;
+  --syn-str: #3f8a3f;
+  --syn-num: #b76b01;
+  --syn-fn: #9a6700;
+  --syn-br1: #9a6700;
+  --syn-br2: #a626a4;
+  --syn-br3: #0b66e4;
 
   /* Same ramp re-stepped for the light surface, not an automatic flip.
      Faintest step clears white at 2.31:1. */

@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
+import { GuideDrawer } from '../components/problem/GuideDrawer.jsx';
 import { PatternSection } from '../components/problem/PatternSection.jsx';
+import { IconColumns } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
 import { useLocalState } from '../hooks/useLocalState.js';
+import { useTableLayout } from '../hooks/useTableLayout.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
@@ -32,6 +36,10 @@ export function Roadmap() {
   const [openSections, setOpenSections] = useLocalState('open-sections', []);
   const [cursorId, setCursorId] = useState(null);
   const [openNotesId, setOpenNotesId] = useState(null);
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  // One drawer for the page, not one per section.
+  const [guidePattern, setGuidePattern] = useState(null);
+  const { layout, setLayout, columns } = useTableLayout();
   const sectionRefs = useRef({});
 
   const companyOptions = useMemo(() => {
@@ -288,6 +296,11 @@ export function Roadmap() {
         )}
 
         <span className="spacer" />
+        <button className="toggle-chip" onClick={() => setColumnsOpen(true)} title="Choose columns">
+          <IconColumns size={12} />
+          Columns
+          <span className="mono dim">{columns.length}</span>
+        </button>
         <span className="hint">
           <kbd className="mono">j</kbd> <kbd className="mono">k</kbd> move ·{' '}
           <kbd className="mono">s</kbd> solve · <kbd className="mono">f</kbd> flag ·{' '}
@@ -312,14 +325,28 @@ export function Roadmap() {
             }}
             group={group}
             index={groups.findIndex((g) => g.slug === group.slug)}
+            columns={columns}
             open={isOpen(group.slug)}
             onToggle={() => toggleSection(group.slug)}
+            onOpenGuide={() => setGuidePattern(group)}
             cursorId={cursorId}
             onFocusRow={setCursorId}
             openNotesId={openNotesId}
             onToggleNotes={(id) => setOpenNotesId((cur) => (cur === id ? null : id))}
           />
         ))
+      )}
+
+      {columnsOpen && (
+        <ColumnsModal
+          layout={layout}
+          onSave={setLayout}
+          onClose={() => setColumnsOpen(false)}
+        />
+      )}
+
+      {guidePattern && (
+        <GuideDrawer pattern={guidePattern} onClose={() => setGuidePattern(null)} />
       )}
     </>
   );

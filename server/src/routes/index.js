@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { getLogo } from '../controllers/company.controller.js';
+import { getGuide } from '../controllers/guide.controller.js';
 import {
   createCustom,
   createSchema,
@@ -26,10 +28,19 @@ export const router = Router();
 router.get('/health', (_req, res) => res.json({ ok: true, uptime: process.uptime() }));
 router.use('/auth', authRouter);
 
+/**
+ * Public on purpose. The browser loads these through an <img>, which cannot
+ * replay a request after a silent token refresh — behind requireAuth every logo
+ * would break fifteen minutes into a session. Nothing here is private: it is a
+ * cache of publicly reachable brand icons keyed by company name.
+ */
+router.get('/companies/:slug/logo', getLogo);
+
 // Everything below needs a session.
 router.use(requireAuth);
 
 router.get('/patterns', listPatterns);
+router.get('/patterns/:slug/guide', getGuide);
 
 router.get('/problems', listGrouped);
 router.post('/problems/lookup', validate(lookupSchema), lookup);

@@ -1,20 +1,84 @@
-import { forwardRef } from 'react';
-import { IconChevronRight } from '../ui/Icons.jsx';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { IconChevronRight, IconInfo } from '../ui/Icons.jsx';
 import { ProblemRow } from './ProblemRow.jsx';
+import { cellProps } from './cellProps.js';
 
 export const PatternSection = forwardRef(function PatternSection(
-  { group, index, open, onToggle, cursorId, onFocusRow, openNotesId, onToggleNotes },
+  {
+    group,
+    index,
+    columns,
+    open,
+    onToggle,
+    onOpenGuide,
+    cursorId,
+    onFocusRow,
+    openNotesId,
+    onToggleNotes,
+  },
   ref,
 ) {
   const pct = group.total ? Math.round((group.solved / group.total) * 100) : 0;
 
+  /*
+    The table is fixed-layout, so the colgroup widths are honoured exactly.
+    min-width is the sum of every column, which makes the wrapper scroll once
+    the chosen columns no longer fit instead of squeezing them all thinner.
+
+    The title column deliberately gets no width: as the one auto column it
+    absorbs whatever is left over, so a narrow selection fills the row and a
+    wide one still gives the title the width it was configured for.
+  */
+  const minWidth = columns.reduce((sum, c) => sum + c.px, 0);
+
+  /*
+    Which edges are actually cut off right now. The frozen columns only cast a
+    shadow when there is something hidden behind them — otherwise a table that
+    fits its container would sprout two shadows over nothing.
+  */
+  const wrapRef = useRef(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  const measure = useCallback(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    setEdges({
+      left: el.scrollLeft > 1,
+      // -1 absorbs the sub-pixel rounding a fractional container width leaves.
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return undefined;
+    measure();
+    el.addEventListener('scroll', measure, { passive: true });
+    // Collapsing the sidebar resizes the wrapper without scrolling it.
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => {
+      el.removeEventListener('scroll', measure);
+      observer.disconnect();
+    };
+  }, [measure, open, minWidth]);
+
   return (
-    <section className="pattern" ref={ref} id={`pattern-${group.slug}`}>
+    <section
+      className={`pattern ${open ? 'open' : ''}`}
+      ref={ref}
+      id={`pattern-${group.slug}`}
+    >
       {/*
         The technique chips live inside the header button, not after it. Kept
         outside, the hover highlight stopped above them and the chips read as
         colliding with the heading. All spans, so this stays valid inside a
         button.
+
+        The guide button is a sibling of that button rather than a child, for
+        the same reason in reverse: a <button> inside a <button> is invalid, and
+        every descendant here is a span precisely so it stays legal. The <h2> is
+        the flex row that holds the two side by side.
       */}
       <h2 className="pattern-heading">
       <button className="pattern-head" onClick={onToggle} aria-expanded={open}>
@@ -52,20 +116,38 @@ export const PatternSection = forwardRef(function PatternSection(
           </span>
         )}
       </button>
+
+      <button
+        className="pattern-info"
+        onClick={onOpenGuide}
+        title={`About ${group.name}`}
+        aria-label={`About ${group.name}`}
+      >
+        <IconInfo size={15} />
+      </button>
       </h2>
 
       {open && (
         <>
-          <div className="tablewrap">
-            <table className="problems">
+          <div
+            ref={wrapRef}
+            className={`tablewrap ${edges.left ? 'cut-left' : ''} ${
+              edges.right ? 'cut-right' : ''
+            }`}
+          >
+            <table className="problems" style={{ minWidth }}>
+              <colgroup>
+                {columns.map((column) => (
+                  <col key={column.id} style={column.grow ? undefined : { width: column.px }} />
+                ))}
+              </colgroup>
               <thead>
                 <tr>
-                  <th className="col-status" />
-                  <th className="col-num">#</th>
-                  <th>Problem</th>
-                  <th className="col-diff">Difficulty</th>
-                  <th className="col-cos">Asked at</th>
-                  <th className="col-acts">Track</th>
+                  {columns.map((column) => (
+                    <th key={column.id} {...cellProps(column)}>
+                      {column.head ?? column.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -74,6 +156,7 @@ export const PatternSection = forwardRef(function PatternSection(
                     key={problem._id}
                     problem={problem}
                     index={i}
+                    columns={columns}
                     isCursor={cursorId === problem._id}
                     onFocus={() => onFocusRow(problem._id)}
                     notesOpen={openNotesId === problem._id}
@@ -82,7 +165,10 @@ export const PatternSection = forwardRef(function PatternSection(
                 ))}
                 {group.problems.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: '18px 14px', color: 'var(--text-3)' }}>
+                    <td
+                      colSpan={columns.length}
+                      style={{ padding: '18px 14px', color: 'var(--text-3)' }}
+                    >
                       No problems match the current filters.
                     </td>
                   </tr>

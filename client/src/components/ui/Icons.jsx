@@ -123,3 +123,47 @@ export const IconTrash = (p) => (
     <path d="M2.8 4.2h10.4M6.2 4.2V2.8h3.6v1.4M4.2 4.2l.6 9h6.4l.6-9" />
   </Svg>
 );
+
+export const IconPlay = (p) => (
+  <Svg {...p} fill="currentColor" strokeWidth={1}>
+    <path d="M5.4 3.4l6.4 4.6-6.4 4.6z" />
+  </Svg>
+);
+
+export const IconCopy = (p) => (
+  <Svg {...p}>
+    <path d="M5.8 5.8h7.4v7.4H5.8z" />
+    <path d="M10.2 5.8V2.8H2.8v7.4h3" />
+  </Svg>
+);
+
+export const IconInfo = (p) => (
+  <Svg {...p}>
+    <circle cx="8" cy="8" r="6.2" />
+    <path d="M8 7.2v4M8 4.9v.1" />
+  </Svg>
+);
+
+export const IconPin = ({ filled, ...p }) => (
+  <Svg {...p} fill={filled ? 'currentColor' : 'none'}>
+    <path d="M9.6 1.9l4.5 4.5-1.9.7-.9 2.8-4.2-4.2 2.8-.9z" />
+    <path d="M6.4 9.6L2.2 13.8" fill="none" />
+  </Svg>
+);
+
+export const IconColumns = (p) => (
+  <Svg {...p}>
+    <path d="M2.4 3h11.2v10H2.4zM6.1 3v10M9.9 3v10" />
+  </Svg>
+);
+
+export const IconGrip = (p) => (
+  <Svg {...p} fill="currentColor" strokeWidth={0}>
+    <circle cx="6" cy="3.6" r="1.05" />
+    <circle cx="10" cy="3.6" r="1.05" />
+    <circle cx="6" cy="8" r="1.05" />
+    <circle cx="10" cy="8" r="1.05" />
+    <circle cx="6" cy="12.4" r="1.05" />
+    <circle cx="10" cy="12.4" r="1.05" />
+  </Svg>
+);

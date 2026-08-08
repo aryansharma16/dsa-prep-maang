@@ -86,7 +86,7 @@ export function Revision() {
       ) : (
         <div className="pattern">
           <div className="tablewrap">
-            <table className="problems">
+            <table className="problems revision">
               <thead>
                 <tr>
                   <th className="col-status" />

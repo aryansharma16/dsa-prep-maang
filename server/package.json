@@ -10,6 +10,8 @@
     "seed:fetch": "node scripts/seed/fetch-sources.js",
     "seed:curate": "node scripts/seed/curate.js",
     "seed:db": "node scripts/seed/seed.js",
+    "seed:logos": "node scripts/seed/logos.js",
+    "seed:guides": "node scripts/seed/guides.js",
     "seed": "npm run seed:fetch && npm run seed:curate && npm run seed:db"
   },
   "dependencies": {

@@ -1,13 +1,9 @@
-import { useEffect, useId, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { IconClose } from './Icons.jsx';
+import { useDialog } from './useDialog.js';
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-// The roadmap and the app shell both bind global single-key shortcuts. Without
-// this, pressing "s" inside a dialog would also toggle a problem behind it.
-let openCount = 0;
-export const isAnyModalOpen = () => openCount > 0;
+// Re-exported so the two global key handlers keep importing it from here.
+export { isAnyModalOpen } from './useDialog.js';
 
 /**
  * Base dialog. Renders only when the caller mounts it, so usage is
@@ -16,51 +12,15 @@ export const isAnyModalOpen = () => openCount > 0;
  * Children are rendered raw below the header — wrap them in `.modal-body` and
  * `.modal-foot` yourself. That way a form can span both, which a fixed
  * body/footer contract would prevent.
+ *
+ * Focus trapping, Escape and shortcut suppression live in useDialog, shared
+ * with Drawer.
  */
 export function Modal({ title, onClose, children, size = 'md', initialFocus }) {
   const dialogRef = useRef(null);
   const titleId = useId();
 
-  useEffect(() => {
-    openCount += 1;
-    const restoreTo = document.activeElement;
-    const node = dialogRef.current;
-
-    const focusables = () => [...node.querySelectorAll(FOCUSABLE)];
-    (initialFocus?.current || focusables()[0] || node).focus();
-
-    const onKey = (event) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        event.stopPropagation();
-        onClose();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-
-      // Keep Tab inside the dialog.
-      const items = focusables();
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    // Capture phase so the dialog sees Escape before any page-level handler.
-    document.addEventListener('keydown', onKey, true);
-    return () => {
-      document.removeEventListener('keydown', onKey, true);
-      openCount -= 1;
-      restoreTo?.focus?.();
-    };
-  }, [onClose, initialFocus]);
+  useDialog(dialogRef, { onClose, initialFocus });
 
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

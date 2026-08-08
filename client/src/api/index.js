@@ -10,6 +10,7 @@ export const authApi = {
 export const problemsApi = {
   roadmap: (params) => http.get('/problems', { params }).then((r) => r.data),
   patterns: () => http.get('/patterns').then((r) => r.data.patterns),
+  guide: (slug) => http.get(`/patterns/${slug}/guide`).then((r) => r.data),
   description: (slug) => http.get(`/problems/${slug}/description`).then((r) => r.data),
   lookup: (url) => http.post('/problems/lookup', { url }).then((r) => r.data),
   create: (body) => http.post('/problems', body).then((r) => r.data.problem),

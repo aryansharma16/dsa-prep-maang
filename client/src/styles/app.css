@@ -84,6 +84,23 @@
   white-space: nowrap;
 }
 
+/* Same label, now a disclosure toggle for the pattern list below it. */
+.sidebar-label-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+}
+.sidebar-label-btn:hover {
+  color: var(--text-2);
+}
+.sidebar-label-btn .count {
+  margin-left: auto;
+  font-family: var(--mono);
+  letter-spacing: 0;
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -272,7 +289,9 @@
   padding: 18px 16px 80px;
 }
 .content-inner {
-  max-width: 1160px;
+  /* Wide enough that a dozen columns have somewhere to go before the table
+     starts scrolling, still short of edge-to-edge on a big monitor. */
+  max-width: 1500px;
   margin: 0 auto;
 }
 
@@ -349,6 +368,28 @@
   margin-bottom: 10px;
   background: var(--surface);
   overflow: hidden;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+/*
+  The open section outlines itself in the same accent the row cursor uses, worn
+  down to a wash — it should say "this is the one you have open" from the corner
+  of your eye, not draw the eye away from the rows.
+
+  Two shadows: a blurred halo in the accent hue, so the border reads as lit
+  rather than merely recoloured, and a dark drop underneath that keeps the panel
+  sitting on the page instead of floating in a coloured cloud.
+*/
+.pattern.open {
+  border-color: var(--accent-line);
+  box-shadow:
+    0 0 14px -1px var(--accent-glow),
+    0 5px 18px -12px var(--shadow);
+}
+.pattern.open .tablewrap {
+  border-top-color: var(--accent-line);
 }
 
 /* Column so the technique chips sit under the heading but inside the same
@@ -357,11 +398,15 @@
   display: flex;
   flex-direction: column;
   gap: 9px;
-  width: 100%;
-  padding: 11px 14px;
+  flex: 1;
+  min-width: 0;
+  /* No right padding: the guide button sits there now and supplies its own. */
+  padding: 11px 4px 11px 14px;
   text-align: left;
 }
-.pattern-head:hover {
+/* The wash is painted from the row, not the button, so it runs under the guide
+   button too — otherwise the highlight stops short and leaves a seam. */
+.pattern-heading:hover .pattern-head {
   background: var(--surface-hover);
 }
 .pattern-head-main {
@@ -380,11 +425,35 @@
   transform: rotate(90deg);
 }
 
-/* The <h2> only carries semantics — the button inside it does the layout. */
+/* The <h2> carries the semantics and now also the row: the toggle button and
+   the guide button are siblings inside it, because nesting them would be
+   invalid HTML. */
 .pattern-heading {
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
+  display: flex;
+  align-items: stretch;
+}
+.pattern-heading:hover {
+  background: var(--surface-hover);
+}
+
+.pattern-info {
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  padding-right: 12px;
+  color: var(--text-3);
+  /* Present but quiet until the row is hovered — it should not compete with
+     the progress meter it sits beside. */
+  opacity: 0.55;
+}
+.pattern-heading:hover .pattern-info {
+  opacity: 1;
+}
+.pattern-info:hover {
+  color: var(--accent);
 }
 
 .pattern-title {
@@ -475,8 +544,18 @@
 
 table.problems {
   width: 100%;
-  border-collapse: collapse;
   font-size: 13px;
+  /* The colgroup carries the configured widths, so they have to be obeyed
+     exactly rather than renegotiated against cell content. */
+  table-layout: fixed;
+  /*
+    Separate, not collapse: a collapsed border belongs to the table rather than
+    the cell, and a sticky cell scrolls out from under it — frozen columns lose
+    their row lines mid-scroll. With separate borders each cell owns its own
+    line and carries it along. The row rules move to the cells to match.
+  */
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 /* Not sticky: .tablewrap scrolls (for wide tables), so it becomes the sticky
@@ -496,16 +575,14 @@ table.problems thead th {
 
 table.problems tbody tr {
   height: var(--row-h);
-  border-bottom: 1px solid var(--border-soft);
-}
-table.problems tbody tr:last-child {
-  border-bottom: none;
 }
 table.problems tbody tr:hover {
   background: var(--surface-hover);
 }
 table.problems tbody tr.cursor {
   background: var(--surface-hover);
+}
+table.problems tbody tr.cursor td:first-child {
   box-shadow: inset 2px 0 0 var(--accent);
 }
 table.problems tbody tr.solved .title-link {
@@ -515,28 +592,183 @@ table.problems tbody tr.solved .title-link {
 table.problems td {
   padding: 0 10px;
   vertical-align: middle;
+  border-bottom: 1px solid var(--border-soft);
+}
+table.problems tbody tr:last-child td {
+  border-bottom: none;
 }
 
+/*
+  Frozen columns. The wrapper is the scroll container, so these stick to its
+  edges; everything between them scrolls underneath. They need an opaque
+  background of their own — a sticky cell sits above the row it belongs to, and
+  the row's own background does not travel with it.
+*/
+.problems th.pin,
+.problems td.pin {
+  position: sticky;
+  z-index: 2;
+  background: var(--surface);
+}
+.problems thead th.pin {
+  background: var(--surface-2);
+  /* Above the body's frozen cells, which scroll vertically past it. */
+  z-index: 3;
+}
+.problems tbody tr:hover td.pin,
+.problems tbody tr.cursor td.pin {
+  background: var(--surface-hover);
+}
+
+/* Only where content is actually hidden — see the edge measurement in
+   PatternSection. */
+.tablewrap.cut-left .pin-left.pin-edge::after,
+.tablewrap.cut-right .pin-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  pointer-events: none;
+}
+.tablewrap.cut-left .pin-left.pin-edge::after {
+  left: 100%;
+  background: linear-gradient(to right, var(--shadow), transparent);
+}
+.tablewrap.cut-right .pin-right::after {
+  right: 100%;
+  background: linear-gradient(to left, var(--shadow), transparent);
+}
+
+/* Widths come from the <colgroup> the layout builds — these only carry the
+   edge padding and alignment that the two chrome columns need. */
 .col-status {
-  width: 34px;
   padding-left: 12px !important;
 }
-.col-num {
-  width: 42px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-3);
-}
-.col-diff {
-  width: 74px;
-}
-.col-cos {
-  width: 210px;
-}
 .col-acts {
-  width: 92px;
   text-align: right;
   padding-right: 12px !important;
+  /* Anchors the attempt popover. Overridden to sticky while the column is
+     frozen, which anchors it just as well. */
+  position: relative;
+}
+
+/* The revision queue is a fixed table with no column settings, so it states its
+   own widths. Scoped, because on the roadmap the colgroup owns them. */
+.problems.revision .col-status {
+  width: 34px;
+}
+.problems.revision .col-diff {
+  width: 74px;
+}
+.problems.revision .col-cos {
+  width: 210px;
+}
+.problems.revision .col-acts {
+  width: 92px;
+}
+
+/* Cell utilities the column registry composes from. */
+.cell-mono {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.cell-dim {
+  color: var(--text-3);
+}
+.cell-truncate,
+.cell-truncate > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.cell-empty {
+  color: var(--border);
+}
+.cell-link {
+  color: var(--text-3);
+  display: inline-flex;
+}
+.cell-link:hover {
+  color: var(--accent);
+}
+
+/* Horizontal run of chips that clips instead of wrapping — every row has to
+   stay one row tall or the ramp stops being scannable. */
+.chip-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.topic-chip {
+  font-size: 10.5px;
+  color: var(--text-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 5px;
+  height: 17px;
+  line-height: 15px;
+  flex: 0 0 auto;
+}
+
+.ratio {
+  color: var(--text-2);
+}
+.ratio.bad {
+  color: var(--hard);
+}
+
+.status-pill {
+  font-size: 10.5px;
+  text-transform: capitalize;
+  border-radius: 3px;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  color: var(--text-3);
+}
+.status-pill.attempted {
+  color: var(--medium);
+  border-color: var(--medium);
+}
+.status-pill.solved {
+  color: var(--easy);
+  border-color: var(--easy);
+}
+
+/* Five bars, filled to the confidence score. Reads at a glance in a way "3/5"
+   in a column of numbers does not. */
+.conf {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+.conf i {
+  width: 4px;
+  height: 11px;
+  border-radius: 1px;
+  background: var(--border);
+}
+.conf i.on {
+  background: var(--accent);
+}
+
+.notes-peek {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-3);
+  font-size: 12px;
+}
+.notes-peek:hover {
+  color: var(--text);
 }
 
 .title-cell {
@@ -646,6 +878,26 @@ tr:hover .ext {
   border-color: var(--accent);
   background: var(--accent-bg);
 }
+
+/*
+  Deliberately a fixed light tile rather than var(--surface-2): plenty of these
+  logos are solid black marks with a transparent background (Apple, Adobe), and
+  on the dark theme they would disappear into the row.
+*/
+.co-logo {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  padding: 2px;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+.co-logo.hot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
 .co-more {
   font-size: 10.5px;
   font-family: var(--mono);
@@ -745,6 +997,378 @@ tr.cursor .act {
 .statement-body strong {
   color: var(--text);
 }
+
+/* ------------------------------------------------------- pattern guide drawer */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: flex-end;
+  /* Same layer as .overlay — toasts at 100 still surface above it, which is
+     what you want when a save fails while a guide is open. */
+  z-index: 50;
+}
+
+.drawer {
+  width: min(620px, 100vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -16px 0 40px var(--shadow);
+  animation: drawer-in 0.18s ease;
+}
+.drawer:focus {
+  outline: none;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(18px);
+    opacity: 0;
+  }
+}
+
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+.drawer-title {
+  flex: 1;
+  min-width: 0;
+}
+.drawer-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.drawer-title p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.guide-loading {
+  display: grid;
+  gap: 10px;
+}
+
+/* ---- guide prose ---- */
+.guide-body {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.guide-body > * + * {
+  margin-top: 12px;
+}
+.guide-h {
+  margin: 22px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.guide-h:first-child {
+  margin-top: 0;
+}
+.guide-body p {
+  margin: 0;
+}
+.guide-body strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.guide-body ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.guide-body li + li {
+  margin-top: 5px;
+}
+.guide-body li::marker {
+  color: var(--text-3);
+}
+
+/*
+  base.css sets `a { color: inherit; text-decoration: none }` globally, so a
+  link inside prose is invisible without this — it reads as plain text and
+  nobody clicks it.
+*/
+.guide-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Inline code, distinct from the code blocks below. */
+.guide-body p code,
+.guide-body li code,
+.guide-table code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
+.guide-code {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+}
+.guide-code-tabs {
+  display: flex;
+  align-items: stretch;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.guide-code-tabs button {
+  padding: 5px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  border-right: 1px solid var(--border);
+}
+.guide-code-tabs button:hover {
+  color: var(--text);
+}
+.guide-code-tabs button.on {
+  color: var(--accent);
+  background: var(--bg);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.guide-copy {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-right: none !important;
+}
+
+.guide-code pre {
+  margin: 0;
+  padding: 9px 0;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-2);
+  /* pre, not pre-wrap: code that wraps mid-expression is harder to read than
+     code you scroll. */
+  white-space: pre;
+  tab-size: 4;
+}
+.guide-code code {
+  counter-reset: line;
+  display: block;
+  /* Without this the sticky gutter stops at the viewport edge instead of the
+     full scroll width. */
+  min-width: max-content;
+}
+
+/* One block per source line, so the number can be generated content — it is
+   never part of the selection when you copy. */
+.guide-code .cl {
+  display: block;
+  counter-increment: line;
+  padding-right: 12px;
+}
+/*
+  The gutter is sticky, so code scrolls horizontally behind it. Every bit of the
+  gap between number and code has to be padding rather than margin — a margin is
+  outside the background box, and scrolled code shows through it.
+*/
+.guide-code .cl::before {
+  content: counter(line);
+  position: sticky;
+  left: 0;
+  /* Explicit layer: without it the scrolled code paints over the pinned
+     number instead of behind it. */
+  z-index: 1;
+  display: inline-block;
+  width: 2.4em;
+  padding: 0 14px 0 12px;
+  text-align: right;
+  /* Muted via colour, never opacity — opacity would fade the background too,
+     and the code scrolling underneath would show straight through it. */
+  color: var(--text-3);
+  background: var(--bg);
+  user-select: none;
+}
+.guide-code .cl:hover {
+  background: var(--surface-hover);
+}
+/* Or the pinned number keeps the old background while its line lights up. */
+.guide-code .cl:hover::before {
+  background: var(--surface-hover);
+}
+
+/* syntax */
+.tok-cm {
+  color: var(--syn-comment);
+  font-style: italic;
+}
+.tok-kw {
+  color: var(--syn-key);
+}
+.tok-typ {
+  color: var(--syn-type);
+}
+.tok-str {
+  color: var(--syn-str);
+}
+.tok-num {
+  color: var(--syn-num);
+}
+.tok-fn {
+  color: var(--syn-fn);
+}
+.tok-br1 {
+  color: var(--syn-br1);
+}
+.tok-br2 {
+  color: var(--syn-br2);
+}
+.tok-br3 {
+  color: var(--syn-br3);
+}
+
+.guide-callout {
+  padding: 10px 12px;
+  border-left: 2px solid var(--border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface-2);
+  font-size: 13px;
+}
+.guide-callout.tip {
+  border-left-color: var(--easy);
+}
+.guide-callout.warn {
+  border-left-color: var(--hard);
+}
+.guide-callout.note {
+  border-left-color: var(--accent);
+}
+
+.guide-tablewrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.guide-table th {
+  text-align: left;
+  padding: 7px 10px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.guide-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+.guide-table tr:last-child td {
+  border-bottom: none;
+}
+.guide-table td:first-child {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.guide-figure {
+  margin: 0;
+}
+.guide-figure img {
+  max-width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.guide-figure figcaption {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.guide-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.guide-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.guide-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.guide-links li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.guide-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.guide-link-src {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+@media (max-width: 760px) {
+  .drawer {
+    width: 100vw;
+    border-left: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer {
+    animation: none;
+  }
+}
+
 .notes-box {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1040,9 +1664,208 @@ tr.cursor .act {
 .modal-foot {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 8px;
   padding: 12px 14px;
   border-top: 1px solid var(--border);
+}
+
+/* ---------------------------------------------------------- columns dialog */
+.hint.dim {
+  margin-top: -6px;
+  opacity: 0.8;
+}
+.hint.dim b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.link-btn.danger:hover {
+  color: var(--hard);
+}
+
+.col-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 12px;
+}
+.col-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+.col-count.full {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.col-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.col-table-head,
+.col-row {
+  display: grid;
+  /* grip | name | size buttons | px | move + pin */
+  grid-template-columns: 16px minmax(0, 1fr) 178px 46px 76px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+}
+.col-table-head {
+  height: 30px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.col-width-head,
+.col-px-head,
+.col-move-head {
+  text-align: center;
+}
+
+.col-row {
+  height: 38px;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: grab;
+}
+.col-row:last-child {
+  border-bottom: none;
+}
+.col-row:hover {
+  background: var(--surface-hover);
+}
+.col-row.dragging {
+  background: var(--surface-hover);
+  box-shadow: inset 2px 0 0 var(--accent);
+  opacity: 0.85;
+}
+/* Hidden columns stay legible but read as switched off. */
+.col-row.off .col-name span,
+.col-row.off .col-px {
+  color: var(--text-3);
+}
+
+.col-grip {
+  color: var(--border);
+  display: flex;
+  margin-left: -4px;
+}
+.col-row:hover .col-grip {
+  color: var(--text-3);
+}
+
+.col-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+.col-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.col-name input {
+  accent-color: var(--accent);
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+.col-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-radius: 3px;
+  padding: 1px 5px;
+  flex: 0 0 auto;
+}
+.col-badge.muted {
+  color: var(--text-3);
+  background: var(--surface-2);
+}
+
+/* Segmented control — one border for the group, dividers between. */
+.size-group {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.size-group button {
+  flex: 1;
+  height: 22px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  border-left: 1px solid var(--border);
+}
+.size-group button:first-child {
+  border-left: none;
+}
+.size-group button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.size-group button.on {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.size-group button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.col-px {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: right;
+}
+
+.col-move {
+  display: flex;
+  justify-content: flex-end;
+}
+.col-move .icon-btn {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
+.col-move .icon-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+.col-move .up svg {
+  transform: rotate(-90deg);
+}
+.col-move .down svg {
+  transform: rotate(90deg);
+}
+.col-move .pin.on {
+  color: var(--accent);
+}
+.col-move .pin.on:disabled {
+  /* Track's pin is fixed, not unavailable — keep it legible. */
+  opacity: 0.7;
 }
 
 /* attempt popover */
@@ -1693,7 +2516,9 @@ tr.cursor .act {
 
 /* --------------------------------------------------------------- responsive */
 @media (max-width: 1100px) {
-  .col-cos {
+  /* Only the revision table — the roadmap's columns are the user's call now,
+     and it scrolls sideways when they pick more than fit. */
+  .problems.revision .col-cos {
     display: none;
   }
   .grid-2 {
@@ -1702,7 +2527,6 @@ tr.cursor .act {
 }
 
 @media (max-width: 760px) {
-  .col-num,
   .techniques {
     display: none;
   }

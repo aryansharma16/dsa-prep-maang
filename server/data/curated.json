@@ -105,8 +105,10 @@
         "order": 0
       }
     ],
+    "lcId": 1,
     "likes": 69500,
-    "acceptance": 0,
+    "dislikes": 2593,
+    "likeRatio": 96.4,
     "videoId": "KLlXCFG5TnA",
     "patternSlug": "arrays-hashing",
     "score": 17.09,
@@ -179,8 +181,10 @@
         "order": 0
       }
     ],
+    "lcId": 242,
     "likes": 14593,
-    "acceptance": 0,
+    "dislikes": 482,
+    "likeRatio": 96.8,
     "videoId": "9UtInBqnCgA",
     "patternSlug": "arrays-hashing",
     "score": 10.19,
@@ -259,8 +263,10 @@
         "order": 4
       }
     ],
+    "lcId": 14,
     "likes": 21683,
-    "acceptance": 0,
+    "dislikes": 4953,
+    "likeRatio": 81.4,
     "videoId": "0sWShKIJoo4",
     "patternSlug": "arrays-hashing",
     "score": 9.15,
@@ -320,8 +326,10 @@
         "order": 0
       }
     ],
+    "lcId": 217,
     "likes": 14147,
-    "acceptance": 0,
+    "dislikes": 1374,
+    "likeRatio": 91.1,
     "videoId": "3OamzN90kPg",
     "patternSlug": "arrays-hashing",
     "score": 6.87,
@@ -383,8 +391,10 @@
         "order": 2
       }
     ],
+    "lcId": 169,
     "likes": 23090,
-    "acceptance": 0,
+    "dislikes": 835,
+    "likeRatio": 96.5,
     "videoId": "7pnhv842keE",
     "patternSlug": "arrays-hashing",
     "score": 6.48,
@@ -434,8 +444,10 @@
         "order": 1
       }
     ],
+    "lcId": 118,
     "likes": 15141,
-    "acceptance": 0,
+    "dislikes": 573,
+    "likeRatio": 96.4,
     "videoId": "nPVEaB3AjUM",
     "patternSlug": "arrays-hashing",
     "score": 5.6,
@@ -495,8 +507,10 @@
         "order": 5
       }
     ],
+    "lcId": 496,
     "likes": 10169,
-    "acceptance": 0,
+    "dislikes": 1136,
+    "likeRatio": 90,
     "videoId": "68a1Dc_qVq4",
     "patternSlug": "arrays-hashing",
     "score": 5.18,
@@ -552,8 +566,10 @@
         "order": 5
       }
     ],
+    "lcId": 733,
     "likes": 9614,
-    "acceptance": 0,
+    "dislikes": 964,
+    "likeRatio": 90.9,
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 4.58,
@@ -594,8 +610,10 @@
         "order": 5
       }
     ],
+    "lcId": 485,
     "likes": 7024,
-    "acceptance": 0,
+    "dislikes": 502,
+    "likeRatio": 93.3,
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 4.1,
@@ -647,8 +665,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 28,
     "likes": 7777,
-    "acceptance": 0,
+    "dislikes": 592,
+    "likeRatio": 92.9,
     "videoId": "JoF0Z7nVSrA",
     "patternSlug": "arrays-hashing",
     "score": 3.85,
@@ -700,8 +720,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 27,
     "likes": 5326,
-    "acceptance": 0,
+    "dislikes": 5405,
+    "likeRatio": 49.6,
     "videoId": "Pcd1ii9P9ZI",
     "patternSlug": "arrays-hashing",
     "score": 3.75,
@@ -753,8 +775,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 605,
     "likes": 7493,
-    "acceptance": 0,
+    "dislikes": 1333,
+    "likeRatio": 84.9,
     "videoId": "ZGxqqjljpUI",
     "patternSlug": "arrays-hashing",
     "score": 2.75,
@@ -797,8 +821,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 58,
     "likes": 6548,
-    "acceptance": 0,
+    "dislikes": 365,
+    "likeRatio": 94.7,
     "videoId": "KT9rltZTybQ",
     "patternSlug": "arrays-hashing",
     "score": 2.72,
@@ -845,8 +871,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 706,
     "likes": 5459,
-    "acceptance": 0,
+    "dislikes": 503,
+    "likeRatio": 91.6,
     "videoId": "cNWsgbKwwoU",
     "patternSlug": "arrays-hashing",
     "score": 2.55,
@@ -890,8 +918,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 205,
     "likes": 10745,
-    "acceptance": 0,
+    "dislikes": 2295,
+    "likeRatio": 82.4,
     "videoId": "7yF-U1hLEqQ",
     "patternSlug": "arrays-hashing",
     "score": 2.46,
@@ -936,8 +966,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 392,
     "likes": 10938,
-    "acceptance": 0,
+    "dislikes": 623,
+    "likeRatio": 94.6,
     "videoId": "99RVfqklbCE",
     "patternSlug": "arrays-hashing",
     "score": 2.29,
@@ -1035,8 +1067,10 @@
         "order": 0
       }
     ],
+    "lcId": 347,
     "likes": 19779,
-    "acceptance": 0,
+    "dislikes": 858,
+    "likeRatio": 95.8,
     "videoId": "YPTqKIgVk-k",
     "patternSlug": "arrays-hashing",
     "score": 12.54,
@@ -1129,8 +1163,10 @@
         "order": 0
       }
     ],
+    "lcId": 49,
     "likes": 22371,
-    "acceptance": 0,
+    "dislikes": 770,
+    "likeRatio": 96.7,
     "videoId": "vzdNOK2oB2E",
     "patternSlug": "arrays-hashing",
     "score": 11.22,
@@ -1215,8 +1251,10 @@
         "order": 0
       }
     ],
+    "lcId": 128,
     "likes": 23219,
-    "acceptance": 0,
+    "dislikes": 1251,
+    "likeRatio": 94.9,
     "videoId": "P6RZZMu_maU",
     "patternSlug": "arrays-hashing",
     "score": 11.21,
@@ -1299,8 +1337,10 @@
         "order": 0
       }
     ],
+    "lcId": 238,
     "likes": 26308,
-    "acceptance": 0,
+    "dislikes": 1714,
+    "likeRatio": 93.9,
     "videoId": "bNvIQI2wAjk",
     "patternSlug": "arrays-hashing",
     "score": 8.82,
@@ -1385,8 +1425,10 @@
         "order": 4
       }
     ],
+    "lcId": 75,
     "likes": 21971,
-    "acceptance": 0,
+    "dislikes": 775,
+    "likeRatio": 96.6,
     "videoId": "4xbWSRZHqac",
     "patternSlug": "arrays-hashing",
     "score": 8.21,
@@ -1453,8 +1495,10 @@
         "order": 0
       }
     ],
+    "lcId": 36,
     "likes": 12640,
-    "acceptance": 0,
+    "dislikes": 1273,
+    "likeRatio": 90.9,
     "videoId": "TjFXEUCMqI8",
     "patternSlug": "arrays-hashing",
     "score": 6.91,
@@ -1531,8 +1575,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 560,
     "likes": 25554,
-    "acceptance": 0,
+    "dislikes": 862,
+    "likeRatio": 96.7,
     "videoId": "fFVZt-6sgyo",
     "patternSlug": "arrays-hashing",
     "score": 5.66,
@@ -1595,8 +1641,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 380,
     "likes": 10037,
-    "acceptance": 0,
+    "dislikes": 699,
+    "likeRatio": 93.5,
     "videoId": "j4KwhBziOpg",
     "patternSlug": "arrays-hashing",
     "score": 4.83,
@@ -1637,8 +1685,10 @@
         "order": 3
       }
     ],
+    "lcId": 229,
     "likes": 11167,
-    "acceptance": 0,
+    "dislikes": 508,
+    "likeRatio": 95.6,
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 3.61,
@@ -1687,8 +1737,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 122,
     "likes": 15543,
-    "acceptance": 0,
+    "dislikes": 2818,
+    "likeRatio": 84.7,
     "videoId": "3SJ3pUkPQMc",
     "patternSlug": "arrays-hashing",
     "score": 3.38,
@@ -1742,8 +1794,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 179,
     "likes": 9548,
-    "acceptance": 0,
+    "dislikes": 808,
+    "likeRatio": 92.2,
     "videoId": "WDx6Y4i4xJ8",
     "patternSlug": "arrays-hashing",
     "score": 2.87,
@@ -1807,8 +1861,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 41,
     "likes": 18610,
-    "acceptance": 0,
+    "dislikes": 1987,
+    "likeRatio": 90.4,
     "videoId": "8g78yfzMlao",
     "patternSlug": "arrays-hashing",
     "score": 4.57,
@@ -1877,8 +1933,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 68,
     "likes": 4632,
-    "acceptance": 0,
+    "dislikes": 5446,
+    "likeRatio": 46,
     "videoId": "TzMl4Z7pVh8",
     "patternSlug": "arrays-hashing",
     "score": 4.57,
@@ -1931,8 +1989,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 815,
     "likes": 4766,
-    "acceptance": 0,
+    "dislikes": 137,
+    "likeRatio": 97.2,
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 2.23,
@@ -2011,8 +2071,10 @@
         "order": 2
       }
     ],
+    "lcId": 88,
     "likes": 19368,
-    "acceptance": 0,
+    "dislikes": 2674,
+    "likeRatio": 87.9,
     "videoId": "P1Ic85RarKY",
     "patternSlug": "two-pointers",
     "score": 9.08,
@@ -2083,8 +2145,10 @@
         "order": 0
       }
     ],
+    "lcId": 125,
     "likes": 11895,
-    "acceptance": 0,
+    "dislikes": 8658,
+    "likeRatio": 57.9,
     "videoId": "jJXJ16kPFWg",
     "patternSlug": "two-pointers",
     "score": 7.56,
@@ -2154,8 +2218,10 @@
         "order": 4
       }
     ],
+    "lcId": 26,
     "likes": 19554,
-    "acceptance": 0,
+    "dislikes": 20589,
+    "likeRatio": 48.7,
     "videoId": "DEJAZBq0FDA",
     "patternSlug": "two-pointers",
     "score": 7.53,
@@ -2227,8 +2293,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 283,
     "likes": 19741,
-    "acceptance": 0,
+    "dislikes": 612,
+    "likeRatio": 97,
     "videoId": "aayNRwUN3Do",
     "patternSlug": "two-pointers",
     "score": 5.26,
@@ -2273,8 +2341,10 @@
         "order": 5
       }
     ],
+    "lcId": 455,
     "likes": 5150,
-    "acceptance": 0,
+    "dislikes": 463,
+    "likeRatio": 91.8,
     "videoId": "",
     "patternSlug": "two-pointers",
     "score": 3.68,
@@ -2322,8 +2392,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 344,
     "likes": 9710,
-    "acceptance": 0,
+    "dislikes": 1217,
+    "likeRatio": 88.9,
     "videoId": "_d0T_2Lk2qA",
     "patternSlug": "two-pointers",
     "score": 2.97,
@@ -2424,8 +2496,10 @@
         "order": 0
       }
     ],
+    "lcId": 15,
     "likes": 36062,
-    "acceptance": 0,
+    "dislikes": 3308,
+    "likeRatio": 91.6,
     "videoId": "jzZsG8n2R9A",
     "patternSlug": "two-pointers",
     "score": 14,
@@ -2517,8 +2591,10 @@
         "order": 0
       }
     ],
+    "lcId": 11,
     "likes": 34744,
-    "acceptance": 0,
+    "dislikes": 2233,
+    "likeRatio": 94,
     "videoId": "UuiTKBwPgAo",
     "patternSlug": "two-pointers",
     "score": 10.45,
@@ -2600,8 +2676,10 @@
         "order": 2
       }
     ],
+    "lcId": 31,
     "likes": 21691,
-    "acceptance": 0,
+    "dislikes": 5139,
+    "likeRatio": 80.8,
     "videoId": "",
     "patternSlug": "two-pointers",
     "score": 7.82,
@@ -2656,8 +2734,10 @@
         "order": 1
       }
     ],
+    "lcId": 18,
     "likes": 13067,
-    "acceptance": 0,
+    "dislikes": 1549,
+    "likeRatio": 89.4,
     "videoId": "EYeR-_1NRlQ",
     "patternSlug": "two-pointers",
     "score": 6.08,
@@ -2719,8 +2799,10 @@
         "order": 0
       }
     ],
+    "lcId": 151,
     "likes": 10787,
-    "acceptance": 0,
+    "dislikes": 5635,
+    "likeRatio": 65.7,
     "videoId": "",
     "patternSlug": "two-pointers",
     "score": 5.68,
@@ -2775,8 +2857,10 @@
         "order": 0
       }
     ],
+    "lcId": 167,
     "likes": 13729,
-    "acceptance": 0,
+    "dislikes": 1542,
+    "likeRatio": 89.9,
     "videoId": "cQ1Oz4ckceM",
     "patternSlug": "two-pointers",
     "score": 5.4,
@@ -2826,8 +2910,10 @@
         "order": 5
       }
     ],
+    "lcId": 165,
     "likes": 3203,
-    "acceptance": 0,
+    "dislikes": 2798,
+    "likeRatio": 53.4,
     "videoId": "",
     "patternSlug": "two-pointers",
     "score": 4.27,
@@ -2876,8 +2962,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 189,
     "likes": 21389,
-    "acceptance": 0,
+    "dislikes": 2198,
+    "likeRatio": 90.7,
     "videoId": "BHr381Guz3Y",
     "patternSlug": "two-pointers",
     "score": 3.63,
@@ -2933,8 +3021,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 443,
     "likes": 6339,
-    "acceptance": 0,
+    "dislikes": 8957,
+    "likeRatio": 41.4,
     "videoId": "",
     "patternSlug": "two-pointers",
     "score": 3.57,
@@ -3036,8 +3126,10 @@
         "order": 0
       }
     ],
+    "lcId": 42,
     "likes": 36880,
-    "acceptance": 0,
+    "dislikes": 711,
+    "likeRatio": 98.1,
     "videoId": "ZI2z5pq0TqA",
     "patternSlug": "two-pointers",
     "score": 14.2,
@@ -3069,8 +3161,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1480,
     "likes": 8903,
-    "acceptance": 0,
+    "dislikes": 372,
+    "likeRatio": 96,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 1.04,
@@ -3121,8 +3215,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 528,
     "likes": 2309,
-    "acceptance": 0,
+    "dislikes": 1068,
+    "likeRatio": 68.4,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 2.27,
@@ -3167,8 +3263,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 525,
     "likes": 8994,
-    "acceptance": 0,
+    "dislikes": 453,
+    "likeRatio": 95.2,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 1.77,
@@ -3209,8 +3307,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 974,
     "likes": 7994,
-    "acceptance": 0,
+    "dislikes": 348,
+    "likeRatio": 95.8,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 1.36,
@@ -3248,8 +3348,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2055,
     "likes": 1376,
-    "acceptance": 0,
+    "dislikes": 74,
+    "likeRatio": 94.9,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 1.19,
@@ -3292,8 +3394,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1352,
     "likes": 2179,
-    "acceptance": 0,
+    "dislikes": 110,
+    "likeRatio": 95.2,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 0.9,
@@ -3329,8 +3433,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2145,
     "likes": 1046,
-    "acceptance": 0,
+    "dislikes": 93,
+    "likeRatio": 91.8,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 0.87,
@@ -3367,8 +3473,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1590,
     "likes": 2916,
-    "acceptance": 0,
+    "dislikes": 198,
+    "likeRatio": 93.6,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 0.85,
@@ -3401,8 +3509,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 3026,
     "likes": 499,
-    "acceptance": 0,
+    "dislikes": 27,
+    "likeRatio": 94.9,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 0.82,
@@ -3438,8 +3548,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2270,
     "likes": 1215,
-    "acceptance": 0,
+    "dislikes": 100,
+    "likeRatio": 92.4,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 0.8,
@@ -3475,8 +3587,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 3636,
     "likes": 46,
-    "acceptance": 0,
+    "dislikes": 10,
+    "likeRatio": 82.1,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 0.82,
@@ -3509,8 +3623,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2488,
     "likes": 672,
-    "acceptance": 0,
+    "dislikes": 17,
+    "likeRatio": 97.5,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 0.81,
@@ -3610,8 +3726,10 @@
         "order": 0
       }
     ],
+    "lcId": 121,
     "likes": 36122,
-    "acceptance": 0,
+    "dislikes": 1428,
+    "likeRatio": 96.2,
     "videoId": "1pkOgXD63yU",
     "patternSlug": "sliding-window",
     "score": 13.51,
@@ -3656,8 +3774,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 219,
     "likes": 7658,
-    "acceptance": 0,
+    "dislikes": 3336,
+    "likeRatio": 69.7,
     "videoId": "ypn0aZ0nrL4",
     "patternSlug": "sliding-window",
     "score": 3.07,
@@ -3697,8 +3817,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 643,
     "likes": 4520,
-    "acceptance": 0,
+    "dislikes": 387,
+    "likeRatio": 92.1,
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 1.32,
@@ -3811,8 +3933,10 @@
         "order": 0
       }
     ],
+    "lcId": 3,
     "likes": 45468,
-    "acceptance": 0,
+    "dislikes": 2230,
+    "likeRatio": 95.3,
     "videoId": "wiGpQwVHdE0",
     "patternSlug": "sliding-window",
     "score": 16.11,
@@ -3872,8 +3996,10 @@
         "order": 0
       }
     ],
+    "lcId": 424,
     "likes": 13391,
-    "acceptance": 0,
+    "dislikes": 789,
+    "likeRatio": 94.4,
     "videoId": "gqXU1UyA8pk",
     "patternSlug": "sliding-window",
     "score": 6.38,
@@ -3933,8 +4059,10 @@
         "order": 0
       }
     ],
+    "lcId": 567,
     "likes": 13198,
-    "acceptance": 0,
+    "dislikes": 526,
+    "likeRatio": 96.2,
     "videoId": "UbyhOgBN834",
     "patternSlug": "sliding-window",
     "score": 5.25,
@@ -4002,8 +4130,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 658,
     "likes": 9189,
-    "acceptance": 0,
+    "dislikes": 957,
+    "likeRatio": 90.6,
     "videoId": "o-YDQzHoaKM",
     "patternSlug": "sliding-window",
     "score": 3.46,
@@ -4048,8 +4178,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 904,
     "likes": 6393,
-    "acceptance": 0,
+    "dislikes": 618,
+    "likeRatio": 91.2,
     "videoId": "yYtaV0G3mWQ",
     "patternSlug": "sliding-window",
     "score": 2.92,
@@ -4103,8 +4235,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 209,
     "likes": 14651,
-    "acceptance": 0,
+    "dislikes": 547,
+    "likeRatio": 96.4,
     "videoId": "aYqYMIqZx5s",
     "patternSlug": "sliding-window",
     "score": 2.82,
@@ -4154,8 +4288,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 713,
     "likes": 7646,
-    "acceptance": 0,
+    "dislikes": 237,
+    "likeRatio": 97,
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 2.5,
@@ -4209,8 +4345,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1004,
     "likes": 10707,
-    "acceptance": 0,
+    "dislikes": 196,
+    "likeRatio": 98.2,
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 2.33,
@@ -4254,8 +4392,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1838,
     "likes": 5893,
-    "acceptance": 0,
+    "dislikes": 316,
+    "likeRatio": 94.9,
     "videoId": "vgBrQ0NM5vE",
     "patternSlug": "sliding-window",
     "score": 1.97,
@@ -4338,8 +4478,10 @@
         "order": 0
       }
     ],
+    "lcId": 239,
     "likes": 20752,
-    "acceptance": 0,
+    "dislikes": 853,
+    "likeRatio": 96.1,
     "videoId": "DfljaUwZsOk",
     "patternSlug": "sliding-window",
     "score": 9.78,
@@ -4423,8 +4565,10 @@
         "order": 0
       }
     ],
+    "lcId": 76,
     "likes": 20531,
-    "acceptance": 0,
+    "dislikes": 862,
+    "likeRatio": 96,
     "videoId": "jSto0O4AJbM",
     "patternSlug": "sliding-window",
     "score": 8.97,
@@ -4473,8 +4617,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 30,
     "likes": 2736,
-    "acceptance": 0,
+    "dislikes": 445,
+    "likeRatio": 86,
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 2.09,
@@ -4524,8 +4670,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 992,
     "likes": 7091,
-    "acceptance": 0,
+    "dislikes": 126,
+    "likeRatio": 98.3,
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 1.74,
@@ -4562,8 +4710,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 383,
     "likes": 5777,
-    "acceptance": 0,
+    "dislikes": 549,
+    "likeRatio": 91.3,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.57,
@@ -4599,8 +4749,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 796,
     "likes": 5065,
-    "acceptance": 0,
+    "dislikes": 467,
+    "likeRatio": 91.6,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.35,
@@ -4636,8 +4788,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 657,
     "likes": 2827,
-    "acceptance": 0,
+    "dislikes": 756,
+    "likeRatio": 78.9,
     "videoId": "",
     "patternSlug": "strings",
     "score": 0.91,
@@ -4671,8 +4825,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 459,
     "likes": 6922,
-    "acceptance": 0,
+    "dislikes": 572,
+    "likeRatio": 92.4,
     "videoId": "",
     "patternSlug": "strings",
     "score": 0.87,
@@ -4745,8 +4901,10 @@
         "order": 3
       }
     ],
+    "lcId": 8,
     "likes": 6386,
-    "acceptance": 0,
+    "dislikes": 15782,
+    "likeRatio": 28.8,
     "videoId": "",
     "patternSlug": "strings",
     "score": 7.74,
@@ -4795,8 +4953,10 @@
         "order": 4
       }
     ],
+    "lcId": 38,
     "likes": 5199,
-    "acceptance": 0,
+    "dislikes": 9137,
+    "likeRatio": 36.3,
     "videoId": "",
     "patternSlug": "strings",
     "score": 4.44,
@@ -4841,8 +5001,10 @@
         "order": 5
       }
     ],
+    "lcId": 686,
     "likes": 2935,
-    "acceptance": 0,
+    "dislikes": 1014,
+    "likeRatio": 74.3,
     "videoId": "",
     "patternSlug": "strings",
     "score": 3.08,
@@ -4889,8 +5051,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 468,
     "likes": 1129,
-    "acceptance": 0,
+    "dislikes": 2746,
+    "likeRatio": 29.1,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.47,
@@ -4925,8 +5089,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 3163,
     "likes": 637,
-    "acceptance": 0,
+    "dislikes": 54,
+    "likeRatio": 92.2,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.24,
@@ -4965,8 +5131,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1366,
     "likes": 1576,
-    "acceptance": 0,
+    "dislikes": 199,
+    "likeRatio": 88.8,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.06,
@@ -5004,8 +5172,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1169,
     "likes": 624,
-    "acceptance": 0,
+    "dislikes": 2443,
+    "likeRatio": 20.3,
     "videoId": "",
     "patternSlug": "strings",
     "score": 0.93,
@@ -5044,8 +5214,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 65,
     "likes": 1524,
-    "acceptance": 0,
+    "dislikes": 2220,
+    "likeRatio": 40.7,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.64,
@@ -5086,8 +5258,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 761,
     "likes": 1177,
-    "acceptance": 0,
+    "dislikes": 303,
+    "likeRatio": 79.5,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.6,
@@ -5128,8 +5302,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 214,
     "likes": 4619,
-    "acceptance": 0,
+    "dislikes": 295,
+    "likeRatio": 94,
     "videoId": "",
     "patternSlug": "strings",
     "score": 1.1,
@@ -5194,8 +5370,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 69,
     "likes": 9858,
-    "acceptance": 0,
+    "dislikes": 4650,
+    "likeRatio": 67.9,
     "videoId": "zdMhGxRWutQ",
     "patternSlug": "binary-search",
     "score": 4.64,
@@ -5237,8 +5415,10 @@
         "order": 0
       }
     ],
+    "lcId": 704,
     "likes": 13667,
-    "acceptance": 0,
+    "dislikes": 307,
+    "likeRatio": 97.8,
     "videoId": "s4DPM8ct1pI",
     "patternSlug": "binary-search",
     "score": 4.42,
@@ -5278,8 +5458,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 35,
     "likes": 19052,
-    "acceptance": 0,
+    "dislikes": 906,
+    "likeRatio": 95.5,
     "videoId": "K-RYzDZkzCI",
     "patternSlug": "binary-search",
     "score": 2.82,
@@ -5320,8 +5502,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 977,
     "likes": 10415,
-    "acceptance": 0,
+    "dislikes": 282,
+    "likeRatio": 97.4,
     "videoId": "FPCZsG_AkUg",
     "patternSlug": "binary-search",
     "score": 2.37,
@@ -5421,8 +5605,10 @@
         "order": 0
       }
     ],
+    "lcId": 33,
     "likes": 30609,
-    "acceptance": 0,
+    "dislikes": 1840,
+    "likeRatio": 94.3,
     "videoId": "U8XENwh8Oy8",
     "patternSlug": "binary-search",
     "score": 13.59,
@@ -5502,8 +5688,10 @@
         "order": 0
       }
     ],
+    "lcId": 74,
     "likes": 18169,
-    "acceptance": 0,
+    "dislikes": 490,
+    "likeRatio": 97.4,
     "videoId": "Ber2pi2C0j0",
     "patternSlug": "binary-search",
     "score": 9.52,
@@ -5585,8 +5773,10 @@
         "order": 0
       }
     ],
+    "lcId": 875,
     "likes": 14088,
-    "acceptance": 0,
+    "dislikes": 932,
+    "likeRatio": 93.8,
     "videoId": "U2SozAs9RzA",
     "patternSlug": "binary-search",
     "score": 8.33,
@@ -5657,8 +5847,10 @@
         "order": 0
       }
     ],
+    "lcId": 153,
     "likes": 15682,
-    "acceptance": 0,
+    "dislikes": 680,
+    "likeRatio": 95.8,
     "videoId": "nIVW4P8b1VA",
     "patternSlug": "binary-search",
     "score": 6.82,
@@ -5722,8 +5914,10 @@
         "order": 0
       }
     ],
+    "lcId": 981,
     "likes": 5344,
-    "acceptance": 0,
+    "dislikes": 740,
+    "likeRatio": 87.8,
     "videoId": "fu2cD_6E8Hw",
     "patternSlug": "binary-search",
     "score": 6.49,
@@ -5791,8 +5985,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 34,
     "likes": 23582,
-    "acceptance": 0,
+    "dislikes": 656,
+    "likeRatio": 97.3,
     "videoId": "4sQL7R5ySUU",
     "patternSlug": "binary-search",
     "score": 5.47,
@@ -5846,8 +6042,10 @@
         "order": 2
       }
     ],
+    "lcId": 540,
     "likes": 13235,
-    "acceptance": 0,
+    "dislikes": 253,
+    "likeRatio": 98.1,
     "videoId": "HGtqdzyUJ3k",
     "patternSlug": "binary-search",
     "score": 5.39,
@@ -5911,8 +6109,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 162,
     "likes": 14864,
-    "acceptance": 0,
+    "dislikes": 4963,
+    "likeRatio": 75,
     "videoId": "kMzJy9es7Hc",
     "patternSlug": "binary-search",
     "score": 4.64,
@@ -5957,8 +6157,10 @@
         "order": 0
       }
     ],
+    "lcId": 116,
     "likes": 10512,
-    "acceptance": 0,
+    "dislikes": 329,
+    "likeRatio": 97,
     "videoId": "U4hFQCa1Cq0",
     "patternSlug": "binary-search",
     "score": 4.2,
@@ -6014,8 +6216,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1011,
     "likes": 11225,
-    "acceptance": 0,
+    "dislikes": 299,
+    "likeRatio": 97.4,
     "videoId": "ER_oLmdc-nw",
     "patternSlug": "binary-search",
     "score": 3.39,
@@ -6069,8 +6273,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 240,
     "likes": 13291,
-    "acceptance": 0,
+    "dislikes": 236,
+    "likeRatio": 98.3,
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.44,
@@ -6126,8 +6332,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1268,
     "likes": 5166,
-    "acceptance": 0,
+    "dislikes": 267,
+    "likeRatio": 95.1,
     "videoId": "D4T2N0yAr20",
     "patternSlug": "binary-search",
     "score": 2.41,
@@ -6167,8 +6375,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 81,
     "likes": 9807,
-    "acceptance": 0,
+    "dislikes": 1132,
+    "likeRatio": 89.7,
     "videoId": "oUnF7o88_Xc",
     "patternSlug": "binary-search",
     "score": 2.24,
@@ -6268,8 +6478,10 @@
         "order": 0
       }
     ],
+    "lcId": 4,
     "likes": 32554,
-    "acceptance": 0,
+    "dislikes": 3598,
+    "likeRatio": 90,
     "videoId": "q6IEA26hvXc",
     "patternSlug": "binary-search",
     "score": 12.6,
@@ -6317,8 +6529,10 @@
         "order": 5
       }
     ],
+    "lcId": 493,
     "likes": 7137,
-    "acceptance": 0,
+    "dislikes": 304,
+    "likeRatio": 95.9,
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 3.86,
@@ -6373,8 +6587,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 410,
     "likes": 11589,
-    "acceptance": 0,
+    "dislikes": 274,
+    "likeRatio": 97.7,
     "videoId": "YUF3_eBdzsk",
     "patternSlug": "binary-search",
     "score": 2.99,
@@ -6483,8 +6699,10 @@
         "order": 0
       }
     ],
+    "lcId": 20,
     "likes": 28285,
-    "acceptance": 0,
+    "dislikes": 2023,
+    "likeRatio": 93.3,
     "videoId": "WTzjTskDFMg",
     "patternSlug": "stack",
     "score": 14.73,
@@ -6535,8 +6753,10 @@
         "order": 2
       }
     ],
+    "lcId": 225,
     "likes": 7063,
-    "acceptance": 0,
+    "dislikes": 1292,
+    "likeRatio": 84.5,
     "videoId": "rW4vm0-DLYc",
     "patternSlug": "stack",
     "score": 4.69,
@@ -6587,8 +6807,10 @@
         "order": 3
       }
     ],
+    "lcId": 232,
     "likes": 8744,
-    "acceptance": 0,
+    "dislikes": 497,
+    "likeRatio": 94.6,
     "videoId": "",
     "patternSlug": "stack",
     "score": 4.54,
@@ -6638,8 +6860,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 387,
     "likes": 9922,
-    "acceptance": 0,
+    "dislikes": 336,
+    "likeRatio": 96.7,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.84,
@@ -6718,8 +6942,10 @@
         "order": 0
       }
     ],
+    "lcId": 155,
     "likes": 16176,
-    "acceptance": 0,
+    "dislikes": 1002,
+    "likeRatio": 94.2,
     "videoId": "qkLl7nAwDPo",
     "patternSlug": "stack",
     "score": 9.83,
@@ -6811,8 +7037,10 @@
         "order": 0
       }
     ],
+    "lcId": 22,
     "likes": 23488,
-    "acceptance": 0,
+    "dislikes": 1093,
+    "likeRatio": 95.6,
     "videoId": "s9fokUqJ76A",
     "patternSlug": "stack",
     "score": 9.33,
@@ -6867,8 +7095,10 @@
         "order": 0
       }
     ],
+    "lcId": 739,
     "likes": 14908,
-    "acceptance": 0,
+    "dislikes": 380,
+    "likeRatio": 97.5,
     "videoId": "cTBiBSnjO3c",
     "patternSlug": "stack",
     "score": 5.38,
@@ -6923,8 +7153,10 @@
         "order": 0
       }
     ],
+    "lcId": 150,
     "likes": 8880,
-    "acceptance": 0,
+    "dislikes": 1200,
+    "likeRatio": 88.1,
     "videoId": "iu0082c4HDE",
     "patternSlug": "stack",
     "score": 5.05,
@@ -6984,8 +7216,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 71,
     "likes": 6664,
-    "acceptance": 0,
+    "dislikes": 1424,
+    "likeRatio": 82.4,
     "videoId": "qYlHrAKJfyA",
     "patternSlug": "stack",
     "score": 4.28,
@@ -7046,8 +7280,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 394,
     "likes": 14153,
-    "acceptance": 0,
+    "dislikes": 711,
+    "likeRatio": 95.2,
     "videoId": "qB0zZpBJlh8",
     "patternSlug": "stack",
     "score": 4.22,
@@ -7112,8 +7348,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 735,
     "likes": 9569,
-    "acceptance": 0,
+    "dislikes": 1314,
+    "likeRatio": 87.9,
     "videoId": "LN7KjRszjk4",
     "patternSlug": "stack",
     "score": 4.17,
@@ -7153,8 +7391,10 @@
         "order": 7
       }
     ],
+    "lcId": 901,
     "likes": 7396,
-    "acceptance": 0,
+    "dislikes": 512,
+    "likeRatio": 93.5,
     "videoId": "slYh0ZNEqSw",
     "patternSlug": "stack",
     "score": 4.09,
@@ -7198,8 +7438,10 @@
         "order": 0
       }
     ],
+    "lcId": 853,
     "likes": 4440,
-    "acceptance": 0,
+    "dislikes": 1232,
+    "likeRatio": 78.3,
     "videoId": "Pr6T-3yB9RM",
     "patternSlug": "stack",
     "score": 3.87,
@@ -7256,8 +7498,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 227,
     "likes": 6645,
-    "acceptance": 0,
+    "dislikes": 960,
+    "likeRatio": 87.4,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.86,
@@ -7311,8 +7555,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 402,
     "likes": 10756,
-    "acceptance": 0,
+    "dislikes": 557,
+    "likeRatio": 95.1,
     "videoId": "cFabMOnJaq0",
     "patternSlug": "stack",
     "score": 2.83,
@@ -7369,8 +7615,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 503,
     "likes": 9365,
-    "acceptance": 0,
+    "dislikes": 247,
+    "likeRatio": 97.4,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.51,
@@ -7459,8 +7707,10 @@
         "order": 0
       }
     ],
+    "lcId": 84,
     "likes": 19951,
-    "acceptance": 0,
+    "dislikes": 397,
+    "likeRatio": 98,
     "videoId": "zx5Sw9130L0",
     "patternSlug": "stack",
     "score": 10.16,
@@ -7518,8 +7768,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 224,
     "likes": 7035,
-    "acceptance": 0,
+    "dislikes": 564,
+    "likeRatio": 92.6,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.88,
@@ -7574,8 +7826,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 85,
     "likes": 12229,
-    "acceptance": 0,
+    "dislikes": 228,
+    "likeRatio": 98.2,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.7,
@@ -7629,8 +7883,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 32,
     "likes": 13419,
-    "acceptance": 0,
+    "dislikes": 469,
+    "likeRatio": 96.6,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.52,
@@ -7718,8 +7974,10 @@
         "order": 0
       }
     ],
+    "lcId": 21,
     "likes": 25251,
-    "acceptance": 0,
+    "dislikes": 2457,
+    "likeRatio": 91.1,
     "videoId": "XIdigk956u0",
     "patternSlug": "linked-list",
     "score": 11.72,
@@ -7803,8 +8061,10 @@
         "order": 0
       }
     ],
+    "lcId": 206,
     "likes": 24800,
-    "acceptance": 0,
+    "dislikes": 590,
+    "likeRatio": 97.7,
     "videoId": "G0_I-ZF0S38",
     "patternSlug": "linked-list",
     "score": 11.69,
@@ -7874,8 +8134,10 @@
         "order": 0
       }
     ],
+    "lcId": 141,
     "likes": 17758,
-    "acceptance": 0,
+    "dislikes": 1601,
+    "likeRatio": 91.7,
     "videoId": "gBTe7lFR3vc",
     "patternSlug": "linked-list",
     "score": 9.26,
@@ -7925,8 +8187,10 @@
         "order": 1
       }
     ],
+    "lcId": 876,
     "likes": 13408,
-    "acceptance": 0,
+    "dislikes": 451,
+    "likeRatio": 96.7,
     "videoId": "A2_ldqM4QcY",
     "patternSlug": "linked-list",
     "score": 5.26,
@@ -7981,8 +8245,10 @@
         "order": 0
       }
     ],
+    "lcId": 160,
     "likes": 16810,
-    "acceptance": 0,
+    "dislikes": 1504,
+    "likeRatio": 91.8,
     "videoId": "D0X0BONOQhI",
     "patternSlug": "linked-list",
     "score": 5.16,
@@ -8030,8 +8296,10 @@
         "order": 3
       }
     ],
+    "lcId": 234,
     "likes": 18530,
-    "acceptance": 0,
+    "dislikes": 988,
+    "likeRatio": 94.9,
     "videoId": "yOzXms1J6Nk",
     "patternSlug": "linked-list",
     "score": 4.88,
@@ -8136,8 +8404,10 @@
         "order": 0
       }
     ],
+    "lcId": 146,
     "likes": 23367,
-    "acceptance": 0,
+    "dislikes": 1252,
+    "likeRatio": 94.9,
     "videoId": "7ABFKPK2hD4",
     "patternSlug": "linked-list",
     "score": 14.83,
@@ -8221,8 +8491,10 @@
         "order": 0
       }
     ],
+    "lcId": 2,
     "likes": 37160,
-    "acceptance": 0,
+    "dislikes": 7283,
+    "likeRatio": 83.6,
     "videoId": "wgFPrzTjm7s",
     "patternSlug": "linked-list",
     "score": 11.24,
@@ -8294,8 +8566,10 @@
         "order": 0
       }
     ],
+    "lcId": 19,
     "likes": 21506,
-    "acceptance": 0,
+    "dislikes": 918,
+    "likeRatio": 95.9,
     "videoId": "XVuQxVej6y8",
     "patternSlug": "linked-list",
     "score": 10.26,
@@ -8358,8 +8632,10 @@
         "order": 0
       }
     ],
+    "lcId": 138,
     "likes": 15751,
-    "acceptance": 0,
+    "dislikes": 1697,
+    "likeRatio": 90.3,
     "videoId": "5Y2EiZST97Y",
     "patternSlug": "linked-list",
     "score": 8.21,
@@ -8430,8 +8706,10 @@
         "order": 0
       }
     ],
+    "lcId": 287,
     "likes": 25765,
-    "acceptance": 0,
+    "dislikes": 5902,
+    "likeRatio": 81.4,
     "videoId": "wjYnzkAhcNk",
     "patternSlug": "linked-list",
     "score": 8.08,
@@ -8492,8 +8770,10 @@
         "order": 0
       }
     ],
+    "lcId": 143,
     "likes": 12727,
-    "acceptance": 0,
+    "dislikes": 527,
+    "likeRatio": 96,
     "videoId": "S5bfdUTrKLM",
     "patternSlug": "linked-list",
     "score": 6.14,
@@ -8551,8 +8831,10 @@
         "order": 0
       }
     ],
+    "lcId": 61,
     "likes": 11587,
-    "acceptance": 0,
+    "dislikes": 1559,
+    "likeRatio": 88.1,
     "videoId": "UcGtPs2LE_c",
     "patternSlug": "linked-list",
     "score": 5.84,
@@ -8601,8 +8883,10 @@
         "order": 5
       }
     ],
+    "lcId": 237,
     "likes": 6447,
-    "acceptance": 0,
+    "dislikes": 1810,
+    "likeRatio": 78.1,
     "videoId": "",
     "patternSlug": "linked-list",
     "score": 4.79,
@@ -8646,8 +8930,10 @@
         "order": 4
       }
     ],
+    "lcId": 142,
     "likes": 15345,
-    "acceptance": 0,
+    "dislikes": 1101,
+    "likeRatio": 93.3,
     "videoId": "",
     "patternSlug": "linked-list",
     "score": 3.69,
@@ -8749,8 +9035,10 @@
         "order": 0
       }
     ],
+    "lcId": 23,
     "likes": 21503,
-    "acceptance": 0,
+    "dislikes": 797,
+    "likeRatio": 96.4,
     "videoId": "q5a5OiGbT6Q",
     "patternSlug": "linked-list",
     "score": 11.38,
@@ -8833,8 +9121,10 @@
         "order": 0
       }
     ],
+    "lcId": 25,
     "likes": 15883,
-    "acceptance": 0,
+    "dislikes": 812,
+    "likeRatio": 95.1,
     "videoId": "1UOPsfP85V4",
     "patternSlug": "linked-list",
     "score": 9.96,
@@ -8902,8 +9192,10 @@
         "order": 2
       }
     ],
+    "lcId": 460,
     "likes": 6474,
-    "acceptance": 0,
+    "dislikes": 355,
+    "likeRatio": 94.8,
     "videoId": "bLEIHn-DgoA",
     "patternSlug": "linked-list",
     "score": 6.33,
@@ -8981,8 +9273,10 @@
         "order": 0
       }
     ],
+    "lcId": 104,
     "likes": 14474,
-    "acceptance": 0,
+    "dislikes": 298,
+    "likeRatio": 98,
     "videoId": "hTM3phVI6YQ",
     "patternSlug": "trees",
     "score": 9.99,
@@ -9048,8 +9342,10 @@
         "order": 0
       }
     ],
+    "lcId": 100,
     "likes": 13061,
-    "acceptance": 0,
+    "dislikes": 306,
+    "likeRatio": 97.7,
     "videoId": "vRbbcKXCxOw",
     "patternSlug": "trees",
     "score": 8.82,
@@ -9118,8 +9414,10 @@
         "order": 0
       }
     ],
+    "lcId": 543,
     "likes": 15892,
-    "acceptance": 0,
+    "dislikes": 1261,
+    "likeRatio": 92.6,
     "videoId": "bkxqA8Rfv04",
     "patternSlug": "trees",
     "score": 8.12,
@@ -9171,8 +9469,10 @@
         "order": 0
       }
     ],
+    "lcId": 110,
     "likes": 12353,
-    "acceptance": 0,
+    "dislikes": 848,
+    "likeRatio": 93.6,
     "videoId": "QfJsau0ItOY",
     "patternSlug": "trees",
     "score": 7.11,
@@ -9236,8 +9536,10 @@
         "order": 3
       }
     ],
+    "lcId": 101,
     "likes": 17018,
-    "acceptance": 0,
+    "dislikes": 465,
+    "likeRatio": 97.3,
     "videoId": "Mao9uzxwvmc",
     "patternSlug": "trees",
     "score": 5.79,
@@ -9286,8 +9588,10 @@
         "order": 0
       }
     ],
+    "lcId": 226,
     "likes": 15342,
-    "acceptance": 0,
+    "dislikes": 255,
+    "likeRatio": 98.4,
     "videoId": "OnSn2XEQ4MY",
     "patternSlug": "trees",
     "score": 5.19,
@@ -9335,8 +9639,10 @@
         "order": 3
       }
     ],
+    "lcId": 94,
     "likes": 15064,
-    "acceptance": 0,
+    "dislikes": 907,
+    "likeRatio": 94.3,
     "videoId": "g_S5WuasWUE",
     "patternSlug": "trees",
     "score": 4.87,
@@ -9382,8 +9688,10 @@
         "order": 0
       }
     ],
+    "lcId": 572,
     "likes": 9015,
-    "acceptance": 0,
+    "dislikes": 607,
+    "likeRatio": 93.7,
     "videoId": "E36O5SWp-LE",
     "patternSlug": "trees",
     "score": 4.61,
@@ -9436,8 +9744,10 @@
         "order": 2
       }
     ],
+    "lcId": 108,
     "likes": 12034,
-    "acceptance": 0,
+    "dislikes": 654,
+    "likeRatio": 94.8,
     "videoId": "0K0uCMYq5ng",
     "patternSlug": "trees",
     "score": 4.55,
@@ -9477,8 +9787,10 @@
         "order": 1
       }
     ],
+    "lcId": 144,
     "likes": 8983,
-    "acceptance": 0,
+    "dislikes": 237,
+    "likeRatio": 97.4,
     "videoId": "afTpieEZXck",
     "patternSlug": "trees",
     "score": 3.65,
@@ -9518,8 +9830,10 @@
         "order": 2
       }
     ],
+    "lcId": 145,
     "likes": 7870,
-    "acceptance": 0,
+    "dislikes": 228,
+    "likeRatio": 97.2,
     "videoId": "QhszUQhGGlA",
     "patternSlug": "trees",
     "score": 3.56,
@@ -9596,8 +9910,10 @@
         "order": 0
       }
     ],
+    "lcId": 102,
     "likes": 17279,
-    "acceptance": 0,
+    "dislikes": 390,
+    "likeRatio": 97.8,
     "videoId": "6ZnyEApgFYg",
     "patternSlug": "trees",
     "score": 10.43,
@@ -9675,8 +9991,10 @@
         "order": 0
       }
     ],
+    "lcId": 98,
     "likes": 18573,
-    "acceptance": 0,
+    "dislikes": 1466,
+    "likeRatio": 92.7,
     "videoId": "s6ATEkipzow",
     "patternSlug": "trees",
     "score": 9.85,
@@ -9743,8 +10061,10 @@
         "order": 0
       }
     ],
+    "lcId": 105,
     "likes": 16841,
-    "acceptance": 0,
+    "dislikes": 640,
+    "likeRatio": 96.3,
     "videoId": "ihj4IQGZ2zc",
     "patternSlug": "trees",
     "score": 8.81,
@@ -9810,8 +10130,10 @@
         "order": 0
       }
     ],
+    "lcId": 230,
     "likes": 12874,
-    "acceptance": 0,
+    "dislikes": 269,
+    "likeRatio": 98,
     "videoId": "5LUXSvjmGCw",
     "patternSlug": "trees",
     "score": 8.79,
@@ -9871,8 +10193,10 @@
         "order": 0
       }
     ],
+    "lcId": 235,
     "likes": 12424,
-    "acceptance": 0,
+    "dislikes": 366,
+    "likeRatio": 97.1,
     "videoId": "gs2LMfuOR9k",
     "patternSlug": "trees",
     "score": 8.1,
@@ -9943,8 +10267,10 @@
         "order": 6
       }
     ],
+    "lcId": 103,
     "likes": 12236,
-    "acceptance": 0,
+    "dislikes": 363,
+    "likeRatio": 97.1,
     "videoId": "igbboQbiwqw",
     "patternSlug": "trees",
     "score": 6.87,
@@ -10013,8 +10339,10 @@
         "order": 4
       }
     ],
+    "lcId": 236,
     "likes": 18954,
-    "acceptance": 0,
+    "dislikes": 495,
+    "likeRatio": 97.5,
     "videoId": "",
     "patternSlug": "trees",
     "score": 6.55,
@@ -10070,8 +10398,10 @@
         "order": 0
       }
     ],
+    "lcId": 199,
     "likes": 13631,
-    "acceptance": 0,
+    "dislikes": 1097,
+    "likeRatio": 92.6,
     "videoId": "d4zLyf32e3I",
     "patternSlug": "trees",
     "score": 5.42,
@@ -10125,8 +10455,10 @@
         "order": 5
       }
     ],
+    "lcId": 173,
     "likes": 9313,
-    "acceptance": 0,
+    "dislikes": 597,
+    "likeRatio": 94,
     "videoId": "RXy5RzGF5wo",
     "patternSlug": "trees",
     "score": 4.53,
@@ -10174,8 +10506,10 @@
         "order": 11
       }
     ],
+    "lcId": 662,
     "likes": 9896,
-    "acceptance": 0,
+    "dislikes": 1347,
+    "likeRatio": 88,
     "videoId": "FPzLE2L7uHs",
     "patternSlug": "trees",
     "score": 4.46,
@@ -10220,8 +10554,10 @@
         "order": 2
       }
     ],
+    "lcId": 106,
     "likes": 8772,
-    "acceptance": 0,
+    "dislikes": 161,
+    "likeRatio": 98.2,
     "videoId": "vm63HuIU7kw",
     "patternSlug": "trees",
     "score": 3.69,
@@ -10266,8 +10602,10 @@
         "order": 0
       }
     ],
+    "lcId": 114,
     "likes": 13870,
-    "acceptance": 0,
+    "dislikes": 606,
+    "likeRatio": 95.8,
     "videoId": "",
     "patternSlug": "trees",
     "score": 3.64,
@@ -10307,8 +10645,10 @@
         "order": 0
       }
     ],
+    "lcId": 1448,
     "likes": 6424,
-    "acceptance": 0,
+    "dislikes": 215,
+    "likeRatio": 96.8,
     "videoId": "7cp5imvDzl4",
     "patternSlug": "trees",
     "score": 3.41,
@@ -10367,8 +10707,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 863,
     "likes": 12261,
-    "acceptance": 0,
+    "dislikes": 279,
+    "likeRatio": 97.8,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.39,
@@ -10456,8 +10798,10 @@
         "order": 0
       }
     ],
+    "lcId": 297,
     "likes": 11282,
-    "acceptance": 0,
+    "dislikes": 438,
+    "likeRatio": 96.3,
     "videoId": "u4JAi2JJhI8",
     "patternSlug": "trees",
     "score": 10.6,
@@ -10540,8 +10884,10 @@
         "order": 0
       }
     ],
+    "lcId": 124,
     "likes": 18689,
-    "acceptance": 0,
+    "dislikes": 796,
+    "likeRatio": 95.9,
     "videoId": "Hr5cWUld4vU",
     "patternSlug": "trees",
     "score": 10.17,
@@ -10599,8 +10945,10 @@
         "order": 9
       }
     ],
+    "lcId": 987,
     "likes": 8786,
-    "acceptance": 0,
+    "dislikes": 4394,
+    "likeRatio": 66.7,
     "videoId": "",
     "patternSlug": "trees",
     "score": 4.8,
@@ -10655,8 +11003,10 @@
         "order": 4
       }
     ],
+    "lcId": 653,
     "likes": 7367,
-    "acceptance": 0,
+    "dislikes": 292,
+    "likeRatio": 96.2,
     "videoId": "",
     "patternSlug": "bst",
     "score": 4.12,
@@ -10695,8 +11045,10 @@
         "order": 1
       }
     ],
+    "lcId": 700,
     "likes": 6663,
-    "acceptance": 0,
+    "dislikes": 221,
+    "likeRatio": 96.8,
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.99,
@@ -10730,8 +11082,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 938,
     "likes": 7289,
-    "acceptance": 0,
+    "dislikes": 389,
+    "likeRatio": 94.9,
     "videoId": "",
     "patternSlug": "bst",
     "score": 0.44,
@@ -10765,8 +11119,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 501,
     "likes": 4144,
-    "acceptance": 0,
+    "dislikes": 818,
+    "likeRatio": 83.5,
     "videoId": "",
     "patternSlug": "bst",
     "score": 0.39,
@@ -10808,8 +11164,10 @@
         "order": 3
       }
     ],
+    "lcId": 1008,
     "likes": 6860,
-    "acceptance": 0,
+    "dislikes": 95,
+    "likeRatio": 98.6,
     "videoId": "",
     "patternSlug": "bst",
     "score": 3.17,
@@ -10851,8 +11209,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 99,
     "likes": 8722,
-    "acceptance": 0,
+    "dislikes": 293,
+    "likeRatio": 96.7,
     "videoId": "",
     "patternSlug": "bst",
     "score": 1.36,
@@ -10895,8 +11255,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 109,
     "likes": 7934,
-    "acceptance": 0,
+    "dislikes": 175,
+    "likeRatio": 97.8,
     "videoId": "",
     "patternSlug": "bst",
     "score": 1.11,
@@ -10932,8 +11294,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1382,
     "likes": 4201,
-    "acceptance": 0,
+    "dislikes": 105,
+    "likeRatio": 97.6,
     "videoId": "",
     "patternSlug": "bst",
     "score": 0.57,
@@ -10963,8 +11327,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1038,
     "likes": 4595,
-    "acceptance": 0,
+    "dislikes": 169,
+    "likeRatio": 96.5,
     "videoId": "",
     "patternSlug": "bst",
     "score": 0.37,
@@ -11006,8 +11372,10 @@
         "order": 6
       }
     ],
+    "lcId": 1373,
     "likes": 3074,
-    "acceptance": 0,
+    "dislikes": 201,
+    "likeRatio": 93.9,
     "videoId": "",
     "patternSlug": "bst",
     "score": 3.09,
@@ -11066,8 +11434,10 @@
         "order": 0
       }
     ],
+    "lcId": 703,
     "likes": 6520,
-    "acceptance": 0,
+    "dislikes": 4097,
+    "likeRatio": 61.4,
     "videoId": "hOjcdrqMoQ8",
     "patternSlug": "heap",
     "score": 7.16,
@@ -11117,8 +11487,10 @@
         "order": 0
       }
     ],
+    "lcId": 1046,
     "likes": 6749,
-    "acceptance": 0,
+    "dislikes": 156,
+    "likeRatio": 97.7,
     "videoId": "B-QCq79-Vfw",
     "patternSlug": "heap",
     "score": 4.37,
@@ -11208,8 +11580,10 @@
         "order": 0
       }
     ],
+    "lcId": 215,
     "likes": 18981,
-    "acceptance": 0,
+    "dislikes": 978,
+    "likeRatio": 95.1,
     "videoId": "XEmy13g1Qxc",
     "patternSlug": "heap",
     "score": 10.64,
@@ -11275,8 +11649,10 @@
         "order": 0
       }
     ],
+    "lcId": 621,
     "likes": 12036,
-    "acceptance": 0,
+    "dislikes": 2241,
+    "likeRatio": 84.3,
     "videoId": "s8p8ukTyA2I",
     "patternSlug": "heap",
     "score": 5.79,
@@ -11336,8 +11712,10 @@
         "order": 0
       }
     ],
+    "lcId": 973,
     "likes": 9182,
-    "acceptance": 0,
+    "dislikes": 340,
+    "likeRatio": 96.4,
     "videoId": "rI2EBUEMfTk",
     "patternSlug": "heap",
     "score": 4.66,
@@ -11393,8 +11771,10 @@
         "order": 0
       }
     ],
+    "lcId": 355,
     "likes": 4790,
-    "acceptance": 0,
+    "dislikes": 671,
+    "likeRatio": 87.7,
     "videoId": "pNichitDD2E",
     "patternSlug": "heap",
     "score": 4.49,
@@ -11446,8 +11826,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 767,
     "likes": 9336,
-    "acceptance": 0,
+    "dislikes": 288,
+    "likeRatio": 97,
     "videoId": "2g_b1aYTHeg",
     "patternSlug": "heap",
     "score": 2.71,
@@ -11495,8 +11877,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 373,
     "likes": 7060,
-    "acceptance": 0,
+    "dislikes": 500,
+    "likeRatio": 93.4,
     "videoId": "",
     "patternSlug": "heap",
     "score": 1.91,
@@ -11550,8 +11934,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1353,
     "likes": 4048,
-    "acceptance": 0,
+    "dislikes": 638,
+    "likeRatio": 86.4,
     "videoId": "",
     "patternSlug": "heap",
     "score": 1.87,
@@ -11598,8 +11984,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 378,
     "likes": 10678,
-    "acceptance": 0,
+    "dislikes": 399,
+    "likeRatio": 96.4,
     "videoId": "",
     "patternSlug": "heap",
     "score": 1.47,
@@ -11643,8 +12031,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 451,
     "likes": 9363,
-    "acceptance": 0,
+    "dislikes": 338,
+    "likeRatio": 96.5,
     "videoId": "",
     "patternSlug": "heap",
     "score": 1.45,
@@ -11681,8 +12071,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1405,
     "likes": 2829,
-    "acceptance": 0,
+    "dislikes": 322,
+    "likeRatio": 89.8,
     "videoId": "8u-H6O_XQKE",
     "patternSlug": "heap",
     "score": 1.35,
@@ -11765,8 +12157,10 @@
         "order": 0
       }
     ],
+    "lcId": 295,
     "likes": 13385,
-    "acceptance": 0,
+    "dislikes": 284,
+    "likeRatio": 97.9,
     "videoId": "itmhHWaHupI",
     "patternSlug": "heap",
     "score": 10.49,
@@ -11816,8 +12210,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 407,
     "likes": 5030,
-    "acceptance": 0,
+    "dislikes": 176,
+    "likeRatio": 96.6,
     "videoId": "",
     "patternSlug": "heap",
     "score": 2.01,
@@ -11871,8 +12267,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 218,
     "likes": 6257,
-    "acceptance": 0,
+    "dislikes": 286,
+    "likeRatio": 95.6,
     "videoId": "",
     "patternSlug": "heap",
     "score": 1.59,
@@ -11914,8 +12312,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 502,
     "likes": 4243,
-    "acceptance": 0,
+    "dislikes": 286,
+    "likeRatio": 93.7,
     "videoId": "1IUzNJ6TPEM",
     "patternSlug": "heap",
     "score": 1.47,
@@ -11985,8 +12385,10 @@
         "order": 0
       }
     ],
+    "lcId": 208,
     "likes": 12538,
-    "acceptance": 0,
+    "dislikes": 167,
+    "likeRatio": 98.7,
     "videoId": "oobqoCJlHA0",
     "patternSlug": "tries",
     "score": 9,
@@ -12051,8 +12453,10 @@
         "order": 0
       }
     ],
+    "lcId": 211,
     "likes": 8156,
-    "acceptance": 0,
+    "dislikes": 494,
+    "likeRatio": 94.3,
     "videoId": "BTf05gs_8iU",
     "patternSlug": "tries",
     "score": 5.88,
@@ -12096,8 +12500,10 @@
         "order": 5
       }
     ],
+    "lcId": 421,
     "likes": 6005,
-    "acceptance": 0,
+    "dislikes": 425,
+    "likeRatio": 93.4,
     "videoId": "",
     "patternSlug": "tries",
     "score": 3.2,
@@ -12163,8 +12569,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 692,
     "likes": 8101,
-    "acceptance": 0,
+    "dislikes": 375,
+    "likeRatio": 95.6,
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.83,
@@ -12206,8 +12614,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 3043,
     "likes": 1101,
-    "acceptance": 0,
+    "dislikes": 59,
+    "likeRatio": 94.9,
     "videoId": "",
     "patternSlug": "tries",
     "score": 1.09,
@@ -12273,8 +12683,10 @@
         "order": 0
       }
     ],
+    "lcId": 212,
     "likes": 10284,
-    "acceptance": 0,
+    "dislikes": 510,
+    "likeRatio": 95.3,
     "videoId": "asbcE9mZz_U",
     "patternSlug": "tries",
     "score": 6.55,
@@ -12305,8 +12717,10 @@
         "order": 6
       }
     ],
+    "lcId": 1707,
     "likes": 1450,
-    "acceptance": 0,
+    "dislikes": 41,
+    "likeRatio": 97.3,
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.75,
@@ -12355,8 +12769,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 140,
     "likes": 7615,
-    "acceptance": 0,
+    "dislikes": 551,
+    "likeRatio": 93.3,
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.15,
@@ -12436,8 +12852,10 @@
         "order": 0
       }
     ],
+    "lcId": 39,
     "likes": 21235,
-    "acceptance": 0,
+    "dislikes": 547,
+    "likeRatio": 97.5,
     "videoId": "GBKI9VSKdGg",
     "patternSlug": "backtracking",
     "score": 10.31,
@@ -12531,8 +12949,10 @@
         "order": 0
       }
     ],
+    "lcId": 79,
     "likes": 17899,
-    "acceptance": 0,
+    "dislikes": 759,
+    "likeRatio": 95.9,
     "videoId": "pfiQ_PS1g8E",
     "patternSlug": "backtracking",
     "score": 10.29,
@@ -12619,8 +13039,10 @@
         "order": 0
       }
     ],
+    "lcId": 46,
     "likes": 21070,
-    "acceptance": 0,
+    "dislikes": 386,
+    "likeRatio": 98.2,
     "videoId": "s7AvT7cGdSo",
     "patternSlug": "backtracking",
     "score": 10.18,
@@ -12683,8 +13105,10 @@
         "order": 0
       }
     ],
+    "lcId": 40,
     "likes": 12414,
-    "acceptance": 0,
+    "dislikes": 393,
+    "likeRatio": 96.9,
     "videoId": "rSA3t6BDDwg",
     "patternSlug": "backtracking",
     "score": 7.92,
@@ -12755,8 +13179,10 @@
         "order": 0
       }
     ],
+    "lcId": 17,
     "likes": 21235,
-    "acceptance": 0,
+    "dislikes": 1141,
+    "likeRatio": 94.9,
     "videoId": "0snEunUacZY",
     "patternSlug": "backtracking",
     "score": 7.77,
@@ -12812,8 +13238,10 @@
         "order": 0
       }
     ],
+    "lcId": 90,
     "likes": 11097,
-    "acceptance": 0,
+    "dislikes": 421,
+    "likeRatio": 96.3,
     "videoId": "Vn2v6ajA7U0",
     "patternSlug": "backtracking",
     "score": 7.62,
@@ -12880,8 +13308,10 @@
         "order": 0
       }
     ],
+    "lcId": 78,
     "likes": 19429,
-    "acceptance": 0,
+    "dislikes": 344,
+    "likeRatio": 98.3,
     "videoId": "REOH22Xwdkk",
     "patternSlug": "backtracking",
     "score": 6.89,
@@ -12925,8 +13355,10 @@
         "order": 0
       }
     ],
+    "lcId": 131,
     "likes": 14467,
-    "acceptance": 0,
+    "dislikes": 579,
+    "likeRatio": 96.2,
     "videoId": "3jvWodd7ht0",
     "patternSlug": "backtracking",
     "score": 6.81,
@@ -12990,8 +13422,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 93,
     "likes": 5727,
-    "acceptance": 0,
+    "dislikes": 824,
+    "likeRatio": 87.4,
     "videoId": "61tN4YEdiTM",
     "patternSlug": "backtracking",
     "score": 3.59,
@@ -13048,8 +13482,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 47,
     "likes": 9244,
-    "acceptance": 0,
+    "dislikes": 164,
+    "likeRatio": 98.3,
     "videoId": "qhBVWf0YafA",
     "patternSlug": "backtracking",
     "score": 2.98,
@@ -13092,8 +13528,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 77,
     "likes": 9004,
-    "acceptance": 0,
+    "dislikes": 256,
+    "likeRatio": 97.2,
     "videoId": "q0s6m7AiM7o",
     "patternSlug": "backtracking",
     "score": 2.14,
@@ -13137,8 +13575,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 698,
     "likes": 7615,
-    "acceptance": 0,
+    "dislikes": 557,
+    "likeRatio": 93.2,
     "videoId": "mBk4I0X46oI",
     "patternSlug": "backtracking",
     "score": 1.56,
@@ -13206,8 +13646,10 @@
         "order": 0
       }
     ],
+    "lcId": 51,
     "likes": 14619,
-    "acceptance": 0,
+    "dislikes": 356,
+    "likeRatio": 97.6,
     "videoId": "Ph95IHmRp5M",
     "patternSlug": "backtracking",
     "score": 9.11,
@@ -13273,8 +13715,10 @@
         "order": 2
       }
     ],
+    "lcId": 37,
     "likes": 11259,
-    "acceptance": 0,
+    "dislikes": 349,
+    "likeRatio": 97,
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 5.42,
@@ -13321,8 +13765,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 126,
     "likes": 6662,
-    "acceptance": 0,
+    "dislikes": 838,
+    "likeRatio": 88.8,
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 1.65,
@@ -13358,8 +13804,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 52,
     "likes": 4340,
-    "acceptance": 0,
+    "dislikes": 283,
+    "likeRatio": 93.9,
     "videoId": "nalYyLZgvCY",
     "patternSlug": "backtracking",
     "score": 1.32,
@@ -13401,8 +13849,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 463,
     "likes": 7369,
-    "acceptance": 0,
+    "dislikes": 432,
+    "likeRatio": 94.5,
     "videoId": "fISIuAFRM2s",
     "patternSlug": "graphs",
     "score": 1.67,
@@ -13443,8 +13893,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 953,
     "likes": 5126,
-    "acceptance": 0,
+    "dislikes": 1684,
+    "likeRatio": 75.3,
     "videoId": "OVgPAJIyX6o",
     "patternSlug": "graphs",
     "score": 1.25,
@@ -13547,8 +13999,10 @@
         "order": 0
       }
     ],
+    "lcId": 200,
     "likes": 25261,
-    "acceptance": 0,
+    "dislikes": 622,
+    "likeRatio": 97.6,
     "videoId": "pV2kpPD66nE",
     "patternSlug": "graphs",
     "score": 14.72,
@@ -13631,8 +14085,10 @@
         "order": 0
       }
     ],
+    "lcId": 207,
     "likes": 18239,
-    "acceptance": 0,
+    "dislikes": 879,
+    "likeRatio": 95.4,
     "videoId": "EgI5nU9etnU",
     "patternSlug": "graphs",
     "score": 11.03,
@@ -13716,8 +14172,10 @@
         "order": 0
       }
     ],
+    "lcId": 994,
     "likes": 15464,
-    "acceptance": 0,
+    "dislikes": 479,
+    "likeRatio": 97,
     "videoId": "y704fEOx0s0",
     "patternSlug": "graphs",
     "score": 10.46,
@@ -13797,8 +14255,10 @@
         "order": 0
       }
     ],
+    "lcId": 210,
     "likes": 12090,
-    "acceptance": 0,
+    "dislikes": 381,
+    "likeRatio": 96.9,
     "videoId": "Akt3glAwyfY",
     "patternSlug": "graphs",
     "score": 8.52,
@@ -13864,8 +14324,10 @@
         "order": 0
       }
     ],
+    "lcId": 133,
     "likes": 10736,
-    "acceptance": 0,
+    "dislikes": 4220,
+    "likeRatio": 71.8,
     "videoId": "mQeF6bN8hMk",
     "patternSlug": "graphs",
     "score": 8.38,
@@ -13922,8 +14384,10 @@
         "order": 0
       }
     ],
+    "lcId": 417,
     "likes": 8835,
-    "acceptance": 0,
+    "dislikes": 1858,
+    "likeRatio": 82.6,
     "videoId": "s-VkcjHqkGI",
     "patternSlug": "graphs",
     "score": 5.88,
@@ -13988,8 +14452,10 @@
         "order": 0
       }
     ],
+    "lcId": 695,
     "likes": 10727,
-    "acceptance": 0,
+    "dislikes": 223,
+    "likeRatio": 98,
     "videoId": "iJGr1OtmH0c",
     "patternSlug": "graphs",
     "score": 5.48,
@@ -14046,8 +14512,10 @@
         "order": 0
       }
     ],
+    "lcId": 130,
     "likes": 10052,
-    "acceptance": 0,
+    "dislikes": 2257,
+    "likeRatio": 81.7,
     "videoId": "9z2BunfoZ5Y",
     "patternSlug": "graphs",
     "score": 4.91,
@@ -14101,8 +14569,10 @@
         "order": 11
       }
     ],
+    "lcId": 785,
     "likes": 9383,
-    "acceptance": 0,
+    "dislikes": 421,
+    "likeRatio": 95.7,
     "videoId": "mev55LTubBY",
     "patternSlug": "graphs",
     "score": 4.55,
@@ -14146,8 +14616,10 @@
         "order": 0
       }
     ],
+    "lcId": 684,
     "likes": 7257,
-    "acceptance": 0,
+    "dislikes": 452,
+    "likeRatio": 94.1,
     "videoId": "FXWRE67PLL0",
     "patternSlug": "graphs",
     "score": 3.98,
@@ -14206,8 +14678,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 399,
     "likes": 10307,
-    "acceptance": 0,
+    "dislikes": 1104,
+    "likeRatio": 90.3,
     "videoId": "Uei1fwDoyKk",
     "patternSlug": "graphs",
     "score": 3.12,
@@ -14256,8 +14730,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 909,
     "likes": 3698,
-    "acceptance": 0,
+    "dislikes": 1358,
+    "likeRatio": 73.1,
     "videoId": "6lH4nO3JfLk",
     "patternSlug": "graphs",
     "score": 2.36,
@@ -14306,8 +14782,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1091,
     "likes": 7550,
-    "acceptance": 0,
+    "dislikes": 278,
+    "likeRatio": 96.4,
     "videoId": "YnxUdAO7TAo",
     "patternSlug": "graphs",
     "score": 2.25,
@@ -14357,8 +14835,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 934,
     "likes": 5835,
-    "acceptance": 0,
+    "dislikes": 221,
+    "likeRatio": 96.4,
     "videoId": "gkINMhbbIbU",
     "patternSlug": "graphs",
     "score": 2.24,
@@ -14409,8 +14889,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 752,
     "likes": 5188,
-    "acceptance": 0,
+    "dislikes": 240,
+    "likeRatio": 95.6,
     "videoId": "Pzg3bCDY87w",
     "patternSlug": "graphs",
     "score": 2.12,
@@ -14459,8 +14941,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 721,
     "likes": 7820,
-    "acceptance": 0,
+    "dislikes": 1329,
+    "likeRatio": 85.5,
     "videoId": "6st4IxEF-90",
     "patternSlug": "graphs",
     "score": 1.92,
@@ -14500,8 +14984,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 802,
     "likes": 7162,
-    "acceptance": 0,
+    "dislikes": 531,
+    "likeRatio": 93.1,
     "videoId": "Re_v0j0CRsg",
     "patternSlug": "graphs",
     "score": 1.54,
@@ -14539,8 +15025,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1462,
     "likes": 2175,
-    "acceptance": 0,
+    "dislikes": 94,
+    "likeRatio": 95.9,
     "videoId": "cEW05ofxhn0",
     "patternSlug": "graphs",
     "score": 1.39,
@@ -14579,8 +15067,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 797,
     "likes": 7693,
-    "acceptance": 0,
+    "dislikes": 156,
+    "likeRatio": 98,
     "videoId": "",
     "patternSlug": "graphs",
     "score": 1.22,
@@ -14616,8 +15106,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2101,
     "likes": 3436,
-    "acceptance": 0,
+    "dislikes": 163,
+    "likeRatio": 95.5,
     "videoId": "8NPbAvVXKR4",
     "patternSlug": "graphs",
     "score": 1.2,
@@ -14654,8 +15146,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 841,
     "likes": 6745,
-    "acceptance": 0,
+    "dislikes": 303,
+    "likeRatio": 95.7,
     "videoId": "",
     "patternSlug": "graphs",
     "score": 1.18,
@@ -14735,8 +15229,10 @@
         "order": 0
       }
     ],
+    "lcId": 127,
     "likes": 13681,
-    "acceptance": 0,
+    "dislikes": 1972,
+    "likeRatio": 87.4,
     "videoId": "h9iTnkgv05E",
     "patternSlug": "graphs",
     "score": 7.62,
@@ -14794,8 +15290,10 @@
         "order": 0
       }
     ],
+    "lcId": 787,
     "likes": 11418,
-    "acceptance": 0,
+    "dislikes": 476,
+    "likeRatio": 96,
     "videoId": "5eIK3zUdYmE",
     "patternSlug": "advanced-graphs",
     "score": 5.08,
@@ -14849,8 +15347,10 @@
         "order": 0
       }
     ],
+    "lcId": 743,
     "likes": 8524,
-    "acceptance": 0,
+    "dislikes": 393,
+    "likeRatio": 95.6,
     "videoId": "EaphyqKU4PQ",
     "patternSlug": "advanced-graphs",
     "score": 4.89,
@@ -14901,8 +15401,10 @@
         "order": 0
       }
     ],
+    "lcId": 1584,
     "likes": 5731,
-    "acceptance": 0,
+    "dislikes": 149,
+    "likeRatio": 97.5,
     "videoId": "f7JOBJIC-NA",
     "patternSlug": "advanced-graphs",
     "score": 4.2,
@@ -14944,8 +15446,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 547,
     "likes": 11350,
-    "acceptance": 0,
+    "dislikes": 434,
+    "likeRatio": 96.3,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 1.77,
@@ -14983,8 +15487,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1631,
     "likes": 6992,
-    "acceptance": 0,
+    "dislikes": 243,
+    "likeRatio": 96.6,
     "videoId": "XQlxCCx2vI4",
     "patternSlug": "advanced-graphs",
     "score": 1.2,
@@ -15028,8 +15534,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2115,
     "likes": 2716,
-    "acceptance": 0,
+    "dislikes": 144,
+    "likeRatio": 95,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 1.19,
@@ -15073,8 +15581,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 886,
     "likes": 4959,
-    "acceptance": 0,
+    "dislikes": 120,
+    "likeRatio": 97.6,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 1.16,
@@ -15109,8 +15619,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1514,
     "likes": 3931,
-    "acceptance": 0,
+    "dislikes": 110,
+    "likeRatio": 97.3,
     "videoId": "kPsDTGcrzGM",
     "patternSlug": "advanced-graphs",
     "score": 1.15,
@@ -15155,8 +15667,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 959,
     "likes": 4007,
-    "acceptance": 0,
+    "dislikes": 879,
+    "likeRatio": 82,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 1.06,
@@ -15225,8 +15739,10 @@
         "order": 0
       }
     ],
+    "lcId": 332,
     "likes": 6388,
-    "acceptance": 0,
+    "dislikes": 1931,
+    "likeRatio": 76.8,
     "videoId": "ZyB_gQ8vqGA",
     "patternSlug": "advanced-graphs",
     "score": 5.94,
@@ -15271,8 +15787,10 @@
         "order": 0
       }
     ],
+    "lcId": 778,
     "likes": 4684,
-    "acceptance": 0,
+    "dislikes": 320,
+    "likeRatio": 93.6,
     "videoId": "amvrKlMLuGY",
     "patternSlug": "advanced-graphs",
     "score": 3.77,
@@ -15315,8 +15833,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 827,
     "likes": 5130,
-    "acceptance": 0,
+    "dislikes": 101,
+    "likeRatio": 98.1,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 1.68,
@@ -15354,8 +15874,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1489,
     "likes": 2054,
-    "acceptance": 0,
+    "dislikes": 173,
+    "likeRatio": 92.2,
     "videoId": "83JnUxrLKJU",
     "patternSlug": "advanced-graphs",
     "score": 0.99,
@@ -15399,8 +15921,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 924,
     "likes": 1138,
-    "acceptance": 0,
+    "dislikes": 655,
+    "likeRatio": 63.5,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 0.89,
@@ -15501,8 +16025,10 @@
         "order": 0
       }
     ],
+    "lcId": 53,
     "likes": 38173,
-    "acceptance": 0,
+    "dislikes": 1621,
+    "likeRatio": 95.9,
     "videoId": "5WZl3MMT0Eg",
     "patternSlug": "greedy",
     "score": 13.45,
@@ -15582,8 +16108,10 @@
         "order": 0
       }
     ],
+    "lcId": 55,
     "likes": 22000,
-    "acceptance": 0,
+    "dislikes": 1499,
+    "likeRatio": 93.6,
     "videoId": "Yan0cv2cLy8",
     "patternSlug": "greedy",
     "score": 8.87,
@@ -15658,8 +16186,10 @@
         "order": 0
       }
     ],
+    "lcId": 45,
     "likes": 16723,
-    "acceptance": 0,
+    "dislikes": 711,
+    "likeRatio": 95.9,
     "videoId": "dJ7sWiOoK7g",
     "patternSlug": "greedy",
     "score": 6.92,
@@ -15729,8 +16259,10 @@
         "order": 0
       }
     ],
+    "lcId": 134,
     "likes": 13679,
-    "acceptance": 0,
+    "dislikes": 1404,
+    "likeRatio": 90.7,
     "videoId": "lJwbPZGo05A",
     "patternSlug": "greedy",
     "score": 6.76,
@@ -15787,8 +16319,10 @@
         "order": 0
       }
     ],
+    "lcId": 678,
     "likes": 7113,
-    "acceptance": 0,
+    "dislikes": 227,
+    "likeRatio": 96.9,
     "videoId": "QhPdNS143Qg",
     "patternSlug": "greedy",
     "score": 4.85,
@@ -15828,8 +16362,10 @@
         "order": 0
       }
     ],
+    "lcId": 763,
     "likes": 11323,
-    "acceptance": 0,
+    "dislikes": 446,
+    "likeRatio": 96.2,
     "videoId": "B7m8UmZE-vw",
     "patternSlug": "greedy",
     "score": 3.71,
@@ -15869,8 +16405,10 @@
         "order": 0
       }
     ],
+    "lcId": 846,
     "likes": 3805,
-    "acceptance": 0,
+    "dislikes": 300,
+    "likeRatio": 92.7,
     "videoId": "amnrMCVd2YI",
     "patternSlug": "greedy",
     "score": 3.48,
@@ -15915,8 +16453,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1423,
     "likes": 7220,
-    "acceptance": 0,
+    "dislikes": 330,
+    "likeRatio": 95.6,
     "videoId": "TsA4vbtfCvo",
     "patternSlug": "greedy",
     "score": 2.4,
@@ -15963,8 +16503,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 918,
     "likes": 7451,
-    "acceptance": 0,
+    "dislikes": 352,
+    "likeRatio": 95.5,
     "videoId": "fxT9KjakYPM",
     "patternSlug": "greedy",
     "score": 1.6,
@@ -16000,8 +16542,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 670,
     "likes": 4313,
-    "acceptance": 0,
+    "dislikes": 276,
+    "likeRatio": 94,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 1.21,
@@ -16035,8 +16579,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1871,
     "likes": 2093,
-    "acceptance": 0,
+    "dislikes": 131,
+    "likeRatio": 94.1,
     "videoId": "v1HpZUnQ4Yo",
     "patternSlug": "greedy",
     "score": 1.03,
@@ -16071,8 +16617,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1029,
     "likes": 4910,
-    "acceptance": 0,
+    "dislikes": 367,
+    "likeRatio": 93,
     "videoId": "d-B_gk_gJtQ",
     "patternSlug": "greedy",
     "score": 1,
@@ -16103,8 +16651,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 646,
     "likes": 4981,
-    "acceptance": 0,
+    "dislikes": 136,
+    "likeRatio": 97.3,
     "videoId": "LcNNorqMVTw",
     "patternSlug": "greedy",
     "score": 0.86,
@@ -16160,8 +16710,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 135,
     "likes": 9475,
-    "acceptance": 0,
+    "dislikes": 863,
+    "likeRatio": 91.7,
     "videoId": "1IzCRCcK17A",
     "patternSlug": "greedy",
     "score": 3.17,
@@ -16193,8 +16745,10 @@
         "order": 0
       }
     ],
+    "lcId": 1520,
     "likes": 927,
-    "acceptance": 0,
+    "dislikes": 88,
+    "likeRatio": 91.3,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.75,
@@ -16244,8 +16798,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2561,
     "likes": 952,
-    "acceptance": 0,
+    "dislikes": 58,
+    "likeRatio": 94.3,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 1.02,
@@ -16362,8 +16918,10 @@
         "order": 0
       }
     ],
+    "lcId": 56,
     "likes": 24940,
-    "acceptance": 0,
+    "dislikes": 914,
+    "likeRatio": 96.5,
     "videoId": "44H3cEC2fFM",
     "patternSlug": "intervals",
     "score": 16.76,
@@ -16433,8 +16991,10 @@
         "order": 0
       }
     ],
+    "lcId": 57,
     "likes": 12022,
-    "acceptance": 0,
+    "dislikes": 926,
+    "likeRatio": 92.8,
     "videoId": "A8NUOmlwOlM",
     "patternSlug": "intervals",
     "score": 7.14,
@@ -16495,8 +17055,10 @@
         "order": 0
       }
     ],
+    "lcId": 435,
     "likes": 9289,
-    "acceptance": 0,
+    "dislikes": 262,
+    "likeRatio": 97.3,
     "videoId": "nONCGxWoUfM",
     "patternSlug": "intervals",
     "score": 5.68,
@@ -16526,8 +17088,10 @@
         "order": 0
       }
     ],
+    "lcId": 1899,
     "likes": 965,
-    "acceptance": 0,
+    "dislikes": 83,
+    "likeRatio": 92.1,
     "videoId": "kShkQLQZ9K4",
     "patternSlug": "intervals",
     "score": 3.22,
@@ -16570,8 +17134,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1094,
     "likes": 4891,
-    "acceptance": 0,
+    "dislikes": 126,
+    "likeRatio": 97.5,
     "videoId": "08sn_w4LWEE",
     "patternSlug": "intervals",
     "score": 1.65,
@@ -16618,8 +17184,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 729,
     "likes": 4845,
-    "acceptance": 0,
+    "dislikes": 143,
+    "likeRatio": 97.1,
     "videoId": "",
     "patternSlug": "intervals",
     "score": 1.4,
@@ -16660,8 +17228,10 @@
         "order": 0
       }
     ],
+    "lcId": 1851,
     "likes": 1182,
-    "acceptance": 0,
+    "dislikes": 50,
+    "likeRatio": 95.9,
     "videoId": "5hQ5WWW5awQ",
     "patternSlug": "intervals",
     "score": 3.41,
@@ -16712,8 +17282,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2402,
     "likes": 2523,
-    "acceptance": 0,
+    "dislikes": 140,
+    "likeRatio": 94.7,
     "videoId": "",
     "patternSlug": "intervals",
     "score": 1.77,
@@ -16801,8 +17373,10 @@
         "order": 0
       }
     ],
+    "lcId": 70,
     "likes": 24769,
-    "acceptance": 0,
+    "dislikes": 1053,
+    "likeRatio": 95.9,
     "videoId": "Y0lT9Fck7qI",
     "patternSlug": "dp-1d",
     "score": 9.73,
@@ -16840,8 +17414,10 @@
         "order": 0
       }
     ],
+    "lcId": 746,
     "likes": 12483,
-    "acceptance": 0,
+    "dislikes": 1906,
+    "likeRatio": 86.8,
     "videoId": "ktmzAZWkEZ0",
     "patternSlug": "dp-1d",
     "score": 3.92,
@@ -16883,8 +17459,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 509,
     "likes": 9484,
-    "acceptance": 0,
+    "dislikes": 416,
+    "likeRatio": 95.8,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 2.09,
@@ -16990,8 +17568,10 @@
         "order": 0
       }
     ],
+    "lcId": 5,
     "likes": 32964,
-    "acceptance": 0,
+    "dislikes": 2025,
+    "likeRatio": 94.2,
     "videoId": "XYQecbcd6_c",
     "patternSlug": "dp-1d",
     "score": 13.93,
@@ -17074,8 +17654,10 @@
         "order": 0
       }
     ],
+    "lcId": 322,
     "likes": 21200,
-    "acceptance": 0,
+    "dislikes": 549,
+    "likeRatio": 97.5,
     "videoId": "H9bfqozjoqs",
     "patternSlug": "dp-1d",
     "score": 10.68,
@@ -17156,8 +17738,10 @@
         "order": 0
       }
     ],
+    "lcId": 139,
     "likes": 18853,
-    "acceptance": 0,
+    "dislikes": 910,
+    "likeRatio": 95.4,
     "videoId": "Sx9NNgInc3A",
     "patternSlug": "dp-1d",
     "score": 10.33,
@@ -17239,8 +17823,10 @@
         "order": 0
       }
     ],
+    "lcId": 300,
     "likes": 22961,
-    "acceptance": 0,
+    "dislikes": 519,
+    "likeRatio": 97.8,
     "videoId": "cjWnW0hdF1Y",
     "patternSlug": "dp-1d",
     "score": 10.19,
@@ -17316,8 +17902,10 @@
         "order": 0
       }
     ],
+    "lcId": 152,
     "likes": 20720,
-    "acceptance": 0,
+    "dislikes": 838,
+    "likeRatio": 96.1,
     "videoId": "lXVy6YWFcRM",
     "patternSlug": "dp-1d",
     "score": 9.8,
@@ -17400,8 +17988,10 @@
         "order": 0
       }
     ],
+    "lcId": 198,
     "likes": 23765,
-    "acceptance": 0,
+    "dislikes": 521,
+    "likeRatio": 97.9,
     "videoId": "73r3KWiEvyk",
     "patternSlug": "dp-1d",
     "score": 8.84,
@@ -17462,8 +18052,10 @@
         "order": 0
       }
     ],
+    "lcId": 416,
     "likes": 14059,
-    "acceptance": 0,
+    "dislikes": 301,
+    "likeRatio": 97.9,
     "videoId": "IsvocB5BJhw",
     "patternSlug": "dp-1d",
     "score": 7.63,
@@ -17542,8 +18134,10 @@
         "order": 0
       }
     ],
+    "lcId": 91,
     "likes": 13039,
-    "acceptance": 0,
+    "dislikes": 4618,
+    "likeRatio": 73.8,
     "videoId": "6aEyTjOwlJU",
     "patternSlug": "dp-1d",
     "score": 7.39,
@@ -17611,8 +18205,10 @@
         "order": 0
       }
     ],
+    "lcId": 647,
     "likes": 11656,
-    "acceptance": 0,
+    "dislikes": 258,
+    "likeRatio": 97.8,
     "videoId": "4RACzI5-du8",
     "patternSlug": "dp-1d",
     "score": 6.65,
@@ -17675,8 +18271,10 @@
         "order": 0
       }
     ],
+    "lcId": 213,
     "likes": 11242,
-    "acceptance": 0,
+    "dislikes": 195,
+    "likeRatio": 98.3,
     "videoId": "rWAJCfYYOvM",
     "patternSlug": "dp-1d",
     "score": 6.02,
@@ -17720,8 +18318,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 983,
     "likes": 8873,
-    "acceptance": 0,
+    "dislikes": 192,
+    "likeRatio": 97.9,
     "videoId": "4pY1bsBpIY4",
     "patternSlug": "dp-1d",
     "score": 1.93,
@@ -17761,8 +18361,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 120,
     "likes": 10974,
-    "acceptance": 0,
+    "dislikes": 616,
+    "likeRatio": 94.7,
     "videoId": "OM1MTokvxs4",
     "patternSlug": "dp-1d",
     "score": 1.83,
@@ -17812,8 +18414,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 542,
     "likes": 10920,
-    "acceptance": 0,
+    "dislikes": 452,
+    "likeRatio": 96,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.77,
@@ -17854,8 +18458,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 740,
     "likes": 8051,
-    "acceptance": 0,
+    "dislikes": 407,
+    "likeRatio": 95.2,
     "videoId": "7FCemBxvGw0",
     "patternSlug": "dp-1d",
     "score": 1.59,
@@ -17900,8 +18506,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2571,
     "likes": 649,
-    "acceptance": 0,
+    "dislikes": 201,
+    "likeRatio": 76.4,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.59,
@@ -17940,8 +18548,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 279,
     "likes": 11952,
-    "acceptance": 0,
+    "dislikes": 493,
+    "likeRatio": 96,
     "videoId": "HLZLwjzIVGo",
     "patternSlug": "dp-1d",
     "score": 1.55,
@@ -17986,8 +18596,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 486,
     "likes": 6615,
-    "acceptance": 0,
+    "dislikes": 302,
+    "likeRatio": 95.6,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.42,
@@ -18028,8 +18640,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 714,
     "likes": 7699,
-    "acceptance": 0,
+    "dislikes": 236,
+    "likeRatio": 97,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.32,
@@ -18079,8 +18693,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 44,
     "likes": 9227,
-    "acceptance": 0,
+    "dislikes": 423,
+    "likeRatio": 95.6,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 2.19,
@@ -18130,8 +18746,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1235,
     "likes": 7377,
-    "acceptance": 0,
+    "dislikes": 123,
+    "likeRatio": 98.4,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.78,
@@ -18175,8 +18793,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 123,
     "likes": 10685,
-    "acceptance": 0,
+    "dislikes": 232,
+    "likeRatio": 97.9,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.49,
@@ -18219,8 +18839,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 354,
     "likes": 6537,
-    "acceptance": 0,
+    "dislikes": 173,
+    "likeRatio": 97.4,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.43,
@@ -18265,8 +18887,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 741,
     "likes": 4738,
-    "acceptance": 0,
+    "dislikes": 172,
+    "likeRatio": 96.5,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 1.33,
@@ -18347,8 +18971,10 @@
         "order": 0
       }
     ],
+    "lcId": 62,
     "likes": 18570,
-    "acceptance": 0,
+    "dislikes": 499,
+    "likeRatio": 97.4,
     "videoId": "IlEsdxuD4lY",
     "patternSlug": "dp-2d",
     "score": 10.38,
@@ -18431,8 +19057,10 @@
         "order": 0
       }
     ],
+    "lcId": 72,
     "likes": 16643,
-    "acceptance": 0,
+    "dislikes": 334,
+    "likeRatio": 98,
     "videoId": "XYi2-LPrwm4",
     "patternSlug": "dp-2d",
     "score": 9.89,
@@ -18493,8 +19121,10 @@
         "order": 0
       }
     ],
+    "lcId": 1143,
     "likes": 15255,
-    "acceptance": 0,
+    "dislikes": 252,
+    "likeRatio": 98.4,
     "videoId": "Ua0GhsJSlWM",
     "patternSlug": "dp-2d",
     "score": 8.26,
@@ -18557,8 +19187,10 @@
         "order": 0
       }
     ],
+    "lcId": 64,
     "likes": 13841,
-    "acceptance": 0,
+    "dislikes": 204,
+    "likeRatio": 98.5,
     "videoId": "pGMsrvt0fpk",
     "patternSlug": "dp-2d",
     "score": 5.94,
@@ -18604,8 +19236,10 @@
         "order": 0
       }
     ],
+    "lcId": 97,
     "likes": 8927,
-    "acceptance": 0,
+    "dislikes": 558,
+    "likeRatio": 94.1,
     "videoId": "3Rw3p9LrgvE",
     "patternSlug": "dp-2d",
     "score": 4.59,
@@ -18653,8 +19287,10 @@
         "order": 0
       }
     ],
+    "lcId": 518,
     "likes": 10377,
-    "acceptance": 0,
+    "dislikes": 258,
+    "likeRatio": 97.6,
     "videoId": "Mjy4hd2xgrs",
     "patternSlug": "dp-2d",
     "score": 4.26,
@@ -18700,8 +19336,10 @@
         "order": 0
       }
     ],
+    "lcId": 309,
     "likes": 10150,
-    "acceptance": 0,
+    "dislikes": 350,
+    "likeRatio": 96.7,
     "videoId": "I7j0F7AHpb8",
     "patternSlug": "dp-2d",
     "score": 4.22,
@@ -18742,8 +19380,10 @@
         "order": 0
       }
     ],
+    "lcId": 494,
     "likes": 12566,
-    "acceptance": 0,
+    "dislikes": 422,
+    "likeRatio": 96.8,
     "videoId": "g0npyaQtAQM",
     "patternSlug": "dp-2d",
     "score": 4.09,
@@ -18804,8 +19444,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 221,
     "likes": 11086,
-    "acceptance": 0,
+    "dislikes": 264,
+    "likeRatio": 97.7,
     "videoId": "6X7Ha2PrDmM",
     "patternSlug": "dp-2d",
     "score": 3.45,
@@ -18858,8 +19500,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 63,
     "likes": 9812,
-    "acceptance": 0,
+    "dislikes": 564,
+    "likeRatio": 94.6,
     "videoId": "d3UOz7zdE4I",
     "patternSlug": "dp-2d",
     "score": 2.86,
@@ -18907,8 +19551,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 516,
     "likes": 10492,
-    "acceptance": 0,
+    "dislikes": 347,
+    "likeRatio": 96.8,
     "videoId": "bUr8cNWI09Q",
     "patternSlug": "dp-2d",
     "score": 2.27,
@@ -18948,8 +19594,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 877,
     "likes": 3845,
-    "acceptance": 0,
+    "dislikes": 2987,
+    "likeRatio": 56.3,
     "videoId": "uhgdXOlGYqE",
     "patternSlug": "dp-2d",
     "score": 1.18,
@@ -18988,8 +19636,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 474,
     "likes": 6121,
-    "acceptance": 0,
+    "dislikes": 510,
+    "likeRatio": 92.3,
     "videoId": "miZ3qV04b1g",
     "patternSlug": "dp-2d",
     "score": 1.1,
@@ -19017,8 +19667,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 926,
     "likes": 4610,
-    "acceptance": 0,
+    "dislikes": 186,
+    "likeRatio": 96.1,
     "videoId": "tMq9z5k3umQ",
     "patternSlug": "dp-2d",
     "score": 1.06,
@@ -19052,8 +19704,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1049,
     "likes": 3429,
-    "acceptance": 0,
+    "dislikes": 146,
+    "likeRatio": 95.9,
     "videoId": "gdXkkmzvR3c",
     "patternSlug": "dp-2d",
     "score": 0.93,
@@ -19094,8 +19748,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1140,
     "likes": 3525,
-    "acceptance": 0,
+    "dislikes": 942,
+    "likeRatio": 78.9,
     "videoId": "I-z-u0zfQtg",
     "patternSlug": "dp-2d",
     "score": 0.93,
@@ -19158,8 +19814,10 @@
         "order": 0
       }
     ],
+    "lcId": 10,
     "likes": 13452,
-    "acceptance": 0,
+    "dislikes": 2413,
+    "likeRatio": 84.8,
     "videoId": "HAA8mgxlov8",
     "patternSlug": "dp-2d",
     "score": 6.72,
@@ -19224,8 +19882,10 @@
         "order": 0
       }
     ],
+    "lcId": 329,
     "likes": 9606,
-    "acceptance": 0,
+    "dislikes": 147,
+    "likeRatio": 98.5,
     "videoId": "wCc_nd-GiEc",
     "patternSlug": "dp-2d",
     "score": 5.15,
@@ -19279,8 +19939,10 @@
         "order": 0
       }
     ],
+    "lcId": 312,
     "likes": 9916,
-    "acceptance": 0,
+    "dislikes": 295,
+    "likeRatio": 97.1,
     "videoId": "VFskby7lUbw",
     "patternSlug": "dp-2d",
     "score": 4.96,
@@ -19326,8 +19988,10 @@
         "order": 0
       }
     ],
+    "lcId": 115,
     "likes": 7506,
-    "acceptance": 0,
+    "dislikes": 321,
+    "likeRatio": 95.9,
     "videoId": "-RDzMJ33nx8",
     "patternSlug": "dp-2d",
     "score": 4.35,
@@ -19370,8 +20034,10 @@
         "order": 3
       }
     ],
+    "lcId": 1547,
     "likes": 4934,
-    "acceptance": 0,
+    "dislikes": 165,
+    "likeRatio": 96.8,
     "videoId": "EVxTO5I0d7w",
     "patternSlug": "dp-2d",
     "score": 3.86,
@@ -19418,8 +20084,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2035,
     "likes": 3886,
-    "acceptance": 0,
+    "dislikes": 263,
+    "likeRatio": 93.7,
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 1.56,
@@ -19494,8 +20162,10 @@
         "order": 0
       }
     ],
+    "lcId": 268,
     "likes": 14489,
-    "acceptance": 0,
+    "dislikes": 3480,
+    "likeRatio": 80.6,
     "videoId": "WnPLSRLSANE",
     "patternSlug": "bit-manipulation",
     "score": 7.02,
@@ -19550,8 +20220,10 @@
         "order": 0
       }
     ],
+    "lcId": 190,
     "likes": 5958,
-    "acceptance": 0,
+    "dislikes": 1690,
+    "likeRatio": 77.9,
     "videoId": "UcoN6UjAI64",
     "patternSlug": "bit-manipulation",
     "score": 6.19,
@@ -19610,8 +20282,10 @@
         "order": 0
       }
     ],
+    "lcId": 191,
     "likes": 7218,
-    "acceptance": 0,
+    "dislikes": 1372,
+    "likeRatio": 84,
     "videoId": "5Km3utixwZs",
     "patternSlug": "bit-manipulation",
     "score": 6.05,
@@ -19670,8 +20344,10 @@
         "order": 0
       }
     ],
+    "lcId": 338,
     "likes": 12052,
-    "acceptance": 0,
+    "dislikes": 616,
+    "likeRatio": 95.1,
     "videoId": "RyBM56RIWrM",
     "patternSlug": "bit-manipulation",
     "score": 5.62,
@@ -19721,8 +20397,10 @@
         "order": 0
       }
     ],
+    "lcId": 136,
     "likes": 19042,
-    "acceptance": 0,
+    "dislikes": 914,
+    "likeRatio": 95.4,
     "videoId": "qMPX1AOa83k",
     "patternSlug": "bit-manipulation",
     "score": 5.4,
@@ -19772,8 +20450,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 67,
     "likes": 10882,
-    "acceptance": 0,
+    "dislikes": 1121,
+    "likeRatio": 90.7,
     "videoId": "keuWJ47xG8g",
     "patternSlug": "bit-manipulation",
     "score": 3.28,
@@ -19818,8 +20498,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 231,
     "likes": 8166,
-    "acceptance": 0,
+    "dislikes": 508,
+    "likeRatio": 94.1,
     "videoId": "",
     "patternSlug": "bit-manipulation",
     "score": 2.06,
@@ -19850,8 +20532,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1470,
     "likes": 6512,
-    "acceptance": 0,
+    "dislikes": 361,
+    "likeRatio": 94.7,
     "videoId": "IvIKD_EU8BY",
     "patternSlug": "bit-manipulation",
     "score": 1.32,
@@ -19916,8 +20600,10 @@
         "order": 0
       }
     ],
+    "lcId": 7,
     "likes": 15735,
-    "acceptance": 0,
+    "dislikes": 14026,
+    "likeRatio": 52.9,
     "videoId": "HAgLH58IgJQ",
     "patternSlug": "bit-manipulation",
     "score": 7.53,
@@ -19960,8 +20646,10 @@
         "order": 0
       }
     ],
+    "lcId": 371,
     "likes": 4759,
-    "acceptance": 0,
+    "dislikes": 5902,
+    "likeRatio": 44.6,
     "videoId": "gVUrDV4tZfY",
     "patternSlug": "bit-manipulation",
     "score": 4.94,
@@ -20009,8 +20697,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 29,
     "likes": 6226,
-    "acceptance": 0,
+    "dislikes": 15299,
+    "likeRatio": 28.9,
     "videoId": "",
     "patternSlug": "bit-manipulation",
     "score": 2.65,
@@ -20042,8 +20732,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 137,
     "likes": 8775,
-    "acceptance": 0,
+    "dislikes": 752,
+    "likeRatio": 92.1,
     "videoId": "",
     "patternSlug": "bit-manipulation",
     "score": 0.98,
@@ -20118,8 +20810,10 @@
         "order": 2
       }
     ],
+    "lcId": 13,
     "likes": 17946,
-    "acceptance": 0,
+    "dislikes": 1251,
+    "likeRatio": 93.5,
     "videoId": "3jdxYj3DD98",
     "patternSlug": "math-geometry",
     "score": 8,
@@ -20179,8 +20873,10 @@
         "order": 0
       }
     ],
+    "lcId": 202,
     "likes": 12108,
-    "acceptance": 0,
+    "dislikes": 1650,
+    "likeRatio": 88,
     "videoId": "ljz85bxOYJ0",
     "patternSlug": "math-geometry",
     "score": 5.63,
@@ -20230,8 +20926,10 @@
         "order": 0
       }
     ],
+    "lcId": 66,
     "likes": 12003,
-    "acceptance": 0,
+    "dislikes": 5617,
+    "likeRatio": 68.1,
     "videoId": "jIaA8boiG1s",
     "patternSlug": "math-geometry",
     "score": 5.47,
@@ -20278,8 +20976,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 9,
     "likes": 16161,
-    "acceptance": 0,
+    "dislikes": 2942,
+    "likeRatio": 84.6,
     "videoId": "yubRKwixN-U",
     "patternSlug": "math-geometry",
     "score": 4.31,
@@ -20380,8 +21080,10 @@
         "order": 0
       }
     ],
+    "lcId": 48,
     "likes": 20288,
-    "acceptance": 0,
+    "dislikes": 979,
+    "likeRatio": 95.4,
     "videoId": "fMSJSS7eO1w",
     "patternSlug": "math-geometry",
     "score": 13,
@@ -20473,8 +21175,10 @@
         "order": 0
       }
     ],
+    "lcId": 54,
     "likes": 17723,
-    "acceptance": 0,
+    "dislikes": 1592,
+    "likeRatio": 91.8,
     "videoId": "BJnMZNwUk1M",
     "patternSlug": "math-geometry",
     "score": 10.46,
@@ -20551,8 +21255,10 @@
         "order": 0
       }
     ],
+    "lcId": 73,
     "likes": 17373,
-    "acceptance": 0,
+    "dislikes": 871,
+    "likeRatio": 95.2,
     "videoId": "T41rL0L3Pnw",
     "patternSlug": "math-geometry",
     "score": 10.27,
@@ -20631,8 +21337,10 @@
         "order": 0
       }
     ],
+    "lcId": 50,
     "likes": 11874,
-    "acceptance": 0,
+    "dislikes": 10606,
+    "likeRatio": 52.8,
     "videoId": "g9YQyYi4IQQ",
     "patternSlug": "math-geometry",
     "score": 10.18,
@@ -20687,8 +21395,10 @@
         "order": 0
       }
     ],
+    "lcId": 43,
     "likes": 7817,
-    "acceptance": 0,
+    "dislikes": 3702,
+    "likeRatio": 67.9,
     "videoId": "1vZswirL8Y8",
     "patternSlug": "math-geometry",
     "score": 5.18,
@@ -20753,8 +21463,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 12,
     "likes": 8674,
-    "acceptance": 0,
+    "dislikes": 5735,
+    "likeRatio": 60.2,
     "videoId": "ohBNdSJyLh8",
     "patternSlug": "math-geometry",
     "score": 3.98,
@@ -20791,8 +21503,10 @@
         "order": 0
       }
     ],
+    "lcId": 2013,
     "likes": 1027,
-    "acceptance": 0,
+    "dislikes": 259,
+    "likeRatio": 79.9,
     "videoId": "bahebearrDc",
     "patternSlug": "math-geometry",
     "score": 3.45,
@@ -20830,8 +21544,10 @@
         "order": 5
       }
     ],
+    "lcId": 60,
     "likes": 7346,
-    "acceptance": 0,
+    "dislikes": 511,
+    "likeRatio": 93.5,
     "videoId": "",
     "patternSlug": "math-geometry",
     "score": 3.41,
@@ -20857,8 +21573,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1656,
     "likes": 575,
-    "acceptance": 0,
+    "dislikes": 3651,
+    "likeRatio": 13.6,
     "videoId": "",
     "patternSlug": "design",
     "score": 0.35,
@@ -20904,8 +21622,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2502,
     "likes": 378,
-    "acceptance": 0,
+    "dislikes": 101,
+    "likeRatio": 78.9,
     "videoId": "",
     "patternSlug": "design",
     "score": 1.67,
@@ -20947,8 +21667,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 384,
     "likes": 1449,
-    "acceptance": 0,
+    "dislikes": 946,
+    "likeRatio": 60.5,
     "videoId": "",
     "patternSlug": "design",
     "score": 1.06,
@@ -20977,8 +21699,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 284,
     "likes": 1922,
-    "acceptance": 0,
+    "dislikes": 1053,
+    "likeRatio": 64.6,
     "videoId": "",
     "patternSlug": "design",
     "score": 0.79,
@@ -21024,8 +21748,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 2043,
     "likes": 642,
-    "acceptance": 0,
+    "dislikes": 322,
+    "likeRatio": 66.6,
     "videoId": "",
     "patternSlug": "design",
     "score": 0.64,
@@ -21061,8 +21787,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 307,
     "likes": 5218,
-    "acceptance": 0,
+    "dislikes": 274,
+    "likeRatio": 95,
     "videoId": "",
     "patternSlug": "design",
     "score": 0.38,
@@ -21088,8 +21816,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 900,
     "likes": 772,
-    "acceptance": 0,
+    "dislikes": 202,
+    "likeRatio": 79.3,
     "videoId": "",
     "patternSlug": "design",
     "score": 0.28,
@@ -21136,8 +21866,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 381,
     "likes": 2446,
-    "acceptance": 0,
+    "dislikes": 160,
+    "likeRatio": 93.9,
     "videoId": "",
     "patternSlug": "design",
     "score": 1.23,
@@ -21166,8 +21898,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 715,
     "likes": 1607,
-    "acceptance": 0,
+    "dislikes": 144,
+    "likeRatio": 91.8,
     "videoId": "",
     "patternSlug": "design",
     "score": 0.51,
@@ -21202,8 +21936,10 @@
       }
     ],
     "sheets": [],
+    "lcId": 1622,
     "likes": 645,
-    "acceptance": 0,
+    "dislikes": 184,
+    "likeRatio": 77.8,
     "videoId": "",
     "patternSlug": "design",
     "score": 0.33,
@@ -21225,8 +21961,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 2.5,
@@ -21248,8 +21986,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 2.5,
@@ -21271,8 +22011,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 2.5,
@@ -21294,8 +22036,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 2.5,
@@ -21317,8 +22061,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "linked-list",
     "score": 2.5,
@@ -21340,8 +22086,10 @@
         "order": 0
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "intervals",
     "score": 2.5,
@@ -21363,8 +22111,10 @@
         "order": 1
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
@@ -21386,8 +22136,10 @@
         "order": 2
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
@@ -21409,8 +22161,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
@@ -21432,8 +22186,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
@@ -21455,8 +22211,10 @@
         "order": 0
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,
@@ -21478,8 +22236,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,
@@ -21501,8 +22261,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "graphs",
     "score": 2.5,
@@ -21524,8 +22286,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,
@@ -21547,8 +22311,10 @@
         "order": 0
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
@@ -21570,8 +22336,10 @@
         "order": 1
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
@@ -21593,8 +22361,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
@@ -21616,8 +22386,10 @@
         "order": 6
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
@@ -21639,8 +22411,10 @@
         "order": 7
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
@@ -21662,8 +22436,10 @@
         "order": 0
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "heap",
     "score": 2.5,
@@ -21685,8 +22461,10 @@
         "order": 2
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "heap",
     "score": 2.5,
@@ -21708,8 +22486,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "heap",
     "score": 2.5,
@@ -21731,8 +22511,10 @@
         "order": 0
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
@@ -21754,8 +22536,10 @@
         "order": 1
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
@@ -21777,8 +22561,10 @@
         "order": 6
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
@@ -21800,8 +22586,10 @@
         "order": 0
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
@@ -21823,8 +22611,10 @@
         "order": 8
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 2.5,
@@ -21846,8 +22636,10 @@
         "order": 9
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
@@ -21869,8 +22661,10 @@
         "order": 2
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "strings",
     "score": 2.5,
@@ -21892,8 +22686,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -21915,8 +22711,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -21938,8 +22736,10 @@
         "order": 6
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -21961,8 +22761,10 @@
         "order": 7
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -21984,8 +22786,10 @@
         "order": 8
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -22007,8 +22811,10 @@
         "order": 10
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -22030,8 +22836,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -22053,8 +22861,10 @@
         "order": 6
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
@@ -22076,8 +22886,10 @@
         "order": 6
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
@@ -22099,8 +22911,10 @@
         "order": 0
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
@@ -22122,8 +22936,10 @@
         "order": 1
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
@@ -22145,8 +22961,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
@@ -22168,8 +22986,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 2.5,
@@ -22191,8 +23011,10 @@
         "order": 1
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "graphs",
     "score": 2.5,
@@ -22214,8 +23036,10 @@
         "order": 2
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "graphs",
     "score": 2.5,
@@ -22237,8 +23061,10 @@
         "order": 7
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
@@ -22260,8 +23086,10 @@
         "order": 8
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
@@ -22283,8 +23111,10 @@
         "order": 1
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
@@ -22306,8 +23136,10 @@
         "order": 2
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
@@ -22329,8 +23161,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
@@ -22352,8 +23186,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
@@ -22375,8 +23211,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
@@ -22398,8 +23236,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
@@ -22421,8 +23261,10 @@
         "order": 5
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 2.5,
@@ -22444,8 +23286,10 @@
         "order": 6
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
@@ -22467,8 +23311,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
@@ -22490,8 +23336,10 @@
         "order": 6
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
@@ -22513,8 +23361,10 @@
         "order": 7
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
@@ -22536,8 +23386,10 @@
         "order": 1
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.5,
@@ -22559,8 +23411,10 @@
         "order": 2
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.5,
@@ -22582,8 +23436,10 @@
         "order": 3
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.5,
@@ -22605,8 +23461,10 @@
         "order": 4
       }
     ],
+    "lcId": 0,
     "likes": 0,
-    "acceptance": 0,
+    "dislikes": 0,
+    "likeRatio": 0,
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,

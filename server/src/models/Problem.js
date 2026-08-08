@@ -42,7 +42,18 @@ const problemSchema = new mongoose.Schema(
     companies: { type: [companySchema], default: [] },
     sheets: { type: [sheetSchema], default: [] },
 
+    // LeetCode's own problem number — the one everyone quotes ("LC 42").
+    lcId: { type: Number, default: 0 },
+
     likes: { type: Number, default: 0 },
+    dislikes: { type: Number, default: 0 },
+    // Share of votes that are likes, 0-100. A better quality signal than raw
+    // likes, which mostly track how long a problem has existed.
+    likeRatio: { type: Number, default: 0 },
+    /**
+     * Never populated: the upstream LeetCode index carries no acceptance rate.
+     * Kept because existing documents have the field, but nothing reads it.
+     */
     acceptance: { type: Number, default: 0 },
     // Relevance score from the curation pass, used as the default sort tiebreak
     score: { type: Number, default: 0 },
