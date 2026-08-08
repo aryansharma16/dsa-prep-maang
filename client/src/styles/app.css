@@ -479,10 +479,9 @@ table.problems {
   font-size: 13px;
 }
 
+/* Not sticky: .tablewrap scrolls (for wide tables), so it becomes the sticky
+   containing block and a sticky thead would never actually stick. */
 table.problems thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   background: var(--surface-2);
   text-align: left;
   font-size: 10.5px;
@@ -821,6 +820,15 @@ tr.cursor .act {
 .btn.ghost {
   background: transparent;
 }
+.btn.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  font-weight: 500;
+}
+.btn.danger:hover {
+  filter: brightness(1.08);
+}
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -892,6 +900,25 @@ tr.cursor .act {
   box-shadow: 0 12px 32px var(--shadow);
   max-height: 90vh;
   overflow-y: auto;
+}
+.modal:focus {
+  outline: none;
+}
+.modal.sm {
+  max-width: 390px;
+}
+.modal.lg {
+  max-width: 680px;
+}
+
+.confirm-message {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  color: var(--text);
+}
+.confirm-message + .hint {
+  margin: 0;
+  line-height: 1.55;
 }
 .modal-head {
   display: flex;
@@ -1072,11 +1099,13 @@ tr.cursor .act {
   font-weight: 600;
 }
 .tile .v {
-  font-family: var(--mono);
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 600;
   margin-top: 3px;
   letter-spacing: -0.02em;
+  /* Proportional, not tabular — equal-width digits look loose at this size and
+     these values never align in a column. */
+  font-variant-numeric: normal;
 }
 .tile .sub {
   font-size: 11px;
@@ -1113,8 +1142,10 @@ tr.cursor .act {
   font-size: 12.5px;
 }
 .statrow .nm {
-  width: 168px;
-  flex: 0 0 168px;
+  display: flex;
+  align-items: center;
+  width: 176px;
+  flex: 0 0 176px;
   color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1141,21 +1172,218 @@ tr.cursor .act {
   overflow-x: auto;
   padding-bottom: 2px;
 }
-.heat i {
+/* ---------------------------------------------------------- activity heatmap */
+.heat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 400;
+}
+.heat-head b {
+  color: var(--text);
+  font-weight: 600;
+}
+.heat-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.heat-meta i {
+  width: 1px;
+  height: 11px;
+  background: var(--border);
+}
+
+.heat-scroll {
+  position: relative;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.heat-months,
+.heat-grid {
+  display: grid;
+  grid-template-columns: repeat(53, 13px);
+}
+.heat-months {
+  margin-left: 30px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  color: var(--text-3);
+}
+.heat-months span {
+  white-space: nowrap;
+  grid-row: 1;
+}
+
+.heat-main {
+  display: flex;
+  gap: 4px;
+}
+.heat-weekdays {
+  display: grid;
+  grid-template-rows: repeat(7, 11px);
+  gap: 2px;
+  width: 26px;
+  font-size: 9.5px;
+  color: var(--text-3);
+  line-height: 11px;
+}
+.heat-grid {
+  grid-template-rows: repeat(7, 11px);
+  gap: 2px;
+}
+
+.heat-cell {
   width: 11px;
   height: 11px;
   border-radius: 2px;
-  background: var(--border);
   display: block;
+  background: var(--heat-0);
 }
-.heat i[data-l='1'] {
-  background: rgba(0, 184, 163, 0.35);
+.heat-cell[data-level='1'] {
+  background: var(--heat-1);
 }
-.heat i[data-l='2'] {
-  background: rgba(0, 184, 163, 0.6);
+.heat-cell[data-level='2'] {
+  background: var(--heat-2);
 }
-.heat i[data-l='3'] {
-  background: var(--easy);
+.heat-cell[data-level='3'] {
+  background: var(--heat-3);
+}
+.heat-cell[data-level='4'] {
+  background: var(--heat-4);
+}
+.heat-grid .heat-cell:hover {
+  outline: 1px solid var(--text-2);
+  outline-offset: 1px;
+}
+
+.heat-tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  margin-top: -6px;
+  max-width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 11.5px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 12px var(--shadow);
+  z-index: 5;
+}
+.heat-tip.below {
+  transform: translate(-50%, 0);
+  margin-top: 6px;
+}
+
+.heat-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.heat-scale {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.heat-scale .heat-cell {
+  margin: 0 1px;
+}
+
+/* ------------------------------------------------------------- solved ring */
+.ring-block {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+.ring-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+.ring-center strong {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  /* Proportional figures — tabular digits read loose at display sizes. */
+  font-variant-numeric: normal;
+}
+.ring-center span {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.ring-legend {
+  flex: 1;
+  min-width: 240px;
+}
+.ring-headline {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 10px;
+}
+.ring-headline b {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 7px;
+  flex: 0 0 auto;
+}
+
+/* -------------------------------------------------------------- table view */
+.datatable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.datatable th {
+  text-align: left;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.datatable td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-2);
+}
+.datatable tbody tr:last-child td {
+  border-bottom: none;
+  color: var(--text);
+}
+.datatable th:not(:first-child),
+.datatable td:not(:first-child) {
+  text-align: right;
+  width: 78px;
 }
 
 /* ------------------------------------------------------------------ misc */
@@ -1256,7 +1484,7 @@ tr.cursor .act {
   .overall {
     display: none;
   }
-  .pattern-title p {
+  .pattern-blurb {
     display: none;
   }
   .bar {

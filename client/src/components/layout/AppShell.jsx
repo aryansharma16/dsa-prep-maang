@@ -4,7 +4,9 @@ import { useLocalState, useTheme } from '../../hooks/useLocalState.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
+import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
 import { IconLogout, IconMoon, IconPlus, IconSearch, IconSun } from '../ui/Icons.jsx';
+import { isAnyModalOpen } from '../ui/Modal.jsx';
 import { Sidebar } from './Sidebar.jsx';
 
 export function AppShell() {
@@ -14,6 +16,7 @@ export function AppShell() {
   const { totals } = useRoadmap();
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const searchRef = useRef(null);
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -37,6 +40,7 @@ export function AppShell() {
   useEffect(() => {
     const onKey = (e) => {
       const typing = /^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable;
+      if (isAnyModalOpen()) return;
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
         e.preventDefault();
@@ -101,7 +105,11 @@ export function AppShell() {
             {theme === 'dark' ? <IconSun size={15} /> : <IconMoon size={15} />}
           </button>
 
-          <button className="icon-btn" onClick={logout} title={`Sign out (${user?.email})`}>
+          <button
+            className="icon-btn"
+            onClick={() => setSigningOut(true)}
+            title={`Sign out (${user?.email})`}
+          >
             <IconLogout size={15} />
           </button>
         </header>
@@ -114,6 +122,18 @@ export function AppShell() {
       </div>
 
       {adding && <AddProblemModal onClose={() => setAdding(false)} />}
+
+      {signingOut && (
+        <ConfirmDialog
+          title="Sign out?"
+          message={`You'll be signed out of ${user?.email}.`}
+          detail="Your progress is saved to your account — signing back in picks up exactly where you left off."
+          confirmLabel="Sign out"
+          tone="danger"
+          onConfirm={logout}
+          onCancel={() => setSigningOut(false)}
+        />
+      )}
     </div>
   );
 }

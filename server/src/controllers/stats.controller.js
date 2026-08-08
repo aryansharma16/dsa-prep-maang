@@ -21,6 +21,24 @@ function currentStreak(daySet) {
   return streak;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Longest run of consecutive active days, ever. */
+function maxStreak(daySet) {
+  const days = [...daySet].sort();
+  let best = 0;
+  let run = 0;
+  let prev = null;
+
+  for (const day of days) {
+    const time = Date.parse(`${day}T00:00:00Z`);
+    run = prev !== null && time - prev === DAY_MS ? run + 1 : 1;
+    best = Math.max(best, run);
+    prev = time;
+  }
+  return best;
+}
+
 /** GET /api/stats — everything the stats page needs, in one request. */
 export const getStats = asyncHandler(async (req, res) => {
   const user = oid(req.userId);
@@ -94,16 +112,37 @@ export const getStats = asyncHandler(async (req, res) => {
       },
     ]),
 
-    // Solved counts per company — "how ready am I for Google?"
-    Progress.aggregate([
-      { $match: { user, status: 'solved' } },
-      { $lookup: { from: 'problems', localField: 'problem', foreignField: '_id', as: 'problem' } },
-      { $addFields: { problem: { $first: '$problem' } } },
-      { $unwind: '$problem.companies' },
-      { $group: { _id: '$problem.companies.name', solved: { $sum: 1 } } },
-      { $sort: { solved: -1 } },
-      { $limit: 15 },
-      { $project: { _id: 0, name: '$_id', solved: 1 } },
+    // Coverage per company — "how ready am I for Google?" needs solved AND the
+    // total they ask, otherwise 12 solved means nothing.
+    Problem.aggregate([
+      { $match: { $or: [{ owner: null }, { owner: user }] } },
+      { $unwind: '$companies' },
+      {
+        $lookup: {
+          from: 'progresses',
+          let: { pid: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $and: [{ $eq: ['$problem', '$$pid'] }, { $eq: ['$user', user] }] },
+              },
+            },
+            { $project: { status: 1 } },
+          ],
+          as: 'p',
+        },
+      },
+      { $addFields: { status: { $ifNull: [{ $first: '$p.status' }, 'todo'] } } },
+      {
+        $group: {
+          _id: '$companies.name',
+          total: { $sum: 1 },
+          solved: { $sum: { $cond: [{ $eq: ['$status', 'solved'] }, 1, 0] } },
+        },
+      },
+      { $sort: { total: -1 } },
+      { $limit: 12 },
+      { $project: { _id: 0, name: '$_id', total: 1, solved: 1 } },
     ]),
 
     Progress.aggregate([
@@ -141,6 +180,8 @@ export const getStats = asyncHandler(async (req, res) => {
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
+  const activeDays = new Set(counts.keys());
+
   res.json({
     totals: totals[0] || {
       tracked: 0,
@@ -154,6 +195,12 @@ export const getStats = asyncHandler(async (req, res) => {
     byPattern,
     byCompany,
     heatmap,
-    streak: currentStreak(new Set(counts.keys())),
+    activity: {
+      events: [...counts.values()].reduce((a, b) => a + b, 0),
+      activeDays: activeDays.size,
+      streak: currentStreak(activeDays),
+      maxStreak: maxStreak(activeDays),
+    },
+    streak: currentStreak(activeDays),
   });
 });

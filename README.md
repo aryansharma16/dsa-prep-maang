@@ -77,6 +77,18 @@ never touches your progress or the problems you added yourself.
 - **Revision queue** — solving schedules a review on a 3/7/21/60-day ladder,
   stretched or compressed by your confidence
 
+## Stats
+
+A solved ring split by difficulty, a year-long activity heatmap with current and
+longest streaks, your weakest patterns, and per-company coverage (solved *and*
+how many that company asks — 12 solved means nothing on its own).
+
+The heatmap ramp is a single hue with monotone lightness, stepped separately for
+light and dark rather than flipped, and validated for contrast against each
+surface. Those five `--heat-*` tokens in `styles/tokens.css` are computed, not
+hand-picked — re-run the check if you change them. The by-pattern panel has a
+table view for the same numbers without relying on colour.
+
 Every change writes to the screen first and persists in the background. If the
 request fails the row rolls back and a toast says so.
 
@@ -99,6 +111,33 @@ request fails the row rolls back and a toast says so.
 difficulty and tags fill themselves in; paste anything else and you fill three
 short fields. Your problems live in the same pattern sections as the seeded
 ones and only you can see them.
+
+## Shared UI
+
+`components/ui/Modal.jsx` is the base dialog — focus trap, Escape, backdrop
+click, focus restored to whatever opened it, and `role="dialog"` wired to its
+title. Children render raw below the header so a `<form>` can span the body and
+footer; use the `.modal-body` / `.modal-foot` classes inside.
+
+```jsx
+{open && (
+  <Modal title="Add a problem" onClose={close} initialFocus={urlRef}>
+    <form onSubmit={submit}>
+      <div className="modal-body">…</div>
+      <div className="modal-foot">…</div>
+    </form>
+  </Modal>
+)}
+```
+
+`ConfirmDialog.jsx` wraps it for yes/no questions (`tone="danger"` for
+destructive ones). Cancel takes focus first, so Enter and Escape both do the
+safe thing.
+
+While any dialog is open, `isAnyModalOpen()` suppresses the page-level single-key
+shortcuts — otherwise `s` would mark a problem solved behind the dialog.
+
+Sizes: `sm` (390px, confirmations), default (460px), `lg` (680px).
 
 ## Layout
 

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { errorMessage } from '../../api/http.js';
 import { problemsApi } from '../../api/index.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { useToast } from '../../store/ToastContext.jsx';
-import { IconClose } from '../ui/Icons.jsx';
+import { Modal } from '../ui/Modal.jsx';
 
 /**
  * One URL field. Paste a LeetCode link and everything fills itself in; paste
@@ -24,6 +24,9 @@ export function AddProblemModal({ onClose }) {
   const [looking, setLooking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState('');
+  // Land on the URL field, not the dialog's close button — pasting a link is
+  // the whole point of this dialog.
+  const urlRef = useRef(null);
 
   useEffect(() => {
     problemsApi
@@ -34,12 +37,6 @@ export function AddProblemModal({ onClose }) {
       })
       .catch(() => error('Could not load the pattern list'));
   }, [error]);
-
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
 
   // Debounced so pasting a URL resolves without a "Fetch" button to press.
   useEffect(() => {
@@ -92,24 +89,16 @@ export function AddProblemModal({ onClose }) {
   };
 
   return (
-    <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label="Add a problem">
-        <div className="modal-head">
-          <h3>Add a problem</h3>
-          <button className="icon-btn" style={{ marginLeft: 'auto' }} onClick={onClose}>
-            <IconClose size={14} />
-          </button>
-        </div>
-
-        <form onSubmit={submit}>
+    <Modal title="Add a problem" onClose={onClose} initialFocus={urlRef}>
+      <form onSubmit={submit}>
           <div className="modal-body">
             <label className="field">
               <span>Problem URL</span>
               <input
+                ref={urlRef}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://leetcode.com/problems/... or any other link"
-                autoFocus
               />
             </label>
 
@@ -158,9 +147,8 @@ export function AddProblemModal({ onClose }) {
             <button type="submit" className="btn primary" disabled={saving}>
               {saving ? 'Adding...' : 'Add problem'}
             </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </Modal>
   );
 }

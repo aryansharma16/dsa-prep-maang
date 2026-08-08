@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { PatternSection } from '../components/problem/PatternSection.jsx';
+import { isAnyModalOpen } from '../components/ui/Modal.jsx';
 import { useLocalState } from '../hooks/useLocalState.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 
@@ -119,6 +120,8 @@ export function Roadmap() {
     const onKey = (e) => {
       if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // A dialog is open — "s" belongs to it, not to the row behind it.
+      if (isAnyModalOpen()) return;
 
       const key = e.key.toLowerCase();
       const idx = flatRows.findIndex((p) => p._id === cursorId);
