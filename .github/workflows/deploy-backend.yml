@@ -1,0 +1,43 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            echo "Starting deployment..."
+
+            cd ~/dsa-prep-maang
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            cd server
+
+            echo "Installing dependencies..."
+            npm ci
+
+            echo "Restarting API..."
+            pm2 restart dsa-api --update-env
+
+            echo "Saving PM2 process list..."
+            pm2 save
+
+            echo "Deployment completed successfully."
