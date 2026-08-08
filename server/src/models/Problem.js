@@ -52,8 +52,22 @@ const problemSchema = new mongoose.Schema(
     descriptionHtml: { type: String, default: null },
     descriptionFetchedAt: { type: Date, default: null },
 
-    // null for seeded problems, set for problems the user added themselves
+    /**
+     * Visibility: null means everyone sees it (the seeded curriculum), otherwise
+     * only that user does.
+     */
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+
+    /**
+     * Provenance: who created this record. null means it came from the seed.
+     *
+     * Deliberately separate from `owner`, which is a visibility rule. Today they
+     * match for every user-added problem, but they answer different questions —
+     * if a problem is ever promoted into the shared list, `owner` goes null while
+     * `addedBy` must keep pointing at the person who contributed it. Collapsing
+     * the two would lose that permanently.
+     */
+    addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
   },
   { timestamps: true },
 );

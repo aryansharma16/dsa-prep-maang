@@ -128,11 +128,12 @@ export function RoadmapProvider({ children }) {
   const addProblem = useCallback(async (body) => {
     const problem = await problemsApi.create(body);
     setGroups((prev) =>
-      prev.map((g) =>
-        g.slug === problem.patternSlug
-          ? { ...g, problems: [...g.problems, problem], total: g.total + 1 }
-          : g,
-      ),
+      prev.map((g) => {
+        if (g.slug !== problem.patternSlug) return g;
+        const problems = [...g.problems, problem];
+        // Recount rather than +1 — a problem can be added already solved.
+        return { ...g, problems, total: problems.length, solved: countSolved(problems) };
+      }),
     );
     return problem;
   }, []);

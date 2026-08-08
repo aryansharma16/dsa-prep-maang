@@ -112,6 +112,27 @@ difficulty and tags fill themselves in; paste anything else and you fill three
 short fields. Your problems live in the same pattern sections as the seeded
 ones and only you can see them.
 
+Everything else the schema stores sits behind **More details**, so the common
+path stays a paste and a save: topic tags and companies (chips, with companies
+suggested from your existing list), an editorial link, a video link (any YouTube
+URL shape — the id is extracted server-side), a starting status, and notes.
+Status and notes are written to `Progress`, not `Problem`, so adding something
+you already solved counts immediately.
+
+### owner vs addedBy
+
+`Problem` carries two user references, and they answer different questions:
+
+| field | means | seeded value |
+|---|---|---|
+| `owner` | who can see it — a visibility rule | `null` (everyone) |
+| `addedBy` | who created the record — provenance | `null` (from the seed) |
+
+They match for every user-added problem today. They are separate so that
+promoting a problem into the shared list stays possible: `owner` would go `null`
+while `addedBy` keeps pointing at whoever contributed it. Collapsing them into
+one field would destroy that information permanently.
+
 ## Shared UI
 
 `components/ui/Modal.jsx` is the base dialog — focus trap, Escape, backdrop
@@ -165,11 +186,30 @@ client/
 
 ## Deploying
 
-Backend on Render (`render.yaml`), frontend on Vercel (`client/vercel.json`).
+API on EC2 behind nginx at `api.algoforge.work`; client on Vercel (root
+directory `client`).
 
-1. Render: set `MONGO_URI` and `CLIENT_URL` (your Vercel URL, no trailing
-   slash). The JWT secrets generate themselves.
-2. Vercel: root directory `client`, set `VITE_API_URL` to the Render URL.
+**The client never calls the API host directly.** `client/vercel.json` rewrites
+`/api/*` to the API server-side, so the browser only ever sees one origin:
 
-Cross-origin cookies need `SameSite=None; Secure`, which the server already
-sets when `NODE_ENV=production`.
+```json
+"rewrites": [
+  { "source": "/api/:path*", "destination": "https://api.algoforge.work/api/:path*" },
+  { "source": "/(.*)", "destination": "/" }
+]
+```
+
+Order matters — the SPA catch-all would swallow `/api` if it came first.
+
+That arrangement is not just tidiness. Calling the API host directly makes the
+auth cookies third-party, and Safari and Brave block those by default: login
+would work in Chrome and silently fail elsewhere. Through the rewrite the
+cookies are first-party, there is no CORS preflight, and every preview
+deployment works without adding its URL anywhere.
+
+So **leave `VITE_API_URL` unset on Vercel.** Setting it bypasses the rewrite and
+reintroduces exactly that problem. It exists only for hosts that cannot proxy.
+
+On the API box, `NODE_ENV=production` is what makes cookies `Secure` +
+`SameSite=None`, and `MONGO_URI` / `JWT_*` / `CLIENT_URL` come from
+`server/.env`. `render.yaml` is kept for the alternative Render path.

@@ -6,6 +6,7 @@ import { Progress } from '../models/Progress.js';
 import { fetchDescription, fetchProblem, slugFromUrl } from '../services/leetcode.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { youtubeId } from '../utils/links.js';
 
 const oid = (id) => new mongoose.Types.ObjectId(id);
 
@@ -152,19 +153,37 @@ export const lookup = asyncHandler(async (req, res) => {
   res.json({ found: true, alreadyTracked: false, problem: data });
 });
 
+const optionalUrl = z.string().url().or(z.literal('')).optional();
+
 export const createSchema = z.object({
   title: z.string().min(1).max(200),
-  url: z.string().url().or(z.literal('')).optional(),
+  url: optionalUrl,
   difficulty: z.enum(['Easy', 'Medium', 'Hard']),
   patternSlug: z.string().min(1),
-  topicTags: z.array(z.string()).optional(),
-  companies: z.array(z.string()).optional(),
-  notes: z.string().optional(),
+  topicTags: z.array(z.string().min(1).max(40)).max(20).optional(),
+  companies: z.array(z.string().min(1).max(60)).max(30).optional(),
+  // Editorial / article / write-up you want to come back to.
+  articleUrl: optionalUrl,
+  // Full YouTube URL or a bare id — normalised server-side.
+  video: z.string().max(200).optional(),
+  notes: z.string().max(20000).optional(),
+  status: z.enum(['todo', 'attempted', 'solved']).optional(),
 });
 
 /** POST /api/problems — add your own problem from any site. */
 export const createCustom = asyncHandler(async (req, res) => {
-  const { title, url = '', difficulty, patternSlug, topicTags = [], companies = [] } = req.body;
+  const {
+    title,
+    url = '',
+    difficulty,
+    patternSlug,
+    topicTags = [],
+    companies = [],
+    articleUrl = '',
+    video = '',
+    notes = '',
+    status,
+  } = req.body;
 
   const pattern = await Pattern.findOne({ slug: patternSlug });
   if (!pattern) throw ApiError.badRequest(`Unknown pattern: ${patternSlug}`);
@@ -179,20 +198,59 @@ export const createCustom = asyncHandler(async (req, res) => {
   // Put custom problems at the end of their pattern.
   const last = await Problem.findOne({ patternSlug }).sort({ patternOrder: -1 }).select('patternOrder');
 
+  const clean = (list) => [...new Set(list.map((s) => s.trim()).filter(Boolean))];
+
   const problem = await Problem.create({
     slug,
     title,
     url,
+    articleUrl,
     difficulty,
     patternSlug,
     patternOrder: (last?.patternOrder ?? 0) + 1,
-    topicTags,
-    companies: companies.map((name) => ({ name, freq: 0 })),
+    topicTags: clean(topicTags),
+    // freq is 0 because it means "how often this company asks it" in the seeded
+    // dataset, and there is no way to know that for a hand-added problem.
+    companies: clean(companies).map((name) => ({ name, freq: 0 })),
+    videoId: youtubeId(video),
     source: lcSlug ? 'leetcode' : 'custom',
     owner: oid(req.userId),
+    addedBy: oid(req.userId),
   });
 
-  res.status(201).json({ problem });
+  // Notes and status live on Progress, not Problem — seed that row only if the
+  // form actually supplied something.
+  let progress = null;
+  if (notes.trim() || (status && status !== 'todo')) {
+    progress = await Progress.findOneAndUpdate(
+      { user: oid(req.userId), problem: problem._id },
+      {
+        $set: {
+          ...(notes.trim() ? { notes: notes.trim() } : {}),
+          ...(status ? { status } : {}),
+          ...(status === 'solved' ? { solvedAt: new Date(), reviewStage: 1 } : {}),
+        },
+        $setOnInsert: { user: oid(req.userId), problem: problem._id },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    );
+  }
+
+  res.status(201).json({
+    problem: {
+      ...problem.toObject(),
+      progress: progress
+        ? {
+            status: progress.status,
+            flagged: progress.flagged,
+            needsRevision: progress.needsRevision,
+            confidence: progress.confidence,
+            notes: progress.notes,
+            attemptCount: 0,
+          }
+        : undefined,
+    },
+  });
 });
 
 /** DELETE /api/problems/:id — only your own additions. */

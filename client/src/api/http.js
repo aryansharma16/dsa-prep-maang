@@ -1,7 +1,17 @@
 import axios from 'axios';
 
-// Dev: '' + '/api' -> hits the Vite proxy, same origin, cookies just work.
-// Prod: VITE_API_URL is the Render origin.
+/**
+ * Always same-origin `/api`, in both environments:
+ *   dev  — the Vite proxy forwards to localhost:4000 (see vite.config.js)
+ *   prod — the Vercel rewrite forwards to the API host (see vercel.json)
+ *
+ * That keeps the auth cookies first-party. Pointing this straight at the API
+ * host instead would make them third-party, which Safari and Brave block by
+ * default — login would silently fail there and nowhere else.
+ *
+ * VITE_API_URL is an escape hatch for hosting the client somewhere that cannot
+ * proxy. Leave it unset on Vercel, or it defeats the rewrite.
+ */
 const baseURL = `${import.meta.env.VITE_API_URL || ''}/api`;
 
 export const http = axios.create({ baseURL, withCredentials: true });
