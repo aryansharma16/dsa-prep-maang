@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { Login } from './pages/Login.jsx';
+import { Profile } from './pages/Profile.jsx';
 import { Register } from './pages/Register.jsx';
 import { Revision } from './pages/Revision.jsx';
 import { Roadmap } from './pages/Roadmap.jsx';
@@ -32,6 +33,7 @@ export function App() {
           <Route path="/" element={<Roadmap />} />
           <Route path="/revision" element={<Revision />} />
           <Route path="/stats" element={<Stats />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

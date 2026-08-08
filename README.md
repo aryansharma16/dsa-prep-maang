@@ -77,6 +77,19 @@ never touches your progress or the problems you added yourself.
 - **Revision queue** — solving schedules a review on a 3/7/21/60-day ladder,
   stretched or compressed by your confidence
 
+## Profile
+
+The initials avatar in the top bar links to `/profile`. Initials come from your
+name, and the tile colour is derived from your email so it is stable across
+devices — all six colours clear 4.5:1 against the near-black initials, so they
+stay legible in either theme.
+
+The page shows who you are and how you're doing: joined date, solved count,
+current and longest streak, active days, time logged, the solved ring, the
+activity heatmap, your strongest patterns, company coverage, and the last eight
+problems you solved. Recent solves are derived from the roadmap already in
+memory, so the page costs one request.
+
 ## Stats
 
 A solved ring split by difficulty, a year-long activity heatmap with current and

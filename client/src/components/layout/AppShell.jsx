@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLocalState, useTheme } from '../../hooks/useLocalState.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
+import { Avatar } from '../ui/Avatar.jsx';
 import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
 import { IconLogout, IconMoon, IconPlus, IconSearch, IconSun } from '../ui/Icons.jsx';
 import { isAnyModalOpen } from '../ui/Modal.jsx';
@@ -112,6 +113,15 @@ export function AppShell() {
           >
             <IconLogout size={15} />
           </button>
+
+          <NavLink
+            to="/profile"
+            className={({ isActive }) => `avatar-btn ${isActive ? 'active' : ''}`}
+            title={`${user?.name} — view profile`}
+          >
+            <Avatar name={user?.name} email={user?.email} size={28} />
+            <span className="sr-only">Profile</span>
+          </NavLink>
         </header>
 
         <main className="content">
