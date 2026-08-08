@@ -1,0 +1,26 @@
+{
+  "name": "dsa-prep-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "seed:fetch": "node scripts/seed/fetch-sources.js",
+    "seed:curate": "node scripts/seed/curate.js",
+    "seed:db": "node scripts/seed/seed.js",
+    "seed": "npm run seed:fetch && npm run seed:curate && npm run seed:db"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0",
+    "zod": "^3.24.1"
+  }
+}

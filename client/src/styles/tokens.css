@@ -1,0 +1,69 @@
+/* Design tokens. Dark is the default; light is a straight token swap. */
+:root,
+:root[data-theme='dark'] {
+  --bg: #1a1a1a;
+  --surface: #282828;
+  --surface-2: #303030;
+  --surface-hover: #333333;
+  --border: #3e3e3e;
+  --border-soft: #2f2f2f;
+
+  --text: #eff2f6;
+  --text-2: #b3b3b3;
+  --text-3: #808080;
+
+  --easy: #00b8a3;
+  --medium: #ffb800;
+  --hard: #ff375f;
+  --accent: #ffa116;
+  --accent-text: #1a1a1a;
+
+  --easy-bg: rgba(0, 184, 163, 0.12);
+  --medium-bg: rgba(255, 184, 0, 0.12);
+  --hard-bg: rgba(255, 55, 95, 0.12);
+  --accent-bg: rgba(255, 161, 22, 0.12);
+
+  --danger: #ff375f;
+  --focus: #4c9aff;
+  --shadow: rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme='light'] {
+  --bg: #ffffff;
+  --surface: #f7f8fa;
+  --surface-2: #ffffff;
+  --surface-hover: #eef0f3;
+  --border: #dfe1e6;
+  --border-soft: #ebedf0;
+
+  --text: #1f2328;
+  --text-2: #55606e;
+  --text-3: #8a94a6;
+
+  --easy: #00875a;
+  --medium: #b25e00;
+  --hard: #d1293d;
+  --accent: #e08600;
+  --accent-text: #ffffff;
+
+  --easy-bg: rgba(0, 135, 90, 0.1);
+  --medium-bg: rgba(178, 94, 0, 0.1);
+  --hard-bg: rgba(209, 41, 61, 0.1);
+  --accent-bg: rgba(224, 134, 0, 0.12);
+
+  --danger: #d1293d;
+  --focus: #0b66e4;
+  --shadow: rgba(16, 22, 26, 0.15);
+}
+
+:root {
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 56px;
+  --topbar-h: 52px;
+  --row-h: 36px;
+  --radius: 4px;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+}

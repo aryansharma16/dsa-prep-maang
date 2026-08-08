@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: dsa-prep-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Set these in the Render dashboard — never commit them.
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # Your Vercel URL, no trailing slash. Comma-separated for multiple origins.
+      - key: CLIENT_URL
+        sync: false
