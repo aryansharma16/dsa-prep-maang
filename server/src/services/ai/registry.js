@@ -1,3 +1,4 @@
+import { scoreModel } from '../chat/routing.js';
 import { classify } from './errors.js';
 import { cerebras } from './cerebras.provider.js';
 import { deepseek } from './deepseek.provider.js';
@@ -146,7 +147,12 @@ export function catalogue(enabled = DEFAULT_ORDER) {
  * recoverable moment into an error page. A stale cooldown is a guess; a real
  * request is evidence.
  */
-export function candidatesFor({ provider: requestedProvider, model: requestedModel, enabled = DEFAULT_ORDER } = {}) {
+export function candidatesFor({
+  provider: requestedProvider,
+  model: requestedModel,
+  enabled = DEFAULT_ORDER,
+  task = null,
+} = {}) {
   const ordered = [];
   const seen = new Set();
 
@@ -165,12 +171,33 @@ export function candidatesFor({ provider: requestedProvider, model: requestedMod
 
   const usable = enabled.filter((id) => BY_ID.get(id)?.configured());
 
-  // Healthy pairs, provider order then model order.
+  /*
+    Auto mode. `task` is set only when the caller did not name a model, and it
+    reorders the healthy pairs by how well each suits the question — a code
+    request goes to a model that is good at code, a definition goes to the
+    cheapest thing that starts typing immediately.
+
+    Availability is a precondition, not a tiebreaker: only healthy pairs are
+    scored at all, so Auto can never choose a model that is out of requests
+    until midnight, however well it fits. Ties keep catalogue order, which is
+    provider preference then quality — so scoring never scrambles the sensible
+    default, it only promotes a better fit above it.
+  */
+  const healthy = [];
   for (const id of usable) {
     if (!isProviderHealthy(id)) continue;
     for (const model of BY_ID.get(id).models) {
-      if (isModelHealthy(id, model.id)) push(id, model.id);
+      if (isModelHealthy(id, model.id)) healthy.push({ provider: id, model });
     }
+  }
+
+  if (task) {
+    healthy
+      .map((entry, index) => ({ ...entry, index, score: scoreModel(entry.model, task) }))
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .forEach((entry) => push(entry.provider, entry.model.id));
+  } else {
+    healthy.forEach((entry) => push(entry.provider, entry.model.id));
   }
 
   // Then everything else, as last resorts.

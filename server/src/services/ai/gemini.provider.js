@@ -64,13 +64,13 @@ const baseConfig = ({ system, temperature, maxTokens }) => ({
  * `scope: 'model'` in errors.js is what keeps that from taking Gemini down.
  */
 const FALLBACK_MODELS = [
-  'gemini-3.6-flash',
-  'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
-  'gemini-3-flash-preview',
-  'gemini-3.1-flash-lite',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
+  { id: 'gemini-3.6-flash', tier: 'balanced', strengths: ['code', 'general'] },
+  { id: 'gemini-3.5-flash', tier: 'balanced', strengths: ['code', 'general'] },
+  { id: 'gemini-3.5-flash-lite', tier: 'fast', strengths: ['general'] },
+  { id: 'gemini-3-flash-preview', tier: 'balanced', strengths: ['general'] },
+  { id: 'gemini-3.1-flash-lite', tier: 'fast', strengths: ['general'] },
+  { id: 'gemini-2.0-flash', tier: 'fast', strengths: ['general'] },
+  { id: 'gemini-2.0-flash-lite', tier: 'fast', strengths: ['general'] },
 ];
 
 const config = {
@@ -101,8 +101,10 @@ export const gemini = {
       names is what gets tried before any of the rest.
     */
     const configured = env.gemini.fastModel;
-    const rest = FALLBACK_MODELS.filter((id) => id !== configured);
-    return [configured, ...rest].map((id) => ({ id, label: `${id} (Google)` }));
+    const known = FALLBACK_MODELS.find((m) => m.id === configured);
+    const rest = FALLBACK_MODELS.filter((m) => m.id !== configured);
+    const ordered = [known || { id: configured, tier: 'balanced', strengths: ['general'] }, ...rest];
+    return ordered.map((m) => ({ ...m, label: `${m.id} (Google)` }));
   },
   get defaultModel() {
     return env.gemini.fastModel;

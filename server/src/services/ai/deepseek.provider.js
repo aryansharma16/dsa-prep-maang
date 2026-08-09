@@ -27,8 +27,8 @@ export const deepseek = {
   label: 'DeepSeek',
   envKey: 'DEEPSEEK_API_KEY',
   models: [
-    { id: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
-    { id: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro (slower)' },
+    { id: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash', tier: 'balanced', strengths: ['code', 'general'] },
+    { id: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro (slower)', tier: 'deep', strengths: ['code', 'reasoning'] },
   ],
   defaultModel: 'deepseek-v4-flash',
   configured: () => env.ai.deepseek.configured,

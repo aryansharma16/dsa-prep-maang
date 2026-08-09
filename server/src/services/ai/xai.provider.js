@@ -32,8 +32,8 @@ export const xai = {
   label: 'Grok (xAI)',
   envKey: 'GROK_API_KEY',
   models: [
-    { id: 'grok-4-fast-non-reasoning', label: 'Grok 4 Fast' },
-    { id: 'grok-4', label: 'Grok 4' },
+    { id: 'grok-4-fast-non-reasoning', label: 'Grok 4 Fast', tier: 'fast', strengths: ['general'] },
+    { id: 'grok-4', label: 'Grok 4', tier: 'deep', strengths: ['reasoning', 'code'] },
   ],
   defaultModel: 'grok-4-fast-non-reasoning',
   configured: () => env.ai.xai.configured,

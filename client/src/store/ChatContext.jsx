@@ -82,11 +82,19 @@ export function ChatProvider({ children }) {
         if (!live) return;
         setConfig(data);
         setRetryAt(data.retryAt || null);
-        // Fall back when the stored choice is gone, its provider went down, or
-        // that one model has spent its daily allowance.
+        /*
+          An empty string is Auto, and it is the default — a new reader gets
+          task-based routing without having to know what any of these models
+          are.
+
+          A named model that is gone or out of requests falls back *to Auto*,
+          not to some other named model. Auto already knows how to find a
+          working one, and silently pinning someone to a specific replacement
+          just means they hit the same wall again tomorrow.
+        */
         setModel((current) => {
-          const usable = data.models.find((m) => m.id === current && m.available);
-          return usable ? current : data.defaultModel || '';
+          if (!current) return '';
+          return data.models.some((m) => m.id === current && m.available) ? current : '';
         });
       })
       .catch((err) => live && setConfigError(errorMessage(err, 'The assistant is unavailable')));
@@ -142,6 +150,14 @@ export function ChatProvider({ children }) {
               if (event === 'delta') {
                 chatStream.push(payload.t);
               } else if (event === 'start') {
+                // Which model actually answered. Worth showing: on Auto the
+                // reader did not choose it, and a router you cannot see is one
+                // you cannot trust. One setState per reply, not per token.
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === draft.id ? { ...m, model: payload.model, provider: payload.provider } : m,
+                  ),
+                );
                 // The thread exists from this moment. Adopt its id before any
                 // further send can race against a null one.
                 conversationRef.current = payload.conversationId;
@@ -234,6 +250,8 @@ export function ChatProvider({ children }) {
           id: m._id,
           role: m.role,
           content: m.content,
+          model: m.model,
+          provider: m.provider,
           truncated: m.truncated,
           problem: m.problemSlug ? { slug: m.problemSlug, title: m.problemSlug } : null,
         })),

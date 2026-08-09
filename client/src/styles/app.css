@@ -4217,6 +4217,15 @@ img.avatar {
   color: var(--danger);
 }
 
+/* Present but recessive: worth being able to check, not worth reading. */
+.chat-msg-model {
+  margin-top: 5px;
+  font-size: 9.5px;
+  color: var(--text-3);
+  opacity: 0.65;
+}
+.chat-msg:hover .chat-msg-model { opacity: 1; }
+
 /* ---- prose. Mirrors .guide-body rather than joining its selector list, so the
    guide reader cannot regress from an edit made for the chat. */
 

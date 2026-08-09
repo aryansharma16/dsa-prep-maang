@@ -27,9 +27,9 @@ export const cerebras = {
   label: 'Cerebras',
   envKey: 'CEREBRAS_API_KEY',
   models: [
-    { id: 'zai-glm-4.7', label: 'GLM 4.7 (Cerebras)' },
-    { id: 'gpt-oss-120b', label: 'GPT-OSS 120B (Cerebras)' },
-    { id: 'gemma-4-31b', label: 'Gemma 4 31B (Cerebras)' },
+    { id: 'zai-glm-4.7', label: 'GLM 4.7 (Cerebras)', tier: 'balanced', strengths: ['code', 'general'] },
+    { id: 'gpt-oss-120b', label: 'GPT-OSS 120B (Cerebras)', tier: 'deep', strengths: ['code', 'reasoning'] },
+    { id: 'gemma-4-31b', label: 'Gemma 4 31B (Cerebras)', tier: 'fast', strengths: ['general'] },
   ],
   defaultModel: 'zai-glm-4.7',
   configured: () => env.ai.cerebras.configured,

@@ -100,7 +100,16 @@ export function ChatComposer({ attached, onAttach, onDetach, onSend }) {
             value={model}
             onChange={(e) => setModel(e.target.value)}
             aria-label="Model"
+            title={
+              model
+                ? 'This model is used for every message'
+                : 'Picks a model per question — code, explanation or a quick definition — from whichever are available'
+            }
           >
+            {/* Empty value means "you choose", which is exactly what the server
+                does with an absent model: classify the question and rank the
+                available models for it. */}
+            <option value="">Auto</option>
             {models.map((m) => (
               <option key={`${m.provider}:${m.id}`} value={m.id} disabled={!m.available}>
                 {m.label}

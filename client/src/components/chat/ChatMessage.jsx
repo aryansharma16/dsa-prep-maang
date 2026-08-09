@@ -28,7 +28,7 @@ function LiveBody() {
 }
 
 export function ChatMessage({ message }) {
-  const { role, problem, live, content, error, truncated } = message;
+  const { role, problem, live, content, error, truncated, model } = message;
 
   return (
     <div className={`chat-msg ${role}`}>
@@ -47,6 +47,10 @@ export function ChatMessage({ message }) {
         )}
 
         {live ? <LiveBody /> : <ChatMarkdown text={content} />}
+
+        {/* Which model wrote this. On Auto nobody chose it, and a router you
+            cannot see is one you cannot judge — so it says so, quietly. */}
+        {role === 'assistant' && model && !live && <div className="chat-msg-model mono">{model}</div>}
 
         {truncated && !error && <div className="chat-err">The reply was cut short. Ask again to continue.</div>}
         {error && <div className="chat-err">{error}</div>}

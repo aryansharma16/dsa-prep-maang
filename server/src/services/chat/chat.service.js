@@ -17,6 +17,7 @@ import {
 } from '../ai/registry.js';
 import { classify } from '../ai/errors.js';
 import { cleanTitle, draftTitle, recentTurns } from './history.js';
+import { classifyTask } from './routing.js';
 import { SYSTEM, TITLE_SYSTEM, problemContext } from './prompt.js';
 
 /**
@@ -266,11 +267,23 @@ export async function* runChat({ userId, conversationId, content, provider: requ
 
     let opened;
     try {
+      /*
+        Auto is the absence of a choice, not a magic model id.
+
+        The client sends no provider/model when the picker is on "Auto", so the
+        task is classified and used to order candidates. Naming a model means
+        exactly that — it is tried first and the classification is skipped,
+        because a person who chose from a dropdown was not asking to be
+        second-guessed.
+      */
+      const task = model ? null : classifyTask(content, { hasProblem: Boolean(attached) });
+
       opened = await openStream({
         candidates: candidatesFor({
           provider: requestedProvider,
           model,
           enabled: settings.providers,
+          task,
         }),
         messages,
         system,
