@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App.jsx';
+import { AppearanceProvider } from './store/AppearanceContext.jsx';
 import { AuthProvider } from './store/AuthContext.jsx';
 import { ToastProvider } from './store/ToastContext.jsx';
 import './styles/tokens.css';
@@ -13,7 +14,11 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
-          <App />
+          {/* Inside AuthProvider so it can adopt the account's saved colours,
+              outside <App/> so the signed-out pages are themed too. */}
+          <AppearanceProvider>
+            <App />
+          </AppearanceProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>

@@ -120,6 +120,17 @@ export const IconMoon = (p) => (
   </Svg>
 );
 
+/* Opens the appearance menu. A palette rather than a sun, because the button
+   holds a menu now — a sun that did not toggle on click would read as broken. */
+export const IconPalette = (p) => (
+  <Svg {...p}>
+    <path d="M8 1.8a6.2 6.2 0 000 12.4c.9 0 1.4-.6 1.4-1.3 0-.6-.4-1-.4-1.5s.4-.9 1-.9h1.2a3 3 0 003-3c0-3.1-2.8-5.7-6.2-5.7z" />
+    <circle cx="5.2" cy="7.1" r=".9" />
+    <circle cx="8" cy="5.2" r=".9" />
+    <circle cx="10.9" cy="7.1" r=".9" />
+  </Svg>
+);
+
 export const IconGrid = (p) => (
   <Svg {...p}>
     <path d="M2.6 2.6h4.2v4.2H2.6zM9.2 2.6h4.2v4.2H9.2zM2.6 9.2h4.2v4.2H2.6zM9.2 9.2h4.2v4.2H9.2z" />

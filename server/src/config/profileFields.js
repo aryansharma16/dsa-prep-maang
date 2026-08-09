@@ -25,6 +25,28 @@ export const profileSchema = z
   .partial();
 
 /**
+ * Appearance: theme and accent colour.
+ *
+ * Not part of `profileSchema`, and so not reachable from the admin user-edit
+ * endpoint that imports it — an admin correcting somebody's grad year has no
+ * business changing the colour of their UI.
+ *
+ * `accent` is loose on purpose; see the note on `prefsSchema` in models/User.js.
+ * The shape is all this needs to enforce, since an unknown id degrades to the
+ * default in the client rather than breaking anything.
+ */
+export const prefsSchema = z
+  .object({
+    theme: z.enum(['dark', 'light']),
+    accent: z.string().regex(/^[a-z]{2,12}$/, 'Not an accent name'),
+    accentCustom: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/i, 'Not a #rrggbb colour')
+      .or(z.literal('')),
+  })
+  .partial();
+
+/**
  * What a user may change about themselves.
  *
  * Email is here because it is their account — but `assertEmailNotReserved`
@@ -37,6 +59,7 @@ export const selfUpdateSchema = z
     name: z.string().min(1).max(60),
     email: z.string().email(),
     profile: profileSchema,
+    prefs: prefsSchema,
   })
   .partial()
   .refine((body) => Object.keys(body).length > 0, 'Nothing to update');

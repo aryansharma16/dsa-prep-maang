@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /** useState that survives reloads. Used for sidebar collapse, theme, open sections. */
 export function useLocalState(key, initial) {
@@ -20,19 +20,4 @@ export function useLocalState(key, initial) {
   }, [key, value]);
 
   return [value, setValue];
-}
-
-export function useTheme() {
-  const [theme, setTheme] = useLocalState('theme', 'dark');
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  const toggle = useCallback(
-    () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')),
-    [setTheme],
-  );
-
-  return { theme, toggle };
 }

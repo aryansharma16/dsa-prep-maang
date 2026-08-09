@@ -25,19 +25,31 @@
   --easy: #00b8a3;
   --medium: #ffb800;
   --hard: #ff375f;
-  --accent: #ffa116;
+
+  /*
+    The accent is the one colour the user picks, so it is the one colour that
+    cannot be written out five times. Only the triple below changes — per
+    palette in the block at the foot of this file, or as an inline property on
+    <html> for a custom colour — and the four derivations follow it.
+
+    Kept as bare channels rather than a hex so the alphas can be mixed here
+    instead of needing a second literal per palette per theme.
+  */
+  --accent-rgb: 255 161 22;
   --accent-text: #1a1a1a;
 
   --easy-bg: rgba(0, 184, 163, 0.12);
   --medium-bg: rgba(255, 184, 0, 0.12);
   --hard-bg: rgba(255, 55, 95, 0.12);
-  --accent-bg: rgba(255, 161, 22, 0.12);
+
+  --accent: rgb(var(--accent-rgb));
+  --accent-bg: rgb(var(--accent-rgb) / 0.12);
   /* The accent worn down to an outline — enough to mark the open section, not
      enough to compete with the row cursor drawn in the accent proper. */
-  --accent-line: rgba(255, 161, 22, 0.32);
+  --accent-line: rgb(var(--accent-rgb) / 0.32);
   /* Ambient spill around that outline. Low enough that it reads as light off
      the border rather than a second border. */
-  --accent-glow: rgba(255, 161, 22, 0.13);
+  --accent-glow: rgb(var(--accent-rgb) / 0.13);
 
   --danger: #ff375f;
   --focus: #4c9aff;
@@ -82,17 +94,20 @@
   --easy: #00875a;
   --medium: #b25e00;
   --hard: #d1293d;
-  --accent: #e08600;
+
+  --accent-rgb: 224 134 0;
   --accent-text: #ffffff;
 
   --easy-bg: rgba(0, 135, 90, 0.1);
   --medium-bg: rgba(178, 94, 0, 0.1);
   --hard-bg: rgba(209, 41, 61, 0.1);
-  --accent-bg: rgba(224, 134, 0, 0.12);
+
+  --accent: rgb(var(--accent-rgb));
+  --accent-bg: rgb(var(--accent-rgb) / 0.12);
   /* Carries more alpha than the dark theme's: the same wash reads fainter
      against a light surface. */
-  --accent-line: rgba(224, 134, 0, 0.45);
-  --accent-glow: rgba(224, 134, 0, 0.16);
+  --accent-line: rgb(var(--accent-rgb) / 0.45);
+  --accent-glow: rgb(var(--accent-rgb) / 0.16);
 
   --danger: #d1293d;
   --focus: #0b66e4;
@@ -119,6 +134,55 @@
   --heat-3: #137c6c;
   --heat-4: #00594a;
 }
+
+/*
+  Accent palettes.
+
+  Amber has no rule of its own — it is the default sitting in the two theme
+  blocks above, so an account that never opens the picker renders exactly as it
+  did before this existed.
+
+  Order is load-bearing. `:root[data-theme='light']` and `:root[data-accent='x']`
+  tie at (0,2,0), so these have to come after the theme blocks to win at all,
+  and the light twins need both attributes (0,3,0) to beat the plain rule above
+  them. Move this block up and light+green quietly renders the dark green.
+
+  The light values are re-picked for white rather than lightened, the same way
+  the syntax and heat ramps are — a colour tuned to sit on #1a1a1a washes out
+  against #ffffff. Dark values clear 4.5:1 against --bg; light ones clear 4.5:1
+  against white.
+*/
+/* Dark. Ordered around the wheel from the default, neutral last. Ink on all of
+   them: every one is a bright mark, and none is close to taking white text. */
+:root[data-accent='orange']  { --accent-rgb: 255 120 73;  --accent-text: #1a1a1a; }
+:root[data-accent='red']     { --accent-rgb: 255 77 77;   --accent-text: #1a1a1a; }
+:root[data-accent='pink']    { --accent-rgb: 255 92 138;  --accent-text: #1a1a1a; }
+:root[data-accent='fuchsia'] { --accent-rgb: 232 121 249; --accent-text: #1a1a1a; }
+:root[data-accent='violet']  { --accent-rgb: 181 140 255; --accent-text: #1a1a1a; }
+:root[data-accent='indigo']  { --accent-rgb: 129 140 248; --accent-text: #1a1a1a; }
+:root[data-accent='blue']    { --accent-rgb: 76 154 255;  --accent-text: #1a1a1a; }
+:root[data-accent='sky']     { --accent-rgb: 56 189 248;  --accent-text: #1a1a1a; }
+:root[data-accent='cyan']    { --accent-rgb: 34 211 238;  --accent-text: #1a1a1a; }
+:root[data-accent='teal']    { --accent-rgb: 0 194 184;   --accent-text: #1a1a1a; }
+:root[data-accent='green']   { --accent-rgb: 38 194 129;  --accent-text: #1a1a1a; }
+:root[data-accent='lime']    { --accent-rgb: 163 230 53;  --accent-text: #1a1a1a; }
+:root[data-accent='slate']   { --accent-rgb: 154 164 178; --accent-text: #1a1a1a; }
+
+/* Light. Same hues, re-picked deep enough to hold against white — which is also
+   what flips the readable foreground from ink to paper. */
+:root[data-theme='light'][data-accent='orange']  { --accent-rgb: 194 65 12;   --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='red']     { --accent-rgb: 209 41 61;   --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='pink']    { --accent-rgb: 214 51 108;  --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='fuchsia'] { --accent-rgb: 162 28 175;  --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='violet']  { --accent-rgb: 124 58 237;  --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='indigo']  { --accent-rgb: 79 70 229;   --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='blue']    { --accent-rgb: 11 102 228;  --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='sky']     { --accent-rgb: 3 105 161;   --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='cyan']    { --accent-rgb: 14 116 144;  --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='teal']    { --accent-rgb: 0 120 111;   --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='green']   { --accent-rgb: 0 135 90;    --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='lime']    { --accent-rgb: 77 124 15;   --accent-text: #ffffff; }
+:root[data-theme='light'][data-accent='slate']   { --accent-rgb: 85 96 110;   --accent-text: #ffffff; }
 
 :root {
   --sidebar-w: 248px;

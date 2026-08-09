@@ -24,6 +24,27 @@ export const assetSchema = new mongoose.Schema(
   { _id: false },
 );
 
+/**
+ * How this account wants the app to look.
+ *
+ * `accent` is deliberately not an enum. The palette lives in the client, in
+ * theme/accents.js alongside the stylesheet rules that actually paint it, and
+ * pinning the list here would make adding a colour a two-repo change. The client
+ * falls back to the default for an id it no longer recognises, the same way it
+ * reconciles a stale saved column layout.
+ *
+ * No `_id`: one embedded value, not a collection.
+ */
+export const prefsSchema = new mongoose.Schema(
+  {
+    theme: { type: String, enum: ['dark', 'light'], default: 'dark' },
+    accent: { type: String, default: 'amber' },
+    /** The `#rrggbb` behind the `custom` accent. Empty until one is picked. */
+    accentCustom: { type: String, default: '' },
+  },
+  { _id: false },
+);
+
 const userSchema = new mongoose.Schema(
   {
     email: {
@@ -82,6 +103,16 @@ const userSchema = new mongoose.Schema(
       targetRole: { type: String, default: '', maxlength: 80 },
       targetCompanies: { type: [String], default: [] },
     },
+
+    /**
+     * Absent until the picker is used, like `avatar`.
+     *
+     * Not merely tidiness: an account that has never expressed a preference is
+     * distinguishable from one that chose the defaults, which is what lets the
+     * client carry a device's existing theme up to the account on first sign-in
+     * instead of resetting it to dark/amber.
+     */
+    prefs: { type: prefsSchema, default: undefined },
   },
   { timestamps: true },
 );

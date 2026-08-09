@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useLocalState, useTheme } from '../../hooks/useLocalState.js';
+import { useLocalState } from '../../hooks/useLocalState.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
 import { Avatar } from '../ui/Avatar.jsx';
 import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
-import { IconLogout, IconMoon, IconPlus, IconSearch, IconSun } from '../ui/Icons.jsx';
+import { IconLogout, IconPlus, IconSearch } from '../ui/Icons.jsx';
 import { isAnyModalOpen } from '../ui/Modal.jsx';
+import { AppearancePicker } from './AppearancePicker.jsx';
 import { Sidebar } from './Sidebar.jsx';
 
 export function AppShell() {
   const [collapsed, setCollapsed] = useLocalState('sidebar-collapsed', false);
-  const { theme, toggle } = useTheme();
   const { user, logout } = useAuth();
   const { totals } = useRoadmap();
   const [query, setQuery] = useState('');
@@ -105,13 +105,7 @@ export function AppShell() {
             Add
           </button>
 
-          <button
-            className="icon-btn"
-            onClick={toggle}
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-          >
-            {theme === 'dark' ? <IconSun size={15} /> : <IconMoon size={15} />}
-          </button>
+          <AppearancePicker />
 
           <button
             className="icon-btn"

@@ -362,9 +362,11 @@ export function ParticleWeb() {
       readTheme();
       if (reduced) draw(0, []);
     });
+    // `style` too: a custom accent is an inline property on <html>, so it
+    // changes no attribute the other two would catch.
     themes.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme'],
+      attributeFilter: ['data-theme', 'data-accent', 'style'],
     });
 
     const sizes = new ResizeObserver(resize);

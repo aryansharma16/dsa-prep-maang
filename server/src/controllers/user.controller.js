@@ -18,12 +18,15 @@ export const updateMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.userId);
   if (!user) throw ApiError.unauthorized('Account no longer exists', 'NO_USER');
 
-  const { name, email, profile } = req.body;
+  const { name, email, profile, prefs } = req.body;
   if (email) assertEmailNotReserved(email, user);
 
   if (name !== undefined) user.name = name;
   if (email !== undefined) user.email = email;
   if (profile) user.profile = { ...user.profile?.toObject?.(), ...profile };
+  // Merged, not replaced — the picker sends the whole block, but a future
+  // caller changing only the theme should not blank out the accent.
+  if (prefs) user.prefs = { ...user.prefs?.toObject?.(), ...prefs };
 
   await user.save();
   res.json({ user: publicUser(user) });

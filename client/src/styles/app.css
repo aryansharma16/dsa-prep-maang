@@ -283,6 +283,149 @@
   font-weight: 600;
 }
 
+/* ---- appearance menu */
+
+.appearance-wrap {
+  position: relative;
+  display: flex;
+}
+.icon-btn.on {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* Downward and right-aligned — the trigger sits at the ceiling, near the end of
+   the bar, so a menu anchored left would hang off the window. */
+.appearance-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  width: 250px;
+  padding: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px var(--shadow);
+}
+.appearance-label {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.appearance-themes {
+  width: 100%;
+  margin-bottom: 12px;
+}
+.appearance-themes button {
+  flex: 1;
+  gap: 5px;
+  height: 28px;
+  font-size: 11.5px;
+}
+
+/* Seven across, so fourteen colours land as two even rows rather than a full
+   row and a stub. A grid rather than wrapped flex for the same reason: the
+   short row stays aligned to the one above it. */
+.appearance-swatches {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  justify-items: center;
+}
+/*
+  A ring rather than a border, so selecting one does not resize it and shuffle
+  the row. The gap between ring and fill is the menu's own background, which is
+  what makes the ring read as separate from the colour it marks.
+*/
+.appearance-swatch {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border-radius: 50%;
+  background: var(--swatch);
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--border) inset;
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
+}
+.appearance-swatch:hover {
+  transform: scale(1.08);
+}
+.appearance-swatch.on {
+  box-shadow:
+    0 0 0 2px var(--surface-2),
+    0 0 0 4px var(--swatch);
+}
+.appearance-swatch:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.appearance-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+.appearance-custom-name {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.appearance-hex {
+  width: 74px;
+  height: 26px;
+  margin-left: auto;
+  padding: 0 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 11px;
+  text-transform: lowercase;
+}
+.appearance-hex:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+/*
+  The native colour input, kept as a 26px square with its own swatch showing
+  through. Chrome and Firefox each pad the control differently, hence the
+  negative margins on the well rather than a height that only lands on one.
+*/
+.appearance-native {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.appearance-native::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+.appearance-native::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+.appearance-native::-moz-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
+.appearance-note {
+  margin: 10px 0 0;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+
 .content {
   flex: 1;
   overflow-y: auto;
@@ -883,6 +1026,11 @@ tr:hover .ext {
   Deliberately a fixed light tile rather than var(--surface-2): plenty of these
   logos are solid black marks with a transparent background (Apple, Adobe), and
   on the dark theme they would disappear into the row.
+
+  No border, and no ring on the frequently-asked ones. A dozen outlined tiles
+  per row read as a dozen things demanding attention, which is the opposite of
+  what a supporting column should do — the tile itself is already enough of an
+  edge. Ask frequency is still on the title of each logo.
 */
 .co-logo {
   width: 18px;
@@ -892,11 +1040,6 @@ tr:hover .ext {
   padding: 2px;
   border-radius: 4px;
   background: #fff;
-  border: 1px solid var(--border);
-}
-.co-logo.hot {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
 }
 .co-more {
   font-size: 10.5px;
@@ -2660,14 +2803,14 @@ img.avatar {
   height: 150%;
   pointer-events: none;
   background:
-    radial-gradient(46% 38% at 76% 16%, rgba(255, 161, 22, 0.17), transparent 70%),
+    radial-gradient(46% 38% at 76% 16%, rgb(var(--accent-rgb) / 0.17), transparent 70%),
     radial-gradient(50% 42% at 12% 78%, rgba(0, 184, 163, 0.14), transparent 72%);
 }
 /* The same two lights, re-mixed for a surface that starts near white — the dark
    theme's alphas are invisible against it. */
 :root[data-theme='light'] .auth-glow {
   background:
-    radial-gradient(46% 38% at 76% 16%, rgba(224, 134, 0, 0.16), transparent 70%),
+    radial-gradient(46% 38% at 76% 16%, rgb(var(--accent-rgb) / 0.16), transparent 70%),
     radial-gradient(50% 42% at 12% 78%, rgba(0, 135, 90, 0.13), transparent 72%);
 }
 

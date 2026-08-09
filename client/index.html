@@ -6,11 +6,38 @@
     <title>MAANG Prep</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2300b8a3'/><path d='M12 9l-5 7 5 7M20 9l5 7-5 7' stroke='%23111' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
     <script>
-      // Applied before first paint so the theme never flashes.
+      /*
+        Applied before first paint so neither the theme nor the accent flashes.
+
+        Values are JSON-encoded by useLocalState, so they have to be parsed —
+        setting the raw string gives data-theme='"light"', quotes included,
+        which matches no selector and left every light-theme load starting dark.
+
+        A custom accent cannot be recomputed here: the fitting maths lives in a
+        module and this runs before any module does. It is cached into the
+        stored value for exactly that reason, so this only has to read it.
+      */
       (function () {
         try {
-          var t = localStorage.getItem('theme');
-          if (t) document.documentElement.setAttribute('data-theme', t);
+          var root = document.documentElement;
+          var raw = localStorage.getItem('appearance');
+          var a = raw ? JSON.parse(raw) : null;
+
+          // Installs from before the accent picker kept the theme on its own key.
+          if (!a) {
+            var legacy = localStorage.getItem('theme');
+            if (legacy) a = { theme: JSON.parse(legacy) };
+          }
+          if (!a) return;
+
+          if (a.theme) root.setAttribute('data-theme', a.theme);
+          if (a.accent) root.setAttribute('data-accent', a.accent);
+
+          var custom = a.accent === 'custom' && a.derived && a.derived[a.theme || 'dark'];
+          if (custom) {
+            root.style.setProperty('--accent-rgb', custom.rgb);
+            root.style.setProperty('--accent-text', custom.ink);
+          }
         } catch (e) {}
       })();
     </script>
