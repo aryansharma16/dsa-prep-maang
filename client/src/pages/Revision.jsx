@@ -4,6 +4,7 @@ import { errorMessage } from '../api/http.js';
 import { CompanyChips } from '../components/problem/CompanyChips.jsx';
 import { IconCheck, IconExternal, IconRotate } from '../components/ui/Icons.jsx';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
+import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
 const dayDiff = (date) =>
   Math.round((new Date(date) - new Date()) / (1000 * 60 * 60 * 24));
@@ -77,6 +78,8 @@ export function Revision() {
           something pushes it further out; low confidence brings it back sooner.
         </p>
       </div>
+
+      <MotivationLine surface="revision" />
 
       {items.length === 0 ? (
         <div className="empty">

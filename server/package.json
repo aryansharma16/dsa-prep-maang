@@ -12,9 +12,13 @@
     "seed:db": "node scripts/seed/seed.js",
     "seed:logos": "node scripts/seed/logos.js",
     "seed:guides": "node scripts/seed/guides.js",
-    "seed": "npm run seed:fetch && npm run seed:curate && npm run seed:db"
+    "seed:motivation": "node scripts/seed/motivations.js",
+    "ai:draft": "node scripts/ai/draft-motivations.js",
+    "seed": "npm run seed:fetch && npm run seed:curate && npm run seed:db",
+    "ai:probe": "node scripts/ai/probe-providers.js"
   },
   "dependencies": {
+    "@google/genai": "^2.16.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",

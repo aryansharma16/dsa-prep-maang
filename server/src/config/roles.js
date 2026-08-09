@@ -29,6 +29,16 @@ export const DEFAULT_ROLE = 'user';
  *   user:password  set a password, and force sign-out everywhere
  *   user:role      assign roles
  *   user:delete    delete an account
+ *   settings:read  see the site settings and which AI providers are reachable
+ *   settings:write change them — chat retention, provider order, spend caps
+ *
+ * `settings:write` is its own capability rather than a reuse of
+ * `content:write`, even though only `super_admin` holds either one today. That
+ * overlap is a coincidence of the current matrix, not a guarantee: the day
+ * someone hands `content:write` to an admin so they can fix a problem title,
+ * they would silently also gain the power to change how long everyone's chat
+ * history is kept. A capability named after the thing it protects cannot be
+ * widened by accident.
  *
  * `user:create` is deliberately not a combination of the ones around it. Making
  * an account means choosing its role and its first password in one step, so
@@ -38,9 +48,9 @@ export const DEFAULT_ROLE = 'user';
 const CAPS = {
   user: [],
 
-  dev_member: ['panel', 'content:read', 'guide:write', 'user:read', 'user:write'],
+  dev_member: ['panel', 'content:read', 'guide:write', 'user:read', 'user:write', 'settings:read'],
 
-  admin: ['panel', 'content:read', 'guide:write', 'user:read', 'user:write', 'user:password'],
+  admin: ['panel', 'content:read', 'guide:write', 'user:read', 'user:write', 'user:password', 'settings:read'],
 
   super_admin: [
     'panel',
@@ -53,6 +63,8 @@ const CAPS = {
     'user:password',
     'user:role',
     'user:delete',
+    'settings:read',
+    'settings:write',
   ],
 };
 

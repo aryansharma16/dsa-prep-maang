@@ -6,6 +6,7 @@ import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import {
   IconChart,
+  IconChat,
   IconChevronRight,
   IconGrid,
   IconMenu,
@@ -79,6 +80,13 @@ export function Sidebar({ collapsed, onToggle }) {
             >
               <IconChart size={15} />
             </NavLink>
+            <NavLink
+              to="/chat"
+              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
+              title="AI Chat"
+            >
+              <IconChat size={15} />
+            </NavLink>
             {showAdmin && (
               <NavLink
                 to="/admin"
@@ -119,6 +127,10 @@ export function Sidebar({ collapsed, onToggle }) {
             <NavLink to="/stats" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconChart size={14} />
               Stats
+            </NavLink>
+            <NavLink to="/chat" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <IconChat size={14} />
+              AI Chat
             </NavLink>
             {showAdmin && (
               <NavLink

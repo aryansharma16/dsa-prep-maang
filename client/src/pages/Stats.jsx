@@ -3,6 +3,7 @@ import { errorMessage } from '../api/http.js';
 import { statsApi } from '../api/index.js';
 import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
 import { SolvedRing } from '../components/stats/SolvedRing.jsx';
+import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
 function Meter({ name, solved, total, muted }) {
   const pct = total ? Math.round((solved / total) * 100) : 0;
@@ -61,6 +62,8 @@ export function Stats() {
         <h1>Stats</h1>
         <p>Where you actually stand, by pattern, difficulty and company.</p>
       </div>
+
+      <MotivationLine surface="stats" />
 
       <div className="panel">
         <div className="panel-body">

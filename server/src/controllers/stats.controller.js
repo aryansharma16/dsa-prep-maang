@@ -1,43 +1,12 @@
 import mongoose from 'mongoose';
 import { Problem } from '../models/Problem.js';
 import { Progress } from '../models/Progress.js';
+// Shared with the motivation lines, which quote the streak back at you — one
+// implementation, so the tile and the line can never disagree.
+import { currentStreak, dayKey, maxStreak } from '../services/activity.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const oid = (id) => new mongoose.Types.ObjectId(id);
-const dayKey = (date) => new Date(date).toISOString().slice(0, 10);
-
-/** Consecutive days ending today (or yesterday) that have at least one attempt. */
-function currentStreak(daySet) {
-  let streak = 0;
-  const cursor = new Date();
-  if (!daySet.has(dayKey(cursor))) {
-    cursor.setDate(cursor.getDate() - 1);
-    if (!daySet.has(dayKey(cursor))) return 0;
-  }
-  while (daySet.has(dayKey(cursor))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return streak;
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Longest run of consecutive active days, ever. */
-function maxStreak(daySet) {
-  const days = [...daySet].sort();
-  let best = 0;
-  let run = 0;
-  let prev = null;
-
-  for (const day of days) {
-    const time = Date.parse(`${day}T00:00:00Z`);
-    run = prev !== null && time - prev === DAY_MS ? run + 1 : 1;
-    best = Math.max(best, run);
-    prev = time;
-  }
-  return best;
-}
 
 /** GET /api/stats — everything the stats page needs, in one request. */
 export const getStats = asyncHandler(async (req, res) => {

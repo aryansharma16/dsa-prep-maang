@@ -2604,6 +2604,21 @@ img.avatar {
   margin-top: 4px;
 }
 
+/*
+  The line under the sign-in form.
+  A fixed min-height of two lines, because the text is swapped once the server
+  answers and a strip that resizes underneath a form you are already typing in
+  is worse than a little empty space. Two lines fits every seeded login line at
+  this width.
+*/
+.auth-line {
+  margin: 18px 0 0;
+  min-height: 2.9em;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-3);
+}
+
 .auth-foot {
   /* Sits with the form it belongs to, and matches the gap above the submit
      button so the whole column reads on one rhythm. */
@@ -2816,6 +2831,31 @@ img.avatar {
   margin: 3px 0 0;
   color: var(--text-3);
   font-size: 12.5px;
+}
+
+/*
+  The motivational line, under a page heading.
+  A rule and some text — not a panel. It is a remark about your progress, and a
+  bordered card would put it in competition with the data it is commenting on.
+  Sits between .page-head's 16px and the content below, so it reads as attached
+  to the heading rather than floating between two blocks.
+*/
+.motivation {
+  margin: -6px 0 16px;
+  padding: 1px 0 1px 11px;
+  border-left: 2px solid var(--accent-line);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.55;
+  /* Two lines at the narrowest sensible width; past that it is a paragraph and
+     stops being glanceable. The seeded copy is capped at 240 characters. */
+  max-width: 74ch;
+}
+
+/* The profile page leads with a card, not a .page-head, so the line needs its
+   own space above rather than tucking under a heading. */
+.profile-header + .motivation {
+  margin-top: 14px;
 }
 
 .tiles {
@@ -3403,6 +3443,100 @@ img.avatar {
   color: var(--medium);
 }
 
+/* A cluster of buttons at the end of a .filterbar, kept together when it wraps. */
+.filterbar-acts {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- motivation panel ---- */
+
+/* A retired line stays in the table, greyed, rather than disappearing — you
+   need to see it to bring it back. */
+.admin-table tr.row-off td {
+  opacity: 0.55;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.check-row input {
+  width: auto;
+  margin: 0;
+}
+
+/* One AI draft: a tick and an editable line. The checkbox is aligned to the
+   first line of the textarea rather than centred, so a two-line draft does not
+   leave it floating in the middle. */
+.draft-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.draft-row input[type='checkbox'] {
+  margin-top: 10px;
+  flex: 0 0 auto;
+}
+.draft-row textarea {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+/* The "what would I see" preview. */
+.preview-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11.5px;
+}
+.preview-signals .k {
+  color: var(--text-3);
+  margin-right: 5px;
+}
+.preview-signals .v {
+  color: var(--text);
+}
+.preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.preview-surface {
+  flex: 0 0 64px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.preview-trigger {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 10.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
 /* The credentials handed back after making an account. Boxed and monospaced
    because it exists to be read off the screen and typed somewhere else. */
 .cred-block {
@@ -3895,4 +4029,485 @@ img.avatar {
   .ph-top {
     flex-direction: column;
   }
+}
+
+/* ------------------------------------------------------------------ ai chat */
+
+/*
+  The toast stack already owns bottom-right, at z-index 100 — above everything
+  this widget draws. It is a sibling of .shell (ToastProvider renders it outside
+  App), so no descendant selector in here can reach it; :root:has() is the only
+  handle that does not mean editing the existing rule, which still has to work
+  on the signed-out login page where there is no bubble.
+
+  The toasts move, not the widget: a toast is gone in three seconds, the
+  launcher is permanent, and a stack that lands on the send button costs you the
+  message you were typing. Vertical only — sliding sideways reads as a bug.
+*/
+:root:has(.chat-launcher) .toasts {
+  bottom: calc(var(--chat-gap) * 2 + var(--chat-bubble));
+}
+:root:has(.chat-dock) .toasts {
+  bottom: calc(var(--chat-gap) * 2 + var(--chat-bubble) + var(--chat-dock-h) + 10px);
+}
+
+.chat-launcher {
+  position: fixed;
+  right: var(--chat-gap);
+  bottom: var(--chat-gap);
+  width: var(--chat-bubble);
+  height: var(--chat-bubble);
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 6px 20px var(--shadow);
+  cursor: pointer;
+  z-index: 40;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+.chat-launcher:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.chat-launcher.on { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+
+.chat-launcher-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--easy);
+  border: 2px solid var(--bg);
+}
+.chat-launcher-dot.busy { animation: chat-pulse 1.2s ease-in-out infinite; }
+@keyframes chat-pulse { 50% { opacity: 0.35; } }
+
+.chat-dock {
+  position: fixed;
+  right: var(--chat-gap);
+  bottom: calc(var(--chat-gap) * 2 + var(--chat-bubble));
+  /* Never wider than the phone it is on. */
+  width: min(var(--chat-dock-w), calc(100vw - var(--chat-gap) * 2));
+  height: var(--chat-dock-h);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 44px var(--shadow);
+  overflow: hidden;
+  /* Under .overlay (50): a Modal opened from the page must cover this. */
+  z-index: 45;
+  animation: chat-dock-in 0.16s ease;
+}
+@keyframes chat-dock-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---- shared panel */
+
+.chat-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 12px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.chat-head-mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.chat-head-id { font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em; }
+
+.chat-scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.chat-thread { display: flex; flex-direction: column; gap: 14px; padding: 14px; }
+
+/* ---- empty state */
+
+.chat-greet { padding: 18px 4px 6px; }
+.chat-greet-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.chat-greet h4 { font-size: 14px; margin-bottom: 3px; }
+.chat-greet p { font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+.chat-suggest-label {
+  margin-top: 18px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-3);
+}
+.chat-suggest { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 8px; }
+.chat-chip {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 6px 11px;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.chat-chip:hover { background: var(--surface-hover); border-color: var(--accent-line); }
+
+/* ---- messages */
+
+.chat-msg { display: flex; gap: 8px; align-items: flex-start; }
+.chat-msg.user { justify-content: flex-end; }
+.chat-msg.user .chat-msg-body {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-line);
+  border-radius: 12px 12px 3px 12px;
+  padding: 8px 11px;
+  max-width: 85%;
+}
+.chat-msg.assistant .chat-msg-body { max-width: 100%; min-width: 0; flex: 1; }
+.chat-msg-mark {
+  flex: 0 0 20px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+}
+
+.chat-typing { display: inline-flex; gap: 4px; padding: 5px 0; }
+.chat-typing i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-3);
+  animation: chat-bounce 1.1s ease-in-out infinite;
+}
+.chat-typing i:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes chat-bounce { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
+
+.chat-err {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--danger);
+}
+
+/* ---- prose. Mirrors .guide-body rather than joining its selector list, so the
+   guide reader cannot regress from an edit made for the chat. */
+
+.chat-md { font-size: 13.5px; line-height: 1.62; color: var(--text); min-width: 0; }
+.chat-md > * + * { margin-top: 9px; }
+.chat-md p { overflow-wrap: anywhere; }
+.chat-md ul, .chat-md ol { padding-left: 18px; }
+.chat-md li + li { margin-top: 3px; }
+.chat-md code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+/* base.css strips link styling globally, so prose links need it back. */
+.chat-md a { color: var(--accent); text-decoration: underline; }
+.chat-md blockquote {
+  border-left: 2px solid var(--accent-line);
+  padding-left: 10px;
+  color: var(--text-2);
+}
+.chat-md hr { border: none; border-top: 1px solid var(--border); }
+.chat-md-h { font-size: 13px; }
+
+.chat-code { margin: 9px 0; }
+.chat-code-lang {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  padding: 0 8px;
+  text-transform: lowercase;
+}
+
+/* The caret is generated content, so nothing re-renders to blink it. */
+.chat-md.streaming > p:last-child::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 13px;
+  margin-left: 3px;
+  vertical-align: -2px;
+  background: var(--accent);
+  animation: chat-caret 1s step-end infinite;
+}
+@keyframes chat-caret { 50% { opacity: 0; } }
+
+/* ---- composer */
+
+.chat-composer {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 9px 10px 8px;
+}
+.chat-composer textarea {
+  width: 100%;
+  max-height: 132px;
+  resize: none;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 2px 0;
+}
+.chat-composer textarea:focus { outline: none; }
+.chat-composer textarea::placeholder { color: var(--text-3); }
+
+.chat-composer-acts { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.chat-model {
+  height: 26px;
+  font-size: 11.5px;
+  max-width: 160px;
+  padding: 0 22px 0 7px;
+}
+.chat-count { font-size: 11px; color: var(--text-3); }
+.chat-count.over { color: var(--danger); }
+
+.chat-send {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+.chat-send.stop { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+
+.chat-attach {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  margin-bottom: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-2);
+}
+.chat-attach .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-attach button {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.chat-attach button:hover { color: var(--text); }
+.chat-attach.static { margin: 0 0 5px; }
+
+/* ---- sheets: absolutely positioned inside the panel, so they need no global
+   layer and behave the same at 372px and at full width. */
+
+.chat-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+.chat-sheet-head,
+.chat-rail-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 8px 0 10px;
+  border-bottom: 1px solid var(--border);
+}
+.chat-sheet-head input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.chat-sheet-head input:focus { outline: none; }
+.chat-sheet-head .glass { display: grid; place-items: center; color: var(--text-3); }
+
+.chat-pick { flex: 1; min-height: 0; overflow-y: auto; padding: 6px; }
+.chat-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.chat-pick-item:hover { background: var(--surface-hover); }
+.chat-pick-item .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-pick-group { font-size: 10.5px; color: var(--text-3); flex: 0 0 auto; }
+.chat-pick-done { font-size: 10px; color: var(--easy); flex: 0 0 auto; }
+.chat-pick-count { font-size: 10.5px; color: var(--text-3); flex: 0 0 auto; }
+
+/* Sticky, so you always know which pattern you are scrolling through — the
+   whole roadmap is in this list now. */
+.chat-pick-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px 4px;
+  background: var(--surface);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-3);
+}
+.chat-pick-head .count { margin-left: auto; font-family: var(--mono); text-transform: none; }
+
+/* ---- the /chat page */
+
+.chat-page {
+  /* .content is `padding: 18px 16px 80px` inside a flex child under the 52px
+     topbar — hand both back so the composer sits on the viewport floor rather
+     than 80px below it. Keep in step with the shell section above. */
+  height: calc(100vh - var(--topbar-h) - 98px);
+  min-height: 420px;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 12px;
+}
+.chat-page .chat-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.chat-page .chat-thread { max-width: 760px; margin: 0 auto; width: 100%; }
+.chat-page .chat-composer { max-width: 760px; margin: 0 auto; width: 100%; border-top: none; }
+.chat-page .chat-composer::before {
+  content: '';
+  display: block;
+  border-top: 1px solid var(--border);
+  margin: 0 -10px 9px;
+}
+
+.chat-rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.chat-rail-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 6px; }
+.chat-rail-foot { flex: 0 0 auto; padding: 8px 10px; border-top: 1px solid var(--border); }
+.chat-rail-foot .hint { font-size: 10.5px; line-height: 1.4; }
+
+.chat-conv { display: flex; align-items: center; border-radius: 5px; }
+.chat-conv:hover { background: var(--surface-hover); }
+.chat-conv.on { background: var(--accent-bg); }
+.chat-conv-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-start;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.chat-conv-open .nm {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-conv-time { font-size: 10px; color: var(--text-3); }
+.chat-conv-del { opacity: 0; flex: 0 0 auto; margin-right: 4px; }
+.chat-conv:hover .chat-conv-del,
+.chat-conv-del:focus-visible { opacity: 1; }
+
+/* The rail owns "new chat" and the history list whenever it is on screen. */
+.chat-head-narrow { display: none; }
+
+/* Below 900px the rail would leave the panel too narrow to read, so it goes and
+   the panel header takes over both of its controls. */
+@media (max-width: 900px) {
+  .chat-page { grid-template-columns: minmax(0, 1fr); }
+  .chat-rail { display: none; }
+  .chat-head-narrow { display: flex; align-items: center; gap: 6px; }
+}
+
+/* ---- admin */
+
+.chat-retention { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 8px; }
+.chat-retention .field { margin: 0; max-width: 260px; }
+.chat-order {
+  display: inline-block;
+  min-width: 14px;
+  margin-right: 6px;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-dock { animation: none; }
+  .chat-launcher { transition: none; }
+  .chat-launcher:hover { transform: none; }
+  .chat-launcher-dot.busy,
+  .chat-typing i,
+  .chat-md.streaming > p:last-child::after { animation: none; }
 }

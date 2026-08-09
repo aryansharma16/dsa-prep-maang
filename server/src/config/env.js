@@ -44,6 +44,29 @@ function readCloudinary() {
 }
 
 const cloudinary = readCloudinary();
+const geminiApiKey = (process.env.GEMINI_API_KEY || '').trim();
+
+/**
+ * The three OpenAI-compatible chat providers.
+ *
+ * Same wire protocol, three different hosts, so they are configured as data
+ * rather than written out three times. The base URL is overridable per provider
+ * because these vendors move them — DeepSeek has already shipped one path
+ * change — and a host that moves should be a dashboard edit on a running box,
+ * not a redeploy.
+ *
+ * None of them is required. A key that is absent simply means that provider is
+ * not a candidate; the chat falls through to the next one, the same way a
+ * missing Cloudinary key costs you uploads and nothing else.
+ */
+function readAiProvider(keyVar, urlVar, fallbackUrl) {
+  const apiKey = (process.env[keyVar] || '').trim();
+  return {
+    apiKey,
+    baseUrl: (process.env[urlVar] || fallbackUrl).replace(/\/+$/, ''),
+    configured: Boolean(apiKey),
+  };
+}
 
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -73,5 +96,59 @@ export const env = {
     // Everything this app uploads lives under one prefix, so a shared cloud
     // stays sorted and a bulk delete can be scoped without guessing.
     folder: process.env.CLOUDINARY_FOLDER || 'maang-prep',
+  },
+  /**
+   * Google Gemini. Optional, like Cloudinary and for the same reason: a missing
+   * key should cost you the one feature that wanted a model, not the server.
+   *
+   * The models are variables rather than constants because Google retires these
+   * on a published schedule — `gemini-2.5-flash` shuts down in October 2026 —
+   * and moving to the next one should be an environment change on a running
+   * deployment, not a code change and a redeploy.
+   *
+   * There are two of them because the two things this app asks a model for have
+   * opposite shapes, and one setting cannot serve both:
+   *
+   * `model` is the quality tier. Admin drafting runs it a handful of times when
+   * someone clicks a button, and a human reads every line before it ships, so it
+   * can afford the best model on the key. Free-tier quota on the newest Flash is
+   * 20 requests per day per model — fine for something hand-triggered, and the
+   * reason it must not be what the hot path uses.
+   *
+   * `fastModel` is what runs per learner per day. It scales with signups rather
+   * than with admin clicks, so it needs headroom far more than it needs polish,
+   * and the output is one sentence of already-constrained copy.
+   *
+   * Both fall back to the quality tier if unset, so a deployment that only knows
+   * about `GEMINI_MODEL` keeps working exactly as it did.
+   */
+  gemini: {
+    apiKey: geminiApiKey,
+    model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+    /*
+      Not flash-lite by default, though it is cheaper still. Lite was measured
+      against this app's own prompt and got the arithmetic wrong roughly one
+      time in four — "leaving 427 left in the 429 problem roadmap" after two
+      solves today and twelve in total. That is the exact figure-merge failure
+      promptFor() in motivation.ai.js was rewritten to prevent, and `clean()`
+      cannot catch it: a false number is structurally a perfectly good sentence.
+      Set GEMINI_MODEL_FAST=gemini-3.5-flash-lite to take that trade knowingly.
+    */
+    fastModel: process.env.GEMINI_MODEL_FAST || process.env.GEMINI_MODEL || 'gemini-3.5-flash',
+    configured: Boolean(geminiApiKey),
+  },
+  /**
+   * The chat assistant's providers, keyed by the id the registry uses.
+   *
+   * Gemini is deliberately not in here. It reaches the same registry through
+   * `env.gemini` above, because it is the one provider that is not
+   * OpenAI-compatible and the one that two features now share — putting it in
+   * this map would imply it is interchangeable with the others at the config
+   * level, and it is not.
+   */
+  ai: {
+    cerebras: readAiProvider('CEREBRAS_API_KEY', 'CEREBRAS_BASE_URL', 'https://api.cerebras.ai/v1'),
+    deepseek: readAiProvider('DEEPSEEK_API_KEY', 'DEEPSEEK_BASE_URL', 'https://api.deepseek.com/v1'),
+    xai: readAiProvider('GROK_API_KEY', 'GROK_BASE_URL', 'https://api.x.ai/v1'),
   },
 };

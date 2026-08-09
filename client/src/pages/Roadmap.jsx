@@ -8,6 +8,7 @@ import { isAnyModalOpen } from '../components/ui/Modal.jsx';
 import { useLocalState } from '../hooks/useLocalState.js';
 import { useTableLayout } from '../hooks/useTableLayout.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
+import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 const SHEETS = [
@@ -219,6 +220,8 @@ export function Roadmap() {
           ramp.
         </p>
       </div>
+
+      <MotivationLine surface="roadmap" />
 
       <div className="filterbar">
         <select

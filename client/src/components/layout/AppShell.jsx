@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLocalState, useTheme } from '../../hooks/useLocalState.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
+import { ChatLauncher } from '../chat/ChatLauncher.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
 import { Avatar } from '../ui/Avatar.jsx';
 import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
@@ -138,6 +139,11 @@ export function AppShell() {
       </div>
 
       {adding && <AddProblemModal onClose={() => setAdding(false)} />}
+
+      {/* Every signed-in page, and no signed-out one — this shell is only
+          mounted behind the auth branch in App.jsx. */}
+      <ChatLauncher />
+
 
       {signingOut && (
         <ConfirmDialog

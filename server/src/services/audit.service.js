@@ -23,6 +23,13 @@ export const AUDIT = Object.freeze({
   GUIDE_SAVE: 'guide.save',
   GUIDE_UNLOCK: 'guide.unlock',
 
+  MOTIVATION_CREATE: 'motivation.create',
+  MOTIVATION_UPDATE: 'motivation.update',
+  MOTIVATION_DELETE: 'motivation.delete',
+
+  SETTINGS_UPDATE: 'settings.update',
+  CHAT_PURGE: 'chat.purge',
+
   SUPERADMIN_PIN: 'system.superadmin.pin',
 });
 
@@ -43,6 +50,11 @@ export const AUDIT_LABEL = {
   [AUDIT.PATTERN_UPDATE]: 'edited pattern',
   [AUDIT.GUIDE_SAVE]: 'saved the guide for',
   [AUDIT.GUIDE_UNLOCK]: 'handed back to the seeder',
+  [AUDIT.MOTIVATION_CREATE]: 'wrote the line',
+  [AUDIT.MOTIVATION_UPDATE]: 'edited the line',
+  [AUDIT.MOTIVATION_DELETE]: 'deleted the line',
+  [AUDIT.SETTINGS_UPDATE]: 'changed the site settings',
+  [AUDIT.CHAT_PURGE]: 'deleted all chat history',
   [AUDIT.SUPERADMIN_PIN]: 'promoted to super admin',
 };
 

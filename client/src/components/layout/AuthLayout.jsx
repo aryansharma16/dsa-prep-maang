@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motivationApi } from '../../api/index.js';
 import { BRAND } from '../../brand.js';
 import { IconCheck } from '../ui/Icons.jsx';
+import { randomAuthLine } from './authLines.js';
 import { ParticleWeb } from './ParticleWeb.jsx';
 
 /**
@@ -10,8 +13,14 @@ import { ParticleWeb } from './ParticleWeb.jsx';
  * The showcase is built from the app's own vocabulary — pattern rows, progress
  * bars, a solved ring — rather than a stock illustration. It is the product,
  * drawn at rest, so signing in never shows you something the app does not
- * contain. It is also inert: no data, no requests, nothing to load before the
- * form is usable.
+ * contain. It is also inert: no data, no requests, nothing to render it.
+ *
+ * The one line under the form is the single exception, and it is built not to
+ * cost anything. A bundled line paints on the first frame, so the form is
+ * usable immediately whatever the network is doing; the public motivation
+ * endpoint then replaces it if and when it answers. Nothing waits, nothing
+ * moves — the strip is the same height either way — and with the server
+ * unreachable the page is exactly what it was before.
  */
 
 // Numbers a real account sees on day one of week three. Specific enough to read
@@ -29,6 +38,32 @@ const POINTS = [
   'Company tags, difficulty and sheet filters on every problem',
   'A written guide behind every pattern, with Java and C++ side by side',
 ];
+
+/**
+ * The line under the form.
+ *
+ * State is seeded from the bundle in a lazy initialiser, so the first paint
+ * already has text — there is no empty frame and no layout shift when the
+ * request lands. The fetch is fire-and-forget with no loading state and no
+ * error state, because both would be worse than the fallback that is already
+ * on screen.
+ */
+function AuthLine() {
+  const [text, setText] = useState(randomAuthLine);
+
+  useEffect(() => {
+    let live = true;
+    motivationApi
+      .login()
+      .then((line) => live && line?.text && setText(line.text))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  return <p className="auth-line">{text}</p>;
+}
 
 function Showcase() {
   return (
@@ -99,6 +134,7 @@ export function AuthLayout({ title, subtitle, children, footer }) {
           <h1>{title}</h1>
           <p className="auth-sub">{subtitle}</p>
           {children}
+          <AuthLine />
         </div>
 
         <p className="auth-foot">{footer}</p>

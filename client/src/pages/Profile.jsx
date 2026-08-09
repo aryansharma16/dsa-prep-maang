@@ -8,6 +8,7 @@ import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
 import { SolvedRing } from '../components/stats/SolvedRing.jsx';
 import { useAuth } from '../store/AuthContext.jsx';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
+import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
 const longDate = (value) =>
   value
@@ -76,6 +77,8 @@ export function Profile() {
   return (
     <>
       <ProfileHeader user={user} onEdit={() => setEditing(true)} />
+
+      <MotivationLine surface="profile" />
 
       <div className="profile">
         <aside className="profile-card">

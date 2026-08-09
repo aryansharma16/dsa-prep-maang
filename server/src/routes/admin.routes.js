@@ -5,6 +5,13 @@ import {
   overview,
 } from '../controllers/admin/audit.controller.js';
 import {
+  getChatUsage,
+  getSettings,
+  purgeChats,
+  settingsSchema,
+  updateSettings,
+} from '../controllers/admin/settings.controller.js';
+import {
   createProblem,
   deleteProblem,
   getProblem,
@@ -40,6 +47,18 @@ import {
   updateSchema,
   updateUser,
 } from '../controllers/admin/users.controller.js';
+import {
+  createMotivation,
+  createSchema as motivationCreateSchema,
+  deleteMotivation,
+  draftMotivation,
+  draftSchema,
+  listMotivation,
+  listQuery as motivationListQuery,
+  previewMotivation,
+  updateMotivation,
+  updateSchema as motivationUpdateSchema,
+} from '../controllers/admin/motivation.controller.js';
 import { requireCap } from '../middleware/requireRole.js';
 import { validate } from '../middleware/validate.js';
 import { idParam } from '../utils/query.js';
@@ -158,7 +177,59 @@ adminRouter.patch(
 
 /* --------------------------------------------------------------- guides */
 
+/* ----------------------------------------------------------- motivation */
+
+adminRouter.get(
+  '/motivation',
+  requireCap('content:read'),
+  validate(motivationListQuery, 'query'),
+  listMotivation,
+);
+// Before /:id, or Express reads "preview" as an id and the validator rejects it.
+adminRouter.get('/motivation/preview', requireCap('content:read'), previewMotivation);
+
+adminRouter.post(
+  '/motivation',
+  requireCap('content:write'),
+  validate(motivationCreateSchema),
+  createMotivation,
+);
+adminRouter.post(
+  '/motivation/draft',
+  requireCap('content:write'),
+  validate(draftSchema),
+  draftMotivation,
+);
+adminRouter.patch(
+  '/motivation/:id',
+  requireCap('content:write'),
+  validate(idParam, 'params'),
+  validate(motivationUpdateSchema),
+  updateMotivation,
+);
+adminRouter.delete(
+  '/motivation/:id',
+  requireCap('content:write'),
+  validate(idParam, 'params'),
+  deleteMotivation,
+);
+
+/* --------------------------------------------------------------- guides */
+
 adminRouter.get('/guides', requireCap('content:read'), listGuides);
 adminRouter.get('/guides/:slug', requireCap('content:read'), getGuideAdmin);
 adminRouter.put('/guides/:slug', requireCap('guide:write'), validate(guideSaveSchema), saveGuide);
 adminRouter.post('/guides/:slug/unlock', requireCap('guide:write'), unlockGuide);
+
+/* ------------------------------------------------------------- settings */
+
+/*
+  Read and write are split so the panel can show an admin that chat is up and
+  which providers are reachable, without letting them change how long everyone's
+  history is kept or how much the deployment is allowed to spend. Only
+  super_admin holds `settings:write`.
+*/
+adminRouter.get('/settings', requireCap('settings:read'), getSettings);
+adminRouter.patch('/settings', requireCap('settings:write'), validate(settingsSchema), updateSettings);
+adminRouter.get('/settings/chat-usage', requireCap('settings:read'), getChatUsage);
+adminRouter.post('/settings/chat-purge', requireCap('settings:write'), purgeChats);

@@ -12,11 +12,30 @@ import axios from 'axios';
  * VITE_API_URL is an escape hatch for hosting the client somewhere that cannot
  * proxy. Leave it unset on Vercel, or it defeats the rewrite.
  */
-const baseURL = `${import.meta.env.VITE_API_URL || ''}/api`;
+export const baseURL = `${import.meta.env.VITE_API_URL || ''}/api`;
 
 export const http = axios.create({ baseURL, withCredentials: true });
 
 let refreshing = null;
+
+/**
+ * The one in-flight refresh, shared.
+ *
+ * The interceptor below used to own this outright. It is exported because the
+ * chat reply arrives over raw `fetch` — axios hands you a growing string, not a
+ * stream — and no axios interceptor can see that request. Without sharing the
+ * promise, a stream and a normal call hitting 401 together would fire two
+ * refreshes at a rotating refresh cookie, and the loser of that race logs you
+ * out.
+ */
+export const refreshSession = () => {
+  refreshing =
+    refreshing ||
+    http.post('/auth/refresh').finally(() => {
+      refreshing = null;
+    });
+  return refreshing;
+};
 
 /**
  * Fired when the refresh token itself is dead — the session cannot be revived,
@@ -46,14 +65,11 @@ http.interceptors.response.use(
     if (canRetry && (code === 'TOKEN_EXPIRED' || code === 'NO_TOKEN')) {
       config._retried = true;
       try {
-        refreshing = refreshing || http.post('/auth/refresh');
-        await refreshing;
+        await refreshSession();
         return http(config);
       } catch (err) {
         window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
         return Promise.reject(err);
-      } finally {
-        refreshing = null;
       }
     }
 

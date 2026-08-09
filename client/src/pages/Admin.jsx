@@ -1,6 +1,8 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { AdminAudit } from '../components/admin/AdminAudit.jsx';
+import { AdminChat } from '../components/admin/AdminChat.jsx';
 import { AdminGuides } from '../components/admin/AdminGuides.jsx';
+import { AdminMotivation } from '../components/admin/AdminMotivation.jsx';
 import { AdminOverview } from '../components/admin/AdminOverview.jsx';
 import { AdminPatterns } from '../components/admin/AdminPatterns.jsx';
 import { AdminProblems } from '../components/admin/AdminProblems.jsx';
@@ -14,6 +16,10 @@ const SECTIONS = [
   { id: 'problems', label: 'Problems', Component: AdminProblems, cap: 'content:read' },
   { id: 'patterns', label: 'Patterns', Component: AdminPatterns, cap: 'content:read' },
   { id: 'guides', label: 'Guides', Component: AdminGuides, cap: 'content:read' },
+  { id: 'motivation', label: 'Motivation', Component: AdminMotivation, cap: 'content:read' },
+  // `settings:read`, not `settings:write` — an admin can see whether chat is up
+  // and which providers are reachable; the panel itself refuses their edits.
+  { id: 'chat', label: 'AI Chat', Component: AdminChat, cap: 'settings:read' },
   { id: 'activity', label: 'Activity', Component: AdminAudit },
 ];
 

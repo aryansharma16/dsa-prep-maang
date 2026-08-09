@@ -23,6 +23,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
+| **Motivation** | A line under every page heading, chosen from what you have actually solved |
 | **Admin** | Four roles, user management, content editing, a guide block editor and an audit log |
 
 ## Running it
@@ -63,7 +64,9 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:db` | upserts problems and patterns into MongoDB |
 | `npm run seed` | all three, in order |
 | `npm run seed:guides` | writes the pattern guides |
+| `npm run seed:motivation` | writes the 160 motivational lines |
 | `npm run seed:logos` | pre-warms the company logo cache |
+| `npm run ai:draft` | drafts new motivational lines with Gemini, for you to curate |
 
 ## The curriculum
 
@@ -323,7 +326,7 @@ Four decisions worth knowing:
 
 - **Credentials never block boot.** Upload is one feature; a missing key fails
   that one request with `503 UPLOADS_DISABLED` instead of taking the roadmap
-  down with it. `GET /api/health` reports `uploads: true|false`, because when a
+  down with it. `GET /api/health` reports `uploads` and `ai` as `true|false`, because when a
   picture won't save the first question is whether this deployment has the keys.
 - **The real type check is Cloudinary, not the mime header.** `resource_type:
   'image'` means it decodes the file and rejects anything that isn't an image —
@@ -411,6 +414,7 @@ problem field — and its prune would delete an admin-created shared problem
 | `seed:db` problems | skips `editedAt != null` |
 | `seed:db` prune | never touches `editedAt != null`, `--force` or not |
 | `seed:guides` | already skipped edited guides; the panel now sets the stamp |
+| `seed:motivation` | skips `editedAt != null`; prunes only rows that carry a seed `key` |
 
 `--force` resets `editedAt` and hands content back to the repo. The prune is
 deliberately exempt from `--force`: overwriting an edit loses text that also
@@ -457,6 +461,150 @@ Every content and user change is recorded with who, what and when, filterable by
 action and by person. The actor's email is copied onto the row rather than
 joined, so history stays readable after the account that made it is deleted —
 which is exactly when you want to read it.
+
+## Motivation
+
+A single line under every page heading, chosen server-side from what you have
+actually done. Not a quote of the day — that becomes wallpaper inside a week.
+
+```
+0 solved today            ->  "Stop planning the week. Solve one, then decide
+                               whether you have another in you."
+solved a Hard today       ->  "That one was supposed to be hard. You finished it
+                               anyway, which is the entire point."
+Graphs at 3 of 28         ->  "Graphs is where you are thinnest: 3 of 28. Good.
+                               Now you know what to attack."
+100-day streak            ->  "100 days. Very few people reach this. Most of them
+                               are not the ones who felt ready."
+```
+
+`GET /api/motivation?surface=roadmap` builds a **signals** object — solved
+counts, today's solves, the streak, the weakest pattern, the revision backlog —
+and hands it to every line's **trigger**. The trigger vocabulary is a table in
+`server/src/config/motivationTriggers.js`, in the same spirit as `roles.js`:
+predicates live in code, and the admin panel only ever picks a key from it plus,
+where it makes sense, one number. A rule the panel produces cannot be invalid.
+
+Placeholders — `{pattern}`, `{streak}`, `{solved}`, `{remaining}`, `{due}` and
+the rest — are filled from the signals. **A line still holding an unfilled token
+is discarded and the next candidate used**, so a line asking for `{pattern}` on
+an account with no weak pattern quietly loses rather than rendering braces at
+somebody.
+
+Four decisions worth knowing:
+
+- **Specificity is banded, not ranked.** The numbers fall into three groups, and
+  what separates them is how long a condition stays true. Persistent state — a
+  weak pattern, a streak, a revision backlog — sits at 40–52, and the picker
+  draws from everything within 20 points of the winner, so those rotate against
+  each other instead of one owning the page for months. Momentary events sit at
+  68–95 and sweep the lot, because when you have just solved a Hard that is the
+  only thing worth saying.
+- **Thresholds are a ladder.** Six streak lines at 3, 7, 14, 30, 60 and 100 all
+  match on day 100; only the highest rung you have reached stays in the draw.
+  Without that, a hundred-day streak could be told that three days is "not
+  impressive yet".
+- **The pick holds still.** It is `fnv1a(user : surface : day : solved : today :
+  streak)`, so it changes when the progress inside it changes and not otherwise.
+  Navigating between pages does not reshuffle it; solving something does.
+- **The signed-out page is handed no signals at all.** Every trigger except
+  `always` tests something about a person, so a stranger can only ever match the
+  generic pool. That falls out of the predicates rather than a filter on the
+  public route, which is why adding a trigger cannot accidentally widen it.
+
+The line is `.motivation` — a rule and some text, not a panel. It is a remark
+about your progress, and a bordered card would put it in competition with the
+data it is commenting on. It renders nothing at all when nothing matches.
+
+### The sign-in page
+
+`AuthLayout` promises "nothing to load before the form is usable", and it still
+holds. A line from `components/layout/authLines.js` is in the bundle and paints
+on the first frame; the public `GET /api/motivation/login` then replaces it if
+and when it answers. The strip has a fixed two-line height, so nothing moves,
+and with the server unreachable the page is exactly what it was before.
+
+### Editing them
+
+**Admin → Motivation.** Write a line, choose the condition, choose the pages,
+set a weight. The threshold input appears only for conditions that take a
+number, because the form is built from the server's catalogue rather than a
+second copy of it in JSX.
+
+**"What would I see right now?"** runs the real picker against your own signals
+and shows the result for all five surfaces, with the numbers beside it. It is
+the difference between choosing a condition and guessing at one.
+
+The 160 shipped lines live in `server/scripts/seed/motivation-lines.js` and
+follow the `editedAt` contract the rest of the content does: edit one in the
+panel and `npm run seed:motivation` skips it from then on; `--force` hands it
+back. Lines written in the panel have no seed `key`, which is what keeps the
+prune from ever deleting them. The seeder also validates the content file before
+it connects — an unknown trigger, an over-long line, or a token the condition
+cannot fill stops the run rather than landing in the database looking healthy
+and never once appearing.
+
+## AI
+
+Google Gemini, behind `services/gemini.service.js`. Callers hand over a prompt
+and get back text or a parsed object; they never touch the SDK.
+
+```
+generateText(prompt, { system, model, temperature, maxOutputTokens, timeoutMs })
+generateJson(prompt, { schema, ... })   // responseSchema, so the shape is a guarantee
+aiEnabled()                             // and `ai` in /api/health
+```
+
+That indirection earns its keep faster here than anywhere else: `@google/generative-ai`
+was retired in November 2025, `@google/genai` 2.x ships `models.generateContent`,
+and Google's docs already describe a different shape again for the unreleased
+3.x. When it moves, one function in that file changes.
+
+Three places use it, and **none of them lets a learner prompt the model**:
+
+- **A personal line, rewritten as your day moves.** Written from your own
+  numbers — solved counts, streak, weakest pattern — and cached in `DailyLine`.
+  It quotes live figures, so the moment you solve something it stops being true;
+  the row stores the snapshot it was written from, and a line whose numbers have
+  moved is **rewritten, never served stale**. That is bounded at **three calls
+  per person per day** — enough for the shape of a session, and past it the
+  curated pool answers instead, which interpolates live signals and so is never
+  stale and never costs anything. Concurrent tabs are collapsed by an in-process
+  single-flight keyed on the state being asked about, the way
+  `logo.service.js` dedupes icon fetches.
+- **"Draft with AI" in the panel.** Returns candidates and saves none of them.
+  Everything starts unticked and is editable; only what you tick is written.
+- **`npm run ai:draft`,** which writes candidates to `data/ai/` for you to curate
+  into the content file by hand.
+
+The seed corpus itself is written by hand, deliberately. A seed step that called
+a model would produce different content on every run, which is exactly what the
+idempotent upsert exists to prevent — what lands in git is copy someone read.
+
+Four decisions worth knowing:
+
+- **A missing key never blocks boot,** the same trade Cloudinary makes. It fails
+  the one request that wanted a model with `503 AI_DISABLED`, and `/api/health`
+  says whether this deployment has the key at all.
+- **Every AI path has a non-AI answer.** No key, a new account, a slow model,
+  output that fails validation — all of them fall through to the curated line.
+  A motivational remark is the last thing in this app that should break a page,
+  so `dailyLine` returns null on any failure and never throws.
+- **The daily line is validated before it is shown.** One sentence, no line
+  breaks, at most 240 characters, and it must contain a digit — a line citing no
+  number means the model ignored the data, which is the generic quote this whole
+  feature exists to avoid. Anything failing that is dropped for the curated pick.
+- **No rate limiter, because the data model is the limit.** The unique
+  `{user, day}` index plus the `generations` counter cap the daily line at three
+  calls per person per day — `$inc`ed in the same write that stores the text, so
+  the cap holds against the concurrency it exists to bound rather than against a
+  read-modify-write two processes can both win. Drafting is behind
+  `content:write` with a count capped at ten by its schema.
+
+| env var | |
+|---|---|
+| `GEMINI_API_KEY` | from [AI Studio](https://aistudio.google.com/apikey). Optional; without it the AI features answer `503` and everything else works |
+| `GEMINI_MODEL` | default `gemini-3.6-flash`. A variable rather than a constant because Google retires these on a schedule — `gemini-2.5-flash` shuts down in October 2026 |
 
 ## Theme
 
@@ -539,14 +687,18 @@ with a dialog open.
 server/
   src/
     config/      env, db connection
-    models/      User, Pattern, Problem, Progress, PatternGuide, CompanyLogo
+    models/      User, Pattern, Problem, Progress, PatternGuide, CompanyLogo,
+                 AuditLog, Motivation, DailyLine
     routes/      route tables only
     controllers/ request/response
-    services/    auth, leetcode, spaced repetition, media, logos
+    services/    auth, leetcode, spaced repetition, media, logos, gemini,
+                 audit, activity, motivation (signals, picker, daily line)
     middleware/  requireAuth, errorHandler, validate, upload
   scripts/seed/  fetch-sources -> curate -> seed
     guides/      one file per pattern, written with block constructors
+  scripts/ai/    draft-motivations, for curating into the seed file
   data/raw/      committed source snapshots
+  data/ai/       AI drafts awaiting review
 client/
   src/
     api/         axios client + endpoints
@@ -555,9 +707,10 @@ client/
       problem/   table, guide reader, notes, statement, modals
       profile/   avatar upload
       stats/     solved ring, activity heatmap
-      ui/        Modal, ConfirmDialog, Avatar, PasswordField, Icons
-    hooks/       useGuide, useLocalState, useTableLayout
-    pages/       Login, Register, Roadmap, Revision, Stats, Profile
+      admin/     panel tabs, editors, the motivation corpus
+      ui/        Modal, ConfirmDialog, Avatar, PhotoPreview, MotivationLine, Icons
+    hooks/       useGuide, useMotivation, useLocalState, useTableLayout
+    pages/       Login, Register, Roadmap, Revision, Stats, Profile, Admin
     store/       Auth, Roadmap, Toast contexts
     styles/      tokens, base, app
     brand.js     the product name, in one place
@@ -577,13 +730,18 @@ client/
 | `POST` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems |
 | `GET` `PATCH` `POST` | `/progress/revision` · `/progress/:id` · `/progress/:id/attempt` | tracking |
 | `GET` | `/stats` | profile and stats pages |
+| `GET` | `/motivation` | the line for one page, chosen from your progress |
+| `GET` | `/motivation/login` | the sign-in page's line — **public on purpose** |
 | `GET` | `/companies/:slug/logo` | cached brand icons — **public on purpose** |
-| `GET` | `/health` | `ok`, uptime, whether uploads are configured |
+| `GET` | `/health` | `ok`, uptime, whether uploads and AI are configured |
 | — | `/admin/*` | the panel — see [Admin panel](#admin-panel) for the capability behind each route |
 
-The logo route is the one unauthenticated data route. The browser loads those
-through an `<img>`, which cannot replay a request after a silent token refresh —
-behind `requireAuth` every logo would break fifteen minutes into a session.
+The logo and login-motivation routes are the only unauthenticated data routes.
+The second is handed no signals at all, so a visitor we know nothing about can
+only match the generic pool — a property of the trigger predicates, not a filter
+on the route. The browser loads logos through an `<img>`, which cannot replay a
+request after a silent token refresh — behind `requireAuth` every logo would
+break fifteen minutes into a session.
 Nothing there is private: it's a cache of publicly reachable brand icons keyed by
 company name, fetched from Google's favicon service with DuckDuckGo as fallback,
 stored in Mongo, and de-duplicated so twenty rows asking for the same logo on

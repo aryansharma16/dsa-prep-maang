@@ -210,3 +210,49 @@ export const IconGrip = (p) => (
     <circle cx="10" cy="12.4" r="1.05" />
   </Svg>
 );
+
+export const IconChat = (p) => (
+  <Svg {...p}>
+    <path d="M13.4 9.6a1.6 1.6 0 01-1.6 1.6H5.8L2.6 13.8V4a1.6 1.6 0 011.6-1.6h7.6A1.6 1.6 0 0113.4 4z" />
+  </Svg>
+);
+
+export const IconSparkle = (p) => (
+  <Svg {...p}>
+    <path d="M6.3 2.1l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1z" />
+    <path d="M11.8 9.4l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6z" />
+  </Svg>
+);
+
+export const IconSend = (p) => (
+  <Svg {...p}>
+    <path d="M8 13.2V3.2" />
+    <path d="M3.9 7.3L8 3.2l4.1 4.1" />
+  </Svg>
+);
+
+export const IconStop = (p) => (
+  <Svg {...p} fill="currentColor" strokeWidth={0}>
+    <rect x="4.6" y="4.6" width="6.8" height="6.8" rx="1.4" />
+  </Svg>
+);
+
+export const IconExpand = (p) => (
+  <Svg {...p}>
+    <path d="M9.8 2.4h3.8v3.8M6.2 13.6H2.4V9.8" />
+    <path d="M13.6 2.4L9.2 6.8M2.4 13.6l4.4-4.4" />
+  </Svg>
+);
+
+export const IconCollapse = (p) => (
+  <Svg {...p}>
+    <path d="M6.4 2.6v3.8H2.6M9.6 13.4V9.6h3.8" />
+    <path d="M2.6 2.6l3.8 3.8M13.4 13.4L9.6 9.6" />
+  </Svg>
+);
+
+export const IconEdit = (p) => (
+  <Svg {...p}>
+    <path d="M11.1 2.5a1.5 1.5 0 012.1 2.1L5.6 12.2 2.6 13l.8-3z" />
+  </Svg>
+);
