@@ -15,7 +15,8 @@
  *   is not.
  *
  *   Nothing names the product. `client/src/brand.js` owns the name, and a
- *   string in here saying "MAANG Prep" would outlive the next rename.
+ *   string in here saying "Ember" would outlive the next rename — this file has
+ *   already sat through two of them.
  *
  * `key` is the seeder's identity for a row and must never be reused or
  * reordered — rewording a line keeps its key and updates that row, which is

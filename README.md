@@ -1,4 +1,4 @@
-# MAANG Prep
+# Ember
 
 A pattern-first interview prep tracker. The first module is the DSA roadmap:
 429 curated problems ordered as a curriculum — arrays → two pointers → prefix
@@ -20,6 +20,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 | **Roadmap** | 429 problems in 22 patterns, filters, a configurable table, inline statements and notes |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
+| **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |

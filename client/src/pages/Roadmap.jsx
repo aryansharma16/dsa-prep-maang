@@ -3,11 +3,12 @@ import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
 import { GuideReader } from '../components/problem/GuideReader.jsx';
 import { PatternSection } from '../components/problem/PatternSection.jsx';
-import { IconColumns } from '../components/ui/Icons.jsx';
+import { IconColumns, IconDice } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
 import { useLocalState } from '../hooks/useLocalState.js';
 import { useTableLayout } from '../hooks/useTableLayout.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
+import { useToast } from '../store/ToastContext.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
@@ -24,6 +25,7 @@ const STATUSES = [
 
 export function Roadmap() {
   const { groups, loading, loadError, setProgress, reload } = useRoadmap();
+  const { toast } = useToast();
   const { query, setQuery } = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -40,6 +42,11 @@ export function Roadmap() {
   const [columnsOpen, setColumnsOpen] = useState(false);
   // One reader for the page, not one per section.
   const [guidePattern, setGuidePattern] = useState(null);
+  // { id, seq } rather than a bare id: picking the same problem twice has to
+  // replay the flash, and a repeated id would not re-run the effect.
+  const [pick, setPick] = useState(null);
+  const pickSeq = useRef(0);
+  const lastPickRef = useRef(null);
   const { layout, setLayout, columns } = useTableLayout();
   const sectionRefs = useRef({});
 
@@ -125,6 +132,59 @@ export function Roadmap() {
     [visible, isOpen],
   );
 
+  /*
+    What "pick one" draws from: everything still worth your time — not solved
+    yet, or solved but flagged, or due for revision. It reads the filtered
+    groups rather than the raw roadmap, so a pick honours the view you set up
+    instead of pulling something from a pattern you deliberately filtered out.
+  */
+  const pickable = useMemo(
+    () =>
+      filtered.flatMap((g) =>
+        g.problems
+          .filter((p) => {
+            const prog = p.progress || {};
+            return (prog.status || 'todo') !== 'solved' || prog.flagged || prog.needsRevision;
+          })
+          .map((p) => ({ id: p._id, title: p.title, slug: g.slug, pattern: g.name })),
+      ),
+    [filtered],
+  );
+
+  const pickRandom = useCallback(() => {
+    if (!pickable.length) {
+      toast('Nothing to pick — everything in this view is solved and clear.');
+      return;
+    }
+    // Landing on the same problem twice in a row reads as a broken button, so
+    // the previous pick sits out — unless it is the only thing left.
+    const pool =
+      pickable.length > 1 ? pickable.filter((p) => p.id !== lastPickRef.current) : pickable;
+    const choice = pool[Math.floor(Math.random() * pool.length)];
+    lastPickRef.current = choice.id;
+
+    setOpenSections((prev) => (prev.includes(choice.slug) ? prev : [...prev, choice.slug]));
+    setCursorId(choice.id);
+    pickSeq.current += 1;
+    setPick({ id: choice.id, seq: pickSeq.current });
+    toast(`${choice.title} — ${choice.pattern}`);
+  }, [pickable, setOpenSections, toast]);
+
+  /*
+    The row cannot be scrolled to inside the click handler: its section may have
+    been collapsed a moment ago, so the <tr> only exists after the commit that
+    opened it. Waiting for the picked id to reach the DOM here covers both cases.
+    Clearing it afterwards ends the flash and re-arms it for the next pick.
+  */
+  useEffect(() => {
+    if (!pick) return undefined;
+    document
+      .querySelector(`[data-row="${pick.id}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const timer = setTimeout(() => setPick(null), 1600);
+    return () => clearTimeout(timer);
+  }, [pick]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable) return;
@@ -145,6 +205,14 @@ export function Roadmap() {
         document
           .querySelector(`[data-row="${target._id}"]`)
           ?.scrollIntoView({ block: 'nearest' });
+        return;
+      }
+
+      // Deliberately before the cursor check — picking is how you get a cursor
+      // in the first place.
+      if (key === 'p') {
+        e.preventDefault();
+        pickRandom();
         return;
       }
 
@@ -171,7 +239,7 @@ export function Roadmap() {
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [flatRows, cursorId, setProgress]);
+  }, [flatRows, cursorId, setProgress, pickRandom]);
 
   const clearFilters = () => {
     setQuery('');
@@ -289,6 +357,20 @@ export function Roadmap() {
           Needs revision
         </button>
 
+        <button
+          className="toggle-chip pick-btn"
+          onClick={pickRandom}
+          disabled={!pickable.length}
+          title={
+            pickable.length
+              ? `Jump to a random problem you have not finished with (${pickable.length} in play)`
+              : 'Nothing left to pick in this view'
+          }
+        >
+          <IconDice size={13} />
+          Pick one
+        </button>
+
         {isFiltering && (
           <>
             <span className="hint mono">{shown} shown</span>
@@ -307,7 +389,8 @@ export function Roadmap() {
         <span className="hint">
           <kbd className="mono">j</kbd> <kbd className="mono">k</kbd> move ·{' '}
           <kbd className="mono">s</kbd> solve · <kbd className="mono">f</kbd> flag ·{' '}
-          <kbd className="mono">r</kbd> revise · <kbd className="mono">n</kbd> notes
+          <kbd className="mono">r</kbd> revise · <kbd className="mono">n</kbd> notes ·{' '}
+          <kbd className="mono">p</kbd> pick
         </span>
       </div>
 
@@ -337,6 +420,7 @@ export function Roadmap() {
             onToggle={() => toggleSection(group.slug)}
             onOpenGuide={() => setGuidePattern({ ...group, index })}
             cursorId={cursorId}
+            pickedId={pick?.id}
             onFocusRow={setCursorId}
             openNotesId={openNotesId}
             onToggleNotes={(id) => setOpenNotesId((cur) => (cur === id ? null : id))}

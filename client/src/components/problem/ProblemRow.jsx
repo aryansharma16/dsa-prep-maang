@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
-import { IconClock, IconFlag, IconNote, IconRotate } from '../ui/Icons.jsx';
+import { IconClock, IconClose, IconFlag, IconNote, IconRotate } from '../ui/Icons.jsx';
 import { AttemptPopover } from './AttemptPopover.jsx';
 import { NotesPanel } from './NotesPanel.jsx';
 import { Statement } from './Statement.jsx';
@@ -11,6 +11,7 @@ export function ProblemRow({
   index,
   columns,
   isCursor,
+  isPicked,
   onFocus,
   notesOpen,
   onToggleNotes,
@@ -49,12 +50,18 @@ export function ProblemRow({
           <IconClock size={13} />
         </button>
 
+        {/* Open, the button turns into the way out. The note icon staying put
+            gave no sign the second click was the one that closed it. */}
         <button
-          className={`act note ${progress.notes ? 'on' : ''}`}
-          title={notesOpen ? 'Hide notes' : 'Notes'}
+          className={`act note ${progress.notes ? 'on' : ''} ${notesOpen ? 'shut' : ''}`}
+          title={notesOpen ? 'Close notes' : 'Notes'}
           onClick={onToggleNotes}
         >
-          <IconNote size={13} filled={Boolean(progress.notes)} />
+          {notesOpen ? (
+            <IconClose size={13} />
+          ) : (
+            <IconNote size={13} filled={Boolean(progress.notes)} />
+          )}
         </button>
       </span>
 
@@ -67,13 +74,20 @@ export function ProblemRow({
     </>
   );
 
+  const rowClass = [
+    isCursor && 'cursor',
+    status === 'solved' && 'solved',
+    isPicked && 'picked',
+    // The popover lives inside a frozen cell, which shares a z-index with every
+    // other frozen cell — see the lift this class buys it in app.css.
+    popover && 'pop-open',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <>
-      <tr
-        data-row={problem._id}
-        className={`${isCursor ? 'cursor' : ''} ${status === 'solved' ? 'solved' : ''}`}
-        onMouseDown={onFocus}
-      >
+      <tr data-row={problem._id} className={rowClass} onMouseDown={onFocus}>
         {columns.map((column) => (
           <td key={column.id} {...cellProps(column)}>
             {column.cell({

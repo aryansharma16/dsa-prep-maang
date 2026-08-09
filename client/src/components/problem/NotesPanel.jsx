@@ -1,14 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-const AUTOSAVE_MS = 700;
+/*
+  Long on purpose. A note gets written in bursts, and a short debounce turned
+  every pause for thought into a request — so the write waits until you have
+  actually stopped. Nothing is at risk from the wait: leaving the field and
+  closing the panel both flush whatever is still pending.
+*/
+const AUTOSAVE_MS = 5000;
+
+const LABEL = { saved: 'Saved', dirty: 'Unsaved', saving: 'Saving…' };
 
 /**
- * Inline notes. Autosaves while you type — no Save button, no modal, because
- * a dialog per note is exactly the form-filling this app is meant to avoid.
+ * Inline notes. Autosaves once you stop typing — no Save button, no modal,
+ * because a dialog per note is exactly the form-filling this app is meant to
+ * avoid.
  */
 export function NotesPanel({ progress, onSave, onDelete }) {
   const [text, setText] = useState(progress?.notes || '');
-  const [saved, setSaved] = useState(true);
+  const [state, setState] = useState('saved');
   const confidence = progress?.confidence ?? 3;
   const timer = useRef(null);
   const area = useRef(null);
@@ -18,30 +27,31 @@ export function NotesPanel({ progress, onSave, onDelete }) {
   const saveRef = useRef(onSave);
   saveRef.current = onSave;
 
+  const flush = useCallback(() => {
+    clearTimeout(timer.current);
+    if (pending.current === null) return;
+    const value = pending.current;
+    pending.current = null;
+    setState('saving');
+    // Resolves when the write lands, so "Saving…" covers the request rather
+    // than flipping to "Saved" on optimism. After unmount both are no-ops.
+    Promise.resolve(saveRef.current({ notes: value })).then(() => setState('saved'));
+  }, []);
+
   useEffect(() => {
     area.current?.focus();
     const el = area.current;
     if (el) el.setSelectionRange(el.value.length, el.value.length);
   }, []);
 
-  useEffect(
-    () => () => {
-      clearTimeout(timer.current);
-      if (pending.current !== null) saveRef.current({ notes: pending.current });
-    },
-    [],
-  );
+  useEffect(() => flush, [flush]);
 
   const onChange = (value) => {
     setText(value);
-    setSaved(false);
+    setState('dirty');
     pending.current = value;
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      pending.current = null;
-      onSave({ notes: value });
-      setSaved(true);
-    }, AUTOSAVE_MS);
+    timer.current = setTimeout(flush, AUTOSAVE_MS);
   };
 
   return (
@@ -50,6 +60,9 @@ export function NotesPanel({ progress, onSave, onDelete }) {
         ref={area}
         value={text}
         onChange={(e) => onChange(e.target.value)}
+        // Clicking away is you saying you are done — no reason to sit on the
+        // note for the rest of the debounce.
+        onBlur={flush}
         placeholder="Approach, edge cases, why you got stuck..."
         spellCheck="false"
       />
@@ -66,13 +79,9 @@ export function NotesPanel({ progress, onSave, onDelete }) {
             />
           ))}
         </span>
-        <span>{saved ? 'Saved' : 'Saving...'}</span>
+        <span className={`notes-state ${state}`}>{LABEL[state]}</span>
         {onDelete && (
-          <button
-            className="link-btn"
-            style={{ marginLeft: 'auto', color: 'var(--hard)' }}
-            onClick={onDelete}
-          >
+          <button className="link-btn notes-delete" onClick={onDelete}>
             Delete problem
           </button>
         )}

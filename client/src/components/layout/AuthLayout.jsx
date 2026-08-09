@@ -32,9 +32,20 @@ const SAMPLE = [
   { step: '04', name: 'Sliding Window', solved: 2, total: 18 },
 ];
 
+/*
+  What the product does, in the order someone deciding whether to sign up cares
+  about it. The assistant sits third rather than last: it is the newest thing
+  here and the one nothing else on this page implies.
+
+  Each line names something you can actually go and use. Nothing on this list is
+  planned, half-built, or true only on some accounts — the panel below is where
+  what is coming goes, and keeping that boundary is what makes either half worth
+  reading.
+*/
 const POINTS = [
   '22 patterns, 429 problems, ordered so each one builds on the last',
   'Revision that schedules itself — the ones you nearly missed come back',
+  'Ask about the problem you are on — your pick of model, every thread kept',
   'Company tags, difficulty and sheet filters on every problem',
   'A written guide behind every pattern, with Java and C++ side by side',
 ];

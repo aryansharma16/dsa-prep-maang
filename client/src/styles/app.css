@@ -295,13 +295,16 @@
 }
 
 /* Downward and right-aligned — the trigger sits at the ceiling, near the end of
-   the bar, so a menu anchored left would hang off the window. */
+   the bar, so a menu anchored left would hang off the window. max-width is the
+   backstop for the other end: on a narrow window a fixed 250px measured back
+   from this trigger would push past the left of the screen. */
 .appearance-menu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
   z-index: 20;
   width: 250px;
+  max-width: calc(100vw - 24px);
   padding: 10px;
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -372,9 +375,18 @@
   padding-top: 12px;
   border-top: 1px solid var(--border-soft);
 }
+/* A label that is also the way back to your saved custom colour, so it has to
+   look reachable without turning into a third button in a row of two. */
 .appearance-custom-name {
   font-size: 12px;
   color: var(--text-2);
+  cursor: pointer;
+}
+.appearance-custom-name:hover {
+  color: var(--text);
+}
+.appearance-custom-name[aria-checked='true'] {
+  color: var(--accent);
 }
 .appearance-hex {
   width: 74px;
@@ -393,30 +405,34 @@
   outline: none;
 }
 /*
-  The native colour input, kept as a 26px square with its own swatch showing
-  through. Chrome and Firefox each pad the control differently, hence the
-  negative margins on the well rather than a height that only lands on one.
+  The native colour input wearing .appearance-swatch — it has to be the same
+  circle as the fourteen presets above it, because it is the fifteenth choice,
+  not a separate tool. Chrome and Firefox each pad the well differently and
+  neither rounds it, so both are overridden rather than trusting one to land.
+
+  The background from .appearance-swatch stays as the fallback: if a browser
+  declines to paint the well, the circle still shows the right colour.
 */
 .appearance-native {
-  width: 26px;
-  height: 26px;
-  flex: 0 0 26px;
   padding: 0;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: none;
+  border-radius: 50%;
   cursor: pointer;
+  /* Outset, where the presets' hairline is inset: the native well paints over
+     the element's own box, so an inset ring would be buried under it. The
+     selected ring is two classes and still wins over this one. */
+  box-shadow: 0 0 0 1px var(--border);
 }
 .appearance-native::-webkit-color-swatch-wrapper {
-  padding: 2px;
+  padding: 0;
 }
 .appearance-native::-webkit-color-swatch {
   border: none;
-  border-radius: 2px;
+  border-radius: 50%;
 }
 .appearance-native::-moz-color-swatch {
   border: none;
-  border-radius: 2px;
+  border-radius: 50%;
 }
 
 .appearance-note {
@@ -492,6 +508,31 @@
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-bg);
+}
+.toggle-chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.toggle-chip:disabled:hover {
+  border-color: var(--border);
+  color: var(--text-2);
+}
+
+/* An action, not a filter — it reads as one of the chips but keeps the accent
+   so the eye finds it among four selects and two toggles. */
+.pick-btn {
+  color: var(--accent);
+}
+.pick-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+.pick-btn:active:not(:disabled) svg {
+  transform: rotate(-90deg);
+}
+.pick-btn svg {
+  transition: transform 0.18s ease;
 }
 
 .link-btn {
@@ -732,6 +773,53 @@ table.problems tbody tr.solved .title-link {
   color: var(--text-3);
 }
 
+/*
+  A random pick usually lands off screen, so the row has to say "here" once the
+  scroll arrives — the cursor bar alone is too quiet to find in a long table.
+
+  Tinted with an inset shadow rather than a background: --accent-bg is
+  translucent, and the frozen cells need to keep their own opaque background or
+  the columns sliding underneath show through them for the length of the flash.
+*/
+table.problems tbody tr.picked td {
+  animation: row-pick 1.5s ease-out;
+}
+table.problems tbody tr.picked td:first-child {
+  animation-name: row-pick-edge;
+}
+
+@keyframes row-pick {
+  0%,
+  22% {
+    box-shadow: inset 0 0 0 100px var(--accent-bg);
+  }
+  100% {
+    box-shadow: inset 0 0 0 100px transparent;
+  }
+}
+/* Same tint, but carrying the cursor bar the first cell would otherwise lose
+   for as long as the animation owns its box-shadow. */
+@keyframes row-pick-edge {
+  0%,
+  22% {
+    box-shadow: inset 2px 0 0 var(--accent), inset 0 0 0 100px var(--accent-bg);
+  }
+  100% {
+    box-shadow: inset 2px 0 0 var(--accent), inset 0 0 0 100px transparent;
+  }
+}
+
+/* Still mark the row, just without the fade. */
+@media (prefers-reduced-motion: reduce) {
+  table.problems tbody tr.picked td {
+    animation: none;
+    box-shadow: inset 0 0 0 100px var(--accent-bg);
+  }
+  table.problems tbody tr.picked td:first-child {
+    box-shadow: inset 2px 0 0 var(--accent), inset 0 0 0 100px var(--accent-bg);
+  }
+}
+
 table.problems td {
   padding: 0 10px;
   vertical-align: middle;
@@ -761,6 +849,19 @@ table.problems tbody tr:last-child td {
 .problems tbody tr:hover td.pin,
 .problems tbody tr.cursor td.pin {
   background: var(--surface-hover);
+}
+
+/*
+  The attempt popover opens inside the frozen Track cell, and every frozen cell
+  shares one z-index — so the rows *below* it, painting later, came out on top
+  and sliced the popover in half. The popover's own z-index cannot help: it is
+  trapped in the stacking context its cell creates. Lifting the cell is what
+  gets the whole thing out, and only the row with a popover open is lifted, so
+  the frozen column keeps its normal layering everywhere else.
+*/
+.problems tbody tr.pop-open td.pin,
+.problems tbody tr.pop-open td.col-acts {
+  z-index: 5;
 }
 
 /* Only where content is actually hidden — see the edge measurement in
@@ -1075,6 +1176,16 @@ tr.cursor .act {
   opacity: 1;
   color: var(--accent);
 }
+/* After .act.on deliberately: while the panel is open this button is a close
+   button, and it has to read that way even on a row that has notes saved. */
+.act.shut {
+  opacity: 1;
+  color: var(--hard);
+}
+.act.shut:hover {
+  color: var(--hard);
+  background: color-mix(in srgb, var(--hard) 14%, transparent);
+}
 .act.on.rev {
   color: var(--hard);
 }
@@ -1084,8 +1195,11 @@ tr.cursor .act {
 
 /* notes row */
 .notes-row td {
-  padding: 0 12px 12px 56px;
+  padding: 2px 12px 12px 56px;
   background: var(--surface);
+  /* Carries the cursor bar down from the row above, so the panel reads as that
+     row opening up rather than as a slab that appeared between two rows. */
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .statement {
@@ -1766,6 +1880,21 @@ tr.cursor .act {
   display: inline-flex;
   gap: 3px;
   align-items: center;
+}
+/* Reserved width: the word changes three times per note, and letting the row
+   re-flow under it made the dots twitch sideways while you typed. */
+.notes-state {
+  min-width: 54px;
+}
+.notes-state.dirty {
+  color: var(--text-2);
+}
+.notes-state.saving {
+  color: var(--accent);
+}
+.notes-delete {
+  margin-left: auto;
+  color: var(--hard);
 }
 .conf-dot {
   width: 13px;

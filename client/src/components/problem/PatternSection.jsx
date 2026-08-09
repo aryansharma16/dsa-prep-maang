@@ -12,6 +12,7 @@ export const PatternSection = forwardRef(function PatternSection(
     onToggle,
     onOpenGuide,
     cursorId,
+    pickedId,
     onFocusRow,
     openNotesId,
     onToggleNotes,
@@ -158,6 +159,7 @@ export const PatternSection = forwardRef(function PatternSection(
                     index={i}
                     columns={columns}
                     isCursor={cursorId === problem._id}
+                    isPicked={pickedId === problem._id}
                     onFocus={() => onFocusRow(problem._id)}
                     notesOpen={openNotesId === problem._id}
                     onToggleNotes={() => onToggleNotes(problem._id)}

@@ -136,17 +136,41 @@ export function AppearancePicker() {
           </div>
 
           <div className="appearance-custom">
+            {/*
+              The swatch and the native picker are one control, and it sits at
+              the left of the row on purpose. The browser's colour dialog is an
+              OS popup anchored to this input, opening down and to its right —
+              at the end of a menu that is itself pinned to the right of the
+              window, it opened past the edge of the screen with no way to
+              reposition it from here. Anchored at the left of the menu, the
+              same dialog has the menu's whole width to open into.
+
+              color-scheme is set per theme in tokens.css, so that dialog is
+              painted to match.
+            */}
+            <input
+              type="color"
+              style={{ '--swatch': custom }}
+              className={`appearance-swatch appearance-native ${
+                accent === CUSTOM ? 'on' : ''
+              }`}
+              value={hexToRgb(hex) ? custom : '#ffa116'}
+              onChange={(e) => setCustom(e.target.value)}
+              title="Pick a custom accent colour"
+              aria-label="Pick a custom accent colour"
+            />
+            {/* Still the way to go back to your custom colour after trying a
+                preset, which picking a new one in the dialog would overwrite. */}
             <button
               type="button"
               role="radio"
               aria-checked={accent === CUSTOM}
-              aria-label="Custom colour"
-              title="Custom"
-              style={{ '--swatch': custom }}
-              className={`appearance-swatch ${accent === CUSTOM ? 'on' : ''}`}
+              className="appearance-custom-name"
+              title="Use your custom colour"
               onClick={() => setCustom(custom)}
-            />
-            <span className="appearance-custom-name">Custom</span>
+            >
+              Custom
+            </button>
             <input
               className="appearance-hex mono"
               value={hex}
@@ -154,15 +178,6 @@ export function AppearancePicker() {
               spellCheck="false"
               maxLength={7}
               aria-label="Custom accent hex"
-            />
-            {/* The native swatch. color-scheme is set per theme in tokens.css,
-                so the picker it opens is painted to match. */}
-            <input
-              type="color"
-              className="appearance-native"
-              value={hexToRgb(hex) ? custom : '#ffa116'}
-              onChange={(e) => setCustom(e.target.value)}
-              aria-label="Pick a custom accent colour"
             />
           </div>
 

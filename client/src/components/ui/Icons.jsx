@@ -64,6 +64,16 @@ export const IconClock = (p) => (
   </Svg>
 );
 
+// The pips are filled because a 1.6px ring at 12px reads as noise, not as dots.
+export const IconDice = (p) => (
+  <Svg {...p}>
+    <rect x="2.3" y="2.3" width="11.4" height="11.4" rx="2.6" />
+    <circle cx="5.5" cy="5.5" r="0.9" fill="currentColor" stroke="none" />
+    <circle cx="8" cy="8" r="0.9" fill="currentColor" stroke="none" />
+    <circle cx="10.5" cy="10.5" r="0.9" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
 export const IconSearch = (p) => (
   <Svg {...p}>
     <circle cx="7.2" cy="7.2" r="4.4" />

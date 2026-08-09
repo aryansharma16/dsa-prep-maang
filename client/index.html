@@ -3,8 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MAANG Prep</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2300b8a3'/><path d='M12 9l-5 7 5 7M20 9l5 7-5 7' stroke='%23111' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+    <title>Ember</title>
+    <!--
+      Ember, top to bottom: the hot face of a coal into the cooler edge of it.
+      The mark stays the chevrons rather than the "EM" the sidebar draws — two
+      letters turn to mush at 16px, where two strokes stay readable.
+
+      Inline rather than a file in public/, so the tab has its icon on the first
+      response with no second request. Every # has to be written %23, including
+      the one in url(%23e): unescaped, the browser reads it as the end of the
+      data URI and the icon silently becomes a blank square.
+    -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='e' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23ffb347'/><stop offset='.55' stop-color='%23ff8a1f'/><stop offset='1' stop-color='%23ef5a09'/></linearGradient></defs><rect width='32' height='32' rx='7' fill='url(%23e)'/><path d='M12 9l-5 7 5 7M20 9l5 7-5 7' stroke='%232b1405' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
     <script>
       /*
         Applied before first paint so neither the theme nor the accent flashes.
