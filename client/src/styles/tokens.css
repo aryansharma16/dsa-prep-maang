@@ -1,6 +1,16 @@
 /* Design tokens. Dark is the default; light is a straight token swap. */
 :root,
 :root[data-theme='dark'] {
+  /*
+    Not decoration — this is what tells the browser to render the parts of the
+    UI our CSS cannot reach. A <select>'s popup list, the option rows inside it,
+    autofilled inputs, spinners and the default scrollbar are all painted by the
+    engine, and without this they come out in the OS's light scheme: a white
+    menu dropping out of a dark composer. Every token below is irrelevant to
+    them; this one line is the whole fix.
+  */
+  color-scheme: dark;
+
   --bg: #1a1a1a;
   --surface: #282828;
   --surface-2: #303030;
@@ -56,6 +66,8 @@
 }
 
 :root[data-theme='light'] {
+  color-scheme: light;
+
   --bg: #ffffff;
   --surface: #f7f8fa;
   --surface-2: #ffffff;

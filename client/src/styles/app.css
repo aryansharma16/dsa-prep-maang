@@ -4051,6 +4051,20 @@ img.avatar {
   bottom: calc(var(--chat-gap) * 2 + var(--chat-bubble) + var(--chat-dock-h) + 10px);
 }
 
+/*
+  A raised surface with an accent glyph, not a solid accent disc.
+
+  Everywhere else the app marks "assistant" the same restrained way — an
+  --accent-bg wash behind an --accent icon (.chat-head-mark, .chat-greet-mark,
+  .chat-msg-mark). The launcher used solid --accent at 48px, which on a #1a1a1a
+  page is the single brightest object on screen and reads as blown out rather
+  than as part of the dark theme. It also meant open and closed were two
+  different designs: press it and the disc became the surface chip below.
+
+  The glyph keeps the accent, so it is still findable at a glance, and the
+  border is on the base rule rather than only on .on so toggling does not shift
+  the icon by a pixel.
+*/
 .chat-launcher {
   position: fixed;
   right: var(--chat-gap);
@@ -4059,17 +4073,22 @@ img.avatar {
   height: var(--chat-bubble);
   display: grid;
   place-items: center;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-text);
+  background: var(--surface);
+  color: var(--accent);
   box-shadow: 0 6px 20px var(--shadow);
   cursor: pointer;
   z-index: 40;
-  transition: transform 0.14s ease, filter 0.14s ease;
+  transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
 }
-.chat-launcher:hover { transform: translateY(-2px); filter: brightness(1.08); }
-.chat-launcher.on { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+/* A brightness filter does nothing legible on a dark surface — swap the fill. */
+.chat-launcher:hover {
+  transform: translateY(-2px);
+  background: var(--surface-hover);
+  border-color: var(--accent-line);
+}
+.chat-launcher.on { color: var(--text-2); }
 
 .chat-launcher-dot {
   position: absolute;
@@ -4079,7 +4098,8 @@ img.avatar {
   height: 9px;
   border-radius: 50%;
   background: var(--easy);
-  border: 2px solid var(--bg);
+  /* Rings the bubble it sits on, not the page behind it. */
+  border: 2px solid var(--surface);
 }
 .chat-launcher-dot.busy { animation: chat-pulse 1.2s ease-in-out infinite; }
 @keyframes chat-pulse { 50% { opacity: 0.35; } }
@@ -4112,7 +4132,16 @@ img.avatar {
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  /*
+    The panel's side gutter, declared once and read by both the thread and the
+    composer. They are two independently centred 760px columns, so the gutter
+    has to be identical in both or the field you type into sits a few pixels
+    wider than the prose above it — the kind of misalignment nobody can name and
+    everybody sees. The page can afford more of it than a 372px dock.
+  */
+  --chat-gutter: 14px;
 }
+.chat-panel.full { --chat-gutter: 18px; }
 
 .chat-head {
   display: flex;
@@ -4135,12 +4164,24 @@ img.avatar {
 }
 .chat-head-id { font-size: 12.5px; font-weight: 600; letter-spacing: -0.01em; }
 
+/* The config-error banner is a direct flex child between the head and the
+   thread. Left to the global rule it would run edge to edge against the panel
+   border, which is the one place in the panel with no gutter at all. */
+.chat-panel > .alert { flex: 0 0 auto; margin: 10px var(--chat-gutter) 0; }
+
 .chat-scroll { flex: 1; min-height: 0; overflow-y: auto; }
-.chat-thread { display: flex; flex-direction: column; gap: 14px; padding: 14px; }
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px var(--chat-gutter);
+}
 
 /* ---- empty state */
 
-.chat-greet { padding: 18px 4px 6px; }
+/* No side padding of its own — .chat-thread already sets the gutter, and 4px on
+   top of it puts the greeting off the column every other message sits on. */
+.chat-greet { padding: 18px 0 6px; }
 .chat-greet-mark {
   display: grid;
   place-items: center;
@@ -4252,14 +4293,29 @@ img.avatar {
 .chat-md hr { border: none; border-top: 1px solid var(--border); }
 .chat-md-h { font-size: 13px; }
 
-.chat-code { margin: 9px 0; }
+.chat-code { margin: 12px 0; background: var(--bg); }
+/* The tab strip stretches its children, so a bare span puts the language on the
+   strip's top edge while the copy button's own padding centres it. Centre it
+   explicitly rather than guessing at matching padding. */
 .chat-code-lang {
+  display: flex;
+  align-items: center;
   font-family: var(--mono);
   font-size: 10.5px;
   color: var(--text-3);
-  padding: 0 8px;
+  padding: 5px 10px;
   text-transform: lowercase;
 }
+/* The reader draws its code on --surface against a --bg page. In here the panel
+   *is* --surface, so that block read as a bordered rectangle of nothing — hence
+   the swap, one step down to --bg for the code and one up to --surface for the
+   strip, which keeps both separations in either theme. */
+.chat-code .guide-code-tabs { background: var(--surface); }
+/* The gutter is opaque on purpose — code scrolls behind it — so it has to
+   repaint with the surface it now sits on, hover included. */
+.chat-code .cl::before { background: var(--bg); }
+.chat-code .cl:hover,
+.chat-code .cl:hover::before { background: var(--surface-hover); }
 
 /* The caret is generated content, so nothing re-renders to blink it. */
 .chat-md.streaming > p:last-child::after {
@@ -4276,13 +4332,47 @@ img.avatar {
 
 /* ---- composer */
 
+/* Full-bleed, so its top border spans the panel — the reason the page variant no
+   longer has to fake that border with a pseudo-element on a centred composer. */
 .chat-composer {
   flex: 0 0 auto;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  padding: 9px 10px 8px;
+  padding: 10px 0 12px;
+}
+.chat-panel.full .chat-composer { padding: 12px 0 14px; }
+/*
+  The reading column, stated once. .chat-panel.full .chat-thread takes the same
+  cap and the same gutter, and both are border-box, so prose, code and the field
+  you type into share their edges at every width the panel can be.
+
+  Harmless in the dock: 372px never reaches the cap, and the two just become
+  full-width blocks with matching padding.
+*/
+.chat-composer-inner,
+.chat-panel.full .chat-thread {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.chat-composer-inner { padding: 0 var(--chat-gutter); }
+
+/* A field, not a textarea sitting on the panel. Recessed to --bg rather than
+   raised to --surface-2, which is barely a shade off the panel it would sit on
+   — and which in the light theme is the standard look for an input anyway. */
+.chat-box {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  padding: 8px 10px 8px 12px;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
+}
+.chat-box:focus-within {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 .chat-composer textarea {
+  display: block;
   width: 100%;
   max-height: 132px;
   resize: none;
@@ -4290,22 +4380,116 @@ img.avatar {
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.55;
-  padding: 2px 0;
+  padding: 3px 0;
 }
 .chat-composer textarea:focus { outline: none; }
 .chat-composer textarea::placeholder { color: var(--text-3); }
 
-.chat-composer-acts { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-.chat-model {
-  height: 26px;
-  font-size: 11.5px;
-  max-width: 160px;
-  padding: 0 22px 0 7px;
-}
+.chat-composer-acts { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .chat-count { font-size: 11px; color: var(--text-3); }
 .chat-count.over { color: var(--danger); }
+
+/* ---- model menu */
+
+.chat-menu-wrap { position: relative; display: flex; }
+.chat-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 170px;
+  height: 26px;
+  padding: 0 7px 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  color: var(--text-2);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.chat-menu-trigger .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-menu-trigger:hover { color: var(--text); border-color: var(--text-3); }
+.chat-menu-trigger.on {
+  color: var(--text);
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+/* One chevron in the icon set, pointed right. Turn it rather than add a second
+   path that has to be kept in step with it. */
+.chat-menu-caret { flex: 0 0 auto; transform: rotate(90deg); transition: transform 0.14s ease; }
+.chat-menu-trigger.on .chat-menu-caret { transform: rotate(-90deg); }
+
+/*
+  Upward, and anchored to the trigger's left edge. The composer sits on the
+  floor of the window: a menu that dropped downward would open off-screen at
+  exactly the moment the thread is long enough to need it.
+*/
+.chat-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  width: max-content;
+  min-width: 210px;
+  max-width: 290px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px var(--shadow);
+}
+.chat-menu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.chat-menu-item:hover:not(:disabled) { background: var(--surface-hover); }
+.chat-menu-item.on { color: var(--accent); }
+/* Not hidden: which models exist, and why this one is out, is the information
+   somebody opened this menu for. */
+.chat-menu-item:disabled { cursor: not-allowed; color: var(--text-3); }
+.chat-menu-tick {
+  flex: 0 0 12px;
+  display: grid;
+  place-items: center;
+  height: 17px;
+  color: var(--accent);
+}
+.chat-menu-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.chat-menu-text .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-menu-note {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--text-3);
+}
+
+/* One line of instruction under the field, where the eye already is after
+   typing. Hidden in the dock, which has no room to spend on it. */
+.chat-tip {
+  margin: 7px 0 0;
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.chat-tip kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-2);
+}
+.chat-panel.dock .chat-tip { display: none; }
 
 .chat-wait {
   display: flex;
@@ -4322,9 +4506,9 @@ img.avatar {
 .chat-wait b { color: var(--text); }
 
 .chat-send {
-  flex: 0 0 30px;
-  width: 30px;
-  height: 30px;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border: none;
@@ -4332,7 +4516,9 @@ img.avatar {
   background: var(--accent);
   color: var(--accent-text);
   cursor: pointer;
+  transition: filter 0.12s ease, opacity 0.12s ease;
 }
+.chat-send:hover:not(:disabled) { filter: brightness(1.08); }
 .chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
 .chat-send.stop { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
 
@@ -4436,29 +4622,52 @@ img.avatar {
 
 /* ---- the /chat page */
 
+/*
+  The one route that fills the window instead of scrolling with it.
+
+  .content is `padding: 18px 16px 80px` and scrolls. That 80px gutter exists so
+  the launcher bubble never lands on the last row of the roadmap table — and the
+  launcher is not rendered on /chat at all, so here it is purely dead space
+  holding the composer up off the floor. Hand it back, take the scrolling too
+  (.chat-scroll is the only thing on this page that should scroll), and let the
+  panel measure itself in percentages instead of restating the shell's padding
+  as a magic number that drifts the moment anyone touches .content.
+*/
+.content:has(.chat-page) {
+  padding-bottom: 18px;
+  overflow: hidden;
+}
+.content:has(.chat-page) .content-inner {
+  height: 100%;
+}
+
 .chat-page {
-  /* .content is `padding: 18px 16px 80px` inside a flex child under the 52px
-     topbar — hand both back so the composer sits on the viewport floor rather
-     than 80px below it. Keep in step with the shell section above. */
-  height: calc(100vh - var(--topbar-h) - 98px);
-  min-height: 420px;
+  height: 100%;
+  min-height: 0;
   display: grid;
-  grid-template-columns: 236px minmax(0, 1fr);
+  grid-template-columns: 244px minmax(0, 1fr);
   gap: 12px;
 }
 .chat-page .chat-panel {
+  min-width: 0;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
   overflow: hidden;
 }
-.chat-page .chat-thread { max-width: 760px; margin: 0 auto; width: 100%; }
-.chat-page .chat-composer { max-width: 760px; margin: 0 auto; width: 100%; border-top: none; }
-.chat-page .chat-composer::before {
-  content: '';
-  display: block;
-  border-top: 1px solid var(--border);
-  margin: 0 -10px 9px;
+/* Same gutter as the thread and the composer below it. */
+.chat-panel.full .chat-head { padding: 0 var(--chat-gutter); }
+/* Room to breathe that the 372px dock cannot afford, and a bottom gap so the
+   last line of a reply never sits flush against the composer's border. */
+.chat-panel.full .chat-thread { padding: 22px var(--chat-gutter) 28px; gap: 18px; }
+
+/* Nothing to read yet: on a full-height panel a greeting pinned to the top of a
+   tall empty column looks like a rendering failure, so centre it. .chat-greet
+   renders only while the thread is empty, which makes :has() exact. */
+.chat-panel.full .chat-thread:has(> .chat-greet) {
+  min-height: 100%;
+  justify-content: center;
+  padding-bottom: 40px;
 }
 
 .chat-rail {
@@ -4466,17 +4675,26 @@ img.avatar {
   flex-direction: column;
   min-height: 0;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
   overflow: hidden;
 }
+/* Full-bleed, so the rail's primary action reads as the head of the list rather
+   than as a small button parked in a bar. Overrides the shared sheet header,
+   whose close button needs the row to stay a row. */
+.chat-rail-head { height: auto; padding: 8px; }
+.chat-rail-head .btn { width: 100%; }
 .chat-rail-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 6px; }
-.chat-rail-foot { flex: 0 0 auto; padding: 8px 10px; border-top: 1px solid var(--border); }
+.chat-rail-scroll .empty { padding: 28px 12px; font-size: 12px; }
+.chat-rail-foot { flex: 0 0 auto; padding: 9px 10px; border-top: 1px solid var(--border); }
 .chat-rail-foot .hint { font-size: 10.5px; line-height: 1.4; }
 
-.chat-conv { display: flex; align-items: center; border-radius: 5px; }
+.chat-conv { display: flex; align-items: center; border-radius: 6px; }
+.chat-conv + .chat-conv { margin-top: 2px; }
 .chat-conv:hover { background: var(--surface-hover); }
-.chat-conv.on { background: var(--accent-bg); }
+/* The open thread, marked the way the sidebar marks the open section: a wash
+   plus an edge, so it survives the row underneath it being hovered. */
+.chat-conv.on { background: var(--accent-bg); box-shadow: inset 2px 0 0 var(--accent); }
 .chat-conv-open {
   flex: 1;
   min-width: 0;
