@@ -1,8 +1,17 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BRAND } from '../../brand.js';
+import { useAuth } from '../../store/AuthContext.jsx';
+import { ROLE_LABEL, can } from '../../store/caps.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { useLocalState } from '../../hooks/useLocalState.js';
-import { IconChart, IconChevronRight, IconGrid, IconMenu, IconRotate } from '../ui/Icons.jsx';
+import {
+  IconChart,
+  IconChevronRight,
+  IconGrid,
+  IconMenu,
+  IconRotate,
+  IconShield,
+} from '../ui/Icons.jsx';
 
 const pct = (solved, total) => (total ? Math.round((solved / total) * 100) : 0);
 
@@ -20,9 +29,14 @@ const abbrev = (name) =>
 
 export function Sidebar({ collapsed, onToggle }) {
   const { groups, totals } = useRoadmap();
+  const { user } = useAuth();
   const [patternsOpen, setPatternsOpen] = useLocalState('sidebar-patterns-open', true);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Staff only. Cosmetic — the server refuses the routes regardless — but a
+  // learner should never see a door they cannot open.
+  const showAdmin = can(user, 'panel');
 
   const goToPattern = (slug) => {
     if (location.pathname !== '/') navigate(`/?pattern=${slug}`);
@@ -65,6 +79,15 @@ export function Sidebar({ collapsed, onToggle }) {
             >
               <IconChart size={15} />
             </NavLink>
+            {showAdmin && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
+                title="Admin"
+              >
+                <IconShield size={15} />
+              </NavLink>
+            )}
             <div style={{ height: 8 }} />
             {groups.map((g) => (
               <button
@@ -97,6 +120,16 @@ export function Sidebar({ collapsed, onToggle }) {
               <IconChart size={14} />
               Stats
             </NavLink>
+            {showAdmin && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              >
+                <IconShield size={14} />
+                Admin
+                <span className={`role-pill ${user.role}`}>{ROLE_LABEL[user.role]}</span>
+              </NavLink>
+            )}
 
             <button
               className="sidebar-label sidebar-label-btn"

@@ -79,6 +79,18 @@ const problemSchema = new mongoose.Schema(
      * the two would lose that permanently.
      */
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+
+    /**
+     * Stamped whenever the admin panel writes this problem. Its presence is
+     * what stops the seeder overwriting that work, and what keeps the prune
+     * from deleting an admin-created shared problem — see scripts/seed/seed.js.
+     *
+     * Null means "still exactly what the curation pass produced", and the
+     * seeder is free to refresh it. Same name and same contract as
+     * PatternGuide.editedAt, deliberately: one idiom, not two.
+     */
+    editedAt: { type: Date, default: null, index: true },
+    editedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   { timestamps: true },
 );

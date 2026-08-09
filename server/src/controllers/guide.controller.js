@@ -7,7 +7,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
  * GET /api/patterns/:slug/guide
  *
  * A pattern with no guide written yet answers 200 with `guide: null` rather
- * than 404. It is not an error — the drawer renders "no guide yet" and offers
+ * than 404. It is not an error — the reader renders "no guide yet" and offers
  * the blurb, which is the right state for a pattern nobody has documented.
  * A slug that is not a pattern at all is a genuine 404.
  */

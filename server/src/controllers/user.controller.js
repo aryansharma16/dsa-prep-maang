@@ -1,7 +1,33 @@
-import { User } from '../models/User.js';
+import { User, publicUser } from '../models/User.js';
+import { assertEmailNotReserved } from '../services/admin.guards.js';
 import { destroyAsset, folderFor, uploadBuffer } from '../services/media.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+
+export { selfUpdateSchema } from '../config/profileFields.js';
+
+/**
+ * The signed-in user editing their own details.
+ *
+ * Separate from the admin route on purpose: this one can only ever touch the
+ * caller's own document, so it needs no target guard and no capability. The
+ * reserved-address check still runs — otherwise anyone could rename themselves
+ * onto SUPER_ADMIN_EMAIL and be promoted at their next sign-in.
+ */
+export const updateMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.userId);
+  if (!user) throw ApiError.unauthorized('Account no longer exists', 'NO_USER');
+
+  const { name, email, profile } = req.body;
+  if (email) assertEmailNotReserved(email, user);
+
+  if (name !== undefined) user.name = name;
+  if (email !== undefined) user.email = email;
+  if (profile) user.profile = { ...user.profile?.toObject?.(), ...profile };
+
+  await user.save();
+  res.json({ user: publicUser(user) });
+});
 
 /**
  * Square, face-aware, and capped at 512px.
@@ -48,7 +74,7 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
   // not, and deleting it here would remove the image just uploaded.
   if (previous && previous !== asset.publicId) await destroyAsset(previous);
 
-  res.json({ user });
+  res.json({ user: publicUser(user) });
 });
 
 export const removeAvatar = asyncHandler(async (req, res) => {
@@ -59,7 +85,7 @@ export const removeAvatar = asyncHandler(async (req, res) => {
   if (!publicId) {
     // Already gone. Saying so with a 200 keeps a double-click from surfacing an
     // error for a state the caller wanted anyway.
-    res.json({ user });
+    res.json({ user: publicUser(user) });
     return;
   }
 
@@ -67,5 +93,5 @@ export const removeAvatar = asyncHandler(async (req, res) => {
   await user.save();
   await destroyAsset(publicId);
 
-  res.json({ user });
+  res.json({ user: publicUser(user) });
 });

@@ -22,6 +22,7 @@ import { getStats } from '../controllers/stats.controller.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { validate } from '../middleware/validate.js';
 import { uploadsEnabled } from '../services/media.service.js';
+import { adminRouter } from './admin.routes.js';
 import { authRouter } from './auth.routes.js';
 
 export const router = Router();
@@ -43,6 +44,14 @@ router.get('/companies/:slug/logo', getLogo);
 
 // Everything below needs a session.
 router.use(requireAuth);
+
+/*
+  Immediately below the gate, deliberately. This file authorises by position —
+  a route added above line 45 is public with nothing in the file's shape to say
+  so — and the admin surface is the last thing that should end up on the wrong
+  side of it. Its own capability checks are inside adminRouter.
+*/
+router.use('/admin', adminRouter);
 
 router.get('/patterns', listPatterns);
 router.get('/patterns/:slug/guide', getGuide);

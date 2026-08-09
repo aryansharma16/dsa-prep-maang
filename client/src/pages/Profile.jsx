@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
 import { statsApi } from '../api/index.js';
-import { AvatarUpload } from '../components/profile/AvatarUpload.jsx';
+import { EditProfileModal } from '../components/profile/EditProfileModal.jsx';
+import { ProfileHeader } from '../components/profile/ProfileHeader.jsx';
 import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
 import { SolvedRing } from '../components/stats/SolvedRing.jsx';
 import { useAuth } from '../store/AuthContext.jsx';
@@ -25,6 +26,7 @@ export function Profile() {
   const { groups } = useRoadmap();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     statsApi
@@ -72,134 +74,74 @@ export function Profile() {
   const hours = Math.floor(totals.minutes / 60);
 
   return (
-    <div className="profile">
-      <aside className="profile-card">
-        <div className="panel">
-          <div className="panel-body">
-            <div className="profile-id">
-              <AvatarUpload size={72}>
-                <h1>{user?.name}</h1>
-                <p className="hint">{user?.email}</p>
-              </AvatarUpload>
-            </div>
+    <>
+      <ProfileHeader user={user} onEdit={() => setEditing(true)} />
 
-            <dl className="profile-facts">
-              <div>
-                <dt>Joined</dt>
-                <dd>{longDate(user?.createdAt)}</dd>
-              </div>
-              <div>
-                <dt>Solved</dt>
-                <dd className="mono">
-                  {solved} / {total}
-                </dd>
-              </div>
-              <div>
-                <dt>Current streak</dt>
-                <dd className="mono">
-                  {activity.streak} {activity.streak === 1 ? 'day' : 'days'}
-                </dd>
-              </div>
-              <div>
-                <dt>Longest streak</dt>
-                <dd className="mono">
-                  {activity.maxStreak} {activity.maxStreak === 1 ? 'day' : 'days'}
-                </dd>
-              </div>
-              <div>
-                <dt>Active days</dt>
-                <dd className="mono">{activity.activeDays}</dd>
-              </div>
-              <div>
-                <dt>Time logged</dt>
-                <dd className="mono">{hours ? `${hours}h` : `${totals.minutes}m`}</dd>
-              </div>
-            </dl>
-
-            <div className="profile-links">
-              <Link className="btn" to="/stats">
-                Full stats
-              </Link>
-              <Link className="btn ghost" to="/revision">
-                Revision queue
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="panel">
-          <div className="panel-head">Strongest patterns</div>
-          <div className="panel-body">
-            {strongest.length === 0 ? (
-              <p className="hint">Solve a few problems and your best patterns show up here.</p>
-            ) : (
-              strongest.map((p) => {
-                const pct = p.total ? Math.round((p.solved / p.total) * 100) : 0;
-                return (
-                  <div className="statrow" key={p.slug}>
-                    <span className="nm">{p.name}</span>
-                    <span className="bar">
-                      <span style={{ width: `${pct}%` }} />
-                    </span>
-                    <span className="fr">
-                      {p.solved}/{p.total}
-                    </span>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </aside>
-
-      <div className="profile-main">
-        <div className="panel">
-          <div className="panel-body">
-            <SolvedRing byDifficulty={byDifficulty} />
-          </div>
-        </div>
-
-        <ActivityHeatmap heatmap={heatmap} activity={activity} />
-
-        <div className="grid-2">
+      <div className="profile">
+        <aside className="profile-card">
           <div className="panel">
-            <div className="panel-head">Recently solved</div>
+            <div className="panel-head">At a glance</div>
             <div className="panel-body">
-              {recent.length === 0 ? (
-                <p className="hint">Nothing solved yet — the roadmap is a good place to start.</p>
-              ) : (
-                <ul className="recent">
-                  {recent.map((p) => (
-                    <li key={p._id}>
-                      <a href={p.url || p.articleUrl} target="_blank" rel="noreferrer">
-                        {p.title}
-                      </a>
-                      <span className={`diff ${p.difficulty}`}>{p.difficulty}</span>
-                      <span className="hint">{p.patternName}</span>
-                      <time className="due">{shortDate(p.progress.solvedAt)}</time>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <dl className="profile-facts">
+                <div>
+                  <dt>Joined</dt>
+                  <dd>{longDate(user?.createdAt)}</dd>
+                </div>
+                <div>
+                  <dt>Solved</dt>
+                  <dd className="mono">
+                    {solved} / {total}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Current streak</dt>
+                  <dd className="mono">
+                    {activity.streak} {activity.streak === 1 ? 'day' : 'days'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Longest streak</dt>
+                  <dd className="mono">
+                    {activity.maxStreak} {activity.maxStreak === 1 ? 'day' : 'days'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Active days</dt>
+                  <dd className="mono">{activity.activeDays}</dd>
+                </div>
+                <div>
+                  <dt>Time logged</dt>
+                  <dd className="mono">{hours ? `${hours}h` : `${totals.minutes}m`}</dd>
+                </div>
+              </dl>
+
+              <div className="profile-links">
+                <Link className="btn" to="/stats">
+                  Full stats
+                </Link>
+                <Link className="btn ghost" to="/revision">
+                  Revision queue
+                </Link>
+              </div>
             </div>
           </div>
 
           <div className="panel">
-            <div className="panel-head">Company coverage</div>
+            <div className="panel-head">Strongest patterns</div>
             <div className="panel-body">
-              {byCompany.length === 0 ? (
-                <p className="hint">Solve a few problems and this fills in.</p>
+              {strongest.length === 0 ? (
+                <p className="hint">Solve a few problems and your best patterns show up here.</p>
               ) : (
-                byCompany.slice(0, 8).map((c) => {
-                  const pct = c.total ? Math.round((c.solved / c.total) * 100) : 0;
+                strongest.map((p) => {
+                  const pct = p.total ? Math.round((p.solved / p.total) * 100) : 0;
                   return (
-                    <div className="statrow" key={c.name}>
-                      <span className="nm">{c.name}</span>
+                    <div className="statrow" key={p.slug}>
+                      <span className="nm">{p.name}</span>
                       <span className="bar">
                         <span style={{ width: `${pct}%` }} />
                       </span>
                       <span className="fr">
-                        {c.solved}/{c.total}
+                        {p.solved}/{p.total}
                       </span>
                     </div>
                   );
@@ -207,8 +149,68 @@ export function Profile() {
               )}
             </div>
           </div>
+        </aside>
+
+        <div className="profile-main">
+          <div className="panel">
+            <div className="panel-body">
+              <SolvedRing byDifficulty={byDifficulty} />
+            </div>
+          </div>
+
+          <ActivityHeatmap heatmap={heatmap} activity={activity} />
+
+          <div className="grid-2">
+            <div className="panel">
+              <div className="panel-head">Recently solved</div>
+              <div className="panel-body">
+                {recent.length === 0 ? (
+                  <p className="hint">Nothing solved yet — the roadmap is a good place to start.</p>
+                ) : (
+                  <ul className="recent">
+                    {recent.map((p) => (
+                      <li key={p._id}>
+                        <a href={p.url || p.articleUrl} target="_blank" rel="noreferrer">
+                          {p.title}
+                        </a>
+                        <span className={`diff ${p.difficulty}`}>{p.difficulty}</span>
+                        <span className="hint">{p.patternName}</span>
+                        <time className="due">{shortDate(p.progress.solvedAt)}</time>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="panel">
+              <div className="panel-head">Company coverage</div>
+              <div className="panel-body">
+                {byCompany.length === 0 ? (
+                  <p className="hint">Solve a few problems and this fills in.</p>
+                ) : (
+                  byCompany.slice(0, 8).map((c) => {
+                    const pct = c.total ? Math.round((c.solved / c.total) * 100) : 0;
+                    return (
+                      <div className="statrow" key={c.name}>
+                        <span className="nm">{c.name}</span>
+                        <span className="bar">
+                          <span style={{ width: `${pct}%` }} />
+                        </span>
+                        <span className="fr">
+                          {c.solved}/{c.total}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      {editing && <EditProfileModal onClose={() => setEditing(false)} />}
+    </>
   );
 }

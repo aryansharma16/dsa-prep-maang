@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { User } from '../models/User.js';
+import { User, publicUser } from '../models/User.js';
 import { loginUser, registerUser } from '../services/auth.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -23,14 +23,14 @@ export const loginSchema = z.object({
 
 export const register = asyncHandler(async (req, res) => {
   const user = await registerUser(req.body);
-  setAuthCookies(res, user._id);
-  res.status(201).json({ user });
+  setAuthCookies(res, user);
+  res.status(201).json({ user: publicUser(user) });
 });
 
 export const login = asyncHandler(async (req, res) => {
   const user = await loginUser(req.body);
-  setAuthCookies(res, user._id);
-  res.json({ user });
+  setAuthCookies(res, user);
+  res.json({ user: publicUser(user) });
 });
 
 export const refresh = asyncHandler(async (req, res) => {
@@ -51,8 +51,21 @@ export const refresh = asyncHandler(async (req, res) => {
     throw ApiError.unauthorized('Account no longer exists', 'NO_USER');
   }
 
-  setAuthCookies(res, user._id);
-  res.json({ user });
+  /*
+    Where a revoked session actually dies. An admin bumping tokenVersion — by
+    resetting a password or forcing a sign-out — leaves every token already in
+    the wild carrying the old number, and this is the check that notices. It
+    lives here rather than in requireAuth so the common path stays a signature
+    check with no database read; the cost is that the old access token keeps
+    working until it expires.
+  */
+  if ((payload.tv ?? 0) !== user.tokenVersion) {
+    clearAuthCookies(res);
+    throw ApiError.unauthorized('Session ended, please sign in again', 'REFRESH_EXPIRED');
+  }
+
+  setAuthCookies(res, user);
+  res.json({ user: publicUser(user) });
 });
 
 export const logout = asyncHandler(async (_req, res) => {
@@ -63,5 +76,5 @@ export const logout = asyncHandler(async (_req, res) => {
 export const me = asyncHandler(async (req, res) => {
   const user = await User.findById(req.userId);
   if (!user) throw ApiError.unauthorized('Account no longer exists', 'NO_USER');
-  res.json({ user });
+  res.json({ user: publicUser(user) });
 });

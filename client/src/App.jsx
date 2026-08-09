@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { Admin } from './pages/Admin.jsx';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { Login } from './pages/Login.jsx';
 import { Profile } from './pages/Profile.jsx';
@@ -34,6 +35,10 @@ export function App() {
           <Route path="/revision" element={<Revision />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/profile" element={<Profile />} />
+          {/* Guards itself. A learner who types /admin is redirected home, so
+              the route is indistinguishable from one that does not exist. */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/:section" element={<Admin />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

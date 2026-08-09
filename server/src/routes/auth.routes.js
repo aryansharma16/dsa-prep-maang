@@ -8,7 +8,12 @@ import {
   register,
   registerSchema,
 } from '../controllers/auth.controller.js';
-import { removeAvatar, uploadAvatar } from '../controllers/user.controller.js';
+import {
+  removeAvatar,
+  selfUpdateSchema,
+  updateMe,
+  uploadAvatar,
+} from '../controllers/user.controller.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { singleImage } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
@@ -20,6 +25,8 @@ authRouter.post('/login', validate(loginSchema), login);
 authRouter.post('/refresh', refresh);
 authRouter.post('/logout', logout);
 authRouter.get('/me', requireAuth, me);
+// Your own details. Needs no capability — it can only reach your own document.
+authRouter.patch('/me', requireAuth, validate(selfUpdateSchema), updateMe);
 
 /*
   The avatar hangs off /me because that is the resource it belongs to. Auth

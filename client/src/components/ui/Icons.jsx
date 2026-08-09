@@ -179,6 +179,27 @@ export const IconColumns = (p) => (
   </Svg>
 );
 
+export const IconShield = (p) => (
+  <Svg {...p}>
+    <path d="M8 1.8l5 1.9v4.1c0 3-2.1 5.2-5 6.4-2.9-1.2-5-3.4-5-6.4V3.7z" />
+  </Svg>
+);
+
+export const IconUsers = (p) => (
+  <Svg {...p}>
+    <circle cx="6.2" cy="5.6" r="2.4" />
+    <path d="M1.8 13.4c0-2.4 2-3.9 4.4-3.9s4.4 1.5 4.4 3.9" />
+    <path d="M10.8 3.6a2.4 2.4 0 010 4.5M11.8 9.9c1.5.4 2.6 1.6 2.6 3.5" />
+  </Svg>
+);
+
+export const IconBook = (p) => (
+  <Svg {...p}>
+    <path d="M2.6 2.8h4a2 2 0 012 2v8.4a1.6 1.6 0 00-1.6-1.6H2.6z" />
+    <path d="M13.4 2.8h-4a2 2 0 00-2 2v8.4a1.6 1.6 0 011.6-1.6h4.4z" />
+  </Svg>
+);
+
 export const IconGrip = (p) => (
   <Svg {...p} fill="currentColor" strokeWidth={0}>
     <circle cx="6" cy="3.6" r="1.05" />

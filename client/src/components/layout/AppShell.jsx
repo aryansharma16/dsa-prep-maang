@@ -22,11 +22,17 @@ export function AppShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Only the roadmap renders results, so searching from Stats or Revision takes
-  // you there rather than leaving you typing into a box that does nothing.
+  /*
+    The admin panel has its own filters, and yanking someone to the roadmap
+    mid-edit because they typed in the wrong box would be worse than a search
+    that does nothing. Everywhere else, only the roadmap renders results, so
+    searching from Stats or Revision takes you there.
+  */
+  const onAdmin = pathname.startsWith('/admin');
+
   const onSearch = (value) => {
     setQuery(value);
-    if (value && pathname !== '/') navigate('/');
+    if (value && pathname !== '/' && !onAdmin) navigate('/');
   };
 
   // Below 1024px the sidebar would eat the table, so collapse it automatically.

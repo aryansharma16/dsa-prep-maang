@@ -58,6 +58,15 @@ export const env = {
     refreshTtl: process.env.JWT_REFRESH_TTL || '30d',
   },
   leetcodeApi: process.env.LEETCODE_API || 'https://leetcode-api-pied.vercel.app',
+  /**
+   * The one account that owns the site.
+   *
+   * Pinned here rather than stored as a mutable row: the API has no path that
+   * can grant or revoke `super_admin`, so the role cannot be handed out by a
+   * bug in the role endpoint or by someone who gets hold of an admin session.
+   * Optional — leave it unset and the app simply has no super admin.
+   */
+  superAdminEmail: (process.env.SUPER_ADMIN_EMAIL || '').trim().toLowerCase(),
   cloudinary: {
     ...cloudinary,
     configured: Boolean(cloudinary.cloudName && cloudinary.apiKey && cloudinary.apiSecret),

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { errorMessage } from '../../api/http.js';
 import { authApi } from '../../api/index.js';
 import { useAuth } from '../../store/AuthContext.jsx';
-import { Avatar } from '../ui/Avatar.jsx';
+import { AvatarButton } from '../ui/PhotoPreview.jsx';
 
 const MAX_MB = 5;
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/avif';
@@ -67,7 +67,9 @@ export function AvatarUpload({ size = 72, children }) {
   return (
     <div className="avatar-edit">
       <div className="avatar-edit-img">
-        <Avatar
+        {/* Clicking it opens the picture full size. Nothing to guard while an
+            upload is in flight — the veil below sits over the button. */}
+        <AvatarButton
           name={user?.name}
           email={user?.email}
           src={preview || user?.avatar?.url}

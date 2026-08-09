@@ -5,6 +5,8 @@ export const authApi = {
   login: (body) => http.post('/auth/login', body).then((r) => r.data.user),
   logout: () => http.post('/auth/logout').then((r) => r.data),
   me: () => http.get('/auth/me').then((r) => r.data.user),
+  /** Your own name and profile fields. Returns the whole updated user. */
+  updateMe: (body) => http.patch('/auth/me', body).then((r) => r.data.user),
 
   /**
    * Both return the whole updated user, so the caller replaces its copy rather
@@ -45,4 +47,43 @@ export const progressApi = {
 
 export const statsApi = {
   get: () => http.get('/stats').then((r) => r.data),
+};
+
+/**
+ * The admin panel.
+ *
+ * Guides are read through `adminApi.guide`, not `problemsApi.guide`: the public
+ * one goes through the module cache in useGuide, and the editor must never open
+ * a stale copy or write an admin-shaped payload into it.
+ */
+export const adminApi = {
+  overview: () => http.get('/admin/overview').then((r) => r.data),
+  audit: (params) => http.get('/admin/audit', { params }).then((r) => r.data),
+
+  users: (params) => http.get('/admin/users', { params }).then((r) => r.data),
+  user: (id) => http.get(`/admin/users/${id}`).then((r) => r.data),
+  createUser: (body) => http.post('/admin/users', body).then((r) => r.data.user),
+  updateUser: (id, body) => http.patch(`/admin/users/${id}`, body).then((r) => r.data.user),
+  setRole: (id, role) => http.patch(`/admin/users/${id}/role`, { role }).then((r) => r.data.user),
+  setPassword: (id, password) =>
+    http.post(`/admin/users/${id}/password`, { password }).then((r) => r.data),
+  revokeSessions: (id) => http.post(`/admin/users/${id}/revoke`).then((r) => r.data),
+  removeUserAvatar: (id) => http.delete(`/admin/users/${id}/avatar`).then((r) => r.data.user),
+  deleteUser: (id) => http.delete(`/admin/users/${id}`).then((r) => r.data),
+
+  problems: (params) => http.get('/admin/problems', { params }).then((r) => r.data),
+  problem: (id) => http.get(`/admin/problems/${id}`).then((r) => r.data),
+  createProblem: (body) => http.post('/admin/problems', body).then((r) => r.data.problem),
+  updateProblem: (id, body) =>
+    http.patch(`/admin/problems/${id}`, body).then((r) => r.data.problem),
+  deleteProblem: (id) => http.delete(`/admin/problems/${id}`).then((r) => r.data),
+
+  patterns: () => http.get('/admin/patterns').then((r) => r.data.patterns),
+  updatePattern: (slug, body) =>
+    http.patch(`/admin/patterns/${slug}`, body).then((r) => r.data.pattern),
+
+  guides: () => http.get('/admin/guides').then((r) => r.data.guides),
+  guide: (slug) => http.get(`/admin/guides/${slug}`).then((r) => r.data),
+  saveGuide: (slug, body) => http.put(`/admin/guides/${slug}`, body).then((r) => r.data.guide),
+  unlockGuide: (slug) => http.post(`/admin/guides/${slug}/unlock`).then((r) => r.data.guide),
 };

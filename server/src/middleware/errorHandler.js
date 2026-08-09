@@ -26,6 +26,14 @@ export function errorHandler(err, _req, res, _next) {
       .join('; ');
   }
 
+  // A malformed id in a URL is a bad request, not a server fault. Without this
+  // every mistyped /admin/users/:id answers 500 with a stack trace attached.
+  if (err.name === 'CastError') {
+    status = 400;
+    code = 'BAD_ID';
+    message = `Invalid ${err.path}: ${String(err.value).slice(0, 60)}`;
+  }
+
   if (status >= 500) console.error('[error]', err);
 
   res.status(status).json({
