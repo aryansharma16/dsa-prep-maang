@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
+import { AuthLayout } from '../components/layout/AuthLayout.jsx';
+import { PasswordField } from '../components/ui/PasswordField.jsx';
 import { useAuth } from '../store/AuthContext.jsx';
 
 export function Login() {
@@ -26,49 +28,44 @@ export function Login() {
   };
 
   return (
-    <div className="auth">
-      <div className="auth-card">
-        <div className="auth-brand">
-          <span className="brand-mark">DS</span>
-          DSA Prep
-        </div>
-        <p className="auth-sub">Pattern-first interview preparation</p>
-
-        <form className="auth-box" onSubmit={submit}>
-          {error && <div className="alert">{error}</div>}
-
-          <label className="field">
-            <span>Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoFocus
-              autoComplete="email"
-            />
-          </label>
-
-          <label className="field">
-            <span>Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </label>
-
-          <button className="btn primary" style={{ width: '100%' }} disabled={busy}>
-            {busy ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
-
-        <p className="auth-foot">
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Pick up where the roadmap left off."
+      footer={
+        <>
           No account yet? <Link to="/register">Create one</Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <form onSubmit={submit}>
+        {error && <div className="alert">{error}</div>}
+
+        <label className="field">
+          <span>Email</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+            autoComplete="email"
+            placeholder="you@example.com"
+          />
+        </label>
+
+        <PasswordField
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+          placeholder="Your password"
+        />
+
+        <button className="btn primary auth-submit" disabled={busy}>
+          {busy ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

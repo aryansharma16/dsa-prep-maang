@@ -119,7 +119,7 @@ export function AppShell() {
             className={({ isActive }) => `avatar-btn ${isActive ? 'active' : ''}`}
             title={`${user?.name} — view profile`}
           >
-            <Avatar name={user?.name} email={user?.email} size={28} />
+            <Avatar name={user?.name} email={user?.email} src={user?.avatar?.url} size={28} />
             <span className="sr-only">Profile</span>
           </NavLink>
         </header>

@@ -21,11 +21,16 @@ import {
 import { getStats } from '../controllers/stats.controller.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { validate } from '../middleware/validate.js';
+import { uploadsEnabled } from '../services/media.service.js';
 import { authRouter } from './auth.routes.js';
 
 export const router = Router();
 
-router.get('/health', (_req, res) => res.json({ ok: true, uptime: process.uptime() }));
+// `uploads` is here because it is configuration, not code: when a picture will
+// not save, the first question is whether this deployment has the keys at all.
+router.get('/health', (_req, res) =>
+  res.json({ ok: true, uptime: process.uptime(), uploads: uploadsEnabled() }),
+);
 router.use('/auth', authRouter);
 
 /**

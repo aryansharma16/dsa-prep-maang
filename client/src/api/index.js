@@ -5,6 +5,25 @@ export const authApi = {
   login: (body) => http.post('/auth/login', body).then((r) => r.data.user),
   logout: () => http.post('/auth/logout').then((r) => r.data),
   me: () => http.get('/auth/me').then((r) => r.data.user),
+
+  /**
+   * Both return the whole updated user, so the caller replaces its copy rather
+   * than patching a field into it and hoping the two stay in step.
+   *
+   * No Content-Type header: the browser has to set it itself, because only it
+   * knows the multipart boundary it just generated.
+   */
+  uploadAvatar: (file, onProgress) => {
+    const form = new FormData();
+    form.append('avatar', file);
+    return http
+      .post('/auth/me/avatar', form, {
+        onUploadProgress: (event) =>
+          onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
+      })
+      .then((r) => r.data.user);
+  },
+  removeAvatar: () => http.delete('/auth/me/avatar').then((r) => r.data.user),
 };
 
 export const problemsApi = {

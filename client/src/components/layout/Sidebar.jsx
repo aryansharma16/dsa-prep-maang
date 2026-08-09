@@ -1,4 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { BRAND } from '../../brand.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import { IconChart, IconChevronRight, IconGrid, IconMenu, IconRotate } from '../ui/Icons.jsx';
@@ -38,8 +39,8 @@ export function Sidebar({ collapsed, onToggle }) {
         </button>
         {!collapsed && (
           <div className="brand">
-            <span className="brand-mark">DS</span>
-            <span>DSA Prep</span>
+            <span className="brand-mark">{BRAND.mark}</span>
+            <span>{BRAND.name}</span>
           </div>
         )}
       </div>

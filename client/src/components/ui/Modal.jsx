@@ -14,7 +14,7 @@ export { isAnyModalOpen } from './useDialog.js';
  * body/footer contract would prevent.
  *
  * Focus trapping, Escape and shortcut suppression live in useDialog, shared
- * with Drawer.
+ * with the guide reader.
  */
 export function Modal({ title, onClose, children, size = 'md', initialFocus }) {
   const dialogRef = useRef(null);

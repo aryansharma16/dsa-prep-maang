@@ -8,6 +8,43 @@ const required = (key) => {
   return value;
 };
 
+/**
+ * Cloudinary hands you one line on the API Keys screen:
+ *
+ *   CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
+ *
+ * so that is the form this accepts first — copy, paste, done. The three
+ * separate vars are supported too, because some hosts make a URL-shaped secret
+ * awkward to store.
+ *
+ * Credentials are never required to boot. Upload is one feature; a missing key
+ * should fail that one request with a clear message, not stop the server and
+ * take the roadmap down with it.
+ */
+function readCloudinary() {
+  const url = process.env.CLOUDINARY_URL;
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      return {
+        cloudName: parsed.hostname,
+        apiKey: decodeURIComponent(parsed.username),
+        apiSecret: decodeURIComponent(parsed.password),
+      };
+    } catch {
+      console.warn('[env] CLOUDINARY_URL is set but not parseable — uploads will be disabled');
+      return {};
+    }
+  }
+  return {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  };
+}
+
+const cloudinary = readCloudinary();
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   isProd: process.env.NODE_ENV === 'production',
@@ -21,4 +58,11 @@ export const env = {
     refreshTtl: process.env.JWT_REFRESH_TTL || '30d',
   },
   leetcodeApi: process.env.LEETCODE_API || 'https://leetcode-api-pied.vercel.app',
+  cloudinary: {
+    ...cloudinary,
+    configured: Boolean(cloudinary.cloudName && cloudinary.apiKey && cloudinary.apiSecret),
+    // Everything this app uploads lives under one prefix, so a shared cloud
+    // stays sorted and a bulk delete can be scoped without guessing.
+    folder: process.env.CLOUDINARY_FOLDER || 'maang-prep',
+  },
 };

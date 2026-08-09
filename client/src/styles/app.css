@@ -998,107 +998,279 @@ tr.cursor .act {
   color: var(--text);
 }
 
-/* ------------------------------------------------------- pattern guide drawer */
-.drawer-overlay {
+/* ------------------------------------------------------- pattern guide reader */
+/*
+  A guide is long-form reading, so it takes the viewport rather than a strip of
+  it: headings in a rail on the left, one column of prose held to a readable
+  measure in the middle. Still a dialog — the roadmap keeps its scroll position
+  underneath and Escape hands it straight back.
+*/
+.reader-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
   display: flex;
-  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.55);
   /* Same layer as .overlay — toasts at 100 still surface above it, which is
      what you want when a save fails while a guide is open. */
   z-index: 50;
 }
 
-.drawer {
-  width: min(620px, 100vw);
-  height: 100%;
+.reader {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  box-shadow: -16px 0 40px var(--shadow);
-  animation: drawer-in 0.18s ease;
+  background: var(--bg);
+  animation: reader-in 0.18s ease;
 }
-.drawer:focus {
+.reader:focus {
   outline: none;
 }
 
-@keyframes drawer-in {
+@keyframes reader-in {
   from {
-    transform: translateX(18px);
+    transform: translateY(8px);
     opacity: 0;
   }
 }
 
-.drawer-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+.reader-head {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--topbar-h);
+  padding: 0 12px;
+  background: var(--surface);
 }
-.drawer-title {
-  flex: 1;
-  min-width: 0;
-}
-.drawer-title h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-.drawer-title p {
-  margin: 4px 0 0;
+
+.reader-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 5px 10px 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   font-size: 12.5px;
-  line-height: 1.5;
+  color: var(--text-2);
+}
+.reader-back:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.reader-crumb {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reader-step {
+  font-size: 11px;
   color: var(--text-3);
 }
 
-.drawer-body {
+.reader-meter {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.reader-meter .bar {
+  width: 72px;
+  height: 3px;
+}
+
+.reader-esc kbd {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  color: var(--text-3);
+  background: var(--surface-2);
+}
+
+/* How far through the guide you are — doubles as the header's bottom border, so
+   it costs no extra vertical space. */
+.reader-rule {
+  flex: 0 0 auto;
+  height: 1px;
+  background: var(--border);
+}
+.reader-rule span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  /* Transform only: the bar never triggers layout while you scroll. */
+  transform: scaleX(0);
+}
+
+.reader-main {
   flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.reader-toc {
+  flex: 0 0 232px;
   overflow-y: auto;
-  padding: 16px;
+  padding: 26px 12px 40px 20px;
+  border-right: 1px solid var(--border-soft);
+}
+.reader-toc-label {
+  margin: 0 0 10px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.reader-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.reader-toc button {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  text-align: left;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-3);
+  border-radius: var(--radius);
+  /* The active marker is drawn as a border that is always there, so becoming
+     current moves no text sideways. */
+  border-left: 2px solid transparent;
+}
+.reader-toc button:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+.reader-toc button.on {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.reader-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.reader-scroll:focus {
+  outline: none;
+}
+.reader-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.reader-col {
+  /* ~70 characters at the prose size below — the measure long-form text is
+     comfortable at, regardless of how wide the window gets. */
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 36px 32px 96px;
+}
+
+.reader-lede {
+  margin-bottom: 30px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+}
+.reader-lede h1 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text);
+}
+.reader-lede p {
+  margin: 10px 0 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.reader-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
 }
 
 .guide-loading {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* ---- guide prose ---- */
 .guide-body {
-  font-size: 13.5px;
-  line-height: 1.7;
+  font-size: 15.5px;
+  line-height: 1.75;
   color: var(--text-2);
 }
-.guide-body > * + * {
-  margin-top: 12px;
+/*
+  One flow rule for the whole guide: every block clears its own margin and the
+  gap between blocks comes from the one above. Both halves are `.guide-body > *`
+  on purpose — a `.guide-body p { margin: 0 }` written further down would be the
+  more specific selector and would silently collapse every paragraph into the
+  one before it.
+*/
+.guide-body > * {
+  margin: 0;
 }
+.guide-body > * + * {
+  margin-top: 18px;
+}
+
+/*
+  Real headings rather than the uppercase micro-labels used elsewhere in the
+  app: at essay length these are the reader's map, and they carry the anchors
+  the side rail scrolls to.
+*/
 .guide-h {
-  margin: 22px 0 0;
-  font-size: 12px;
+  margin: 44px 0 0;
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-3);
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--text);
+  /* Clears the top edge when the table of contents jumps here. */
+  scroll-margin-top: 22px;
 }
 .guide-h:first-child {
   margin-top: 0;
 }
-.guide-body p {
-  margin: 0;
+/* A heading belongs to what follows it, so it sits closer to that than to the
+   section it just ended. */
+.guide-body > .guide-h + * {
+  margin-top: 12px;
 }
 .guide-body strong {
   color: var(--text);
   font-weight: 600;
 }
 .guide-body ul {
-  margin: 0;
-  padding-left: 18px;
+  padding-left: 22px;
 }
 .guide-body li + li {
-  margin-top: 5px;
+  margin-top: 9px;
 }
 .guide-body li::marker {
   color: var(--text-3);
@@ -1120,18 +1292,18 @@ tr.cursor .act {
 .guide-body li code,
 .guide-table code {
   font-family: var(--mono);
-  font-size: 12px;
-  background: var(--bg);
+  font-size: 13px;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 0 4px;
+  padding: 1px 5px;
 }
 
 .guide-code {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--bg);
+  background: var(--surface);
 }
 .guide-code-tabs {
   display: flex;
@@ -1140,9 +1312,9 @@ tr.cursor .act {
   border-bottom: 1px solid var(--border);
 }
 .guide-code-tabs button {
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--text-3);
   border-right: 1px solid var(--border);
 }
@@ -1151,7 +1323,9 @@ tr.cursor .act {
 }
 .guide-code-tabs button.on {
   color: var(--accent);
-  background: var(--bg);
+  /* Matches the code surface below, so the active tab reads as continuous with
+     the code it selects. */
+  background: var(--surface);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 .guide-copy {
@@ -1164,11 +1338,11 @@ tr.cursor .act {
 
 .guide-code pre {
   margin: 0;
-  padding: 9px 0;
+  padding: 12px 0;
   overflow-x: auto;
   font-family: var(--mono);
-  font-size: 12px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.7;
   color: var(--text-2);
   /* pre, not pre-wrap: code that wraps mid-expression is harder to read than
      code you scroll. */
@@ -1209,7 +1383,7 @@ tr.cursor .act {
   /* Muted via colour, never opacity — opacity would fade the background too,
      and the code scrolling underneath would show straight through it. */
   color: var(--text-3);
-  background: var(--bg);
+  background: var(--surface);
   user-select: none;
 }
 .guide-code .cl:hover {
@@ -1251,20 +1425,42 @@ tr.cursor .act {
 }
 
 .guide-callout {
-  padding: 10px 12px;
-  border-left: 2px solid var(--border);
+  padding: 13px 16px;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--border);
   border-radius: 0 var(--radius) var(--radius) 0;
-  background: var(--surface-2);
-  font-size: 13px;
+  background: var(--surface);
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+.guide-callout p {
+  margin: 4px 0 0;
+}
+/* Labelled, so the box says what it is instead of asking the reader to decode
+   the colour — which is also the only cue a colour-blind reader would get. */
+.guide-callout-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .guide-callout.tip {
   border-left-color: var(--easy);
 }
+.guide-callout.tip .guide-callout-tag {
+  color: var(--easy);
+}
 .guide-callout.warn {
   border-left-color: var(--hard);
 }
+.guide-callout.warn .guide-callout-tag {
+  color: var(--hard);
+}
 .guide-callout.note {
   border-left-color: var(--accent);
+}
+.guide-callout.note .guide-callout-tag {
+  color: var(--accent);
 }
 
 .guide-tablewrap {
@@ -1275,11 +1471,11 @@ tr.cursor .act {
 .guide-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 13.5px;
 }
 .guide-table th {
   text-align: left;
-  padding: 7px 10px;
+  padding: 9px 13px;
   background: var(--surface-2);
   border-bottom: 1px solid var(--border);
   font-size: 10.5px;
@@ -1290,16 +1486,17 @@ tr.cursor .act {
   white-space: nowrap;
 }
 .guide-table td {
-  padding: 7px 10px;
+  padding: 9px 13px;
   border-bottom: 1px solid var(--border-soft);
   vertical-align: top;
+  line-height: 1.6;
 }
 .guide-table tr:last-child td {
   border-bottom: none;
 }
 .guide-table td:first-child {
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text);
   white-space: nowrap;
 }
@@ -1338,7 +1535,7 @@ tr.cursor .act {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 9px;
 }
 .guide-links li {
   display: flex;
@@ -1352,20 +1549,46 @@ tr.cursor .act {
 }
 .guide-link-src {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--text-3);
 }
 
+@media (max-width: 1080px) {
+  /* Below this the rail is eating the measure it exists to protect. The
+     headings stay reachable by scrolling — they are still headings. */
+  .reader-toc {
+    display: none;
+  }
+}
+
 @media (max-width: 760px) {
-  .drawer {
-    width: 100vw;
-    border-left: none;
+  .reader-head {
+    gap: 8px;
+    padding: 0 8px;
+  }
+  /* The progress figure survives; the bar next to it is the first thing that
+     can go when the header runs out of room. */
+  .reader-meter .bar,
+  .reader-esc {
+    display: none;
+  }
+  .reader-col {
+    padding: 26px 18px 72px;
+  }
+  .reader-lede h1 {
+    font-size: 23px;
+  }
+  .guide-body {
+    font-size: 15px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .drawer {
+  .reader {
     animation: none;
+  }
+  .reader-scroll {
+    scroll-behavior: auto;
   }
 }
 
@@ -1953,6 +2176,59 @@ tr.cursor .act {
   flex: 0 0 auto;
   user-select: none;
 }
+/* Cloudinary already crops to a square, so this only guards against an image
+   that predates that or arrives from somewhere else. */
+img.avatar {
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+/* ---- avatar upload ---- */
+.avatar-edit {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.avatar-edit-img {
+  position: relative;
+  flex: 0 0 auto;
+}
+/* Covers the picture while the new one uploads, so the old face is not what you
+   are looking at when the percentage says 80. */
+.avatar-edit-veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.avatar-edit-body {
+  min-width: 0;
+}
+.avatar-edit-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+}
+.avatar-edit-actions .link-btn {
+  padding: 0;
+}
+.avatar-edit-dot {
+  color: var(--text-3);
+  font-size: 11px;
+}
+.avatar-edit-error {
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--hard);
+}
 
 .avatar-btn {
   display: grid;
@@ -2072,42 +2348,197 @@ tr.cursor .act {
 }
 
 /* ------------------------------------------------------------------- auth */
+/*
+  Two columns: the form, and a panel that says what the product is. The form
+  column comes first in the source and is the one that survives at narrow
+  widths — the showcase is the part you can lose.
+*/
 .auth {
   min-height: 100%;
   display: grid;
-  place-items: center;
-  padding: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
 }
-.auth-card {
+
+/*
+  One centred group, not three pieces spread over the column's height. Pinning
+  the brand to the top and the footer to the bottom left the form stranded in
+  the middle of two voids, and pushed "No account yet?" a screen away from the
+  form it belongs to.
+*/
+.auth-form-col {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px clamp(24px, 5vw, 64px);
+}
+
+/* The traversal web. Takes no pointer events — it tracks the cursor from the
+   window, so it keeps reaching even while you are typing in the form. */
+.auth-web {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.auth-web canvas {
+  display: block;
+}
+
+/*
+  A scrim between the web and the form: opaque page colour under the middle of
+  the column, gone by the edges. The web stays lively in the corners while the
+  text it sits behind never has to compete with a line crossing it. Both stops
+  are the same colour so the fade cannot pick up a grey cast on the way out.
+*/
+.auth-form-col::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    44% 38% at 50% 50%,
+    rgba(26, 26, 26, 0.94) 0%,
+    rgba(26, 26, 26, 0) 74%
+  );
+}
+:root[data-theme='light'] .auth-form-col::after {
+  background: radial-gradient(
+    44% 38% at 50% 50%,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0) 74%
+  );
+}
+
+/* Brand, form and footer share one column so they line up on a single left
+   edge, and that column is what gets centred in the half — not each piece
+   independently. They also sit above the web. */
+.auth-brand,
+.auth-card,
+.auth-foot {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 348px;
+  max-width: 352px;
 }
+
 .auth-brand {
   display: flex;
   align-items: center;
   gap: 9px;
-  justify-content: center;
-  margin-bottom: 6px;
-  font-size: 17px;
+  margin-bottom: 34px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
+.auth-brand .brand-mark {
+  width: 25px;
+  height: 25px;
+  flex-basis: 25px;
+  font-size: 12.5px;
+}
+
+.auth-card h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
 .auth-sub {
-  text-align: center;
+  margin: 7px 0 24px;
+  font-size: 13.5px;
   color: var(--text-3);
-  font-size: 12.5px;
-  margin: 0 0 22px;
 }
-.auth-box {
+
+.auth .field {
+  margin-bottom: 14px;
+}
+.auth .field input {
+  height: 38px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 18px;
 }
+.auth .field input::placeholder {
+  color: var(--text-3);
+  opacity: 0.7;
+}
+.auth .field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/*
+  Holds the reveal toggle inside the input's box. Both this and the hint below
+  are direct span children of `.field`, so they have to out-specify the
+  `.field > span` label rule above or they inherit its block/label styling.
+*/
+.field > .field-with-action {
+  position: relative;
+  display: block;
+  margin-bottom: 0;
+}
+.field-with-action input {
+  padding-right: 38px;
+}
+.field-with-action button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  border-radius: var(--radius);
+}
+.field-with-action button:hover {
+  color: var(--text);
+}
+
+.field > .field-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 0 0;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+/* Two segments, not a percentage: the rule is a length minimum, and a smooth
+   gauge would imply a score the server does not compute. */
+.pw-meter {
+  display: flex;
+  gap: 3px;
+}
+.pw-meter span {
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 0.15s ease;
+}
+.pw-meter.s1 span:first-child {
+  background: var(--medium);
+}
+.pw-meter.s2 span {
+  background: var(--easy);
+}
+
+.auth-submit {
+  width: 100%;
+  height: 38px;
+  margin-top: 4px;
+}
+
 .auth-foot {
-  text-align: center;
-  margin-top: 14px;
-  font-size: 12.5px;
+  /* Sits with the form it belongs to, and matches the gap above the submit
+     button so the whole column reads on one rhythm. */
+  margin: 22px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
   color: var(--text-3);
 }
 .auth-foot a {
@@ -2115,6 +2546,188 @@ tr.cursor .act {
 }
 .auth-foot a:hover {
   text-decoration: underline;
+}
+
+/* ---- the showcase half ---- */
+.auth-show {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  /* Centred on both axes — left-aligned it drifted off the middle of its half
+     as the window widened, and the empty gutter grew on the right. */
+  justify-content: center;
+  padding: 48px clamp(28px, 4vw, 60px);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+}
+
+/*
+  Ambient light in the two brand colours, well below the panel's own contrast so
+  it reads as depth rather than decoration. Its own layer, so nothing inside the
+  panel has to carry a background just to sit above it.
+*/
+.auth-glow {
+  position: absolute;
+  inset: -30% -10% auto -10%;
+  height: 150%;
+  pointer-events: none;
+  background:
+    radial-gradient(46% 38% at 76% 16%, rgba(255, 161, 22, 0.17), transparent 70%),
+    radial-gradient(50% 42% at 12% 78%, rgba(0, 184, 163, 0.14), transparent 72%);
+}
+/* The same two lights, re-mixed for a surface that starts near white — the dark
+   theme's alphas are invisible against it. */
+:root[data-theme='light'] .auth-glow {
+  background:
+    radial-gradient(46% 38% at 76% 16%, rgba(224, 134, 0, 0.16), transparent 70%),
+    radial-gradient(50% 42% at 12% 78%, rgba(0, 135, 90, 0.13), transparent 72%);
+}
+
+.auth-show-inner {
+  position: relative;
+  max-width: 480px;
+}
+.auth-kicker {
+  margin: 0 0 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.auth-show h2 {
+  margin: 0 0 26px;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+
+/* A window, drawn at rest — the roadmap as it looks a few weeks in. */
+.auth-mock {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  box-shadow: 0 18px 40px var(--shadow);
+  overflow: hidden;
+}
+.auth-mock-bar {
+  display: flex;
+  gap: 6px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.auth-mock-bar span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.auth-mock-body {
+  padding: 4px 0;
+}
+.auth-mock-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.auth-mock-row:last-child {
+  border-bottom: none;
+}
+.auth-mock-step {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.auth-mock-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.auth-mock-bar-track {
+  width: 74px;
+  height: 4px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+.auth-mock-bar-track span {
+  display: block;
+  height: 100%;
+  background: var(--easy);
+}
+.auth-mock-frac {
+  width: 42px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.auth-points {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+}
+.auth-points li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.auth-points svg {
+  flex: 0 0 auto;
+  color: var(--easy);
+  /* Nudged off the baseline the flex row aligns it to, onto the x-height of the
+     text beside it. */
+  transform: translateY(1px);
+}
+
+.auth-next {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 26px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+.auth-badge {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 940px) {
+  /* The form is the page below this width; the showcase was the supporting
+     argument and it does not survive being squeezed into a column. */
+  .auth {
+    grid-template-columns: 1fr;
+  }
+  .auth-show {
+    display: none;
+  }
 }
 
 /* ------------------------------------------------------------------ stats */

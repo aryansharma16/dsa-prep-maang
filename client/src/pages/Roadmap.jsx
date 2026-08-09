@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
-import { GuideDrawer } from '../components/problem/GuideDrawer.jsx';
+import { GuideReader } from '../components/problem/GuideReader.jsx';
 import { PatternSection } from '../components/problem/PatternSection.jsx';
 import { IconColumns } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
@@ -37,7 +37,7 @@ export function Roadmap() {
   const [cursorId, setCursorId] = useState(null);
   const [openNotesId, setOpenNotesId] = useState(null);
   const [columnsOpen, setColumnsOpen] = useState(false);
-  // One drawer for the page, not one per section.
+  // One reader for the page, not one per section.
   const [guidePattern, setGuidePattern] = useState(null);
   const { layout, setLayout, columns } = useTableLayout();
   const sectionRefs = useRef({});
@@ -317,24 +317,29 @@ export function Roadmap() {
           </button>
         </div>
       ) : (
-        visible.map((group, i) => (
+        visible.map((group) => {
+          // Position in the full roadmap, not in the filtered view — the step
+          // number has to stay put when a filter hides the patterns above it.
+          const index = groups.findIndex((g) => g.slug === group.slug);
+          return (
           <PatternSection
             key={group.slug}
             ref={(el) => {
               sectionRefs.current[group.slug] = el;
             }}
             group={group}
-            index={groups.findIndex((g) => g.slug === group.slug)}
+            index={index}
             columns={columns}
             open={isOpen(group.slug)}
             onToggle={() => toggleSection(group.slug)}
-            onOpenGuide={() => setGuidePattern(group)}
+            onOpenGuide={() => setGuidePattern({ ...group, index })}
             cursorId={cursorId}
             onFocusRow={setCursorId}
             openNotesId={openNotesId}
             onToggleNotes={(id) => setOpenNotesId((cur) => (cur === id ? null : id))}
           />
-        ))
+          );
+        })
       )}
 
       {columnsOpen && (
@@ -346,7 +351,7 @@ export function Roadmap() {
       )}
 
       {guidePattern && (
-        <GuideDrawer pattern={guidePattern} onClose={() => setGuidePattern(null)} />
+        <GuideReader pattern={guidePattern} onClose={() => setGuidePattern(null)} />
       )}
     </>
   );

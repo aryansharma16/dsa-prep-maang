@@ -33,9 +33,17 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  /**
+   * For the endpoints that return an updated user — the avatar ones today.
+   * Everything reading `user` from context (the sidebar, the profile card)
+   * re-renders together, so a new picture never appears in one place and not
+   * the other.
+   */
+  const applyUser = useCallback((next) => setUser(next), []);
+
   const value = useMemo(
-    () => ({ user, ready, login, register, logout }),
-    [user, ready, login, register, logout],
+    () => ({ user, ready, login, register, logout, applyUser }),
+    [user, ready, login, register, logout, applyUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
+import { AuthLayout } from '../components/layout/AuthLayout.jsx';
+import { PasswordField } from '../components/ui/PasswordField.jsx';
 import { useAuth } from '../store/AuthContext.jsx';
+
+const MIN_PASSWORD = 8;
 
 export function Register() {
   const { register } = useAuth();
@@ -26,58 +30,70 @@ export function Register() {
     }
   };
 
+  // Untouched, too short, long enough — the meter says which without waiting
+  // for the server to reject the form.
+  const strength = password.length === 0 ? 0 : password.length < MIN_PASSWORD ? 1 : 2;
+
   return (
-    <div className="auth">
-      <div className="auth-card">
-        <div className="auth-brand">
-          <span className="brand-mark">DS</span>
-          DSA Prep
-        </div>
-        <p className="auth-sub">429 curated problems, ordered by pattern</p>
-
-        <form className="auth-box" onSubmit={submit}>
-          {error && <div className="alert">{error}</div>}
-
-          <label className="field">
-            <span>Name</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
-          </label>
-
-          <label className="field">
-            <span>Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </label>
-
-          <label className="field">
-            <span>Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete="new-password"
-            />
-            <span className="hint" style={{ marginTop: 5, display: 'block' }}>
-              At least 8 characters
-            </span>
-          </label>
-
-          <button className="btn primary" style={{ width: '100%' }} disabled={busy}>
-            {busy ? 'Creating account...' : 'Create account'}
-          </button>
-        </form>
-
-        <p className="auth-foot">
+    <AuthLayout
+      title="Create your account"
+      subtitle="Free, and your progress is yours to keep."
+      footer={
+        <>
           Already registered? <Link to="/login">Sign in</Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <form onSubmit={submit}>
+        {error && <div className="alert">{error}</div>}
+
+        <label className="field">
+          <span>Name</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            autoFocus
+            autoComplete="name"
+            placeholder="Your name"
+          />
+        </label>
+
+        <label className="field">
+          <span>Email</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            placeholder="you@example.com"
+          />
+        </label>
+
+        <PasswordField
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={MIN_PASSWORD}
+          autoComplete="new-password"
+          placeholder="Choose a password"
+          hint={
+            <>
+              <span className={`pw-meter s${strength}`} aria-hidden="true">
+                <span />
+                <span />
+              </span>
+              {strength === 2 ? 'Long enough' : `At least ${MIN_PASSWORD} characters`}
+            </>
+          }
+        />
+
+        <button className="btn primary auth-submit" disabled={busy}>
+          {busy ? 'Creating account…' : 'Create account'}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

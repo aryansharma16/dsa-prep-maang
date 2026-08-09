@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
 import { statsApi } from '../api/index.js';
+import { AvatarUpload } from '../components/profile/AvatarUpload.jsx';
 import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
 import { SolvedRing } from '../components/stats/SolvedRing.jsx';
-import { Avatar } from '../components/ui/Avatar.jsx';
 import { useAuth } from '../store/AuthContext.jsx';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 
@@ -77,11 +77,10 @@ export function Profile() {
         <div className="panel">
           <div className="panel-body">
             <div className="profile-id">
-              <Avatar name={user?.name} email={user?.email} size={72} />
-              <div>
+              <AvatarUpload size={72}>
                 <h1>{user?.name}</h1>
                 <p className="hint">{user?.email}</p>
-              </div>
+              </AvatarUpload>
             </div>
 
             <dl className="profile-facts">

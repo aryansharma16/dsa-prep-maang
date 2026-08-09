@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { IconCheck, IconCopy, IconExternal } from '../ui/Icons.jsx';
 import { highlight } from './highlight.js';
 
@@ -18,10 +18,13 @@ import { highlight } from './highlight.js';
 function CodeBlock({ variants }) {
   const [active, setActive] = useState(0);
   const [copied, setCopied] = useState(false);
-  if (!variants?.length) return null;
 
-  const current = variants[Math.min(active, variants.length - 1)];
-  const lines = highlight(current.code);
+  const current = variants?.[Math.min(active, variants.length - 1)];
+  // Tokenising is the expensive part of rendering a guide, and the source never
+  // changes — only which tab is showing.
+  const lines = useMemo(() => (current ? highlight(current.code) : []), [current]);
+
+  if (!variants?.length) return null;
 
   const copy = async () => {
     try {
@@ -80,10 +83,37 @@ function CodeBlock({ variants }) {
   );
 }
 
-function Block({ block }) {
+const CALLOUT = { tip: 'Tip', warn: 'Watch out', note: 'Note' };
+
+/**
+ * The anchor a heading gets, and the one the table of contents jumps to. The
+ * block index is part of it so two sections that happen to share a title still
+ * scroll to different places, and it is derived rather than stored so a guide
+ * edited on the server needs no migration.
+ */
+export const headingId = (text, index) =>
+  `guide-${index}-${String(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')}`;
+
+/** The headings of a guide, in order — what the reader's side nav is built from. */
+export function guideHeadings(blocks = []) {
+  return blocks
+    .map((block, i) =>
+      block.type === 'heading' ? { id: headingId(block.text, i), text: block.text } : null,
+    )
+    .filter(Boolean);
+}
+
+function Block({ block, index }) {
   switch (block.type) {
     case 'heading':
-      return <h3 className="guide-h">{block.text}</h3>;
+      return (
+        <h3 className="guide-h" id={headingId(block.text, index)}>
+          {block.text}
+        </h3>
+      );
 
     case 'paragraph':
       return <p>{block.text}</p>;
@@ -100,8 +130,16 @@ function Block({ block }) {
     case 'code':
       return <CodeBlock variants={block.variants} />;
 
-    case 'callout':
-      return <div className={`guide-callout ${block.tone || 'note'}`}>{block.text}</div>;
+    case 'callout': {
+      // Labelled, because a bare tinted box asks the reader to decode the colour.
+      const tone = CALLOUT[block.tone] ? block.tone : 'note';
+      return (
+        <aside className={`guide-callout ${tone}`}>
+          <span className="guide-callout-tag">{CALLOUT[tone]}</span>
+          <p>{block.text}</p>
+        </aside>
+      );
+    }
 
     case 'table':
       return (
@@ -167,17 +205,22 @@ function Block({ block }) {
 
     default:
       // A block type the server knows and this build does not. Skipping beats
-      // crashing the drawer.
+      // crashing the reader.
       return null;
   }
 }
 
-export function GuideBlocks({ blocks = [] }) {
+/*
+  Memoised, and worth it here: the reader re-renders on every scroll frame to
+  move its progress bar and side-rail marker, while `blocks` comes off a cache
+  and never changes for the life of the guide.
+*/
+export const GuideBlocks = memo(function GuideBlocks({ blocks = [] }) {
   return (
     <div className="guide-body">
       {blocks.map((block, i) => (
-        <Block key={i} block={block} />
+        <Block key={i} block={block} index={i} />
       ))}
     </div>
   );
-}
+});

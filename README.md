@@ -1,9 +1,10 @@
-# DSA Prep
+# MAANG Prep
 
-A pattern-first DSA tracker. 429 curated problems ordered as a curriculum —
-arrays → two pointers → prefix sum → sliding window → … → DP — with real
-company tags, one-click progress tracking and a spaced-repetition revision
-queue.
+A pattern-first interview prep tracker. The first module is the DSA roadmap:
+429 curated problems ordered as a curriculum — arrays → two pointers → prefix
+sum → sliding window → … → DP — with real company tags, one-click progress
+tracking and a spaced-repetition revision queue. System design and the rest
+follow the same shape.
 
 React + Vite · Node/Express · MongoDB Atlas. JavaScript throughout.
 

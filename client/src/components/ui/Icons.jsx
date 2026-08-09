@@ -25,6 +25,12 @@ export const IconChevronRight = (p) => (
   </Svg>
 );
 
+export const IconArrowLeft = (p) => (
+  <Svg {...p}>
+    <path d="M13 8H3M6.6 4.4L3 8l3.6 3.6" />
+  </Svg>
+);
+
 export const IconCheck = (p) => (
   <Svg {...p} strokeWidth={2.2}>
     <path d="M3.5 8.5l3 3 6-7" />
@@ -70,6 +76,22 @@ export const IconExternal = (p) => (
     <path d="M9.4 2.6H13.4V6.6" />
     <path d="M13.4 2.6L7.6 8.4" />
     <path d="M12.2 9.6v3.2a.9.9 0 01-.9.9H3.5a.9.9 0 01-.9-.9V5a.9.9 0 01.9-.9h3.2" />
+  </Svg>
+);
+
+export const IconEye = (p) => (
+  <Svg {...p}>
+    <path d="M1.4 8s2.5-4.4 6.6-4.4S14.6 8 14.6 8s-2.5 4.4-6.6 4.4S1.4 8 1.4 8z" />
+    <circle cx="8" cy="8" r="1.9" />
+  </Svg>
+);
+
+export const IconEyeOff = (p) => (
+  <Svg {...p}>
+    <path d="M6.3 3.8A6.6 6.6 0 018 3.6c4.1 0 6.6 4.4 6.6 4.4a12 12 0 01-2.2 2.7" />
+    <path d="M3.9 4.9A12 12 0 001.4 8s2.5 4.4 6.6 4.4a6.7 6.7 0 002.3-.4" />
+    <path d="M6.7 6.7a1.9 1.9 0 002.6 2.6" />
+    <path d="M2.4 2.4l11.2 11.2" />
   </Svg>
 );
 

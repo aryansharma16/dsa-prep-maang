@@ -8,7 +8,9 @@ import {
   register,
   registerSchema,
 } from '../controllers/auth.controller.js';
+import { removeAvatar, uploadAvatar } from '../controllers/user.controller.js';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { singleImage } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
 
 export const authRouter = Router();
@@ -18,3 +20,11 @@ authRouter.post('/login', validate(loginSchema), login);
 authRouter.post('/refresh', refresh);
 authRouter.post('/logout', logout);
 authRouter.get('/me', requireAuth, me);
+
+/*
+  The avatar hangs off /me because that is the resource it belongs to. Auth
+  comes first and multipart parsing second, so an unauthenticated request is
+  turned away before anyone can push five megabytes into this process's heap.
+*/
+authRouter.post('/me/avatar', requireAuth, singleImage('avatar', 5), uploadAvatar);
+authRouter.delete('/me/avatar', requireAuth, removeAvatar);
