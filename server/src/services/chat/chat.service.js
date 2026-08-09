@@ -10,6 +10,7 @@ import {
   anyProviderConfigured,
   backgroundProvider,
   candidatesFor,
+  nextRetryAt,
   noteFailure,
   noteSuccess,
   providerById,
@@ -122,17 +123,12 @@ async function recordSpend(userId, providerId, usage) {
  * first token has to be pulled to know the provider works, and it must not be
  * lost in the process of finding that out.
  */
-async function openStream({ candidates, messages, system, model, requestedProvider, signal }) {
+async function openStream({ candidates, messages, system, signal, enabled }) {
   const tried = [];
 
-  for (const id of candidates) {
+  for (const { provider: id, model: useModel } of candidates) {
     const provider = providerById(id);
     if (!provider) continue;
-
-    // A model id only means something next to its provider. Honour an explicit
-    // one on the provider it was chosen for, and ignore it everywhere else
-    // rather than sending Cerebras a Gemini model name.
-    const useModel = model && id === requestedProvider ? model : provider.defaultModel;
 
     const ttft = new AbortController();
     // Two signals, one fetch: the caller's (navigation, stop) and ours (this
@@ -169,12 +165,12 @@ async function openStream({ candidates, messages, system, model, requestedProvid
       clearTimeout(timer);
 
       if (!first) {
-        tried.push({ provider: id, code: 'EMPTY' });
-        noteFailure(id, { status: 502, message: 'empty response' });
+        tried.push({ provider: id, model: useModel, code: 'EMPTY' });
+        noteFailure(id, { status: 502, message: 'empty response' }, useModel);
         continue;
       }
 
-      noteSuccess(id);
+      noteSuccess(id, useModel);
       return { provider, model: useModel, iterator, first, tried };
     } catch (error) {
       clearTimeout(timer);
@@ -183,17 +179,24 @@ async function openStream({ candidates, messages, system, model, requestedProvid
       // nothing left to fail over to.
       if (signal.aborted) throw error;
 
-      const kind = noteFailure(id, error);
-      tried.push({ provider: id, code: kind });
+      const kind = noteFailure(id, error, useModel);
+      tried.push({ provider: id, model: useModel, code: kind });
     }
   }
 
+  const configured = anyProviderConfigured();
   const error = new ApiError(
-    anyProviderConfigured() ? 502 : 503,
-    anyProviderConfigured() ? 'No AI provider could answer right now' : 'AI is not configured on this server',
-    anyProviderConfigured() ? 'ALL_PROVIDERS_FAILED' : 'AI_DISABLED',
+    configured ? 502 : 503,
+    configured ? 'Every model is unavailable right now' : 'AI is not configured on this server',
+    configured ? 'ALL_PROVIDERS_FAILED' : 'AI_DISABLED',
   );
-  error.meta = { tried };
+  /*
+    `retryAt` is the whole point of reporting this failure rather than just
+    saying no. When every model is spent, the reader's real question is "is this
+    broken, or do I wait" — and a daily quota has an exact answer, which
+    errors.js computes as the next UTC midnight.
+  */
+  error.meta = { tried, retryAt: nextRetryAt(enabled) };
   throw error;
 }
 
@@ -264,12 +267,15 @@ export async function* runChat({ userId, conversationId, content, provider: requ
     let opened;
     try {
       opened = await openStream({
-        candidates: candidatesFor({ provider: requestedProvider, enabled: settings.providers }),
+        candidates: candidatesFor({
+          provider: requestedProvider,
+          model,
+          enabled: settings.providers,
+        }),
         messages,
         system,
-        model,
-        requestedProvider,
         signal: controller.signal,
+        enabled: settings.providers,
       });
     } catch (error) {
       clearTimeout(totalTimer);

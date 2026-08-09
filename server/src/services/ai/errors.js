@@ -19,10 +19,23 @@ const MINUTE = 60 * 1000;
 /** Long enough that a dead key costs one request per quarter hour, not per chat. */
 const CREDENTIAL_COOLDOWN_MS = 15 * MINUTE;
 
-/** A per-day quota does not come back before midnight; 60s would retry it hundreds of times. */
-const DAILY_QUOTA_COOLDOWN_MS = 60 * MINUTE;
-
 const RATE_COOLDOWN_MS = MINUTE;
+
+/**
+ * A daily allowance comes back at midnight UTC and not one minute sooner, so
+ * that is the cooldown — not a fixed interval that happens to be long.
+ *
+ * This is also the number the UI shows a reader ("back in 4 hours"), which only
+ * works if it is the real reset rather than a guess. Google counts these in
+ * UTC days, matching activity.service.js's buckets.
+ */
+export function nextUtcMidnight(from = Date.now()) {
+  const next = new Date(from);
+  next.setUTCHours(24, 0, 0, 0);
+  return next.getTime();
+}
+
+const dailyCooldownMs = () => Math.max(MINUTE, nextUtcMidnight() - Date.now());
 const TRANSIENT_BASE_MS = 30 * 1000;
 const TRANSIENT_MAX_MS = 5 * MINUTE;
 
@@ -37,25 +50,34 @@ const DAILY_HINT = /per[\s-]?day|daily|requests? per day|RPD|quota.*exceeded/i;
 function retryAfterMs(header) {
   if (!header) return 0;
   const seconds = Number(header);
-  if (Number.isFinite(seconds) && seconds > 0) return Math.min(seconds * 1000, DAILY_QUOTA_COOLDOWN_MS);
+  const ceiling = dailyCooldownMs();
+  if (Number.isFinite(seconds) && seconds > 0) return Math.min(seconds * 1000, ceiling);
   const at = Date.parse(header);
-  if (Number.isFinite(at)) return Math.max(0, Math.min(at - Date.now(), DAILY_QUOTA_COOLDOWN_MS));
+  if (Number.isFinite(at)) return Math.max(0, Math.min(at - Date.now(), ceiling));
   return 0;
 }
 
 /**
  * Classify a thrown upstream failure.
  *
- * `failures` is the provider's consecutive-failure count, used only for the
- * transient backoff — a host having a bad minute should be tried again soon,
- * a host having a bad hour should not be tried every thirty seconds.
+ * `failures` is the consecutive-failure count, used only for the transient
+ * backoff — a host having a bad minute should be tried again soon, a host
+ * having a bad hour should not be tried every thirty seconds.
  *
- * @returns {{ kind: string, cooldownMs: number, status: number, message: string }}
+ * `scope` is what separates "this key cannot spend money" from "this one model
+ * is out of requests for today", and it is the difference between one exhausted
+ * model taking a provider's entire catalogue down with it and the chain simply
+ * moving to the next model on the same host. Get it wrong in the safe-looking
+ * direction — everything provider-scoped — and a free tier that is 20 requests
+ * per model per day behaves as though it were 20 for the whole account.
+ *
+ * @returns {{ kind: string, scope: 'provider'|'model', cooldownMs: number, status: number, message: string }}
  */
 export function classify(error, failures = 1) {
   if (error?.name === 'AbortError') {
     return {
       kind: 'TIMEOUT',
+      scope: 'provider',
       cooldownMs: Math.min(TRANSIENT_BASE_MS * 2 ** (failures - 1), TRANSIENT_MAX_MS),
       status: 504,
       message: 'The model took too long to answer',
@@ -70,17 +92,21 @@ export function classify(error, failures = 1) {
   if (!status) {
     return {
       kind: 'NETWORK',
+      scope: 'provider',
       cooldownMs: Math.min(TRANSIENT_BASE_MS * 2 ** (failures - 1), TRANSIENT_MAX_MS),
       status: 502,
       message: error?.message || 'Could not reach the model',
     };
   }
 
+  // Both counted per model, not per key — which is why an exhausted model must
+  // not disqualify the rest of the host's catalogue.
   if (status === 429) {
     const daily = DAILY_HINT.test(body);
     return {
       kind: daily ? 'QUOTA' : 'RATE_LIMIT',
-      cooldownMs: retryAfterMs(error?.retryAfter) || (daily ? DAILY_QUOTA_COOLDOWN_MS : RATE_COOLDOWN_MS),
+      scope: 'model',
+      cooldownMs: retryAfterMs(error?.retryAfter) || (daily ? dailyCooldownMs() : RATE_COOLDOWN_MS),
       status: 429,
       message: daily ? 'This model is out of requests for today' : 'This model is busy',
     };
@@ -102,6 +128,8 @@ export function classify(error, failures = 1) {
     exactly this state today, so getting it wrong is not hypothetical.
   */
   if (status === 401 || status === 402 || status === 403 || status === 404) {
+    // 404 is the one that is about a model rather than an account: a retired id
+    // on a host whose other models are fine. gemini-2.5-flash is exactly this.
     const kind = status === 404 ? 'NO_MODEL' : status === 402 ? 'NO_BALANCE' : 'NO_CREDENTIAL';
     const message =
       status === 404
@@ -109,18 +137,30 @@ export function classify(error, failures = 1) {
         : status === 402
           ? 'This provider has no credit on its account'
           : 'This provider rejected our key';
-    return { kind, cooldownMs: CREDENTIAL_COOLDOWN_MS, status: 502, message };
+    return {
+      kind,
+      scope: status === 404 ? 'model' : 'provider',
+      cooldownMs: CREDENTIAL_COOLDOWN_MS,
+      status: 502,
+      message,
+    };
   }
 
-  // A 400 is our request, not their host. It will fail identically next time,
-  // so there is no cooldown to serve — but there is also nothing to fail over
-  // to, since the next provider gets the same malformed thing.
+  // A 400 is our request, not their host — but it can be model-specific (an
+  // unsupported parameter on one model), so it only sidelines that model.
   if (status >= 400 && status < 500) {
-    return { kind: 'BAD_REQUEST', cooldownMs: 0, status: 400, message: body.slice(0, 200) || 'The model rejected the request' };
+    return {
+      kind: 'BAD_REQUEST',
+      scope: 'model',
+      cooldownMs: CREDENTIAL_COOLDOWN_MS,
+      status: 400,
+      message: body.slice(0, 200) || 'The model rejected the request',
+    };
   }
 
   return {
     kind: 'UPSTREAM',
+    scope: 'provider',
     cooldownMs: Math.min(TRANSIENT_BASE_MS * 2 ** (failures - 1), TRANSIENT_MAX_MS),
     status: 502,
     message: 'The model is unavailable',

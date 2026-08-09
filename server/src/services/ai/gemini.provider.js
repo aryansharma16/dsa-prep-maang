@@ -47,6 +47,32 @@ const baseConfig = ({ system, temperature, maxTokens }) => ({
   ...(system ? { systemInstruction: system } : {}),
 });
 
+/**
+ * Flash-class text models, best first, each with its own daily allowance.
+ *
+ * Confirmed live against this key. Deliberately excluded:
+ *   gemini-2.5-flash, gemini-2.5-flash-lite   retired — 404 already, ahead of
+ *                                             the October 2026 date Google
+ *                                             published
+ *   gemini-*-latest                           aliases sharing a listed model's
+ *                                             bucket
+ *   *-pro-*                                   5 requests/day and slow to the
+ *                                             first token; wrong shape for this
+ *   image / tts / audio / embedding / veo     not text chat
+ *
+ * A dead id costs one 404 and a fifteen-minute cooldown on that model alone —
+ * `scope: 'model'` in errors.js is what keeps that from taking Gemini down.
+ */
+const FALLBACK_MODELS = [
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-3-flash-preview',
+  'gemini-3.1-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+];
+
 const config = {
   id: 'gemini',
   get model() {
@@ -59,10 +85,24 @@ export const gemini = {
   label: 'Gemini',
   envKey: 'GEMINI_API_KEY',
   get models() {
-    // Reported from config rather than hardcoded, because this is the one
-    // provider whose model is already an environment variable — a catalogue
-    // that disagreed with GEMINI_MODEL_FAST would be a lie in the model picker.
-    return [{ id: env.gemini.fastModel, label: `${env.gemini.fastModel} (Google)` }];
+    /*
+      Seven models, because the free allowance is twenty requests per model per
+      day — so this list is not a menu, it is the size of the free tier. One
+      model is twenty questions and then nothing until midnight; these seven are
+      about a hundred and forty.
+
+      Concrete ids only. The `-latest` aliases resolve to one of these and share
+      its bucket, so including them would add names to the picker without adding
+      a single request, and they move under you besides. Verified against this
+      account: gemini-flash-latest reported spent at the same moment 3.6-flash
+      did.
+
+      GEMINI_MODEL_FAST is honoured by being first — whatever the environment
+      names is what gets tried before any of the rest.
+    */
+    const configured = env.gemini.fastModel;
+    const rest = FALLBACK_MODELS.filter((id) => id !== configured);
+    return [configured, ...rest].map((id) => ({ id, label: `${id} (Google)` }));
   },
   get defaultModel() {
     return env.gemini.fastModel;

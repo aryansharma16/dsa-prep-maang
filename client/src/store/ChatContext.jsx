@@ -34,6 +34,14 @@ const FALLBACK_SUGGESTIONS = [
 export function ChatProvider({ children }) {
   const [config, setConfig] = useState(null);
   const [configError, setConfigError] = useState('');
+  /**
+   * When the models come back, if they are all currently spent.
+   *
+   * Held separately from `config` because it is learned two ways — the config
+   * fetch reports it up front, and a send that exhausts the last model reports
+   * it in the failure — and the second must not wait for a refetch to be shown.
+   */
+  const [retryAt, setRetryAt] = useState(null);
 
   const [conversations, setConversations] = useState([]);
   const [conversationId, setConversationId] = useState(null);
@@ -73,7 +81,9 @@ export function ChatProvider({ children }) {
       .then((data) => {
         if (!live) return;
         setConfig(data);
-        // Fall back when the stored choice is gone or its provider went down.
+        setRetryAt(data.retryAt || null);
+        // Fall back when the stored choice is gone, its provider went down, or
+        // that one model has spent its daily allowance.
         setModel((current) => {
           const usable = data.models.find((m) => m.id === current && m.available);
           return usable ? current : data.defaultModel || '';
@@ -163,7 +173,22 @@ export function ChatProvider({ children }) {
         );
       } catch (err) {
         // Stop is a deliberate act, not a failure — whatever arrived is kept.
-        if (err.name !== 'AbortError') failure = errorMessage(err, 'The assistant stopped responding');
+        if (err.name !== 'AbortError') {
+          failure = errorMessage(err, 'The assistant stopped responding');
+          /*
+            Running the last model dry is the one failure with a knowable end.
+            Recording it here rather than waiting for the next config fetch is
+            what lets the composer say "back in 4 hours" on the same click that
+            caused it.
+          */
+          if (err.meta?.retryAt) setRetryAt(err.meta.retryAt);
+          if (err.code === 'ALL_PROVIDERS_FAILED' || err.code === 'CHAT_QUOTA') {
+            chatApi.config().then((data) => {
+              setConfig(data);
+              setRetryAt(data.retryAt || err.meta?.retryAt || null);
+            }).catch(() => {});
+          }
+        }
       } finally {
         const text = chatStream.get();
         setMessages((prev) =>
@@ -248,6 +273,7 @@ export function ChatProvider({ children }) {
       suggestions: config?.suggestions?.length ? config.suggestions : FALLBACK_SUGGESTIONS,
       retentionHours: config?.retentionHours ?? 24,
       maxInputChars: config?.maxInputChars ?? 4000,
+      retryAt,
       model,
       setModel,
       conversations,
@@ -267,6 +293,7 @@ export function ChatProvider({ children }) {
     [
       config,
       configError,
+      retryAt,
       model,
       setModel,
       conversations,

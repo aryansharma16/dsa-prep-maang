@@ -6,7 +6,7 @@ import { Problem } from '../models/Problem.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { objectId, paged, pageQuery } from '../utils/query.js';
-import { catalogue, PROVIDER_IDS } from '../services/ai/registry.js';
+import { catalogue, nextRetryAt, PROVIDER_IDS } from '../services/ai/registry.js';
 import { chatSettings } from '../services/settings.service.js';
 import { SUGGESTIONS } from '../services/chat/prompt.js';
 import {
@@ -49,26 +49,46 @@ export const getConfig = asyncHandler(async (req, res) => {
   const settings = await chatSettings();
   const providers = catalogue(settings.providers);
 
-  // Flattened to models, because that is what a picker is a list of. A provider
-  // with no key still appears, marked unavailable — hiding it makes "why is
-  // Cerebras not in the list" unanswerable from the UI.
+  /*
+    Flattened to models, because that is what a picker is a list of, and each
+    one carries its own availability — on a free tier the interesting unit is
+    the model, not the host: six Gemini models can be ready while a seventh is
+    out of requests until midnight.
+
+    Nothing is hidden. A provider with no key and a model in a cooldown both
+    still appear, marked, with the reason and the time they come back. Dropping
+    them would make "why is Cerebras not in the list" unanswerable from the UI.
+  */
   const models = providers.flatMap((provider) =>
     provider.models.map((model) => ({
       id: model.id,
       label: model.label,
       provider: provider.id,
       providerLabel: provider.label,
-      available: provider.configured && provider.enabled && provider.health.ok,
+      available: provider.configured && provider.enabled && provider.health.ok && model.health.ok,
+      reason: !provider.configured
+        ? 'NO_KEY'
+        : !provider.enabled
+          ? 'DISABLED'
+          : !provider.health.ok
+            ? provider.health.kind
+            : !model.health.ok
+              ? model.health.kind
+              : null,
+      // When this specific model becomes usable again. The UI counts down to it.
+      retryAt: model.health.until || provider.health.until || null,
     })),
   );
 
-  const preferred = providers.find((p) => p.enabled && p.configured && p.health.ok);
+  const preferred = models.find((m) => m.available);
 
   res.json({
     enabled: settings.enabled && providers.some((p) => p.configured),
     models,
-    defaultProvider: preferred?.id || null,
-    defaultModel: preferred?.defaultModel || null,
+    defaultProvider: preferred?.provider || null,
+    defaultModel: preferred?.id || null,
+    // Only meaningful when nothing is available; null the rest of the time.
+    retryAt: preferred ? null : nextRetryAt(settings.providers),
     suggestions: SUGGESTIONS,
     retentionHours: settings.retentionHours,
     dailyMessageCap: settings.dailyMessageCap,

@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '../../store/ChatContext.jsx';
-import { IconClose, IconGrid, IconPlus, IconSend, IconStop } from '../ui/Icons.jsx';
+import { IconClock, IconClose, IconGrid, IconPlus, IconSend, IconStop } from '../ui/Icons.jsx';
+import { reasonLabel, untilLabel } from './time.js';
 
 /** Grows with the text, then scrolls. Matches the max-height in the stylesheet. */
 const MAX_H = 132;
 
 export function ChatComposer({ attached, onAttach, onDetach, onSend }) {
-  const { streaming, stop, models, model, setModel, maxInputChars, enabled } = useChat();
+  const { streaming, stop, models, model, setModel, maxInputChars, enabled, retryAt } = useChat();
   const [text, setText] = useState('');
+  // Re-render once a minute so a countdown does not sit there going stale while
+  // someone is looking at it. Only while there is something to count down to.
+  const [, tick] = useState(0);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -16,6 +20,12 @@ export function ChatComposer({ attached, onAttach, onDetach, onSend }) {
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, MAX_H)}px`;
   }, [text]);
+
+  useEffect(() => {
+    if (!retryAt) return undefined;
+    const timer = setInterval(() => tick((n) => n + 1), 30000);
+    return () => clearInterval(timer);
+  }, [retryAt]);
 
   const usable = models.filter((m) => m.available);
   const tooLong = text.length > maxInputChars;
@@ -61,8 +71,14 @@ export function ChatComposer({ attached, onAttach, onDetach, onSend }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={onKeyDown}
-        placeholder={enabled ? 'Ask anything...' : 'The assistant is unavailable'}
-        disabled={!enabled}
+        placeholder={
+          !enabled
+            ? 'The assistant is unavailable'
+            : usable.length === 0
+              ? 'No model available right now'
+              : 'Ask anything...'
+        }
+        disabled={!enabled || usable.length === 0}
         aria-label="Message"
       />
 
@@ -88,7 +104,9 @@ export function ChatComposer({ attached, onAttach, onDetach, onSend }) {
             {models.map((m) => (
               <option key={`${m.provider}:${m.id}`} value={m.id} disabled={!m.available}>
                 {m.label}
-                {m.available ? '' : ' — unavailable'}
+                {/* The reason, not just "unavailable" — "daily limit reached"
+                    and "needs credit" call for completely different actions. */}
+                {m.available ? '' : ` — ${reasonLabel(m.reason)}`}
               </option>
             ))}
           </select>
@@ -117,7 +135,16 @@ export function ChatComposer({ attached, onAttach, onDetach, onSend }) {
       </div>
 
       {enabled && usable.length === 0 && (
-        <p className="hint">No model is configured on the server.</p>
+        <p className="chat-wait">
+          <IconClock size={12} />
+          {retryAt ? (
+            <span>
+              Every model has hit its limit. Back in <b>{untilLabel(retryAt)}</b>.
+            </span>
+          ) : (
+            <span>No model is available on the server.</span>
+          )}
+        </p>
       )}
     </div>
   );

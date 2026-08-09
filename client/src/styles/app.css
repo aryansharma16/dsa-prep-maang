@@ -4298,6 +4298,20 @@ img.avatar {
 .chat-count { font-size: 11px; color: var(--text-3); }
 .chat-count.over { color: var(--danger); }
 
+.chat-wait {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 7px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.chat-wait b { color: var(--text); }
+
 .chat-send {
   flex: 0 0 30px;
   width: 30px;
