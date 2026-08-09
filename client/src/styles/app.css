@@ -222,6 +222,39 @@
   background: var(--bg);
 }
 
+/*
+  The drawer's opener. Hidden until the phone block reveals it, because above
+  that width the sidebar is on screen and carries its own toggle — two of them
+  at once would be one too many.
+*/
+.nav-toggle {
+  display: none;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: var(--radius);
+  color: var(--text-2);
+}
+.nav-toggle:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/*
+  Only ever mounted in drawer mode, so it needs no media query of its own.
+  Below .sidebar and above everything else: the point is that the page stays
+  visible behind it, and that a tap anywhere on it lands here.
+*/
+.nav-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
 .search {
   position: relative;
   flex: 1;
@@ -463,30 +496,9 @@
   margin-bottom: 14px;
 }
 
-.select {
-  height: 28px;
-  padding: 0 26px 0 9px;
-  background: var(--surface) no-repeat right 8px center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 12.5px;
-  color: var(--text-2);
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: right 12px center, right 8px center;
-  background-size: 4px 4px, 4px 4px;
-  background-repeat: no-repeat;
-  cursor: pointer;
-}
-.select:hover {
-  border-color: var(--text-3);
-  color: var(--text);
-}
-.select.on {
-  border-color: var(--accent);
-  color: var(--text);
-}
+/* .select is gone: every filter bar now uses .dd.inline, which is the same
+   28px shape drawn by this stylesheet rather than by the browser. Its rules
+   live down in the dropdown section. */
 
 .toggle-chip {
   height: 28px;
@@ -516,6 +528,53 @@
 .toggle-chip:disabled:hover {
   border-color: var(--border);
   color: var(--text-2);
+}
+/* How many filters are on. Reads as a count on the chip rather than as another
+   word in its label, which is why it gets the accent's fill and not its text. */
+.toggle-chip.on .mono {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 10.5px;
+}
+
+/*
+  Empties the chip it is stuck to. The negative margin closes the bar's 8px gap
+  down to 4px, which is the difference between reading as a pair and reading as
+  two unrelated buttons that happen to be adjacent.
+*/
+.chip-clear {
+  height: 28px;
+  width: 26px;
+  flex: 0 0 26px;
+  margin-left: -4px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--hard);
+}
+.chip-clear:hover {
+  border-color: var(--hard);
+  background: var(--hard-bg);
+}
+
+/*
+  The filter dialog's segmented rows. .size-group was built for XS–XL — 22px
+  tall and 10.5px mono, which is right for five one-character options and
+  cramped and unreadable for "Not started". Same control, sized for words.
+
+  Both classes in the selector, not just .filter-seg: `.size-group button` is
+  the same specificity and is declared further down the file, so a one-class
+  override would lose the tie to source order and silently keep the mono.
+*/
+.size-group.filter-seg button {
+  height: 30px;
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 12px;
 }
 
 /* An action, not a filter — it reads as one of the chips but keeps the accent
@@ -5023,4 +5082,393 @@ img.avatar {
   .chat-launcher-dot.busy,
   .chat-typing i,
   .chat-md.streaming > p:last-child::after { animation: none; }
+}
+
+/* ==========================================================================
+   Small screens
+
+   Everything above is written for a window. This section is what changes when
+   there isn't one. Two steps, and they do different jobs:
+
+   1024px — tablet. The shell still works; it is the content inside it that has
+   run out of room. AppShell already collapses the sidebar to its icon rail at
+   this width, so all that is left here is giving the page back the margins the
+   rail freed.
+
+   760px — phone. The shell itself stops working, and the sidebar has to leave
+   the layout rather than shrink inside it. This breakpoint is also stated in
+   useMediaQuery.js and the two must stay equal: the drawer's only opener is a
+   button this block reveals, and its frozen table columns are dropped by the
+   same query in JS.
+
+   Both steps prefer letting a wide thing scroll over hiding it. A table you
+   have to swipe is usable; a column that silently vanished is a bug report.
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .content {
+    padding: 16px 13px 72px;
+  }
+  /* The rail gave this back — no reason to keep centring inside a width the
+     page no longer has. */
+  .content-inner {
+    max-width: none;
+  }
+  /* A phone-sized table of every provider, keyed and healthy — it scrolls
+     rather than crushing the columns that carry the status. :has, so panels
+     holding forms and menus are left able to overflow as they need to. */
+  .panel-body:has(table) {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  /*
+    Out of the flex row and over the page. Fixed rather than absolute so it
+    spans the viewport whatever .content has been scrolled to, and translated
+    rather than display-toggled so it can slide.
+  */
+  .sidebar,
+  .sidebar.collapsed {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 60;
+    /* Full width in both states: `collapsed` means "closed drawer" down here,
+       not "rail", and animating 56px → 248px as it slides in reads as a
+       stutter rather than as one movement. */
+    width: var(--sidebar-w);
+    flex-basis: 0;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+    box-shadow: 8px 0 32px var(--shadow);
+  }
+  .shell.nav-open .sidebar {
+    transform: none;
+  }
+  .nav-toggle {
+    display: grid;
+  }
+
+  .topbar {
+    gap: 6px;
+    padding: 0 10px;
+  }
+  /* Flex items default to min-width:auto, which here means the search refuses
+     to shrink below its placeholder and pushes the avatar off the edge. */
+  .search {
+    min-width: 0;
+  }
+  /*
+    The spacer and the search are both flex:1, so with the solved figure gone
+    they split the leftover room evenly and the search ends up 60px wide —
+    narrower than its own placeholder. Nothing needs pushing right down here;
+    the search growing into the gap does the same job.
+  */
+  .topbar > .spacer {
+    display: none;
+  }
+  /* Nothing to press. */
+  .search kbd {
+    display: none;
+  }
+
+  .content {
+    padding: 12px 9px 64px;
+  }
+  .page-head h1 {
+    font-size: 17px;
+  }
+
+  /*
+    Filters. The keyboard hints go — there is no keyboard — and the selects are
+    allowed to share a row, which is the difference between a three-row bar and
+    a seven-row one on a 390px screen.
+  */
+  .filterbar {
+    gap: 6px;
+  }
+  .filterbar .hint,
+  .filterbar .spacer {
+    display: none;
+  }
+  .filterbar .dd.inline {
+    flex: 1 1 132px;
+    min-width: 0;
+  }
+  .filterbar .dd.inline .dd-trigger {
+    width: 100%;
+  }
+
+  /* The figure survives, the bar next to it does not — same trade the reader
+     header already makes at this width. */
+  .pattern-meter .bar {
+    display: none;
+  }
+  .pattern-head {
+    padding: 10px 4px 10px 10px;
+  }
+
+  /*
+    Touch targets. 36px rows and 24px buttons are a mouse's measurements; a
+    fingertip is nearer 9mm. Everything else about the table is unchanged —
+    the pins are dropped in useTableLayout, not here, because a frozen cell
+    hidden from CSS would leave its <col> behind and shear the columns.
+  */
+  :root {
+    --row-h: 42px;
+  }
+  .act {
+    width: 28px;
+    height: 28px;
+  }
+  /* The strip is chrome, and it is the only thing standing between the notes
+     button and the edge of the screen. */
+  .acts {
+    gap: 0;
+  }
+
+  /*
+    "There is more this way." On a wide screen the frozen columns carried that
+    signal in their edge shadow, but nothing is frozen here, so the shadow had
+    no cell to hang off — and a table cut mid-column with no cue reads as
+    clipped rather than as scrollable. An inset shadow on the scroll container
+    is painted against its own box, so unlike an absolutely positioned child it
+    stays at the visible edge instead of riding away with the content.
+  */
+  .tablewrap.cut-right {
+    box-shadow: inset -16px 0 14px -14px var(--shadow);
+  }
+  .tablewrap.cut-left {
+    box-shadow: inset 16px 0 14px -14px var(--shadow);
+  }
+  .tablewrap.cut-left.cut-right {
+    box-shadow:
+      inset -16px 0 14px -14px var(--shadow),
+      inset 16px 0 14px -14px var(--shadow);
+  }
+
+  /* A note is the one place here you write prose, so it gets the room. */
+  .notes-row td {
+    padding: 2px 8px 10px 10px;
+  }
+
+  /*
+    Dialogs open against the top rather than the middle. Centred, a form with
+    the software keyboard up is centred in what is left of the viewport, which
+    puts its heading behind the notch and its buttons under the keyboard.
+  */
+  .overlay {
+    padding: 12px;
+    place-items: start center;
+  }
+  .modal {
+    max-height: calc(100vh - 24px);
+  }
+
+  /* Stats: the pattern name was taking 176px of a 390px row and leaving the
+     bar it labels no room to be read. */
+  .statrow .nm {
+    width: 116px;
+    flex: 0 0 116px;
+  }
+
+  /* The dock is already clamped to the viewport width; this keeps the bubble
+     it hangs off out of the way of the composer underneath it. */
+  .chat-launcher,
+  .chat-dock {
+    --chat-gap: 12px;
+  }
+}
+
+/* The drawer slides. Under this setting it simply arrives. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------- dropdown */
+/*
+  The shared dropdown. Same shape as the model picker's menu — it is where this
+  came from — but full-width by default and portalled into <body>, so it can be
+  dropped into a dialog without being clipped by the dialog's own scrolling.
+
+  The menu is positioned from JS (see Dropdown.jsx) because a fixed element has
+  no anchor of its own; everything here is what it looks like, nothing is where
+  it goes.
+*/
+.dd {
+  position: relative;
+  display: block;
+}
+.dd-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 34px;
+  padding: 0 8px 0 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.dd-trigger .nm {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dd-placeholder {
+  color: var(--text-3);
+}
+.dd-trigger:hover:not(:disabled) {
+  border-color: var(--text-3);
+}
+.dd-trigger.on {
+  border-color: var(--accent);
+}
+.dd-trigger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+/* One chevron in the icon set, pointed right — turned, rather than a second
+   path to keep in step with it. */
+.dd-caret {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  transform: rotate(90deg);
+  transition: transform 0.14s ease;
+}
+.dd-trigger.on .dd-caret {
+  transform: rotate(-90deg);
+}
+
+/*
+  The filter-bar shape: as wide as the word in it, 28px, and outlined in the
+  accent while it is narrowing something. Matches the .select it replaced, so a
+  bar holding both mid-migration does not look like two different controls.
+*/
+.dd.inline {
+  display: inline-flex;
+}
+.dd.inline .dd-trigger {
+  width: auto;
+  height: 28px;
+  padding: 0 6px 0 9px;
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+/* Long option labels — an email, a pattern name — must not stretch the bar. */
+.dd.inline .dd-trigger .nm {
+  flex: 0 1 auto;
+  max-width: 190px;
+}
+.dd.inline .dd-trigger:hover:not(:disabled) {
+  color: var(--text);
+}
+.dd.inline.on .dd-trigger {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.dd-menu {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px var(--shadow);
+}
+
+.dd-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-3);
+}
+.dd-search input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 12.5px;
+}
+.dd-search input:focus {
+  outline: none;
+}
+
+.dd-list {
+  overflow-y: auto;
+  min-height: 0;
+}
+.dd-list:focus {
+  outline: none;
+}
+
+.dd-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+/* Highlight follows the keyboard and the pointer both, so there is only ever
+   one "here" — a separate :hover colour would give two. */
+.dd-item.active {
+  background: var(--surface-hover);
+}
+.dd-item.on {
+  color: var(--accent);
+}
+.dd-item.off {
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+.dd-tick {
+  flex: 0 0 12px;
+  display: grid;
+  place-items: center;
+  height: 17px;
+  color: var(--accent);
+}
+.dd-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.dd-text .nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dd-note {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--text-3);
+}
+.dd-empty {
+  margin: 0;
+  padding: 10px 9px;
+  font-size: 12px;
+  color: var(--text-3);
 }

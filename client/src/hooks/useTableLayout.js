@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { COLUMNS, COLUMN_BY_ID, SIZES, widthOf } from '../components/problem/columns.jsx';
 import { useLocalState } from './useLocalState.js';
+import { NARROW, useMediaQuery } from './useMediaQuery.js';
 
 const STORAGE_KEY = 'table-columns';
 
@@ -76,8 +77,18 @@ export const pinnedCount = (layout) => layout.filter((e) => e.pin).length;
  * Pinned columns are hoisted to the front and the actions column is forced to
  * the back, because that is what freezing means here: whatever you pin ends up
  * against the edge it is frozen to, regardless of where it sits in the list.
+ *
+ * `narrow` drops every pin. Freezing is a trade — width the scrollable middle
+ * no longer has, in exchange for a column that stays put — and on a phone the
+ * trade stops paying: the default three left pins are 422px of frozen block on
+ * a 390px screen, which does not merely crowd the middle, it leaves nothing
+ * that can be scrolled into view at all. Unpinned, the table scrolls sideways
+ * as one piece, which is worse than a frozen title and far better than a wall.
+ *
+ * The order still honours the pins, so whatever you chose to freeze is what you
+ * see first without scrolling.
  */
-function resolve(layout) {
+function resolve(layout, narrow) {
   const visible = layout.filter((entry) => entry.show);
   const rightPinned = visible.filter((e) => e.id === RIGHT_PINNED);
   const rest = visible.filter((e) => e.id !== RIGHT_PINNED);
@@ -96,18 +107,20 @@ function resolve(layout) {
   return ordered.map((entry, index) => {
     const column = COLUMN_BY_ID[entry.id];
     const px = column.fixed ? column.width : widthOf(column, entry.size);
+    const pin = narrow ? null : entry.pin ? 'left' : entry.id === RIGHT_PINNED ? 'right' : null;
     const resolved = {
       ...column,
       size: entry.size,
       // Fixed columns are chrome — a checkbox and an icon strip. Scaling them
       // just leaves a hole.
       px,
-      pin: entry.pin ? 'left' : entry.id === RIGHT_PINNED ? 'right' : null,
-      pinOffset: entry.pin ? offset : 0,
+      pin,
+      pinOffset: pin === 'left' ? offset : 0,
       // The cell that draws the shadow marking where the frozen block ends.
-      pinEdge: index === lastPinnedIndex || entry.id === RIGHT_PINNED,
+      // Nothing is frozen when narrow, so there is no edge to mark.
+      pinEdge: pin ? index === lastPinnedIndex || entry.id === RIGHT_PINNED : false,
     };
-    if (entry.pin) offset += px;
+    if (pin === 'left') offset += px;
     return resolved;
   });
 }
@@ -122,9 +135,13 @@ function resolve(layout) {
  */
 export function useTableLayout() {
   const [stored, setStored] = useLocalState(STORAGE_KEY, null);
+  // Only the resolved list changes on a phone. What is *stored* stays exactly
+  // as chosen, so the dialog keeps showing the real layout and rotating a
+  // tablet back to landscape restores the pins rather than having lost them.
+  const narrow = useMediaQuery(NARROW);
 
   const layout = useMemo(() => reconcile(stored), [stored]);
-  const columns = useMemo(() => resolve(layout), [layout]);
+  const columns = useMemo(() => resolve(layout, narrow), [layout, narrow]);
 
   return { layout, setLayout: setStored, columns };
 }

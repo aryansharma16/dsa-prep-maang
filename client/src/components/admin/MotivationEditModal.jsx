@@ -3,6 +3,7 @@ import { errorMessage } from '../../api/http.js';
 import { adminApi } from '../../api/index.js';
 import { useToast } from '../../store/ToastContext.jsx';
 import { Modal } from '../ui/Modal.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 /**
  * One line, and the condition it fires under.
@@ -123,24 +124,20 @@ export function MotivationEditModal({ line, catalogue, onClose, onSaved }) {
         </label>
 
         <div className="field-row">
-          <label className="field" style={{ flex: 2 }}>
+          <div className="field" style={{ flex: 2 }}>
             <span>Show when</span>
-            <select
+            <Dropdown
+              ariaLabel="Show when"
               value={form.trigger}
               disabled={busy}
-              onChange={(e) => {
-                const next = catalogue.triggers.find((t) => t.key === e.target.value);
-                set({ trigger: e.target.value, threshold: next?.threshold?.default ?? null });
+              onChange={(v) => {
+                const next = catalogue.triggers.find((t) => t.key === v);
+                set({ trigger: v, threshold: next?.threshold?.default ?? null });
               }}
-            >
-              {catalogue.triggers.map((t) => (
-                <option key={t.key} value={t.key}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+              options={catalogue.triggers.map((t) => ({ value: t.key, label: t.label }))}
+            />
             {spec?.hint && <span className="field-hint">{spec.hint}</span>}
-          </label>
+          </div>
 
           {/* Only for conditions that take a number — the form is built from
               the catalogue, so a new trigger needs no change here. */}
@@ -181,20 +178,16 @@ export function MotivationEditModal({ line, catalogue, onClose, onSaved }) {
         </div>
 
         <div className="field-row">
-          <label className="field" style={{ flex: 1 }}>
+          <div className="field" style={{ flex: 1 }}>
             <span>Theme</span>
-            <select
+            <Dropdown
+              ariaLabel="Theme"
               value={form.category}
               disabled={busy}
-              onChange={(e) => set({ category: e.target.value })}
-            >
-              {catalogue.categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
+              onChange={(v) => set({ category: v })}
+              options={catalogue.categories.map((c) => ({ value: c, label: c }))}
+            />
+          </div>
 
           <label className="field" style={{ flex: 1 }}>
             <span>Weight</span>

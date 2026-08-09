@@ -1,5 +1,13 @@
 import { IconClose, IconPlus } from '../ui/Icons.jsx';
 import { deriveSource, extractVideoId, move, nextKey } from './blockKinds.js';
+import { Dropdown } from '../ui/Dropdown.jsx';
+
+// The languages a code variant can be tagged as. Lower case because that is
+// what the highlighter keys off, and what the stored block carries.
+const LANG_OPTIONS = ['java', 'cpp', 'python', 'javascript', 'text'].map((l) => ({
+  value: l,
+  label: l,
+}));
 
 /**
  * The per-type field forms. One switch, mirroring the one in GuideBlocks.jsx —
@@ -263,16 +271,15 @@ function CodeFields({ block, patch }) {
       {block.variants.map((variant, i) => (
         <div className="gb-variant-body" key={variant._k}>
           <div className="field-row">
-            <label className="field" style={{ flex: 1 }}>
+            <div className="field" style={{ flex: 1 }}>
               <span>Language</span>
-              <select value={variant.lang} onChange={(e) => setVariant(i, { lang: e.target.value })}>
-                <option value="java">java</option>
-                <option value="cpp">cpp</option>
-                <option value="python">python</option>
-                <option value="javascript">javascript</option>
-                <option value="text">text</option>
-              </select>
-            </label>
+              <Dropdown
+                ariaLabel="Language"
+                value={variant.lang}
+                onChange={(lang) => setVariant(i, { lang })}
+                options={LANG_OPTIONS}
+              />
+            </div>
           </div>
           <textarea
             className="gb-code"

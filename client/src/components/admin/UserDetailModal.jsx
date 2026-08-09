@@ -9,6 +9,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
 import { Modal } from '../ui/Modal.jsx';
 import { PasswordField } from '../ui/PasswordField.jsx';
 import { AvatarButton } from '../ui/PhotoPreview.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 /**
  * Everything you can do to one account.
@@ -173,18 +174,14 @@ export function UserDetailModal({ userId, onClose, onChanged }) {
                 </p>
               ) : (
                 <div className="filterbar" style={{ padding: 0 }}>
-                  <select
-                    className="select"
+                  <Dropdown
+                    variant="inline"
+                    ariaLabel="Role"
                     value={user.role}
                     disabled={busy}
-                    onChange={(e) => setConfirming({ kind: 'role', role: e.target.value })}
-                  >
-                    {ASSIGNABLE_ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {ROLE_LABEL[r]}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(role) => setConfirming({ kind: 'role', role })}
+                    options={ASSIGNABLE_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+                  />
                   <span className="hint">Super admin is pinned in the server’s environment.</span>
                 </div>
               )}

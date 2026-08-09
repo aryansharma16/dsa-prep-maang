@@ -3,6 +3,7 @@ import { errorMessage } from '../../api/http.js';
 import { adminApi } from '../../api/index.js';
 import { useToast } from '../../store/ToastContext.jsx';
 import { Modal } from '../ui/Modal.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 /**
  * Drafting lines with Gemini.
@@ -94,36 +95,28 @@ export function MotivationDraftModal({ catalogue, onClose, onSaved }) {
         {!drafts ? (
           <>
             <div className="field-row">
-              <label className="field" style={{ flex: 2 }}>
+              <div className="field" style={{ flex: 2 }}>
                 <span>Show when</span>
-                <select
+                <Dropdown
+                  ariaLabel="Show when"
                   value={form.trigger}
                   disabled={busy}
-                  onChange={(e) => set({ trigger: e.target.value })}
-                >
-                  {catalogue.triggers.map((t) => (
-                    <option key={t.key} value={t.key}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => set({ trigger: v })}
+                  options={catalogue.triggers.map((t) => ({ value: t.key, label: t.label }))}
+                />
                 {spec?.hint && <span className="field-hint">{spec.hint}</span>}
-              </label>
+              </div>
 
-              <label className="field" style={{ flex: 1 }}>
+              <div className="field" style={{ flex: 1 }}>
                 <span>Theme</span>
-                <select
+                <Dropdown
+                  ariaLabel="Theme"
                   value={form.category}
                   disabled={busy}
-                  onChange={(e) => set({ category: e.target.value })}
-                >
-                  {catalogue.categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={(v) => set({ category: v })}
+                  options={catalogue.categories.map((c) => ({ value: c, label: c }))}
+                />
+              </div>
 
               <label className="field" style={{ flex: 1 }}>
                 <span>How many</span>

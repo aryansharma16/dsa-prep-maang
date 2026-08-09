@@ -6,6 +6,9 @@ import { useToast } from '../../store/ToastContext.jsx';
 import { IconChevronRight } from '../ui/Icons.jsx';
 import { Modal } from '../ui/Modal.jsx';
 import { TagInput } from '../ui/TagInput.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
+
+const DIFFICULTY_OPTIONS = ['Easy', 'Medium', 'Hard'].map((d) => ({ value: d, label: d }));
 
 const STATUSES = [
   ['todo', 'Not started'],
@@ -146,25 +149,27 @@ export function AddProblemModal({ onClose }) {
           </label>
 
           <div className="field-row">
-            <label className="field">
+            {/* div, not label: a <label> only forwards its click to a form
+                control, and the dropdown is a button. */}
+            <div className="field">
               <span>Difficulty</span>
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                <option>Easy</option>
-                <option>Medium</option>
-                <option>Hard</option>
-              </select>
-            </label>
+              <Dropdown
+                ariaLabel="Difficulty"
+                value={difficulty}
+                onChange={setDifficulty}
+                options={DIFFICULTY_OPTIONS}
+              />
+            </div>
 
-            <label className="field" style={{ flex: 2 }}>
+            <div className="field" style={{ flex: 2 }}>
               <span>Pattern</span>
-              <select value={patternSlug} onChange={(e) => setPatternSlug(e.target.value)}>
-                {patterns.map((p) => (
-                  <option key={p.slug} value={p.slug}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <Dropdown
+                ariaLabel="Pattern"
+                value={patternSlug}
+                onChange={setPatternSlug}
+                options={patterns.map((p) => ({ value: p.slug, label: p.name }))}
+              />
+            </div>
           </div>
 
           <button type="button" className="disclosure" onClick={() => setMore((v) => !v)}>
@@ -215,16 +220,15 @@ export function AddProblemModal({ onClose }) {
                 />
               </label>
 
-              <label className="field">
+              <div className="field">
                 <span>Status</span>
-                <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                  {STATUSES.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <Dropdown
+                  ariaLabel="Status"
+                  value={status}
+                  onChange={setStatus}
+                  options={STATUSES.map(([value, label]) => ({ value, label }))}
+                />
+              </div>
 
               <label className="field">
                 <span>Notes</span>

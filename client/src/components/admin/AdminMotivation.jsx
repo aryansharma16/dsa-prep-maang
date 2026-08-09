@@ -9,6 +9,7 @@ import { IconPlus } from '../ui/Icons.jsx';
 import { MotivationDraftModal } from './MotivationDraftModal.jsx';
 import { MotivationEditModal } from './MotivationEditModal.jsx';
 import { MotivationPreview } from './MotivationPreview.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 /**
  * The motivation corpus.
@@ -106,50 +107,48 @@ export function AdminMotivation() {
           />
         </div>
 
-        <select
-          className={`select ${trigger ? 'on' : ''}`}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Condition"
           value={trigger}
-          onChange={(e) => {
-            setTrigger(e.target.value);
+          onChange={(v) => {
+            setTrigger(v);
             setPage(1);
           }}
-        >
-          <option value="">Any condition</option>
-          {data.triggers.map((t) => (
-            <option key={t.key} value={t.key}>
-              {t.label}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: 'Any condition' },
+            ...data.triggers.map((t) => ({ value: t.key, label: t.label })),
+          ]}
+        />
 
-        <select
-          className={`select ${surface ? 'on' : ''}`}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Page"
           value={surface}
-          onChange={(e) => {
-            setSurface(e.target.value);
+          onChange={(v) => {
+            setSurface(v);
             setPage(1);
           }}
-        >
-          <option value="">Any page</option>
-          {data.surfaces.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: 'Any page' },
+            ...data.surfaces.map((s) => ({ value: s, label: s })),
+          ]}
+        />
 
-        <select
-          className={`select ${active ? 'on' : ''}`}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Active state"
           value={active}
-          onChange={(e) => {
-            setActive(e.target.value);
+          onChange={(v) => {
+            setActive(v);
             setPage(1);
           }}
-        >
-          <option value="">Active and retired</option>
-          <option value="true">Active only</option>
-          <option value="false">Retired only</option>
-        </select>
+          options={[
+            { value: '', label: 'Active and retired' },
+            { value: 'true', label: 'Active only' },
+            { value: 'false', label: 'Retired only' },
+          ]}
+        />
 
         <span className="spacer" />
         <span className="hint mono">{data.total} lines</span>

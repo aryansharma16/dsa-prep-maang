@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { errorMessage } from '../../api/http.js';
 import { adminApi } from '../../api/index.js';
 import { AuditRow } from './AuditRow.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 export function AdminAudit() {
   const [data, setData] = useState(null);
@@ -32,31 +33,27 @@ export function AdminAudit() {
   return (
     <>
       <div className="filterbar">
-        <select
-          className={`select ${action ? 'on' : ''}`}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Action"
           value={action}
-          onChange={(e) => reset(setAction)(e.target.value)}
-        >
-          <option value="">All actions</option>
-          {data.filters.actions.map((a) => (
-            <option key={a.value} value={a.value}>
-              {a.label}
-            </option>
-          ))}
-        </select>
+          onChange={reset(setAction)}
+          options={[
+            { value: '', label: 'All actions' },
+            ...data.filters.actions.map((a) => ({ value: a.value, label: a.label })),
+          ]}
+        />
 
-        <select
-          className={`select ${actor ? 'on' : ''}`}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Actor"
           value={actor}
-          onChange={(e) => reset(setActor)(e.target.value)}
-        >
-          <option value="">Everyone</option>
-          {data.filters.actors.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.email}
-            </option>
-          ))}
-        </select>
+          onChange={reset(setActor)}
+          options={[
+            { value: '', label: 'Everyone' },
+            ...data.filters.actors.map((a) => ({ value: a.id, label: a.email })),
+          ]}
+        />
 
         <span className="spacer" />
         <span className="hint mono">{data.total} entries</span>

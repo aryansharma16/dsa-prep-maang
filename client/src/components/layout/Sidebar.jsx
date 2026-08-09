@@ -28,7 +28,7 @@ const abbrev = (name) =>
     .toUpperCase()
     .slice(0, 2);
 
-export function Sidebar({ collapsed, onToggle }) {
+export function Sidebar({ collapsed, onToggle, onNavigate }) {
   const { groups, totals } = useRoadmap();
   const { user } = useAuth();
   const [patternsOpen, setPatternsOpen] = useLocalState('sidebar-patterns-open', true);
@@ -44,6 +44,10 @@ export function Sidebar({ collapsed, onToggle }) {
     else {
       window.dispatchEvent(new CustomEvent('focus-pattern', { detail: slug }));
     }
+    // Already on the roadmap this only scrolls, so the pathname never changes
+    // and the shell's route effect never fires — but the drawer is still sat on
+    // top of the section it just scrolled to.
+    onNavigate?.();
   };
 
   return (
@@ -63,10 +67,11 @@ export function Sidebar({ collapsed, onToggle }) {
       <div className="sidebar-scroll">
         {collapsed ? (
           <>
-            <NavLink to="/" className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`} title="Roadmap">
+            <NavLink onClick={onNavigate} to="/" className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`} title="Roadmap">
               <IconGrid size={15} />
             </NavLink>
             <NavLink
+              onClick={onNavigate}
               to="/revision"
               className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
               title="Revision"
@@ -74,6 +79,7 @@ export function Sidebar({ collapsed, onToggle }) {
               <IconRotate size={15} />
             </NavLink>
             <NavLink
+              onClick={onNavigate}
               to="/stats"
               className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
               title="Stats"
@@ -81,6 +87,7 @@ export function Sidebar({ collapsed, onToggle }) {
               <IconChart size={15} />
             </NavLink>
             <NavLink
+              onClick={onNavigate}
               to="/chat"
               className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
               title="AI Chat"
@@ -110,7 +117,7 @@ export function Sidebar({ collapsed, onToggle }) {
           </>
         ) : (
           <>
-            <NavLink to="/" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <NavLink onClick={onNavigate} to="/" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconGrid size={14} />
               Roadmap
               <span className="count">
@@ -118,17 +125,18 @@ export function Sidebar({ collapsed, onToggle }) {
               </span>
             </NavLink>
             <NavLink
+              onClick={onNavigate}
               to="/revision"
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             >
               <IconRotate size={14} />
               Revision
             </NavLink>
-            <NavLink to="/stats" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <NavLink onClick={onNavigate} to="/stats" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconChart size={14} />
               Stats
             </NavLink>
-            <NavLink to="/chat" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <NavLink onClick={onNavigate} to="/chat" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconChat size={14} />
               AI Chat
             </NavLink>

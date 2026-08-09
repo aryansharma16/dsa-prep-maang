@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLocalState } from '../../hooks/useLocalState.js';
+import { NARROW, useMediaQuery } from '../../hooks/useMediaQuery.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
 import { Avatar } from '../ui/Avatar.jsx';
 import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
-import { IconLogout, IconPlus, IconSearch } from '../ui/Icons.jsx';
+import { IconLogout, IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
 import { isAnyModalOpen } from '../ui/Modal.jsx';
 import { AppearancePicker } from './AppearancePicker.jsx';
 import { Sidebar } from './Sidebar.jsx';
@@ -36,6 +37,19 @@ export function AppShell() {
     if (value && pathname !== '/' && !onAdmin) navigate('/');
   };
 
+  /*
+    Below 760px the sidebar stops being a column and becomes a drawer: it lifts
+    out of the flex row and slides over the content, because 248px of nav on a
+    390px screen is not a layout and the 56px rail it collapses to is 22 pattern
+    abbreviations nobody can read.
+
+    `collapsed` carries both meanings rather than gaining a sibling — closed
+    rail and closed drawer are the same intent, and two booleans for one idea
+    would need reconciling every time the breakpoint is crossed.
+  */
+  const narrow = useMediaQuery(NARROW);
+  const navOpen = narrow && !collapsed;
+
   // Below 1024px the sidebar would eat the table, so collapse it automatically.
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1024px)');
@@ -44,6 +58,26 @@ export function AppShell() {
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
   }, [setCollapsed]);
+
+  /*
+    A drawer that survived the navigation it just performed would cover the page
+    it took you to. Keyed on pathname, so this fires for the nav links; the
+    pattern buttons scroll rather than navigate, and close it through
+    `closeNav` instead.
+  */
+  useEffect(() => {
+    if (narrow) setCollapsed(true);
+  }, [pathname, narrow, setCollapsed]);
+
+  // Escape closes the drawer, the way it closes every other overlay here.
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (e) => e.key === 'Escape' && setCollapsed(true);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navOpen, setCollapsed]);
+
+  const closeNav = () => narrow && setCollapsed(true);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -70,11 +104,35 @@ export function AppShell() {
   const pct = totals.total ? Math.round((totals.solved / totals.total) * 100) : 0;
 
   return (
-    <div className="shell">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+    <div className={`shell ${navOpen ? 'nav-open' : ''}`}>
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((c) => !c)}
+        onNavigate={closeNav}
+      />
+
+      {/* Tapping the page you can still see is the fastest way out of a drawer,
+          and it is the gesture people try first. */}
+      {navOpen && (
+        <button className="nav-scrim" onClick={closeNav} aria-label="Close navigation" />
+      )}
 
       <div className="main">
         <header className="topbar">
+          {/*
+            The sidebar's own toggle travels off-screen with it, so the way back
+            in has to live somewhere that stays. CSS hides this above the
+            breakpoint, where that toggle is reachable again.
+          */}
+          <button
+            className="nav-toggle"
+            onClick={() => setCollapsed((c) => !c)}
+            aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={navOpen}
+          >
+            <IconMenu size={16} />
+          </button>
+
           <div className="search">
             <span className="glass">
               <IconSearch size={13} />

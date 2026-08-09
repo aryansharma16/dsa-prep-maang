@@ -272,6 +272,26 @@ export const IconCollapse = (p) => (
   </Svg>
 );
 
+export const IconFilter = (p) => (
+  <Svg {...p}>
+    <path d="M2.4 3.2h11.2l-4.3 5.1v4.5l-2.6 1.2V8.3z" />
+  </Svg>
+);
+
+// Two chevrons apart / together — sections opening and closing, as distinct
+// from IconExpand's corner arrows, which mean fullscreen.
+export const IconChevronsDown = (p) => (
+  <Svg {...p}>
+    <path d="M3.6 3.4L8 7.2l4.4-3.8M3.6 8.8L8 12.6l4.4-3.8" />
+  </Svg>
+);
+
+export const IconChevronsUp = (p) => (
+  <Svg {...p}>
+    <path d="M3.6 7.2L8 3.4l4.4 3.8M3.6 12.6L8 8.8l4.4 3.8" />
+  </Svg>
+);
+
 export const IconEdit = (p) => (
   <Svg {...p}>
     <path d="M11.1 2.5a1.5 1.5 0 012.1 2.1L5.6 12.2 2.6 13l.8-3z" />

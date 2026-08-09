@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
+import { FiltersModal } from '../components/problem/FiltersModal.jsx';
 import { GuideReader } from '../components/problem/GuideReader.jsx';
 import { PatternSection } from '../components/problem/PatternSection.jsx';
-import { IconColumns, IconDice } from '../components/ui/Icons.jsx';
+import {
+  IconChevronsDown,
+  IconChevronsUp,
+  IconClose,
+  IconColumns,
+  IconDice,
+  IconFilter,
+} from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
 import { useLocalState } from '../hooks/useLocalState.js';
 import { useTableLayout } from '../hooks/useTableLayout.js';
@@ -11,17 +19,7 @@ import { useRoadmap } from '../store/RoadmapContext.jsx';
 import { useToast } from '../store/ToastContext.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
-const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
-const SHEETS = [
-  ['striver-sde', "Striver's SDE Sheet"],
-  ['neetcode-150', 'NeetCode 150'],
-  ['blind-75', 'Blind 75'],
-];
-const STATUSES = [
-  ['todo', 'Not started'],
-  ['attempted', 'Attempted'],
-  ['solved', 'Solved'],
-];
+// The option lists moved to FiltersModal with the controls that read them.
 
 export function Roadmap() {
   const { groups, loading, loadError, setProgress, reload } = useRoadmap();
@@ -40,6 +38,7 @@ export function Roadmap() {
   const [cursorId, setCursorId] = useState(null);
   const [openNotesId, setOpenNotesId] = useState(null);
   const [columnsOpen, setColumnsOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // One reader for the page, not one per section.
   const [guidePattern, setGuidePattern] = useState(null);
   // { id, seq } rather than a bare id: picking the same problem twice has to
@@ -100,6 +99,30 @@ export function Roadmap() {
     setOpenSections((prev) =>
       prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
     );
+
+  /*
+    The four narrowing filters, handled as one value because they now live and
+    move together behind a dialog. The bar shows only how many are on — four
+    selects out there were most of a phone screen spent on controls that, most
+    sessions, nobody touched.
+  */
+  const narrowing = { difficulty, company, sheet, status };
+  const narrowingCount = Object.values(narrowing).filter(Boolean).length;
+
+  const setNarrowing = (patch) => {
+    if ('difficulty' in patch) setDifficulty(patch.difficulty);
+    if ('company' in patch) setCompany(patch.company);
+    if ('sheet' in patch) setSheet(patch.sheet);
+    if ('status' in patch) setStatus(patch.status);
+  };
+
+  const clearNarrowing = () =>
+    setNarrowing({ difficulty: '', company: '', sheet: '', status: '' });
+
+  /* Open counts as "every pattern", not "every pattern with matches" — the
+     button has to be able to close what it opened after a filter is cleared. */
+  const allOpen = groups.length > 0 && groups.every((g) => openSections.includes(g.slug));
+  const toggleAll = () => setOpenSections(allOpen ? [] : groups.map((g) => g.slug));
 
   // Sidebar clicks and ?pattern= both land here.
   const focusPattern = useCallback(
@@ -252,6 +275,7 @@ export function Roadmap() {
   };
 
   const shown = visible.reduce((n, g) => n + g.problems.length, 0);
+  const totalProblems = groups.reduce((n, g) => n + g.problems.length, 0);
 
   if (loading) {
     return (
@@ -291,58 +315,36 @@ export function Roadmap() {
 
       <MotivationLine surface="roadmap" />
 
+      {/*
+        Left to right: what narrows the list, then what it narrowed to. The
+        dialog button leads because it is the one that holds four filters
+        behind it; Expand all and Columns are shelved on the right because they
+        change how the roadmap is drawn, not what is in it.
+      */}
       <div className="filterbar">
-        <select
-          className={`select ${difficulty ? 'on' : ''}`}
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
+        <button
+          className={`toggle-chip ${narrowingCount ? 'on' : ''}`}
+          onClick={() => setFiltersOpen(true)}
+          title="Difficulty, status, sheet and company"
         >
-          <option value="">All difficulty</option>
-          {DIFFICULTIES.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
+          <IconFilter size={12} />
+          Filters
+          {narrowingCount > 0 && <span className="mono">{narrowingCount}</span>}
+        </button>
 
-        <select
-          className={`select ${company ? 'on' : ''}`}
-          value={company}
-          onChange={(e) => setCompany(e.target.value)}
-        >
-          <option value="">All companies</option>
-          {companyOptions.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className={`select ${sheet ? 'on' : ''}`}
-          value={sheet}
-          onChange={(e) => setSheet(e.target.value)}
-        >
-          <option value="">All sheets</option>
-          {SHEETS.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className={`select ${status ? 'on' : ''}`}
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">Any status</option>
-          {STATUSES.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+        {/* Against the chip it empties, so the pair reads as one control. Only
+            here when there is something to clear — an X that does nothing is
+            worse than no X. */}
+        {narrowingCount > 0 && (
+          <button
+            className="chip-clear"
+            onClick={clearNarrowing}
+            title={`Clear ${narrowingCount === 1 ? 'this filter' : `all ${narrowingCount} filters`}`}
+            aria-label="Clear filters"
+          >
+            <IconClose size={12} />
+          </button>
+        )}
 
         <button
           className={`toggle-chip ${flagged ? 'on' : ''}`}
@@ -381,6 +383,25 @@ export function Roadmap() {
         )}
 
         <span className="spacer" />
+
+        {/* The label always states what the click does, so the icon never has
+            to carry the current state on its own. */}
+        <button
+          className="toggle-chip"
+          onClick={toggleAll}
+          disabled={isFiltering}
+          title={
+            isFiltering
+              ? 'While a filter is on, every matching pattern stays open'
+              : allOpen
+                ? 'Close every pattern'
+                : 'Open all 22 patterns'
+          }
+        >
+          {allOpen ? <IconChevronsUp size={12} /> : <IconChevronsDown size={12} />}
+          {allOpen ? 'Collapse all' : 'Expand all'}
+        </button>
+
         <button className="toggle-chip" onClick={() => setColumnsOpen(true)} title="Choose columns">
           <IconColumns size={12} />
           Columns
@@ -427,6 +448,18 @@ export function Roadmap() {
           />
           );
         })
+      )}
+
+      {filtersOpen && (
+        <FiltersModal
+          value={narrowing}
+          companies={companyOptions}
+          shown={shown}
+          total={totalProblems}
+          onChange={setNarrowing}
+          onClear={clearNarrowing}
+          onClose={() => setFiltersOpen(false)}
+        />
       )}
 
       {columnsOpen && (

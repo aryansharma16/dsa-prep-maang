@@ -6,6 +6,9 @@ import { useToast } from '../../store/ToastContext.jsx';
 import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
 import { Modal } from '../ui/Modal.jsx';
 import { TagInput } from '../ui/TagInput.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
+
+const DIFFICULTY_OPTIONS = ['Easy', 'Medium', 'Hard'].map((d) => ({ value: d, label: d }));
 
 const slugify = (title) =>
   title
@@ -134,32 +137,26 @@ export function ProblemEditModal({ problem, readOnly, onClose, onSaved }) {
           )}
 
           <div className="field-row">
-            <label className="field" style={{ flex: 1 }}>
+            <div className="field" style={{ flex: 1 }}>
               <span>Pattern</span>
-              <select
+              <Dropdown
+                ariaLabel="Pattern"
                 value={form.patternSlug}
                 disabled={readOnly}
-                onChange={(e) => set({ patternSlug: e.target.value })}
-              >
-                {groups.map((g) => (
-                  <option key={g.slug} value={g.slug}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field" style={{ flex: 1 }}>
+                onChange={(v) => set({ patternSlug: v })}
+                options={groups.map((g) => ({ value: g.slug, label: g.name }))}
+              />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
               <span>Difficulty</span>
-              <select
+              <Dropdown
+                ariaLabel="Difficulty"
                 value={form.difficulty}
                 disabled={readOnly}
-                onChange={(e) => set({ difficulty: e.target.value })}
-              >
-                <option>Easy</option>
-                <option>Medium</option>
-                <option>Hard</option>
-              </select>
-            </label>
+                onChange={(v) => set({ difficulty: v })}
+                options={DIFFICULTY_OPTIONS}
+              />
+            </div>
           </div>
 
           <label className="field">

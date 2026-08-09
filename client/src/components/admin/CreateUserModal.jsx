@@ -6,6 +6,7 @@ import { useToast } from '../../store/ToastContext.jsx';
 import { IconCopy } from '../ui/Icons.jsx';
 import { Modal } from '../ui/Modal.jsx';
 import { PasswordField } from '../ui/PasswordField.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 /**
  * Making an account for someone.
@@ -183,21 +184,21 @@ export function CreateUserModal({ onClose, onCreated }) {
             Generate one
           </button>
 
-          <label className="field" style={{ marginTop: 14, marginBottom: 0 }}>
+          <div className="field" style={{ marginTop: 14, marginBottom: 0 }}>
             <span>Role</span>
-            <select
+            <Dropdown
+              ariaLabel="Role"
               value={form.role}
               disabled={busy}
-              onChange={(e) => set({ role: e.target.value })}
-            >
-              {ASSIGNABLE_ROLES.map((role) => (
-                <option key={role} value={role}>
-                  {ROLE_LABEL[role]}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => set({ role: v })}
+              options={ASSIGNABLE_ROLES.map((role) => ({
+                value: role,
+                label: ROLE_LABEL[role],
+                note: ROLE_NOTE[role],
+              }))}
+            />
             <span className="field-hint">{ROLE_NOTE[form.role]}</span>
-          </label>
+          </div>
         </div>
 
         <div className="modal-foot">

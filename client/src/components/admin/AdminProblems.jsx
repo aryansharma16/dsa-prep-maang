@@ -8,6 +8,7 @@ import { useToast } from '../../store/ToastContext.jsx';
 import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
 import { IconPlus } from '../ui/Icons.jsx';
 import { ProblemEditModal } from './ProblemEditModal.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 export function AdminProblems() {
   const { user: me } = useAuth();
@@ -81,35 +82,38 @@ export function AdminProblems() {
           />
         </div>
 
-        <select
-          className={`select ${pattern ? 'on' : ''}`}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Pattern"
           value={pattern}
-          onChange={(e) => {
-            setPattern(e.target.value);
+          onChange={(v) => {
+            setPattern(v);
             setPage(1);
           }}
-        >
-          <option value="">All patterns</option>
-          {groups.map((g) => (
-            <option key={g.slug} value={g.slug}>
-              {g.name}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: 'All patterns' },
+            ...groups.map((g) => ({ value: g.slug, label: g.name })),
+          ]}
+        />
 
-        <select
-          className={`select ${scope !== 'all' ? 'on' : ''}`}
+        {/* "Everything" is this one's neutral, not the empty string, so the
+            highlight has to be stated rather than inferred from having a value. */}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Scope"
           value={scope}
-          onChange={(e) => {
-            setScope(e.target.value);
+          on={scope !== 'all'}
+          onChange={(v) => {
+            setScope(v);
             setPage(1);
           }}
-        >
-          <option value="all">Everything</option>
-          <option value="shared">Shared curriculum</option>
-          <option value="custom">User-added</option>
-          <option value="edited">Hand-edited</option>
-        </select>
+          options={[
+            { value: 'all', label: 'Everything' },
+            { value: 'shared', label: 'Shared curriculum' },
+            { value: 'custom', label: 'User-added' },
+            { value: 'edited', label: 'Hand-edited' },
+          ]}
+        />
 
         <span className="spacer" />
         <span className="hint mono">{data.total} problems</span>

@@ -7,6 +7,7 @@ import { IconPlus } from '../ui/Icons.jsx';
 import { AvatarButton } from '../ui/PhotoPreview.jsx';
 import { CreateUserModal } from './CreateUserModal.jsx';
 import { UserDetailModal } from './UserDetailModal.jsx';
+import { Dropdown } from '../ui/Dropdown.jsx';
 
 const shortDate = (value) =>
   new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
@@ -52,21 +53,19 @@ export function AdminUsers() {
           />
         </div>
 
-        <select
-          className={`select ${role ? 'on' : ''}`}
+        <Dropdown
+          variant="inline"
+          ariaLabel="Role"
           value={role}
-          onChange={(e) => {
-            setRole(e.target.value);
+          onChange={(v) => {
+            setRole(v);
             setPage(1);
           }}
-        >
-          <option value="">All roles</option>
-          {Object.entries(ROLE_LABEL).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: 'All roles' },
+            ...Object.entries(ROLE_LABEL).map(([value, label]) => ({ value, label })),
+          ]}
+        />
 
         <span className="spacer" />
         <span className="hint mono">{data.total} accounts</span>
