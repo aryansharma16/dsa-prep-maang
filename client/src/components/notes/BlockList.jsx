@@ -29,29 +29,55 @@ export function BlockList({ blocks, onChange, upload, uploading, depth = 0 }) {
   const [dropAt, setDropAt] = useState(null);
   const [focusKey, setFocusKey] = useState(null);
 
-  const setBlock = (i, next) => onChange(blocks.map((b, j) => (j === i ? next : b)));
+  /*
+    Every mutation below reports an *updater*, never an array built from
+    `blocks`, and `onChange` is required to accept one.
+
+    `blocks` is the array from the render that created the handler. For a click
+    that is harmless — the handler runs against the render the user clicked on.
+    For an upload it is not: `upload` resolves seconds after it was called, so
+    applying its result to the snapshot it closed over silently reverts every
+    block added while the bytes were in flight. Uploading two images one after
+    the other is enough to hit it — the second upload lands on a list that
+    predates the first, and the first image disappears.
+  */
+
+  /*
+    Keyed by `_k` rather than by index, for the same reason. An upload started
+    on the third block has to land on *that* block even if a reorder or a delete
+    moved it meanwhile; an index would land on whatever now sits in that slot.
+  */
+  const setBlock = (key, next) =>
+    onChange((prev) =>
+      prev.map((b) => (b._k === key ? (typeof next === 'function' ? next(b) : next) : b)),
+    );
 
   const insert = (type, at) => {
     const block = blankBlock(type);
-    const next = [...blocks];
-    next.splice(at, 0, block);
-    onChange(next);
+    onChange((prev) => {
+      const next = [...prev];
+      next.splice(at, 0, block);
+      return next;
+    });
     setPalette(null);
     // The point of inserting is to type into it. Without this every insert
     // costs a click back into the block you just asked for.
     setFocusKey(block._k);
   };
 
-  const remove = (i) => onChange(blocks.filter((_, j) => j !== i));
+  const remove = (key) => onChange((prev) => prev.filter((b) => b._k !== key));
 
-  const duplicate = (i) => {
-    const next = [...blocks];
-    // Through the payload and back, so the copy carries no server `id` — two
-    // blocks sharing one id is what makes the anchors collide.
-    const { id, ...clean } = toPayload(blocks[i]);
-    next.splice(i + 1, 0, withKeys(clean));
-    onChange(next);
-  };
+  const duplicate = (key) =>
+    onChange((prev) => {
+      const i = prev.findIndex((b) => b._k === key);
+      if (i === -1) return prev;
+      const next = [...prev];
+      // Through the payload and back, so the copy carries no server `id` — two
+      // blocks sharing one id is what makes the anchors collide.
+      const { id, ...clean } = toPayload(prev[i]);
+      next.splice(i + 1, 0, withKeys(clean));
+      return next;
+    });
 
   /*
     Drag reorder with an explicit gap indicator, rather than the swap-on-hover
@@ -72,7 +98,7 @@ export function BlockList({ blocks, onChange, upload, uploading, depth = 0 }) {
     if (dragging !== null && dropAt !== null) {
       // Removing the dragged block shifts everything after it down by one.
       const target = dropAt > dragging ? dropAt - 1 : dropAt;
-      if (target !== dragging) onChange(move(blocks, dragging, target));
+      if (target !== dragging) onChange((prev) => move(prev, dragging, target));
     }
     setDragging(null);
     setDropAt(null);
@@ -107,10 +133,15 @@ export function BlockList({ blocks, onChange, upload, uploading, depth = 0 }) {
               setDropAt(null);
             }}
             onDragOver={(e) => onDragOver(e, i)}
-            onChange={(next) => setBlock(i, next)}
-            onRemove={() => remove(i)}
-            onDuplicate={() => duplicate(i)}
-            onMove={(delta) => onChange(move(blocks, i, i + delta))}
+            onChange={(next) => setBlock(block._k, next)}
+            onRemove={() => remove(block._k)}
+            onDuplicate={() => duplicate(block._k)}
+            onMove={(delta) =>
+              onChange((prev) => {
+                const from = prev.findIndex((b) => b._k === block._k);
+                return from === -1 ? prev : move(prev, from, from + delta);
+              })
+            }
             upload={upload}
             uploading={uploading}
           />
@@ -263,7 +294,19 @@ function BlockCard({
             </span>
             <BlockList
               blocks={block.children || []}
-              onChange={(children) => onChange({ ...block, children })}
+              /*
+                Forwards the updater rather than resolving it here. Writing
+                `{ ...block, children }` would fold in a `block` captured at
+                render time, so an upload inside a dropdown would revert every
+                other edit to that dropdown made while it was in flight.
+              */
+              onChange={(update) =>
+                onChange((prev) => ({
+                  ...prev,
+                  children:
+                    typeof update === 'function' ? update(prev.children || []) : update,
+                }))
+              }
               upload={upload}
               uploading={uploading}
               depth={1}

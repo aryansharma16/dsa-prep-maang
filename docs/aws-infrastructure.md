@@ -291,16 +291,15 @@ request time. That is why `npm run s3:probe` exists.
 
 ## Local development
 
-The same chain covers a laptop through steps 1–3, but this project does not
-issue IAM user keys, so there is no static-key option. Choose one:
+The same chain covers a laptop through steps 1–3, but this project issues no
+IAM user keys, so there is no static-key option and a laptop with none of the
+three configured fails every upload with *"Could not load credentials from any
+providers"*.
 
-- **Use AWS IAM Identity Center (SSO)** — `aws sso login --profile <name>`,
-  then `AWS_PROFILE=<name>` in `server/.env`. Credentials are short-lived, same
-  as production. This is the recommended path.
-- **Accept that attachments only work on EC2** — in which case remove
-  `AWS_REGION` and `AWS_S3_BUCKET` from your *local* `server/.env`, so uploads
-  fail fast with a clear 503 `STORAGE_DISABLED` instead of a confusing
-  "Could not load credentials from any providers" after a full round trip.
+The chosen answer is **AWS IAM Identity Center (SSO)**: it hands the laptop
+short-lived credentials from the same chain production uses, with nothing
+permanent on disk and no code change. Setup steps are in
+[the runbook](./aws-runbook.md#local-development-with-sso).
 
 ---
 

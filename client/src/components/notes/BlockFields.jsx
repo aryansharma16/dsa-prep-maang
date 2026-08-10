@@ -101,7 +101,21 @@ function Picker({ accept, multiple, busy, onFiles, children }) {
 }
 
 export function BlockFields({ block, onChange, upload, uploading }) {
-  const patch = (changes) => onChange({ ...block, ...changes });
+  /**
+   * Applies changes to this block.
+   *
+   * Takes either an object or a function of the block's *current* value. The
+   * function form is what an async caller needs: `{ ...block, ...changes }`
+   * spreads the block from the render that created the handler, so an upload
+   * resolving seconds later would write back a copy that predates everything
+   * typed since. Anything reading the block's existing value — appending to a
+   * gallery, filtering an array — must use it.
+   */
+  const patch = (changes) =>
+    onChange((prev) => ({
+      ...prev,
+      ...(typeof changes === 'function' ? changes(prev) : changes),
+    }));
 
   switch (block.type) {
     case 'heading':
@@ -266,7 +280,11 @@ export function BlockFields({ block, onChange, upload, uploading }) {
                   <button
                     type="button"
                     className="nb-media-clear"
-                    onClick={() => patch({ assets: block.assets.filter((_, j) => j !== i) })}
+                    onClick={() =>
+                      patch((prev) => ({
+                        assets: (prev.assets || []).filter((_, j) => j !== i),
+                      }))
+                    }
                     aria-label="Remove image"
                   >
                     <IconClose size={11} />
@@ -282,7 +300,14 @@ export function BlockFields({ block, onChange, upload, uploading }) {
             multiple
             busy={uploading}
             onFiles={(files) =>
-              upload(files, (assets) => patch({ assets: [...(block.assets || []), ...assets] }))
+              /*
+                Appends to the gallery's value at the moment the upload lands,
+                not to the one captured when it started — otherwise dropping a
+                second batch before the first finishes keeps only one of them.
+              */
+              upload(files, (assets) =>
+                patch((prev) => ({ assets: [...(prev.assets || []), ...assets] })),
+              )
             }
           >
             choose images

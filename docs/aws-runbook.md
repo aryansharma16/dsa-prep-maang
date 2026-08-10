@@ -83,6 +83,73 @@ aws s3 ls s3://maang-prep-580912381247-ap-south-1-an/maang-prep/
 
 ---
 
+## Local development with SSO
+
+A laptop has no instance role, and this project issues no IAM user keys — so
+without this, every local upload fails with *"Could not load credentials from
+any providers"* and attachments can only be tested on EC2.
+
+IAM Identity Center fixes that with short-lived credentials from the same
+provider chain production uses. Nothing permanent is written to disk, no IAM
+user is created, and no application code changes.
+
+**One-time, in the console** (Identity Center is a global service configured
+from a single region — pick `ap-south-1`):
+
+1. **IAM Identity Center → Enable.** If the account is not in an Organization
+   it will offer to create one; accept.
+2. **Permission sets → Create.** Custom permission set, and attach the same
+   customer-managed policy the instance role uses — `MAANGPrepNodeAppS3Access`
+   — so local development cannot reach anything production cannot. Set the
+   session duration to 8 hours. Name it `MAANGPrepS3Dev`.
+3. **Users → Add user.** Your email; accept the invitation from your inbox.
+4. **AWS accounts → select account `580912381247` → Assign users.** Pick that
+   user and the `MAANGPrepS3Dev` permission set.
+5. Note the **AWS access portal URL** on the Identity Center dashboard — it
+   looks like `https://d-xxxxxxxxxx.awsapps.com/start`.
+
+**One-time, on the laptop.** The AWS CLI is not currently installed:
+
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscli.zip
+unzip -q /tmp/awscli.zip -d /tmp && sudo /tmp/aws/install
+aws --version
+
+aws configure sso
+#   SSO session name        : maang
+#   SSO start URL           : <the access portal URL from step 5>
+#   SSO region              : ap-south-1
+#   SSO registration scopes : <press enter for the default>
+#   ...browser opens, approve...
+#   CLI default client Region : ap-south-1
+#   CLI profile name          : maang-prep
+```
+
+Then add the profile to your **local** `server/.env` — not the one on EC2:
+
+```bash
+AWS_PROFILE=maang-prep
+AWS_REGION=ap-south-1
+AWS_S3_BUCKET=maang-prep-580912381247-ap-south-1-an
+```
+
+Verify, then restart the dev server so it picks up the new `.env`:
+
+```bash
+aws sts get-caller-identity --profile maang-prep
+cd server && npm run s3:probe
+```
+
+The probe should report `type — short-lived STS credentials (instance role or
+SSO)`. **Daily thereafter**, the session expires and uploads start failing
+again; renew with:
+
+```bash
+aws sso login --profile maang-prep
+```
+
+That expiry is the point — it is what makes this safe to have on a laptop.
+
 ## Diagnosing a failed upload
 
 Work down this table by the error the API actually returned — the codes
