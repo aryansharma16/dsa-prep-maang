@@ -245,6 +245,27 @@ surface. Those five `--heat-*` tokens in `styles/tokens.css` are computed, not
 hand-picked — re-run the check if you change them. The by-pattern panel has a
 table view for the same numbers without relying on colour.
 
+The range is selectable — the last 3, 6 or 12 months, or a calendar year, with
+years only offered once there is something in them. The count in the header and
+the colour ramp both follow the selection, so narrowing to three months re-reads
+the ramp against what is on screen rather than against a spike from March.
+
+Both edges widen to whole Sunday–Saturday weeks, because a column *is* a week
+and a half-drawn one misaligns every row under it. The days that widening pulls
+in — and the rest of the current week — are rendered hidden. Getting the anchor
+wrong here is subtle and was a live bug: walking back a year and *then* aligning
+to a Sunday shifts the whole window earlier and ends the grid up to six days
+short, which drops today off the right edge and makes the heatmap look empty on
+the day you actually solved something. Every date is built in UTC, matching the
+day keys the server buckets by.
+
+Columns are fractional, not a fixed 13px, so the chart is as wide as the panel
+and **nothing scrolls** — capped at 20px a column so a three-month range does not
+blow the squares up into a calendar. The old fixed grid left a band of dead
+space, clipped on a phone, and its `overflow-x: auto` also produced a stray
+*vertical* scrollbar: setting one axis to `auto` computes the other from
+`visible` to `auto`, and 2px of padding was enough to trip it.
+
 Every change writes to the screen first and persists in the background. If the
 request fails the row rolls back and a toast says so.
 

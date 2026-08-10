@@ -3300,6 +3300,9 @@ img.avatar {
   gap: 8px;
   font-size: 12px;
   color: var(--text-3);
+  /* Pushed right so it travels with the range picker beside it. Left to
+     space-between, three children would strand the streaks in mid-air. */
+  margin-left: auto;
 }
 .heat-meta i {
   width: 1px;
@@ -3307,19 +3310,33 @@ img.avatar {
   background: var(--border);
 }
 
+/*
+  No scroll container, deliberately.
+
+  This used to be `overflow-x: auto` around a grid of 53 fixed 13px columns —
+  689px of chart in a panel twice that wide, so it left a band of dead space and
+  still clipped on a phone. It also produced a stray *vertical* scrollbar:
+  setting one axis to `auto` computes the other from `visible` to `auto`, and the
+  2px of padding below the grid was enough to trip it.
+
+  The columns are fractions now, so the chart is exactly as wide as the panel and
+  there is nothing to scroll in either direction. `--heat-cols` comes from the
+  component, because only it knows how many weeks the chosen range spans.
+*/
 .heat-scroll {
   position: relative;
-  overflow-x: auto;
-  padding-bottom: 2px;
 }
 
 .heat-months,
 .heat-grid {
   display: grid;
-  grid-template-columns: repeat(53, 13px);
+  grid-template-columns: repeat(var(--heat-cols, 53), minmax(0, 1fr));
 }
 .heat-months {
-  margin-left: 30px;
+  /* Padding, not margin: the labels are a grid of the same fractional columns
+     as the cells, so the weekday gutter has to come out of the same box for a
+     label to sit over the column it names. */
+  padding-left: 30px;
   margin-bottom: 4px;
   font-size: 10px;
   color: var(--text-3);
@@ -3329,30 +3346,51 @@ img.avatar {
   grid-row: 1;
 }
 
+/*
+  A cap, so a three-month range does not blow the squares up to thumbnails.
+  Twenty pixels a column is about twice the old size at a year's width and still
+  reads as a heatmap rather than a calendar. Under the cap the grid simply fills
+  what it is given.
+*/
+.heat-main,
+.heat-months {
+  max-width: calc(var(--heat-cols, 53) * 20px + 30px);
+}
+
 .heat-main {
   display: flex;
   gap: 4px;
 }
 .heat-weekdays {
   display: grid;
-  grid-template-rows: repeat(7, 11px);
+  /* Rows follow the cells, which are now square and sized by the column width,
+     so the labels cannot drift out of line with the rows they name. */
+  grid-template-rows: repeat(7, 1fr);
   gap: 2px;
   width: 26px;
   font-size: 9.5px;
   color: var(--text-3);
-  line-height: 11px;
+  align-items: center;
 }
 .heat-grid {
-  grid-template-rows: repeat(7, 11px);
+  flex: 1;
   gap: 2px;
 }
 
 .heat-cell {
-  width: 11px;
-  height: 11px;
+  width: 100%;
+  /* Square at whatever width the column works out to. */
+  aspect-ratio: 1;
+  min-height: 7px;
   border-radius: 2px;
   display: block;
   background: var(--heat-0);
+}
+/* The legend swatches are not in the grid and have no column to size against. */
+.heat-scale .heat-cell {
+  width: 11px;
+  height: 11px;
+  aspect-ratio: auto;
 }
 .heat-cell[data-level='1'] {
   background: var(--heat-1);
