@@ -30,6 +30,8 @@ export const AUDIT = Object.freeze({
   SETTINGS_UPDATE: 'settings.update',
   CHAT_PURGE: 'chat.purge',
 
+  MODULE_VISIBILITY: 'module.visibility',
+
   SUPERADMIN_PIN: 'system.superadmin.pin',
 });
 
@@ -55,6 +57,7 @@ export const AUDIT_LABEL = {
   [AUDIT.MOTIVATION_DELETE]: 'deleted the line',
   [AUDIT.SETTINGS_UPDATE]: 'changed the site settings',
   [AUDIT.CHAT_PURGE]: 'deleted all chat history',
+  [AUDIT.MODULE_VISIBILITY]: 'changed who can see',
   [AUDIT.SUPERADMIN_PIN]: 'promoted to super admin',
 };
 

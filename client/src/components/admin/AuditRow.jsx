@@ -12,6 +12,7 @@ const AUDIT_LABEL = {
   'pattern.update': 'edited pattern',
   'guide.save': 'saved the guide for',
   'guide.unlock': 'handed back to the seeder',
+  'module.visibility': 'changed who can see',
   'system.superadmin.pin': 'promoted to super admin',
 };
 

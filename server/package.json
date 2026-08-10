@@ -15,6 +15,7 @@
     "seed:motivation": "node scripts/seed/motivations.js",
     "ai:draft": "node scripts/ai/draft-motivations.js",
     "seed": "npm run seed:fetch && npm run seed:curate && npm run seed:db",
+    "migrate:problem-slugs": "node scripts/migrate/problem-slug-owner.js",
     "ai:probe": "node scripts/ai/probe-providers.js",
     "s3:probe": "node scripts/s3/probe-storage.js"
   },

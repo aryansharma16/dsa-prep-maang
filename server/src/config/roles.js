@@ -31,6 +31,8 @@ export const DEFAULT_ROLE = 'user';
  *   user:delete    delete an account
  *   settings:read  see the site settings and which AI providers are reachable
  *   settings:write change them — chat retention, provider order, spend caps
+ *   module:preview reach a side-menu module that is still being built
+ *   module:write   decide which modules are still being built
  *
  * `settings:write` is its own capability rather than a reuse of
  * `content:write`, even though only `super_admin` holds either one today. That
@@ -44,6 +46,12 @@ export const DEFAULT_ROLE = 'user';
  * an account means choosing its role and its first password in one step, so
  * anyone holding it can mint themselves an `admin` and sign in as it — which is
  * `user:role` by another route. It belongs to whoever already has that.
+ *
+ * `module:preview` and `module:write` are split even though one role holds both
+ * today, because they are answers to different questions. Preview is "an
+ * unfinished feature is safe in my hands"; write is "I decide when it ships to
+ * everyone". Handing a dev_member the first so they can test their own work is a
+ * reasonable thing to want later, and it must not also hand them the second.
  */
 const CAPS = {
   user: [],
@@ -65,6 +73,8 @@ const CAPS = {
     'user:delete',
     'settings:read',
     'settings:write',
+    'module:preview',
+    'module:write',
   ],
 };
 

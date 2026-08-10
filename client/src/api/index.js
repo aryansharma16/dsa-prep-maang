@@ -1,10 +1,17 @@
 import { http } from './http.js';
 
 export const authApi = {
-  register: (body) => http.post('/auth/register', body).then((r) => r.data.user),
-  login: (body) => http.post('/auth/login', body).then((r) => r.data.user),
+  /*
+    These three return the whole session — `{ user, modules }` — rather than
+    just the user, because which modules are on the side menu depends on who
+    just signed in. Handing them back together is what stops the two being
+    applied a render apart. The avatar and profile endpoints below still return
+    a bare user: they cannot change either answer.
+  */
+  register: (body) => http.post('/auth/register', body).then((r) => r.data),
+  login: (body) => http.post('/auth/login', body).then((r) => r.data),
   logout: () => http.post('/auth/logout').then((r) => r.data),
-  me: () => http.get('/auth/me').then((r) => r.data.user),
+  me: () => http.get('/auth/me').then((r) => r.data),
   /** Your own name and profile fields. Returns the whole updated user. */
   updateMe: (body) => http.patch('/auth/me', body).then((r) => r.data.user),
 
@@ -166,6 +173,11 @@ export const adminApi = {
   updateSettings: (body) => http.patch('/admin/settings', body).then((r) => r.data),
   chatUsage: () => http.get('/admin/settings/chat-usage').then((r) => r.data.days),
   purgeChats: () => http.post('/admin/settings/chat-purge').then((r) => r.data),
+
+  /** Both return the whole module list, so the panel never patches one row. */
+  modules: () => http.get('/admin/modules').then((r) => r.data.modules),
+  setModuleHidden: (key, hidden) =>
+    http.patch('/admin/modules', { key, hidden }).then((r) => r.data.modules),
 
   guides: () => http.get('/admin/guides').then((r) => r.data.guides),
   guide: (slug) => http.get(`/admin/guides/${slug}`).then((r) => r.data),

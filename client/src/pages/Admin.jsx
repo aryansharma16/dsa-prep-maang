@@ -2,6 +2,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { AdminAudit } from '../components/admin/AdminAudit.jsx';
 import { AdminChat } from '../components/admin/AdminChat.jsx';
 import { AdminGuides } from '../components/admin/AdminGuides.jsx';
+import { AdminModules } from '../components/admin/AdminModules.jsx';
 import { AdminMotivation } from '../components/admin/AdminMotivation.jsx';
 import { AdminOverview } from '../components/admin/AdminOverview.jsx';
 import { AdminPatterns } from '../components/admin/AdminPatterns.jsx';
@@ -20,6 +21,9 @@ const SECTIONS = [
   // `settings:read`, not `settings:write` — an admin can see whether chat is up
   // and which providers are reachable; the panel itself refuses their edits.
   { id: 'chat', label: 'AI Chat', Component: AdminChat, cap: 'settings:read' },
+  // Same reasoning: an admin can see that Notes is hidden on purpose rather
+  // than broken, and only the super admin can change it.
+  { id: 'modules', label: 'Modules', Component: AdminModules, cap: 'settings:read' },
   { id: 'activity', label: 'Activity', Component: AdminAudit },
 ];
 

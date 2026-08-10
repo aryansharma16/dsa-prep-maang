@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+import { MODULE_KEYS } from '../config/modules.js';
 import { DEFAULT_ORDER, PROVIDER_IDS } from '../services/ai/registry.js';
 
 /**
@@ -61,6 +62,31 @@ const settingSchema = new mongoose.Schema(
 
       /** Hard ceiling is in the zod schema; this is the policy inside it. */
       maxInputChars: { type: Number, default: 4000, min: 200, max: 4000 },
+    },
+
+    modules: {
+      /**
+       * Side-menu modules that are still being built.
+       *
+       * A list of what is *hidden* rather than a flag per module, so the
+       * default is the empty array and a module added to config/modules.js
+       * ships visible without a migration writing a row for it. The inverse —
+       * storing what is shown — would make every new module invisible on every
+       * deployment until someone remembered to go and enable it.
+       *
+       * Membership means "super admin only": the nav item disappears, the
+       * client route stops existing, and `requireModule` answers 404 on the API
+       * behind it. See config/modules.js for why the roadmap is not eligible.
+       */
+      hidden: {
+        type: [String],
+        default: () => [],
+        validate: {
+          validator: (list) =>
+            list.every((key) => MODULE_KEYS.includes(key)) && new Set(list).size === list.length,
+          message: 'Unknown or duplicated module',
+        },
+      },
     },
 
     // Denormalised alongside the id for the same reason AuditLog keeps

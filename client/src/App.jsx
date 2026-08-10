@@ -14,10 +14,12 @@ import { Roadmap } from './pages/Roadmap.jsx';
 import { SharedNote } from './pages/SharedNote.jsx';
 import { Stats } from './pages/Stats.jsx';
 import { useAuth } from './store/AuthContext.jsx';
+import { moduleVisible } from './store/modules.js';
 import { RoadmapProvider } from './store/RoadmapContext.jsx';
 
 export function App() {
-  const { user, ready } = useAuth();
+  const { user, ready, modules } = useAuth();
+  const has = (key) => moduleVisible(modules, key);
 
   // Wait for the session check before routing, or a refresh would bounce you to
   // the login screen for a frame.
@@ -31,7 +33,12 @@ export function App() {
         {/* A shared note opens for someone with no account — that is what the
             link is for. Declared in both branches rather than hoisted above
             them, because the page itself changes with the session: signed in it
-            offers "my notes", signed out it offers the product. */}
+            offers "my notes", signed out it offers the product.
+
+            No module check on this side: nobody is signed in, so there is no
+            module list to check against. The server answers 404 for a hidden
+            notes module regardless, and the page renders that as "this note is
+            not available" — the same as an expired link. */}
         <Route path="/n/:publicId" element={<SharedNote />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
@@ -51,13 +58,24 @@ export function App() {
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<Roadmap />} />
-            <Route path="/revision" element={<Revision />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/notes" element={<Notes />} />
-            <Route path="/notes/new" element={<NoteEdit />} />
-            <Route path="/notes/:id" element={<NoteView />} />
-            <Route path="/notes/:id/edit" element={<NoteEdit />} />
+            {/*
+              A module the super admin has hidden is not declared at all, so its
+              URL falls through to the catch-all and lands on the roadmap —
+              indistinguishable from a route that was never built, which is the
+              same line /admin takes below. Cosmetic, like every guard in this
+              file: `requireModule` locks the API behind each of these.
+            */}
+            {has('revision') && <Route path="/revision" element={<Revision />} />}
+            {has('stats') && <Route path="/stats" element={<Stats />} />}
+            {has('chat') && <Route path="/chat" element={<Chat />} />}
+            {has('notes') && (
+              <>
+                <Route path="/notes" element={<Notes />} />
+                <Route path="/notes/new" element={<NoteEdit />} />
+                <Route path="/notes/:id" element={<NoteView />} />
+                <Route path="/notes/:id/edit" element={<NoteEdit />} />
+              </>
+            )}
             <Route path="/profile" element={<Profile />} />
             {/* Guards itself. A learner who types /admin is redirected home, so
                 the route is indistinguishable from one that does not exist. */}

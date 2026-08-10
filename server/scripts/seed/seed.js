@@ -63,10 +63,22 @@ async function main() {
 
   // $set only the seeded fields so a re-run never wipes a cached description.
   const incoming = problems.filter((p) => !lockedProblems.has(p.slug));
+  /*
+    `owner: null` is part of the filter, not just the update.
+
+    Without it this matches on slug alone, so the first time a curated problem
+    is one a user had already added for themselves, the upsert reaches *their*
+    row and sets `owner: null` on it — quietly publishing one person's private
+    addition to every account on the deployment. Since problems became unique
+    per owner it would also be picking one of several rows arbitrarily.
+
+    With it, the seeded copy is created alongside theirs and the two stay
+    separate. Their duplicate is theirs to delete.
+  */
   const result = await Problem.bulkWrite(
     incoming.map((p) => ({
       updateOne: {
-        filter: { slug: p.slug },
+        filter: { slug: p.slug, owner: null },
         update: { $set: { ...p, owner: null, ...(force ? { editedAt: null, editedBy: null } : {}) } },
         upsert: true,
       },

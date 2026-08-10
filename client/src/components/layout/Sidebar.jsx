@@ -2,16 +2,13 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BRAND } from '../../brand.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { ROLE_LABEL, can } from '../../store/caps.js';
+import { MODULE_NAV, modulePreview, moduleVisible } from '../../store/modules.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import {
-  IconChart,
-  IconChat,
   IconChevronRight,
   IconGrid,
   IconMenu,
-  IconNote,
-  IconRotate,
   IconShield,
 } from '../ui/Icons.jsx';
 
@@ -31,7 +28,7 @@ const abbrev = (name) =>
 
 export function Sidebar({ collapsed, onToggle, onNavigate }) {
   const { groups, totals } = useRoadmap();
-  const { user } = useAuth();
+  const { user, modules } = useAuth();
   const [patternsOpen, setPatternsOpen] = useLocalState('sidebar-patterns-open', true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,6 +36,17 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
   // Staff only. Cosmetic — the server refuses the routes regardless — but a
   // learner should never see a door they cannot open.
   const showAdmin = can(user, 'panel');
+
+  /*
+    One list feeding both the rail and the expanded menu, rather than the two
+    branches below each holding their own copy of the same five links. A module
+    hidden by the super admin has to disappear from both — with two lists that
+    is a thing you have to remember, and with one it is not a thing at all.
+
+    The roadmap is not in here: it is the app's home, where the catch-all route
+    and every redirect land, so it is never hideable. See config/modules.js.
+  */
+  const nav = MODULE_NAV.filter((item) => moduleVisible(modules, item.key));
 
   const goToPattern = (slug) => {
     if (location.pathname !== '/') navigate(`/?pattern=${slug}`);
@@ -71,38 +79,19 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
             <NavLink onClick={onNavigate} to="/" className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`} title="Roadmap">
               <IconGrid size={15} />
             </NavLink>
-            <NavLink
-              onClick={onNavigate}
-              to="/revision"
-              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
-              title="Revision"
-            >
-              <IconRotate size={15} />
-            </NavLink>
-            <NavLink
-              onClick={onNavigate}
-              to="/stats"
-              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
-              title="Stats"
-            >
-              <IconChart size={15} />
-            </NavLink>
-            <NavLink
-              onClick={onNavigate}
-              to="/chat"
-              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
-              title="AI Chat"
-            >
-              <IconChat size={15} />
-            </NavLink>
-            <NavLink
-              onClick={onNavigate}
-              to="/notes"
-              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
-              title="Notes"
-            >
-              <IconNote size={15} />
-            </NavLink>
+            {nav.map(({ key, to, label, Icon }) => (
+              <NavLink
+                key={key}
+                onClick={onNavigate}
+                to={to}
+                className={({ isActive }) =>
+                  `rail-item ${isActive ? 'active' : ''} ${modulePreview(modules, key) ? 'in-dev' : ''}`
+                }
+                title={modulePreview(modules, key) ? `${label} — in development` : label}
+              >
+                <Icon size={15} />
+              </NavLink>
+            ))}
             {showAdmin && (
               <NavLink
                 to="/admin"
@@ -133,26 +122,20 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
                 {totals.solved}/{totals.total}
               </span>
             </NavLink>
-            <NavLink
-              onClick={onNavigate}
-              to="/revision"
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-            >
-              <IconRotate size={14} />
-              Revision
-            </NavLink>
-            <NavLink onClick={onNavigate} to="/stats" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <IconChart size={14} />
-              Stats
-            </NavLink>
-            <NavLink onClick={onNavigate} to="/chat" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <IconChat size={14} />
-              AI Chat
-            </NavLink>
-            <NavLink onClick={onNavigate} to="/notes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <IconNote size={14} />
-              Notes
-            </NavLink>
+            {nav.map(({ key, to, label, Icon }) => (
+              <NavLink
+                key={key}
+                onClick={onNavigate}
+                to={to}
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={14} />
+                {label}
+                {/* Only ever rendered for someone holding `module:preview`, so
+                    the badge doubles as the reason nobody else sees this row. */}
+                {modulePreview(modules, key) && <span className="dev-pill">Dev</span>}
+              </NavLink>
+            ))}
             {showAdmin && (
               <NavLink
                 to="/admin"

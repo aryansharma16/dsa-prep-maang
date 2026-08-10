@@ -22,7 +22,10 @@ const sheetSchema = new mongoose.Schema(
 
 const problemSchema = new mongoose.Schema(
   {
-    slug: { type: String, required: true, unique: true, index: true },
+    /**
+     * Unique per owner, not globally — see the compound index below.
+     */
+    slug: { type: String, required: true },
     title: { type: String, required: true },
     source: {
       type: String,
@@ -94,6 +97,27 @@ const problemSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+/**
+ * A slug identifies a problem *within one person's list*, which is why this is
+ * compound rather than a unique constraint on `slug` alone.
+ *
+ * Globally unique looks right until two people add the same LeetCode problem.
+ * The second one is refused — and refused with "that problem is already in your
+ * list", about a row they cannot see and did not create. One learner adding a
+ * problem must not be able to change what another learner is allowed to add;
+ * that is the whole meaning of a private addition.
+ *
+ * Mongo treats `owner: null` as a value here, so the seeded curriculum still
+ * gets exactly one row per slug and each user gets at most one of their own
+ * alongside it. That is the constraint that actually matters: nobody ends up
+ * with the same problem twice in one list.
+ *
+ * Queries by slug alone still use this index — it is the leading field — so the
+ * standalone one it replaced is not missed. It does mean `findOne({ slug })`
+ * with no owner is now ambiguous by construction, and every caller scopes it.
+ */
+problemSchema.index({ slug: 1, owner: 1 }, { unique: true });
 
 // The roadmap query walks patterns in order, then problems in ramp order.
 problemSchema.index({ patternSlug: 1, patternOrder: 1 });

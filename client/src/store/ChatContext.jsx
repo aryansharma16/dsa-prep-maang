@@ -3,7 +3,9 @@ import { errorMessage } from '../api/http.js';
 import { chatApi } from '../api/index.js';
 import { streamChat } from '../api/stream.js';
 import { useLocalState } from '../hooks/useLocalState.js';
+import { useAuth } from './AuthContext.jsx';
 import { chatStream } from './chatStream.js';
+import { moduleVisible } from './modules.js';
 
 /**
  * One conversation state for the whole app.
@@ -32,6 +34,16 @@ const FALLBACK_SUGGESTIONS = [
 ];
 
 export function ChatProvider({ children }) {
+  /*
+    The provider stays mounted when chat is hidden — its consumers would have to
+    cope with a null context otherwise, and none of them are rendered anyway —
+    but it stops reaching for the API. Without this, hiding chat leaves every
+    session making two requests on boot for a feature it cannot see, and both
+    now answer 404.
+  */
+  const { modules } = useAuth();
+  const enabledHere = moduleVisible(modules, 'chat');
+
   const [config, setConfig] = useState(null);
   const [configError, setConfigError] = useState('');
   /**
@@ -75,6 +87,7 @@ export function ChatProvider({ children }) {
   }, [dockOpen]);
 
   useEffect(() => {
+    if (!enabledHere) return undefined;
     let live = true;
     chatApi
       .config()
@@ -101,11 +114,12 @@ export function ChatProvider({ children }) {
     return () => {
       live = false;
     };
-  }, [setModel]);
+  }, [enabledHere, setModel]);
 
   const refreshList = useCallback(() => {
+    if (!enabledHere) return;
     chatApi.conversations().then(setConversations).catch(() => {});
-  }, []);
+  }, [enabledHere]);
 
   useEffect(() => {
     refreshList();

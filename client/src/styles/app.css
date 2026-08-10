@@ -3655,6 +3655,31 @@ img.avatar {
 }
 
 /*
+  A module only the super admin can see. Same shape as a role pill because it
+  answers the same kind of question in the same places — but on the nav item it
+  is saying "this is unfinished", not "this is who you are", so it borrows the
+  warning tint rather than the accent.
+*/
+.dev-pill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--medium);
+  background: var(--medium-bg);
+  border: 1px solid transparent;
+}
+
+/* The collapsed rail has no room for the pill, so the icon carries it. */
+.rail-item.in-dev {
+  color: var(--medium);
+}
+
+/*
   Not .datatable: that one right-aligns every column after the first at a fixed
   78px, which suits the stats table and makes emails and action clusters look
   broken.

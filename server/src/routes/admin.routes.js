@@ -12,6 +12,11 @@ import {
   updateSettings,
 } from '../controllers/admin/settings.controller.js';
 import {
+  listModules,
+  moduleSchema,
+  setModuleHidden,
+} from '../controllers/admin/modules.controller.js';
+import {
   createProblem,
   deleteProblem,
   getProblem,
@@ -233,3 +238,13 @@ adminRouter.get('/settings', requireCap('settings:read'), getSettings);
 adminRouter.patch('/settings', requireCap('settings:write'), validate(settingsSchema), updateSettings);
 adminRouter.get('/settings/chat-usage', requireCap('settings:read'), getChatUsage);
 adminRouter.post('/settings/chat-purge', requireCap('settings:write'), purgeChats);
+
+/* -------------------------------------------------------------- modules */
+
+/*
+  Split the same way, and for a sharper reason: reading tells an admin that Notes
+  is missing on purpose rather than broken, while writing takes a feature away
+  from every learner on the deployment. `module:write` is the super admin's.
+*/
+adminRouter.get('/modules', requireCap('settings:read'), listModules);
+adminRouter.patch('/modules', requireCap('module:write'), validate(moduleSchema), setModuleHidden);

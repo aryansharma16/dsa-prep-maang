@@ -10,6 +10,18 @@ import { youtubeId } from '../utils/links.js';
 
 const oid = (id) => new mongoose.Types.ObjectId(id);
 
+/**
+ * The visibility rule, in one place: the seeded curriculum, plus your own
+ * additions, and nothing else.
+ *
+ * Every read of a problem goes through this. It matters most on the queries
+ * that take a slug rather than an id — since problems became unique per owner
+ * a slug can name more than one document, and an unscoped `findOne({ slug })`
+ * would return whichever the index reached first. That is someone else's row
+ * roughly half the time.
+ */
+const visibleTo = (userId) => ({ $or: [{ owner: null }, { owner: oid(userId) }] });
+
 // Fields the roadmap never needs. descriptionHtml in particular is many KB per
 // problem and would balloon a 400-problem payload.
 const ROADMAP_EXCLUDE = {
@@ -33,7 +45,7 @@ export const listGrouped = asyncHandler(async (req, res) => {
   const userId = oid(req.userId);
 
   const groups = await Problem.aggregate([
-    { $match: { $or: [{ owner: null }, { owner: userId }] } },
+    { $match: visibleTo(req.userId) },
     { $project: ROADMAP_EXCLUDE },
     { $sort: { patternOrder: 1, score: -1 } },
     {
@@ -109,7 +121,10 @@ export const listGrouped = asyncHandler(async (req, res) => {
 
 /** GET /api/problems/:slug/description — lazily fetched and cached on first open. */
 export const getDescription = asyncHandler(async (req, res) => {
-  const problem = await Problem.findOne({ slug: req.params.slug });
+  // Scoped, so this cannot be used to confirm that someone else has added a
+  // given problem — and so the row it caches the description onto is the one
+  // the caller is actually reading.
+  const problem = await Problem.findOne({ slug: req.params.slug, ...visibleTo(req.userId) });
   if (!problem) throw ApiError.notFound('Problem not found');
 
   if (problem.descriptionHtml) {
@@ -142,7 +157,15 @@ export const lookup = asyncHandler(async (req, res) => {
     return res.json({ found: false, reason: 'Not a LeetCode problem URL' });
   }
 
-  const existing = await Problem.findOne({ slug }).select('slug title patternSlug');
+  /*
+    "Already tracked" has to mean *by you*. Answering it from the whole
+    collection tells one learner that another has added this problem, hands
+    them its title and pattern, and then refuses the add — all about a row that
+    is not theirs and that they will never see on the roadmap.
+  */
+  const existing = await Problem.findOne({ slug, ...visibleTo(req.userId) }).select(
+    'slug title patternSlug',
+  );
   if (existing) {
     return res.json({ found: true, alreadyTracked: true, problem: existing });
   }
@@ -191,12 +214,20 @@ export const createCustom = asyncHandler(async (req, res) => {
   const lcSlug = slugFromUrl(url);
   const slug = lcSlug || `custom-${req.userId.slice(-6)}-${Date.now().toString(36)}`;
 
-  if (lcSlug && (await Problem.findOne({ slug: lcSlug }))) {
+  // Scoped for the same reason the lookup above is: the message says "your
+  // list", so the query has to be about your list. Someone else having added
+  // this problem is not a reason to refuse you — see the compound index on the
+  // Problem model, which is what makes both rows able to exist.
+  if (lcSlug && (await Problem.findOne({ slug: lcSlug, ...visibleTo(req.userId) }))) {
     throw ApiError.conflict('That problem is already in your list', 'DUPLICATE');
   }
 
-  // Put custom problems at the end of their pattern.
-  const last = await Problem.findOne({ patternSlug }).sort({ patternOrder: -1 }).select('patternOrder');
+  // Put custom problems at the end of their pattern — of *your* pattern, so
+  // where yours lands does not depend on how many problems strangers have added
+  // to it.
+  const last = await Problem.findOne({ patternSlug, ...visibleTo(req.userId) })
+    .sort({ patternOrder: -1 })
+    .select('patternOrder');
 
   const clean = (list) => [...new Set(list.map((s) => s.trim()).filter(Boolean))];
 

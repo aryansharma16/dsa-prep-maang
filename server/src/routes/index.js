@@ -25,6 +25,7 @@ import {
 } from '../controllers/progress.controller.js';
 import { getStats } from '../controllers/stats.controller.js';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { requireModule } from '../middleware/requireModule.js';
 import { validate } from '../middleware/validate.js';
 import { aiEnabled } from '../services/gemini.service.js';
 import { uploadsEnabled } from '../services/media.service.js';
@@ -86,8 +87,14 @@ router.get('/motivation/login', getLoginMotivation);
  * the guarantee is a property of the notes service, not of this line's position
  * in this file. A private note 404s here exactly as it does for a signed-in
  * stranger, and the share id is 11 random characters, so it cannot be walked.
+ *
+ * `requireModule` applies here too, and it has to. Notes being hidden means the
+ * module has not shipped, and a share link is the one part of it that reaches
+ * people who never signed in — leaving this open would publish an unfinished
+ * feature to exactly the audience it was withheld from. The super admin's own
+ * links still open for them: they hold `module:preview`.
  */
-router.use('/notes/public', sharedNoteRouter);
+router.use('/notes/public', requireModule('notes'), sharedNoteRouter);
 
 // Everything below needs a session.
 router.use(requireAuth);
@@ -101,7 +108,13 @@ router.use(requireAuth);
 */
 router.use('/admin', adminRouter);
 
-router.use('/chat', chatRouter);
+/*
+  `requireModule` guards the four learner modules that can be taken off the side
+  menu while they are being built. It sits on the mount rather than inside each
+  router, so a route added to notes or chat tomorrow is covered by having been
+  added there at all — see config/modules.js.
+*/
+router.use('/chat', requireModule('chat'), chatRouter);
 
 router.get('/patterns', listPatterns);
 router.get('/patterns/:slug/guide', getGuide);
@@ -112,12 +125,12 @@ router.post('/problems', validate(createSchema), createCustom);
 router.get('/problems/:slug/description', getDescription);
 router.delete('/problems/:id', removeCustom);
 
-router.get('/progress/revision', revisionQueue);
+router.get('/progress/revision', requireModule('revision'), revisionQueue);
 router.patch('/progress/:problemId', validate(patchSchema), patchProgress);
 router.post('/progress/:problemId/attempt', validate(attemptSchema), logAttempt);
 
-router.get('/stats', getStats);
+router.get('/stats', requireModule('stats'), getStats);
 
-router.use('/notes', noteRouter);
+router.use('/notes', requireModule('notes'), noteRouter);
 
 router.get('/motivation', validate(surfaceQuery, 'query'), getMotivation);

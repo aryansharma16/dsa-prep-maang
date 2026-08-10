@@ -9,6 +9,28 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 const oid = (id) => new mongoose.Types.ObjectId(id);
 
 /**
+ * The problem this progress row is about, if the caller may see it at all.
+ *
+ * Both endpoints below take a problem id from the URL and write a row keyed to
+ * it, so without the `owner` clause an id is enough to attach yourself to
+ * somebody else's private addition — and the revision queue populates the
+ * problem it points at, which would then show you their problem. The same
+ * filter as the roadmap and the chat context, for the same reason.
+ *
+ * 404 rather than 403: a problem you cannot see should not be distinguishable
+ * from one that does not exist.
+ */
+async function visibleProblem(problemId, userId) {
+  const problem = await Problem.findOne({
+    _id: problemId,
+    $or: [{ owner: null }, { owner: oid(userId) }],
+  }).select('_id');
+
+  if (!problem) throw ApiError.notFound('Problem not found');
+  return problem;
+}
+
+/**
  * Two upserts racing on a problem with no progress row yet both miss the
  * document and both try to insert, so one loses on the {user, problem} unique
  * index. Clicking a status twice quickly is enough to trigger it. By the time we
@@ -40,8 +62,7 @@ export const patchSchema = z
  * after already applying the change locally, so it must be cheap and idempotent.
  */
 export const patchProgress = asyncHandler(async (req, res) => {
-  const problem = await Problem.findById(req.params.problemId).select('_id');
-  if (!problem) throw ApiError.notFound('Problem not found');
+  const problem = await visibleProblem(req.params.problemId, req.userId);
 
   const existing = await Progress.findOne({ user: oid(req.userId), problem: problem._id });
   const update = { ...req.body };
@@ -77,8 +98,7 @@ export const attemptSchema = z.object({
 
 /** POST /api/progress/:problemId/attempt — the two-tap "log attempt" popover. */
 export const logAttempt = asyncHandler(async (req, res) => {
-  const problem = await Problem.findById(req.params.problemId).select('_id');
-  if (!problem) throw ApiError.notFound('Problem not found');
+  const problem = await visibleProblem(req.params.problemId, req.userId);
 
   const { minutes, outcome, confidence } = req.body;
   const existing = await Progress.findOne({ user: oid(req.userId), problem: problem._id });

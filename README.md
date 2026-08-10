@@ -26,6 +26,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
 | **Motivation** | A line under every page heading, chosen from what you have actually solved |
 | **Admin** | Four roles, user management, content editing, a guide block editor and an audit log |
+| **Modules** | The super admin can hide a side-menu module while it is being built — gone from the menu, the routes and the API, for everyone but them |
 
 ## Running it
 
@@ -68,6 +69,7 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:motivation` | writes the 160 motivational lines |
 | `npm run seed:logos` | pre-warms the company logo cache |
 | `npm run ai:draft` | drafts new motivational lines with Gemini, for you to curate |
+| `npm run migrate:problem-slugs` | one-off: makes a problem slug unique per owner rather than globally — see [Yours is yours](#yours-is-yours) |
 
 ## The curriculum
 
@@ -404,6 +406,10 @@ administration are delegable.
 | Set password / revoke  |  –   |   ✓   |     –      |      ✓      |
 | Assign roles           |  –   |   –   |     –      |      ✓      |
 | Delete an account      |  –   |   –   |     –      |      ✓      |
+| See site settings      |  –   |   ✓   |     ✓      |      ✓      |
+| **Change site settings** |  –   |   –   |     –      |      ✓      |
+| **See a module in development** | – | – |    –      |      ✓      |
+| **Hide / release a module** | –  |   –   |     –      |      ✓      |
 
 **This is not a ladder**, which is why `config/roles.js` is a capability set per
 role rather than a numeric rank. `dev_member` writes guides but must never touch
@@ -489,12 +495,65 @@ dialog that matters, so this is tiered:
 | Later saves of that guide | straight through; the skip is already true |
 | Reorder, edit or delete a *draft* block | **nothing.** Undo, not confirm — it has not left the browser |
 
+### Modules in development
+
+**Admin → Modules.** A side-menu module the super admin has hidden keeps working
+for them and stops existing for everyone else. It is how a half-built feature
+lives in `main` instead of on a branch nobody merges.
+
+| module | route |
+|---|---|
+| Revision | `/revision` |
+| Stats | `/stats` |
+| AI Chat | `/chat` |
+| Notes | `/notes` |
+
+The roadmap is deliberately not eligible: it is where the catch-all route, the
+admin redirect and every other redirect land, so hiding it would mean inventing
+a second place for people to end up.
+
+**Hidden means three things at once**, and the third is the one that matters:
+
+1. the nav item is not drawn — in the rail *and* in the expanded menu, both fed
+   from one list in `client/src/store/modules.js` so neither can be forgotten;
+2. the client route is not declared, so the URL falls through to the catch-all
+   and lands on the roadmap — indistinguishable from a route that was never
+   built, the same line `/admin` takes;
+3. **the API answers 404.** `requireModule(key)` sits on the mount in
+   `routes/index.js`. Without it, hiding a module is a hidden door: the link is
+   gone and `/api/notes` still answers anyone who reads the bundle or kept a
+   bookmark.
+
+404 rather than 403, worded identically to the `notFound` middleware, because a
+403 announces that the feature exists. The super admin sees the module with a
+**Dev** badge, so an unfinished page is never mistaken for a shipped one.
+
+Notes is the one module with a public surface — `/api/notes/public/:publicId`,
+the share links — and that is gated too. Hiding the module means it has not
+shipped, so publishing it to people who never signed in is the opposite of the
+intent. Existing links resume working when it is released; nothing is deleted.
+
+Two capabilities, not one: `module:preview` is "an unfinished feature is safe in
+my hands", `module:write` is "I decide when it ships". Both are the super
+admin's today, and handing a dev_member the first later must not hand them the
+second.
+
+The state lives in the `Setting` document as a list of what is *hidden*, so a
+module added to `server/src/config/modules.js` ships visible with no migration
+and no row to remember to write. It is cached for 30s like the rest of the
+settings, so a change can take up to that long to reach the pm2 workers that did
+not serve the write.
+
 ### Activity
 
 Every content and user change is recorded with who, what and when, filterable by
 action and by person. The actor's email is copied onto the row rather than
 joined, so history stays readable after the account that made it is deleted —
 which is exactly when you want to read it.
+
+Hiding or releasing a module is recorded as `module.visibility`, phrased by
+audience — *everyone → super admin only* — because a `hidden: false → true`
+reads backwards at a glance and this log exists to be skimmed.
 
 ## Motivation
 
@@ -678,6 +737,49 @@ promoting a problem into the shared list stays possible: `owner` would go `null`
 while `addedBy` keeps pointing at whoever contributed it. Collapsing them into
 one field would destroy that information permanently.
 
+### Yours is yours
+
+The seeded curriculum is `owner: null` and global to every account. Everything
+you add is `owner: <you>` and reaches nobody else — not the roadmap, not stats,
+not the revision queue, not the chat context, not a shared link.
+
+One filter says so, and every read of a problem goes through it:
+
+```js
+{ $or: [{ owner: null }, { owner: userId }] }
+```
+
+The queries that take an **id** carry it too, including the two progress
+endpoints. Without it a problem id is enough to attach yourself to someone
+else's private addition — and the revision queue populates the problem it points
+at, so their problem would then appear on your page.
+
+**A slug is unique per owner, not globally** — `{ slug: 1, owner: 1 }` on
+`Problem`. Globally unique looks right until two people add the same LeetCode
+problem: the second one is refused, with *"that problem is already in your
+list"*, about a row they cannot see and did not create. One learner adding a
+problem must not change what another is allowed to add. Mongo counts
+`owner: null` as a value here, so the curriculum still gets exactly one row per
+slug and each account gets at most one of its own beside it.
+
+Two consequences worth knowing:
+
+- Every read by slug is now ambiguous unless it is scoped, so `lookup`,
+  `getDescription` and the duplicate check all carry the owner clause. "Already
+  tracked" means *by you*.
+- The seeder upserts on `{ slug, owner: null }`. On slug alone, the first
+  curated problem that someone had already added for themselves would have
+  `owner: null` set on *their* row — quietly publishing one person's private
+  addition to the whole deployment.
+
+Deployments that predate this need the index swapped once. Mongoose creates the
+new one on boot but never drops the old one, so without this the original unique
+`slug_1` is still there and still refusing the second person:
+
+```bash
+npm run migrate:problem-slugs   # in server/, safe to run twice
+```
+
 ## Shared UI
 
 `components/ui/Modal.jsx` is the base dialog — focus trap, Escape, backdrop
@@ -757,7 +859,7 @@ client/
 | method | route | |
 |---|---|---|
 | `POST` | `/auth/register` · `/auth/login` · `/auth/logout` · `/auth/refresh` | session |
-| `GET` `PATCH` | `/auth/me` | the signed-in user, and editing your own details |
+| `GET` `PATCH` | `/auth/me` | the signed-in user with their capabilities and visible modules, and editing your own details |
 | `POST` `DELETE` | `/auth/me/avatar` | profile picture |
 | `GET` | `/patterns` · `/patterns/:slug/guide` | curriculum and guides |
 | `GET` | `/problems` · `/problems/:slug/description` | roadmap, statement on demand |

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { User, publicUser } from '../models/User.js';
 import { loginUser, registerUser } from '../services/auth.service.js';
+import { moduleAccess } from '../services/settings.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import {
@@ -21,16 +22,34 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+/**
+ * Everything the client needs to draw the app for this person.
+ *
+ * `modules` travels with the user rather than through an endpoint of its own so
+ * the two arrive together and cannot disagree: there is no frame in which the
+ * side menu has been drawn from a stale module list against a fresh account, or
+ * the reverse. It is on all four session responses for the same reason — a sign
+ * in has to be able to change the menu, because which modules you can see
+ * depends on who you now are.
+ *
+ * A rendering convenience, exactly like `caps`. The routes are locked
+ * independently in `requireModule`.
+ */
+const session = async (user) => ({
+  user: publicUser(user),
+  modules: await moduleAccess(user.role),
+});
+
 export const register = asyncHandler(async (req, res) => {
   const user = await registerUser(req.body);
   setAuthCookies(res, user);
-  res.status(201).json({ user: publicUser(user) });
+  res.status(201).json(await session(user));
 });
 
 export const login = asyncHandler(async (req, res) => {
   const user = await loginUser(req.body);
   setAuthCookies(res, user);
-  res.json({ user: publicUser(user) });
+  res.json(await session(user));
 });
 
 export const refresh = asyncHandler(async (req, res) => {
@@ -65,7 +84,7 @@ export const refresh = asyncHandler(async (req, res) => {
   }
 
   setAuthCookies(res, user);
-  res.json({ user: publicUser(user) });
+  res.json(await session(user));
 });
 
 export const logout = asyncHandler(async (_req, res) => {
@@ -76,5 +95,5 @@ export const logout = asyncHandler(async (_req, res) => {
 export const me = asyncHandler(async (req, res) => {
   const user = await User.findById(req.userId);
   if (!user) throw ApiError.unauthorized('Account no longer exists', 'NO_USER');
-  res.json({ user: publicUser(user) });
+  res.json(await session(user));
 });

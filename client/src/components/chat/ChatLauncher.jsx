@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../store/AuthContext.jsx';
 import { useChat } from '../../store/ChatContext.jsx';
+import { moduleVisible } from '../../store/modules.js';
 import { IconChat, IconClose } from '../ui/Icons.jsx';
 import { ChatPanel } from './ChatPanel.jsx';
 
@@ -13,6 +15,7 @@ import { ChatPanel } from './ChatPanel.jsx';
  */
 export function ChatLauncher() {
   const { dockOpen, setDockOpen, streaming, unread } = useChat();
+  const { modules } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -22,6 +25,14 @@ export function ChatLauncher() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [dockOpen, setDockOpen]);
+
+  /*
+    The bubble floats over every page, so it is the one part of chat that
+    outlives its own nav item — hiding the module has to take this with it, or
+    the side menu loses a link and the app keeps a button that opens the whole
+    feature anyway.
+  */
+  if (!moduleVisible(modules, 'chat')) return null;
 
   if (pathname === '/chat') return null;
 
