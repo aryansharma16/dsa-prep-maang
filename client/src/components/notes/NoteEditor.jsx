@@ -372,7 +372,19 @@ export function NoteEditor({ noteId = null, onExit }) {
             {preview ? (
               <article className="nr">
                 <NoteHeader meta={meta} />
-                <NoteBlocks blocks={payload.blocks} />
+                {/*
+                  The draft, not `payload.blocks`. They differ in exactly the
+                  way that matters here: `toPayload` reduces every asset to the
+                  `fileId` the server wants and drops the `url`, because the
+                  server rebuilds it from the File row. Rendering that shape
+                  gives every image an undefined `src`, so a note previews with
+                  its text and code intact and its pictures missing.
+
+                  Filtered the same way the payload is, so a half-finished block
+                  — an Image with no file yet — stays out of the preview
+                  instead of rendering as a gap.
+                */}
+                <NoteBlocks blocks={blocks.filter(isSendable)} />
               </article>
             ) : (
               <>

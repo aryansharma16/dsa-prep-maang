@@ -392,6 +392,40 @@ companion to enabling multipart.
 
 ---
 
+## How traffic reaches the app
+
+The browser never talks to EC2 directly. The client is a static Vite build on
+**Vercel**, and Vercel rewrites the API path to the instance
+([client/vercel.json](../client/vercel.json)):
+
+```
+browser → dsa-prep-maang.vercel.app        (Vercel, static)
+        → /api/*  rewritten to
+          https://api.algoforge.work/api/* (DNS → 13.204.111.119, the Elastic IP)
+        → :443 → reverse proxy on the instance → node on :4000
+```
+
+Three things follow from this shape, and they explain settings that look odd in
+isolation:
+
+- **The security group needs only 443**, because the rewrite is server-side.
+  Vercel calls the origin over HTTPS; nothing reaches Node's port directly.
+- **`api.algoforge.work` must resolve to the Elastic IP.** That is why the
+  address is elastic rather than the instance's default public IP — a
+  stop/start would otherwise break DNS and the certificate.
+- **There is no browser CORS involved** in normal API calls. The rewrite makes
+  them same-origin from the browser's point of view, which is why no CORS
+  configuration is needed on Vercel's side either.
+
+The reverse proxy and its TLS certificate live on the instance and are not
+captured in this repo. `sudo certbot renew --dry-run` on the box is the check
+that matters, since port 80 is closed and the HTTP-01 challenge needs it.
+
+> **Stale config:** [render.yaml](../render.yaml) at the repo root still
+> describes deploying the API to Render, from before the move to EC2. It is not
+> used by anything and is worth deleting so the next person does not read it as
+> the live topology.
+
 ## Deployment
 
 Pushes to `main` that touch `server/**` trigger
