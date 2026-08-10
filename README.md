@@ -544,6 +544,39 @@ and no row to remember to write. It is cached for 30s like the rest of the
 settings, so a change can take up to that long to reach the pm2 workers that did
 not serve the write.
 
+### Seeing an account
+
+**Admin → Users** lists everyone with two recency columns, because they answer
+different questions and one alone misleads:
+
+| column | is | comes from |
+|---|---|---|
+| **Active** | when they last had the app open | `lastSeenAt`, stamped by the refresh endpoint |
+| **Signed in** | when they last typed a password | `lastLoginAt`, stamped at login |
+
+A sign-in months ago on an account seen this morning only means the session
+never lapsed; the pair is what separates dormant from long-lived. `lastSeenAt`
+is written from `POST /auth/refresh` rather than from `requireAuth` on purpose —
+refresh already loads the account and runs about every fifteen minutes for an
+open tab, so "last active" costs one write per active user per window instead of
+one on every request in the API.
+
+Opening an account shows a read-only **study record**: solved and attempted,
+current and best streak, active days, logged attempts and time, how much is
+flagged or due for revision, their last ten solves, and every problem they added
+— which is the list a super admin most often wants, since nobody else can see
+those. All of it is computed from `Progress` by the same streak helper the
+learner's own stats page uses, so the panel cannot quote a different number back
+than the one they are looking at.
+
+It is read-only deliberately. The panel exists to administer an account, not to
+reach into somebody's study record.
+
+**Admin → Problems** has a scope filter for user-added problems and now names
+the owner on each row. A super admin can edit or delete any of them; the delete
+confirmation says whose roadmap it is coming out of, because "removed for
+everyone" was wrong in exactly the case that mattered.
+
 ### Activity
 
 Every content and user change is recorded with who, what and when, filterable by
@@ -723,6 +756,35 @@ URL shape — the id is extracted server-side), a starting status, and notes.
 Status and notes are written to `Progress`, not `Problem`, so adding something
 you already solved counts immediately.
 
+### Editing and deleting your own
+
+Rows you added carry a **MINE** tag, a pencil in the actions cluster, and a
+**Delete problem** in the notes panel. The seeded curriculum carries none of
+them. **Added by me** in the filter bar narrows the roadmap to just your
+additions — it only appears once you have some, because otherwise it filters to
+an empty page, which reads as a bug rather than an answer.
+
+The edit dialog is the add dialog with different verbs — one component, so a
+field added to one cannot go missing from the other. Two things differ, and both
+follow from what an edit is:
+
+- **The URL is fixed.** It is what the slug was derived from, and the slug is
+  what every `Progress` row joins on, so moving it would detach your own
+  history. Delete and re-add if the link was wrong.
+- **Status and notes are absent.** They live on `Progress` and are offered on
+  the way in as a convenience for something you already solved. After that the
+  row's own controls own them.
+
+Changing the pattern moves the problem to the end of the new section, where a
+fresh addition would land — its old position means nothing there.
+
+**Ownership is the test, not `source`.** A LeetCode problem you added is
+`source: 'leetcode'` and every bit as much yours; keying the controls off source
+hid them on half of anyone's own additions. The roadmap aggregation computes
+`mine` per row server-side, so the row cannot disagree with the endpoint that
+will accept or refuse the edit. `PATCH /api/problems/:id` and `DELETE
+/api/problems/:id` both check `owner` and answer 403 otherwise.
+
 ### owner vs addedBy
 
 `Problem` carries two user references, and they answer different questions:
@@ -863,7 +925,7 @@ client/
 | `POST` `DELETE` | `/auth/me/avatar` | profile picture |
 | `GET` | `/patterns` · `/patterns/:slug/guide` | curriculum and guides |
 | `GET` | `/problems` · `/problems/:slug/description` | roadmap, statement on demand |
-| `POST` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems |
+| `POST` `PATCH` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems — edit and delete are owner-checked |
 | `GET` `PATCH` `POST` | `/progress/revision` · `/progress/:id` · `/progress/:id/attempt` | tracking |
 | `GET` | `/stats` | profile and stats pages |
 | `GET` | `/motivation` | the line for one page, chosen from your progress |

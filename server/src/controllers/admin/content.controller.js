@@ -76,6 +76,13 @@ export const listProblems = asyncHandler(async (req, res) => {
   const [problems, total] = await Promise.all([
     Problem.find(filter)
       .select(PROBLEM_LIST_FIELDS)
+      /*
+        Whose it is, by name. `owner` on its own is an ObjectId, which answers
+        "is this someone's private problem" and not "whose" — and the second is
+        the only useful question once the panel can filter down to them. One
+        populate over a page of 25, not a query per row.
+      */
+      .populate('owner', 'name email')
       .sort({ patternOrder: 1, score: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -87,7 +94,11 @@ export const listProblems = asyncHandler(async (req, res) => {
 });
 
 export const getProblem = asyncHandler(async (req, res) => {
-  const problem = await Problem.findById(req.params.id).select('-descriptionHtml').lean();
+  const problem = await Problem.findById(req.params.id)
+    .select('-descriptionHtml')
+    .populate('owner', 'name email')
+    .populate('addedBy', 'name email')
+    .lean();
   if (!problem) throw ApiError.notFound('Problem not found', 'NO_PROBLEM');
 
   // How much damage a delete would do, so the confirmation can say it.

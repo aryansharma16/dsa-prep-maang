@@ -20,28 +20,50 @@ const STATUSES = [
  * One URL field does the work: paste a LeetCode link and title, difficulty and
  * tags fill themselves in. Everything else the DB stores sits behind "More
  * details" so the common path stays a paste and a save.
+ *
+ * Pass `problem` and the same form edits it instead. One component rather than
+ * two, because the fields, the pattern list, the company suggestions and the
+ * tag inputs are identical — a separate editor would be this file with the
+ * verbs changed, and would drift the first time a field was added to one of
+ * them.
+ *
+ * Two things do differ, and both follow from what an edit *is*:
+ *
+ * - The URL is shown but not editable. It is what the slug was derived from,
+ *   and the slug is what every progress row joins on, so moving it would
+ *   detach your own history. Delete and re-add if the link was wrong.
+ * - Status and notes are absent. They live on `Progress`, not `Problem` — they
+ *   are offered on the way in as a convenience for something you already
+ *   solved, and after that the row's own controls own them.
  */
-export function AddProblemModal({ onClose }) {
-  const { groups, addProblem } = useRoadmap();
+export function AddProblemModal({ problem, onClose }) {
+  const { groups, addProblem, updateProblem } = useRoadmap();
   const { success, error } = useToast();
 
+  const editing = Boolean(problem);
+
   const [patterns, setPatterns] = useState([]);
-  const [url, setUrl] = useState('');
-  const [title, setTitle] = useState('');
-  const [difficulty, setDifficulty] = useState('Medium');
-  const [patternSlug, setPatternSlug] = useState('');
-  const [topicTags, setTopicTags] = useState([]);
-  const [companies, setCompanies] = useState([]);
-  const [articleUrl, setArticleUrl] = useState('');
-  const [video, setVideo] = useState('');
+  const [url, setUrl] = useState(problem?.url || '');
+  const [title, setTitle] = useState(problem?.title || '');
+  const [difficulty, setDifficulty] = useState(problem?.difficulty || 'Medium');
+  const [patternSlug, setPatternSlug] = useState(problem?.patternSlug || '');
+  const [topicTags, setTopicTags] = useState(problem?.topicTags || []);
+  const [companies, setCompanies] = useState((problem?.companies || []).map((c) => c.name));
+  const [articleUrl, setArticleUrl] = useState(problem?.articleUrl || '');
+  // Stored as a bare id; the server normalises either shape back on save.
+  const [video, setVideo] = useState(problem?.videoId || '');
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState('todo');
 
-  const [more, setMore] = useState(false);
+  // Open from the start when editing: the thing being corrected is as likely to
+  // be a tag or a link as the title, and a disclosure hiding half the form is
+  // only worth it while the common path is a paste and a save.
+  const [more, setMore] = useState(editing);
   const [looking, setLooking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState('');
   const urlRef = useRef(null);
+  const titleRef = useRef(null);
 
   // Companies already in your list, so the chips input can suggest instead of
   // making you spell "Goldman Sachs" correctly.
@@ -66,8 +88,10 @@ export function AddProblemModal({ onClose }) {
   }, [error]);
 
   // Debounced so pasting a URL resolves without a "Fetch" button to press.
+  // Never while editing: the URL cannot change, so a lookup could only overwrite
+  // the title and tags the person opened this dialog to correct.
   useEffect(() => {
-    if (!url.trim()) {
+    if (editing || !url.trim()) {
       setNote('');
       return undefined;
     }
@@ -92,29 +116,33 @@ export function AddProblemModal({ onClose }) {
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [url]);
+  }, [url, editing]);
 
   const submit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return error('Give the problem a title');
     setSaving(true);
     try {
-      await addProblem({
+      const common = {
         title: title.trim(),
-        url: url.trim(),
         difficulty,
         patternSlug,
         topicTags,
         companies,
         articleUrl: articleUrl.trim(),
         video: video.trim(),
-        notes,
-        status,
-      });
-      success(`Added "${title.trim()}"`);
+      };
+
+      if (editing) {
+        await updateProblem(problem._id, common);
+        success(`Saved "${title.trim()}"`);
+      } else {
+        await addProblem({ ...common, url: url.trim(), notes, status });
+        success(`Added "${title.trim()}"`);
+      }
       onClose();
     } catch (err) {
-      error(errorMessage(err, 'Could not add that problem'));
+      error(errorMessage(err, editing ? 'Could not save that' : 'Could not add that problem'));
     } finally {
       setSaving(false);
     }
@@ -124,7 +152,11 @@ export function AddProblemModal({ onClose }) {
     topicTags.length + companies.length + (articleUrl ? 1 : 0) + (video ? 1 : 0) + (notes ? 1 : 0);
 
   return (
-    <Modal title="Add a problem" onClose={onClose} initialFocus={urlRef}>
+    <Modal
+      title={editing ? 'Edit your problem' : 'Add a problem'}
+      onClose={onClose}
+      initialFocus={editing ? titleRef : urlRef}
+    >
       <form onSubmit={submit}>
         <div className="modal-body">
           <label className="field">
@@ -133,19 +165,32 @@ export function AddProblemModal({ onClose }) {
               ref={urlRef}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
+              disabled={editing}
               placeholder="https://leetcode.com/problems/... or any other link"
             />
           </label>
 
-          {(looking || note) && (
+          {editing ? (
             <p className="hint" style={{ marginTop: -6, marginBottom: 12 }}>
-              {looking ? 'Looking it up...' : note}
+              The link is fixed — your progress on this problem is filed under it. Delete and re-add
+              if it points at the wrong thing.
             </p>
+          ) : (
+            (looking || note) && (
+              <p className="hint" style={{ marginTop: -6, marginBottom: 12 }}>
+                {looking ? 'Looking it up...' : note}
+              </p>
+            )
           )}
 
           <label className="field">
             <span>Title</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Two Sum" />
+            <input
+              ref={titleRef}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Two Sum"
+            />
           </label>
 
           <div className="field-row">
@@ -220,25 +265,32 @@ export function AddProblemModal({ onClose }) {
                 />
               </label>
 
-              <div className="field">
-                <span>Status</span>
-                <Dropdown
-                  ariaLabel="Status"
-                  value={status}
-                  onChange={setStatus}
-                  options={STATUSES.map(([value, label]) => ({ value, label }))}
-                />
-              </div>
+              {/* Both live on Progress rather than on the problem, so they are
+                  offered once — on the way in, for something you have already
+                  solved. After that the row's own controls own them. */}
+              {!editing && (
+                <>
+                  <div className="field">
+                    <span>Status</span>
+                    <Dropdown
+                      ariaLabel="Status"
+                      value={status}
+                      onChange={setStatus}
+                      options={STATUSES.map(([value, label]) => ({ value, label }))}
+                    />
+                  </div>
 
-              <label className="field">
-                <span>Notes</span>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Approach, edge cases, why it tripped you up..."
-                />
-              </label>
+                  <label className="field">
+                    <span>Notes</span>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Approach, edge cases, why it tripped you up..."
+                    />
+                  </label>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -248,7 +300,13 @@ export function AddProblemModal({ onClose }) {
             Cancel
           </button>
           <button type="submit" className="btn primary" disabled={saving}>
-            {saving ? 'Adding...' : 'Add problem'}
+            {editing
+              ? saving
+                ? 'Saving...'
+                : 'Save changes'
+              : saving
+                ? 'Adding...'
+                : 'Add problem'}
           </button>
         </div>
       </form>

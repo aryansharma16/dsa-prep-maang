@@ -83,6 +83,17 @@ export const refresh = asyncHandler(async (req, res) => {
     throw ApiError.unauthorized('Session ended, please sign in again', 'REFRESH_EXPIRED');
   }
 
+  /*
+    The one honest "last active" signal this app has. A tab left open refreshes
+    every fifteen minutes and a closed one stops, so this decays on its own
+    without anything having to notice a sign-out that never happens.
+
+    `updateOne` rather than `user.save()`: nothing else on the document changed,
+    and a full save here would race the profile edit someone might be making in
+    another tab.
+  */
+  await User.updateOne({ _id: user._id }, { $set: { lastSeenAt: new Date() } });
+
   setAuthCookies(res, user);
   res.json(await session(user));
 });

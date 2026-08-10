@@ -42,6 +42,8 @@ export const problemsApi = {
   description: (slug) => http.get(`/problems/${slug}/description`).then((r) => r.data),
   lookup: (url) => http.post('/problems/lookup', { url }).then((r) => r.data),
   create: (body) => http.post('/problems', body).then((r) => r.data.problem),
+  /** Your own additions only — the server refuses anyone else's. */
+  update: (id, body) => http.patch(`/problems/${id}`, body).then((r) => r.data.problem),
   remove: (id) => http.delete(`/problems/${id}`).then((r) => r.data),
 };
 

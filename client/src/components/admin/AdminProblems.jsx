@@ -133,7 +133,7 @@ export function AdminProblems() {
                 <th>Problem</th>
                 <th>Pattern</th>
                 <th>Difficulty</th>
-                <th>Scope</th>
+                <th>Whose</th>
                 <th />
               </tr>
             </thead>
@@ -153,7 +153,22 @@ export function AdminProblems() {
                   <td>
                     <span className={`diff ${p.difficulty}`}>{p.difficulty}</span>
                   </td>
-                  <td className="cell-dim">{p.owner ? 'user-added' : 'shared'}</td>
+                  {/*
+                    Whose, not just "someone's". The scope filter can already
+                    narrow to user-added problems; without a name that list is a
+                    pile of rows nobody can attribute, and attributing them is
+                    the reason to look at it.
+                  */}
+                  <td className="cell-dim">
+                    {p.owner ? (
+                      <>
+                        <b>{p.owner.name}</b>
+                        <span className="hint">{p.owner.email}</span>
+                      </>
+                    ) : (
+                      'shared'
+                    )}
+                  </td>
                   <td className="admin-row-acts">
                     <button className="link-btn" onClick={() => setEditing(p)}>
                       {writable ? 'Edit' : 'View'}
@@ -202,10 +217,17 @@ export function AdminProblems() {
       {deleting && (
         <ConfirmDialog
           title="Delete this problem?"
-          message={`“${deleting.title}” is removed for everyone.`}
+          /* Now that the owner has a name, say whose it is. "Removed for
+             everyone" was true of the curriculum and wrong about a private
+             addition, which is the case where it mattered most. */
+          message={
+            deleting.owner
+              ? `“${deleting.title}” is removed from ${deleting.owner.name}’s roadmap.`
+              : `“${deleting.title}” is removed for everyone.`
+          }
           detail={
             deleting.owner
-              ? 'This is one user’s own problem. Their progress on it goes too.'
+              ? `This is ${deleting.owner.email}’s own problem — nobody else can see it. Their progress on it goes too.`
               : 'This is part of the shared curriculum. Every user’s progress on it — solved status, notes, attempts — is deleted with it and cannot be recovered.'
           }
           confirmLabel="Delete problem"

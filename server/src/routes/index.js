@@ -15,6 +15,8 @@ import {
   lookup,
   lookupSchema,
   removeCustom,
+  updateCustom,
+  updateSchema as problemUpdateSchema,
 } from '../controllers/problem.controller.js';
 import {
   attemptSchema,
@@ -123,6 +125,7 @@ router.get('/problems', listGrouped);
 router.post('/problems/lookup', validate(lookupSchema), lookup);
 router.post('/problems', validate(createSchema), createCustom);
 router.get('/problems/:slug/description', getDescription);
+router.patch('/problems/:id', validate(problemUpdateSchema), updateCustom);
 router.delete('/problems/:id', removeCustom);
 
 router.get('/progress/revision', requireModule('revision'), revisionQueue);

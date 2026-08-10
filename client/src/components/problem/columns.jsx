@@ -108,7 +108,10 @@ export const COLUMNS = [
             <IconExternal size={11} />
           </span>
           {badge && <span className="tag-mini">{SHEET_LABEL[badge.sheet]}</span>}
-          {problem.source === 'custom' && <span className="tag-mini">MINE</span>}
+          {/* Ownership, not source. A LeetCode problem you added is
+              `source: 'leetcode'` and still yours, and keying this off source
+              left half of anyone's own additions looking seeded. */}
+          {problem.mine && <span className="tag-mini">MINE</span>}
           {problem.source === 'gfg' && <span className="tag-mini">GFG</span>}
         </div>
       );

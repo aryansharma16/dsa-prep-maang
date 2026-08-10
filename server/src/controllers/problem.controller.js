@@ -75,7 +75,20 @@ export const listGrouped = asyncHandler(async (req, res) => {
         as: 'progress',
       },
     },
-    { $addFields: { progress: { $first: '$progress' } } },
+    {
+      $addFields: {
+        progress: { $first: '$progress' },
+        /*
+          "Yours to edit", decided here rather than by the client comparing
+          `owner` to its own id. The rule is the server's — `source === 'custom'`
+          is the version the UI used to guess with, and it is wrong for a
+          LeetCode problem you added, which is `source: 'leetcode'` and still
+          yours. One computed field means the row cannot disagree with the
+          endpoint that will accept or refuse the edit.
+        */
+        mine: { $eq: ['$owner', userId] },
+      },
+    },
     {
       $group: {
         _id: '$patternSlug',
@@ -270,6 +283,9 @@ export const createCustom = asyncHandler(async (req, res) => {
   res.status(201).json({
     problem: {
       ...problem.toObject(),
+      // So the row it lands on carries its edit and delete actions without
+      // waiting for the next roadmap fetch to label it.
+      mine: true,
       progress: progress
         ? {
             status: progress.status,
@@ -284,13 +300,84 @@ export const createCustom = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Editing your own addition.
+ *
+ * `slug` and `url` are absent on purpose. The slug is the identity every
+ * `Progress` row joins on and the seeder's name for a problem, so changing it
+ * orphans your own history — the admin panel omits it from its update schema
+ * for the same reason. The URL is what the slug was derived from, so letting it
+ * move would leave the two disagreeing about which problem this is; delete and
+ * re-add if you pasted the wrong link.
+ *
+ * Everything else is yours to correct: the wrong pattern, a typo in the title,
+ * the difficulty you guessed before solving it.
+ */
+export const updateSchema = z
+  .object({
+    title: z.string().min(1).max(200).optional(),
+    difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional(),
+    patternSlug: z.string().min(1).optional(),
+    topicTags: z.array(z.string().min(1).max(40)).max(20).optional(),
+    companies: z.array(z.string().min(1).max(60)).max(30).optional(),
+    articleUrl: optionalUrl,
+    video: z.string().max(200).optional(),
+  })
+  .refine((body) => Object.keys(body).length > 0, 'Nothing to update');
+
+/**
+ * The one you added, or nothing.
+ *
+ * Ownership rather than `source === 'custom'`: a LeetCode problem you added is
+ * `source: 'leetcode'` and still yours, and a check on source would quietly
+ * refuse to let you edit half of your own list. `owner` is the visibility rule,
+ * so it is the right thing to ask.
+ */
+async function loadOwned(problemId, userId) {
+  const problem = await Problem.findById(problemId);
+  if (!problem) throw ApiError.notFound('Problem not found');
+  if (!problem.owner || String(problem.owner) !== userId) {
+    throw ApiError.forbidden('You can only change problems you added');
+  }
+  return problem;
+}
+
+/** PATCH /api/problems/:id — only your own additions. */
+export const updateCustom = asyncHandler(async (req, res) => {
+  const problem = await loadOwned(req.params.id, req.userId);
+  const { patternSlug, topicTags, companies, video, ...rest } = req.body;
+
+  if (patternSlug && patternSlug !== problem.patternSlug) {
+    const pattern = await Pattern.findOne({ slug: patternSlug }).select('slug').lean();
+    if (!pattern) throw ApiError.badRequest(`Unknown pattern: ${patternSlug}`);
+
+    // Moved sections, so the old position means nothing — put it at the end of
+    // the new one, where a fresh addition would go.
+    const last = await Problem.findOne({ patternSlug, ...visibleTo(req.userId) })
+      .sort({ patternOrder: -1 })
+      .select('patternOrder');
+    problem.patternSlug = patternSlug;
+    problem.patternOrder = (last?.patternOrder ?? 0) + 1;
+  }
+
+  const clean = (list) => [...new Set(list.map((s) => s.trim()).filter(Boolean))];
+
+  problem.set(rest);
+  if (topicTags) problem.topicTags = clean(topicTags);
+  // freq stays 0 for the same reason it is 0 on create: there is no way to know
+  // how often a company asks a problem you added by hand.
+  if (companies) problem.companies = clean(companies).map((name) => ({ name, freq: 0 }));
+  if (video !== undefined) problem.videoId = youtubeId(video);
+
+  await problem.save();
+  // `mine` is added by the roadmap aggregation, not stored — this row is by
+  // definition the caller's, and the client replaces its copy wholesale.
+  res.json({ problem: { ...problem.toObject(), mine: true } });
+});
+
 /** DELETE /api/problems/:id — only your own additions. */
 export const removeCustom = asyncHandler(async (req, res) => {
-  const problem = await Problem.findById(req.params.id);
-  if (!problem) throw ApiError.notFound('Problem not found');
-  if (!problem.owner || String(problem.owner) !== req.userId) {
-    throw ApiError.forbidden('You can only delete problems you added');
-  }
+  const problem = await loadOwned(req.params.id, req.userId);
 
   await Progress.deleteMany({ problem: problem._id });
   await problem.deleteOne();

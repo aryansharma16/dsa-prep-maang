@@ -10,6 +10,7 @@ import {
   assertNotSelf,
   loadTarget,
 } from '../../services/admin.guards.js';
+import { currentStreak, maxStreak } from '../../services/activity.service.js';
 import { AUDIT, diff, recordAudit } from '../../services/audit.service.js';
 import { hashPassword, registerUser } from '../../services/auth.service.js';
 import { destroyAsset } from '../../services/media.service.js';
@@ -89,23 +90,97 @@ export const listUsers = asyncHandler(async (req, res) => {
   res.json(paged('users', users, { total, page, limit }));
 });
 
+/**
+ * How this account is actually doing, for the detail panel.
+ *
+ * Deliberately built from `Progress` rather than from anything the learner
+ * self-reports, and deliberately read-only — the panel is for answering "is
+ * this person stuck" and "who added that problem", not for reaching into
+ * someone's study record.
+ *
+ * The day set is the same one the stats page and the motivation lines use, via
+ * activity.service, so the streak here cannot disagree with the streak the
+ * learner is looking at.
+ */
+async function studyProfile(userId) {
+  const [counts, added, recent, days] = await Promise.all([
+    Progress.aggregate([
+      { $match: { user: userId } },
+      {
+        $group: {
+          _id: null,
+          solved: { $sum: { $cond: [{ $eq: ['$status', 'solved'] }, 1, 0] } },
+          attempted: { $sum: { $cond: [{ $eq: ['$status', 'attempted'] }, 1, 0] } },
+          flagged: { $sum: { $cond: ['$flagged', 1, 0] } },
+          needsRevision: { $sum: { $cond: ['$needsRevision', 1, 0] } },
+          attempts: { $sum: { $size: { $ifNull: ['$attempts', []] } } },
+          minutes: { $sum: { $sum: '$attempts.minutes' } },
+        },
+      },
+    ]),
+
+    // Their own additions, which is the list a super admin most often wants —
+    // "what has this person put in the roadmap that I have not seen".
+    Problem.find({ owner: userId })
+      .select('slug title difficulty patternSlug source url createdAt')
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean(),
+
+    Progress.find({ user: userId, status: 'solved' })
+      .sort({ solvedAt: -1 })
+      .limit(10)
+      .populate('problem', 'title slug difficulty patternSlug')
+      .select('solvedAt confidence problem')
+      .lean(),
+
+    // Every day they touched something, for the streaks. Solved dates and
+    // attempt dates both count as activity, the same as on the stats page.
+    Progress.aggregate([
+      { $match: { user: userId } },
+      { $project: { dates: { $concatArrays: [[{ $ifNull: ['$solvedAt', null] }], { $ifNull: ['$attempts.at', []] }] } } },
+      { $unwind: '$dates' },
+      { $match: { dates: { $ne: null } } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$dates' } } } },
+    ]),
+  ]);
+
+  const daySet = new Set(days.map((d) => d._id));
+  const totals = counts[0] || {};
+
+  return {
+    stats: {
+      solved: totals.solved || 0,
+      attempted: totals.attempted || 0,
+      flagged: totals.flagged || 0,
+      needsRevision: totals.needsRevision || 0,
+      attempts: totals.attempts || 0,
+      minutes: totals.minutes || 0,
+      problemsAdded: added.length,
+      activeDays: daySet.size,
+      currentStreak: currentStreak(daySet),
+      maxStreak: maxStreak(daySet),
+    },
+    added,
+    recent: recent.filter((row) => row.problem),
+  };
+}
+
 export const getUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select(USER_PUBLIC_FIELDS).lean();
   if (!user) throw ApiError.notFound('User not found', 'NO_USER');
 
-  // Counted rather than joined — the roadmap aggregation is scoped to its
-  // caller and would be meaningless here.
-  const [solved, attempted, problemsAdded, activity] = await Promise.all([
-    Progress.countDocuments({ user: user._id, status: 'solved' }),
-    Progress.countDocuments({ user: user._id, status: 'attempted' }),
-    Problem.countDocuments({ addedBy: user._id }),
+  const [profile, activity] = await Promise.all([
+    studyProfile(user._id),
+    // What was done *to* this account, by staff. Kept separate from the study
+    // record above: one is administration, the other is theirs.
     AuditLog.find({ targetType: 'user', targetId: String(user._id) })
       .sort({ createdAt: -1 })
       .limit(20)
       .lean(),
   ]);
 
-  res.json({ user, stats: { solved, attempted, problemsAdded }, activity });
+  res.json({ user, ...profile, activity });
 });
 
 export const createUser = asyncHandler(async (req, res) => {

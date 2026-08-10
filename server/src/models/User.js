@@ -89,6 +89,27 @@ const userSchema = new mongoose.Schema(
      */
     tokenVersion: { type: Number, default: 0 },
 
+    /**
+     * When they last typed a password. Written once per sign-in.
+     */
+    lastLoginAt: { type: Date, default: null },
+
+    /**
+     * When they were last using the app, to about fifteen minutes.
+     *
+     * Written from the refresh endpoint, which is the one place that already
+     * loads the account on a schedule: the client refreshes silently whenever
+     * the access token expires, so an open tab stamps this every fifteen
+     * minutes and a closed one stops. That gives a real "last active" for one
+     * write per active user per window.
+     *
+     * Deliberately *not* written from `requireAuth`. That runs on every
+     * request and is a signature check with no database access at all — adding
+     * a write there would put one on the hot path of the whole API to make this
+     * number fifteen minutes fresher.
+     */
+    lastSeenAt: { type: Date, default: null },
+
     // Optional, all of it. The user fills this in about themselves; a super
     // admin can correct it. Nothing here is required to use the app.
     profile: {
@@ -136,7 +157,7 @@ userSchema.set('toJSON', {
  * thing the easy thing: select these fields and the hash cannot come along.
  */
 export const USER_PUBLIC_FIELDS =
-  'email name avatar role profile createdAt updatedAt';
+  'email name avatar role profile createdAt updatedAt lastLoginAt lastSeenAt';
 
 /**
  * The signed-in user as the client receives it.

@@ -10,6 +10,7 @@ import { Modal } from '../ui/Modal.jsx';
 import { PasswordField } from '../ui/PasswordField.jsx';
 import { AvatarButton } from '../ui/PhotoPreview.jsx';
 import { Dropdown } from '../ui/Dropdown.jsx';
+import { UserStudyRecord } from './UserStudyRecord.jsx';
 
 /**
  * Everything you can do to one account.
@@ -98,7 +99,7 @@ export function UserDetailModal({ userId, onClose, onChanged }) {
     );
   }
 
-  const { user, stats } = data;
+  const { user, stats, added = [], recent = [] } = data;
   const emailChanged = form.email.trim() !== user.email;
   const canWrite = can(me, 'user:write') && !locked;
 
@@ -163,6 +164,12 @@ export function UserDetailModal({ userId, onClose, onChanged }) {
               {busy ? 'Saving...' : 'Save details'}
             </button>
           )}
+
+          {/* Below the form and above the zones that change things. Reading who
+              someone is comes before deciding what to do to their account, and
+              this needs no capability of its own: anyone who can open this
+              dialog holds `user:read`. */}
+          <UserStudyRecord user={user} stats={stats} added={added} recent={recent} />
 
           {/* --- role --- */}
           {can(me, 'user:role') && !locked && (

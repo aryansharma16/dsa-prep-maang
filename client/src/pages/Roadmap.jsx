@@ -33,6 +33,11 @@ export function Roadmap() {
   const [status, setStatus] = useState('');
   const [flagged, setFlagged] = useState(false);
   const [revision, setRevision] = useState(false);
+  // A toggle in the bar rather than a fourth entry in the filters dialog: it is
+  // the one filter you flip to go and manage something — edit a title, delete a
+  // problem you added twice — which makes it a mid-session reach, like the two
+  // flags beside it.
+  const [mine, setMine] = useState(false);
 
   const [openSections, setOpenSections] = useLocalState('open-sections', []);
   const [cursorId, setCursorId] = useState(null);
@@ -49,6 +54,11 @@ export function Roadmap() {
   const { layout, setLayout, columns } = useTableLayout();
   const sectionRefs = useRef({});
 
+  const ownedCount = useMemo(
+    () => groups.reduce((n, g) => n + g.problems.filter((p) => p.mine).length, 0),
+    [groups],
+  );
+
   const companyOptions = useMemo(() => {
     const set = new Set();
     for (const g of groups) for (const p of g.problems) for (const c of p.companies || []) set.add(c.name);
@@ -57,7 +67,7 @@ export function Roadmap() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const active = q || difficulty || company || sheet || status || flagged || revision;
+    const active = q || difficulty || company || sheet || status || flagged || revision || mine;
 
     return groups.map((g) => {
       if (!active) return g;
@@ -69,6 +79,7 @@ export function Roadmap() {
         if (status && (prog.status || 'todo') !== status) return false;
         if (flagged && !prog.flagged) return false;
         if (revision && !prog.needsRevision) return false;
+        if (mine && !p.mine) return false;
         if (q) {
           const haystack = [
             p.title,
@@ -83,12 +94,12 @@ export function Roadmap() {
       });
       return { ...g, problems };
     });
-  }, [groups, query, difficulty, company, sheet, status, flagged, revision]);
+  }, [groups, query, difficulty, company, sheet, status, flagged, revision, mine]);
 
   const visible = useMemo(() => filtered.filter((g) => g.problems.length > 0), [filtered]);
 
   const isFiltering =
-    Boolean(query.trim()) || difficulty || company || sheet || status || flagged || revision;
+    Boolean(query.trim()) || difficulty || company || sheet || status || flagged || revision || mine;
 
   const isOpen = useCallback(
     (slug) => isFiltering || openSections.includes(slug),
@@ -272,6 +283,7 @@ export function Roadmap() {
     setStatus('');
     setFlagged(false);
     setRevision(false);
+    setMine(false);
   };
 
   const shown = visible.reduce((n, g) => n + g.problems.length, 0);
@@ -358,6 +370,19 @@ export function Roadmap() {
         >
           Needs revision
         </button>
+        {/* Only offered once there is something to see. On an account that has
+            never added a problem this chip filters to an empty roadmap, which
+            reads as a bug rather than as an answer. */}
+        {ownedCount > 0 && (
+          <button
+            className={`toggle-chip ${mine ? 'on' : ''}`}
+            onClick={() => setMine((v) => !v)}
+            title="Only the problems you added yourself"
+          >
+            Added by me
+            <span className="mono">{ownedCount}</span>
+          </button>
+        )}
 
         <button
           className="toggle-chip pick-btn"

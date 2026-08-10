@@ -12,6 +12,28 @@ import { Dropdown } from '../ui/Dropdown.jsx';
 const shortDate = (value) =>
   new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
+/**
+ * How long ago, coarsely.
+ *
+ * A column scanned down a list wants "3d", not "3 days ago" — the unit is the
+ * only part that varies and the eye is comparing magnitudes. The detail panel
+ * spells the same fact out in words, where there is one of it to read.
+ */
+function since(value) {
+  if (!value) return '—';
+  const mins = Math.round((Date.now() - new Date(value)) / 60000);
+  if (!Number.isFinite(mins)) return '—';
+  if (mins < 60) return 'now';
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.round(hours / 24);
+  if (days < 31) return `${days}d`;
+  const months = Math.round(days / 30);
+  return months < 12 ? `${months}mo` : `${Math.round(months / 12)}y`;
+}
+
+const exact = (value) => (value ? new Date(value).toLocaleString() : 'No record of this yet');
+
 export function AdminUsers() {
   const { user: me } = useAuth();
   const [data, setData] = useState(null);
@@ -86,6 +108,11 @@ export function AdminUsers() {
                 <th>Person</th>
                 <th>Role</th>
                 <th>Joined</th>
+                {/* Active before signed-in: "are they still using this" is the
+                    question this column gets opened for, and a sign-in months
+                    ago on an account seen today only means the session held. */}
+                <th>Active</th>
+                <th>Signed in</th>
                 <th />
               </tr>
             </thead>
@@ -106,6 +133,12 @@ export function AdminUsers() {
                     <span className={`role-pill ${u.role}`}>{ROLE_LABEL[u.role]}</span>
                   </td>
                   <td className="cell-dim mono">{shortDate(u.createdAt)}</td>
+                  <td className="cell-dim mono" title={exact(u.lastSeenAt)}>
+                    {since(u.lastSeenAt)}
+                  </td>
+                  <td className="cell-dim mono" title={exact(u.lastLoginAt)}>
+                    {since(u.lastLoginAt)}
+                  </td>
                   <td className="admin-row-acts">
                     <button className="link-btn" onClick={() => setOpenId(u._id)}>
                       {can(me, 'user:write') ? 'Manage' : 'View'}

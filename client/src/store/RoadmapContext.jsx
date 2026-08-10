@@ -138,6 +138,38 @@ export function RoadmapProvider({ children }) {
     return problem;
   }, []);
 
+  /**
+   * Saves an edit to one of your own problems.
+   *
+   * The row is replaced rather than patched, because the server may have moved
+   * it: changing the pattern changes `patternSlug` and `patternOrder`, so the
+   * problem has to leave one group and join another. Progress is carried across
+   * by hand — the update endpoint answers with the problem, which knows nothing
+   * about whether you have solved it.
+   */
+  const updateProblem = useCallback(async (problemId, body) => {
+    const saved = await problemsApi.update(problemId, body);
+    setGroups((prev) =>
+      prev.map((g) => {
+        const existing = g.problems.find((p) => p._id === problemId);
+
+        if (existing && g.slug !== saved.patternSlug) {
+          const problems = g.problems.filter((p) => p._id !== problemId);
+          return { ...g, problems, total: problems.length, solved: countSolved(problems) };
+        }
+
+        if (g.slug !== saved.patternSlug) return g;
+
+        const next = { ...saved, progress: existing?.progress };
+        const problems = existing
+          ? g.problems.map((p) => (p._id === problemId ? next : p))
+          : [...g.problems, next];
+        return { ...g, problems, total: problems.length, solved: countSolved(problems) };
+      }),
+    );
+    return saved;
+  }, []);
+
   const removeProblem = useCallback(
     async (problemId) => {
       try {
@@ -175,9 +207,21 @@ export function RoadmapProvider({ children }) {
       setProgress,
       logAttempt,
       addProblem,
+      updateProblem,
       removeProblem,
     }),
-    [groups, totals, loading, loadError, load, setProgress, logAttempt, addProblem, removeProblem],
+    [
+      groups,
+      totals,
+      loading,
+      loadError,
+      load,
+      setProgress,
+      logAttempt,
+      addProblem,
+      updateProblem,
+      removeProblem,
+    ],
   );
 
   return <RoadmapContext.Provider value={value}>{children}</RoadmapContext.Provider>;

@@ -72,8 +72,22 @@ export async function loginUser({ email, password }) {
   // hand, signing in puts it back to what the environment says.
   if (isSuperAdminEmail(user.email) && user.role !== 'super_admin') {
     user.role = 'super_admin';
-    await user.save();
   }
+
+  /*
+    Both stamped here, and they are not the same fact. `lastLoginAt` answers
+    "when did they last type a password", which is a security question — an
+    account that has not signed in for months is one to ask about.
+    `lastSeenAt` answers "are they still using this", and the refresh endpoint
+    keeps it current from here on.
+
+    Folded into the save the super-admin check may already need, so signing in
+    costs one write rather than two.
+  */
+  const now = new Date();
+  user.lastLoginAt = now;
+  user.lastSeenAt = now;
+  await user.save();
 
   return user;
 }
