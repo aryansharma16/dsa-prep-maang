@@ -353,6 +353,39 @@ the process heap. The cap is 5MB for images, 10MB for documents.
 
 `CLOUDINARY_URL` wins when both are set.
 
+### Note attachments go to S3
+
+Images and PDFs dropped into a note take a second path, behind
+`services/s3.service.js`, with `services/file.service.js` as the seam between
+the bytes in the bucket and the rows that index them. Same bargain as
+Cloudinary — callers hand over a buffer and a key, nobody outside those files
+imports the SDK.
+
+The difference worth knowing is that S3 is a byte store and Cloudinary is not.
+Cloudinary decodes what you send it and refuses anything that isn't an image;
+S3 will happily accept a renamed executable, label it `image/png` because the
+request said so, and serve it back with that type forever. So the check that
+came free there is rebuilt here in `sniffType()`, from the file's own leading
+bytes. Stored types are sniffed, never echoed from the request.
+
+There are exactly two env vars, and no credential:
+
+| env var | |
+|---|---|
+| `AWS_REGION` | `ap-south-1` |
+| `AWS_S3_BUCKET` | the bucket everything lands in |
+| `AWS_S3_PREFIX` | key prefix for everything this app writes, default `maang-prep` |
+
+The absence of an access key is the design, not an omission. On EC2 the
+instance role supplies short-lived credentials through the SDK's default
+provider chain and rotates them automatically; setting `AWS_ACCESS_KEY_ID`
+would shadow that and replace a rotating credential with a permanent one.
+`npm run s3:probe` proves the whole path end to end from the box.
+
+Full detail: [docs/aws-infrastructure.md](docs/aws-infrastructure.md) for what
+exists and why, [docs/aws-runbook.md](docs/aws-runbook.md) for deploying,
+verifying and fixing it.
+
 ## Admin panel
 
 `/admin`, for the owner and a small team. Four roles, and the split is

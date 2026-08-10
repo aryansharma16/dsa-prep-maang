@@ -32,6 +32,7 @@ import { anyProviderConfigured } from '../services/ai/registry.js';
 import { adminRouter } from './admin.routes.js';
 import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
+import { noteRouter, sharedNoteRouter } from './note.routes.js';
 
 export const router = Router();
 
@@ -75,6 +76,19 @@ router.get('/companies/:slug/logo', getLogo);
  */
 router.get('/motivation/login', getLoginMotivation);
 
+/**
+ * Public because sharing a note is the feature. A link sent to someone who has
+ * no account has to open, or "public" means nothing.
+ *
+ * It is narrow in the way the two routes above are. Only notes their author
+ * marked public or unlisted *and* published are reachable, and the check lives
+ * in `assertCanRead` and `buildFilter` rather than in a filter written here — so
+ * the guarantee is a property of the notes service, not of this line's position
+ * in this file. A private note 404s here exactly as it does for a signed-in
+ * stranger, and the share id is 11 random characters, so it cannot be walked.
+ */
+router.use('/notes/public', sharedNoteRouter);
+
 // Everything below needs a session.
 router.use(requireAuth);
 
@@ -103,5 +117,7 @@ router.patch('/progress/:problemId', validate(patchSchema), patchProgress);
 router.post('/progress/:problemId/attempt', validate(attemptSchema), logAttempt);
 
 router.get('/stats', getStats);
+
+router.use('/notes', noteRouter);
 
 router.get('/motivation', validate(surfaceQuery, 'query'), getMotivation);

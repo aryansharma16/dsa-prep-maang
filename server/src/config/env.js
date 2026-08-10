@@ -46,6 +46,9 @@ function readCloudinary() {
 const cloudinary = readCloudinary();
 const geminiApiKey = (process.env.GEMINI_API_KEY || '').trim();
 
+const s3Region = (process.env.AWS_REGION || '').trim();
+const s3Bucket = (process.env.AWS_S3_BUCKET || '').trim();
+
 /**
  * The three OpenAI-compatible chat providers.
  *
@@ -96,6 +99,46 @@ export const env = {
     // Everything this app uploads lives under one prefix, so a shared cloud
     // stays sorted and a bulk delete can be scoped without guessing.
     folder: process.env.CLOUDINARY_FOLDER || 'maang-prep',
+  },
+  /**
+   * S3. Optional to boot, for the reason Cloudinary is: a bucket that is not
+   * configured should cost you the endpoints that store files, not the server.
+   *
+   * Region and bucket are the *only* two settings, and there is deliberately no
+   * credential here. On EC2 the instance role (MAANGPrepEC2S3Role) supplies
+   * them: the SDK's default provider chain reads short-lived credentials from
+   * the instance metadata service and rotates them before they expire. There is
+   * no key in this file to leak, to rotate by hand, or to commit by accident.
+   *
+   * Reading them here would be worse than redundant. The chain already checks
+   * AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY first, then SSO, then
+   * `~/.aws/credentials`, then the instance role — so a laptop is covered by
+   * `aws configure` or AWS_PROFILE without a line of code, and parsing them
+   * ourselves would only add a way to get it wrong.
+   *
+   * `configured` is therefore region-and-bucket only. Credentials cannot be
+   * part of that test because the deployment that matters has none to inspect,
+   * and pretending otherwise would disable uploads on exactly the box where
+   * they work. A genuinely missing or misscoped role surfaces as a 502 on the
+   * first call with the SDK's own message, which is the honest failure.
+   */
+  s3: {
+    region: s3Region,
+    bucket: s3Bucket,
+    configured: Boolean(s3Region && s3Bucket),
+    // Every key this app writes lives under one prefix, so a shared bucket
+    // stays sorted and `deletePrefix` can be scoped without guessing.
+    prefix: (process.env.AWS_S3_PREFIX || 'maang-prep').replace(/^\/+|\/+$/g, ''),
+    /*
+      Set only for a bucket fronted by CloudFront or made public. Its presence
+      is what makes `publicUrl()` return something — without it every read goes
+      through a signed URL, which is the correct default for a private bucket
+      and the one the console gives you unless you go out of your way.
+    */
+    publicBaseUrl: (process.env.AWS_S3_PUBLIC_URL || '').trim().replace(/\/+$/, ''),
+    // How long a signed link stays good. Long enough to load a page and click
+    // through, short enough that a copied URL in a chat log goes stale.
+    signedUrlTtl: Number(process.env.AWS_S3_URL_TTL) || 900,
   },
   /**
    * Google Gemini. Optional, like Cloudinary and for the same reason: a missing

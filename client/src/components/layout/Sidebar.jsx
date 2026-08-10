@@ -10,6 +10,7 @@ import {
   IconChevronRight,
   IconGrid,
   IconMenu,
+  IconNote,
   IconRotate,
   IconShield,
 } from '../ui/Icons.jsx';
@@ -94,6 +95,14 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
             >
               <IconChat size={15} />
             </NavLink>
+            <NavLink
+              onClick={onNavigate}
+              to="/notes"
+              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
+              title="Notes"
+            >
+              <IconNote size={15} />
+            </NavLink>
             {showAdmin && (
               <NavLink
                 to="/admin"
@@ -139,6 +148,10 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
             <NavLink onClick={onNavigate} to="/chat" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconChat size={14} />
               AI Chat
+            </NavLink>
+            <NavLink onClick={onNavigate} to="/notes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <IconNote size={14} />
+              Notes
             </NavLink>
             {showAdmin && (
               <NavLink

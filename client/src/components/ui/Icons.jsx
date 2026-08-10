@@ -297,3 +297,136 @@ export const IconEdit = (p) => (
     <path d="M11.1 2.5a1.5 1.5 0 012.1 2.1L5.6 12.2 2.6 13l.8-3z" />
   </Svg>
 );
+
+/* ------------------------------------------------------------------ notes */
+/* The block palette needs a distinct silhouette per type — at 13px a reader
+   picks the shape out before the label, which is what makes a fourteen-item
+   menu scannable instead of a list to be read. */
+
+export const IconHeading = (p) => (
+  <Svg {...p}>
+    <path d="M3.5 3v10M10 3v10M3.5 8H10" />
+    <path d="M12.4 6.6h1.3v6.4" />
+  </Svg>
+);
+
+export const IconText = (p) => (
+  <Svg {...p}>
+    <path d="M2.5 3.5h11M2.5 7h11M2.5 10.5h7.5" />
+  </Svg>
+);
+
+export const IconList = (p) => (
+  <Svg {...p}>
+    <path d="M6 4h8M6 8h8M6 12h8" />
+    <circle cx="3" cy="4" r="0.9" fill="currentColor" stroke="none" />
+    <circle cx="3" cy="8" r="0.9" fill="currentColor" stroke="none" />
+    <circle cx="3" cy="12" r="0.9" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
+export const IconQuote = (p) => (
+  <Svg {...p}>
+    <path d="M3 4h3v4a2.5 2.5 0 01-2.5 2.5H3" />
+    <path d="M9.5 4h3v4A2.5 2.5 0 0110 10.5h-.5" />
+  </Svg>
+);
+
+export const IconCode = (p) => (
+  <Svg {...p}>
+    <path d="M5.4 4L2 8l3.4 4M10.6 4L14 8l-3.4 4" />
+  </Svg>
+);
+
+export const IconImage = (p) => (
+  <Svg {...p}>
+    <rect x="2" y="3" width="12" height="10" rx="1.6" />
+    <circle cx="5.8" cy="6.4" r="1.1" />
+    <path d="M2.6 11.4l3.2-3 2.4 2.2 2.2-2 3 2.8" />
+  </Svg>
+);
+
+export const IconGallery = (p) => (
+  <Svg {...p}>
+    <rect x="1.5" y="4.5" width="9" height="8" rx="1.4" />
+    <path d="M4.5 4.5V3a.9.9 0 01.9-.9h8.1a.9.9 0 01.9.9v7.3" />
+  </Svg>
+);
+
+export const IconFile = (p) => (
+  <Svg {...p}>
+    <path d="M9 1.8H4.6a1.2 1.2 0 00-1.2 1.2v10a1.2 1.2 0 001.2 1.2h6.8a1.2 1.2 0 001.2-1.2V5.3z" />
+    <path d="M9 1.8v3.5h3.6" />
+  </Svg>
+);
+
+export const IconLink = (p) => (
+  <Svg {...p}>
+    <path d="M6.6 9.4a2.6 2.6 0 003.9.3l1.9-1.9a2.6 2.6 0 00-3.7-3.7l-1 1" />
+    <path d="M9.4 6.6a2.6 2.6 0 00-3.9-.3L3.6 8.2a2.6 2.6 0 003.7 3.7l1-1" />
+  </Svg>
+);
+
+export const IconTable = (p) => (
+  <Svg {...p}>
+    <rect x="2" y="3" width="12" height="10" rx="1.4" />
+    <path d="M2 6.4h12M6.6 6.4V13" />
+  </Svg>
+);
+
+export const IconDivider = (p) => (
+  <Svg {...p}>
+    <path d="M2 8h12" />
+    <path d="M4 4.6h8M4 11.4h8" opacity="0.4" />
+  </Svg>
+);
+
+export const IconToggle = (p) => (
+  <Svg {...p}>
+    <path d="M5.5 4.5L9 8l-3.5 3.5" />
+    <path d="M11.5 4.5v7" opacity="0.45" />
+  </Svg>
+);
+
+export const IconAlert = (p) => (
+  <Svg {...p}>
+    <path d="M8 2.4l6 10.2H2z" />
+    <path d="M8 6.4v3M8 11.2v.1" />
+  </Svg>
+);
+
+export const IconLock = (p) => (
+  <Svg {...p}>
+    <rect x="3.2" y="7" width="9.6" height="7" rx="1.4" />
+    <path d="M5.4 7V5.2a2.6 2.6 0 015.2 0V7" />
+  </Svg>
+);
+
+export const IconGlobe = (p) => (
+  <Svg {...p}>
+    <circle cx="8" cy="8" r="6" />
+    <path d="M2.2 6.4h11.6M2.2 9.6h11.6" />
+    <path d="M8 2a9 9 0 000 12A9 9 0 008 2z" />
+  </Svg>
+);
+
+export const IconUpload = (p) => (
+  <Svg {...p}>
+    <path d="M8 10.5V2.6M5 5.6L8 2.6l3 3" />
+    <path d="M2.6 10v2.6a1 1 0 001 1h8.8a1 1 0 001-1V10" />
+  </Svg>
+);
+
+export const IconStar = ({ filled, ...p }) => (
+  <Svg {...p} fill={filled ? 'currentColor' : 'none'}>
+    <path d="M8 1.9l1.85 3.9 4.15.6-3 3 .71 4.28L8 11.66 4.29 13.68 5 9.4l-3-3 4.15-.6z" />
+  </Svg>
+);
+
+export const IconLayers = (p) => (
+  <Svg {...p}>
+    <path d="M8 1.9l6 3.2-6 3.2-6-3.2z" />
+    <path d="M2 8.6l6 3.2 6-3.2" />
+    <path d="M2 11.6l6 3.2 6-3.2" opacity="0.45" />
+  </Svg>
+);

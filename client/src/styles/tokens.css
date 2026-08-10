@@ -203,3 +203,99 @@
     sans-serif;
   --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
 }
+
+/*
+  Block hues, for the notes builder.
+
+  Fourteen block types is past the number anyone reads as a list, so each one
+  wears a colour: in the palette glyph, in the stripe down the block's left edge
+  on the canvas, and in the type badge. Nowhere else — a hue behind body text
+  would fight the reading, which is the whole reason the accent system keeps its
+  own colour to borders and marks.
+
+  These are the accent palette's own values rather than a second set invented
+  for this feature, so a note's gutter and the user's chosen accent are drawn
+  from one family. Light values are re-picked for white, not lightened, for the
+  reason the block at the top of this file gives.
+
+  Stored as bare channels for the same reason `--accent-rgb` is: every one of
+  these is used at three or four different alphas, and a hex would need
+  `rgb(from …)` relative-colour syntax to mix one. Channels need nothing beyond
+  what this stylesheet already relies on everywhere else.
+*/
+:root,
+:root[data-theme='dark'] {
+  --h-violet-rgb: 181 140 255;
+  --h-slate-rgb: 154 164 178;
+  --h-teal-rgb: 0 194 184;
+  --h-fuchsia-rgb: 232 121 249;
+  --h-amber-rgb: 255 161 22;
+  --h-blue-rgb: 76 154 255;
+  --h-pink-rgb: 255 92 138;
+  --h-sky-rgb: 56 189 248;
+  --h-green-rgb: 38 194 129;
+  --h-lime-rgb: 163 230 53;
+  --h-orange-rgb: 255 120 73;
+  --h-red-rgb: 255 77 77;
+  --h-indigo-rgb: 129 140 248;
+
+  /* How much of a hue a fill may carry before it competes with the text on it. */
+  --h-wash: 0.13;
+}
+
+:root[data-theme='light'] {
+  --h-violet-rgb: 124 58 237;
+  --h-slate-rgb: 85 96 110;
+  --h-teal-rgb: 0 120 111;
+  --h-fuchsia-rgb: 162 28 175;
+  --h-amber-rgb: 178 94 0;
+  --h-blue-rgb: 11 102 228;
+  --h-pink-rgb: 214 51 108;
+  --h-sky-rgb: 3 105 161;
+  --h-green-rgb: 0 135 90;
+  --h-lime-rgb: 77 124 15;
+  --h-orange-rgb: 194 65 12;
+  --h-red-rgb: 209 41 61;
+  --h-indigo-rgb: 79 70 229;
+
+  /* Lower: the same wash reads heavier against white than against #1a1a1a. */
+  --h-wash: 0.09;
+}
+
+/* The solid form, so a rule that just wants the colour does not repeat the
+   wrapper. Declared once — both themes redefine only the channels above. */
+:root {
+  --h-violet: rgb(var(--h-violet-rgb));
+  --h-slate: rgb(var(--h-slate-rgb));
+  --h-teal: rgb(var(--h-teal-rgb));
+  --h-fuchsia: rgb(var(--h-fuchsia-rgb));
+  --h-amber: rgb(var(--h-amber-rgb));
+  --h-blue: rgb(var(--h-blue-rgb));
+  --h-pink: rgb(var(--h-pink-rgb));
+  --h-sky: rgb(var(--h-sky-rgb));
+  --h-green: rgb(var(--h-green-rgb));
+  --h-lime: rgb(var(--h-lime-rgb));
+  --h-orange: rgb(var(--h-orange-rgb));
+  --h-red: rgb(var(--h-red-rgb));
+  --h-indigo: rgb(var(--h-indigo-rgb));
+}
+
+/*
+  One rule per hue, resolving `data-hue` to `--hue` (solid) and `--hue-rgb`
+  (channels, for tints). The alternative — fourteen rules per component that
+  needs a tint — is what makes a colour system unmaintainable by its third
+  consumer.
+*/
+[data-hue='violet']   { --hue: var(--h-violet); --hue-rgb: var(--h-violet-rgb); }
+[data-hue='slate']    { --hue: var(--h-slate); --hue-rgb: var(--h-slate-rgb); }
+[data-hue='teal']     { --hue: var(--h-teal); --hue-rgb: var(--h-teal-rgb); }
+[data-hue='fuchsia']  { --hue: var(--h-fuchsia); --hue-rgb: var(--h-fuchsia-rgb); }
+[data-hue='amber']    { --hue: var(--h-amber); --hue-rgb: var(--h-amber-rgb); }
+[data-hue='blue']     { --hue: var(--h-blue); --hue-rgb: var(--h-blue-rgb); }
+[data-hue='pink']     { --hue: var(--h-pink); --hue-rgb: var(--h-pink-rgb); }
+[data-hue='sky']      { --hue: var(--h-sky); --hue-rgb: var(--h-sky-rgb); }
+[data-hue='green']    { --hue: var(--h-green); --hue-rgb: var(--h-green-rgb); }
+[data-hue='lime']     { --hue: var(--h-lime); --hue-rgb: var(--h-lime-rgb); }
+[data-hue='orange']   { --hue: var(--h-orange); --hue-rgb: var(--h-orange-rgb); }
+[data-hue='red']      { --hue: var(--h-red); --hue-rgb: var(--h-red-rgb); }
+[data-hue='indigo']   { --hue: var(--h-indigo); --hue-rgb: var(--h-indigo-rgb); }

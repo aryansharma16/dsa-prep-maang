@@ -15,9 +15,13 @@
     "seed:motivation": "node scripts/seed/motivations.js",
     "ai:draft": "node scripts/ai/draft-motivations.js",
     "seed": "npm run seed:fetch && npm run seed:curate && npm run seed:db",
-    "ai:probe": "node scripts/ai/probe-providers.js"
+    "ai:probe": "node scripts/ai/probe-providers.js",
+    "s3:probe": "node scripts/s3/probe-storage.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1106.0",
+    "@aws-sdk/lib-storage": "^3.1106.0",
+    "@aws-sdk/s3-request-presigner": "^3.1106.0",
     "@google/genai": "^2.16.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.10.0",
