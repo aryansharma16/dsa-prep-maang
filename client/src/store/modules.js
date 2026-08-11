@@ -1,6 +1,7 @@
 import {
   IconChart,
   IconChat,
+  IconMegaphone,
   IconNote,
   IconRotate,
 } from '../components/ui/Icons.jsx';
@@ -24,6 +25,7 @@ export const MODULE_NAV = [
   { key: 'stats', to: '/stats', label: 'Stats', Icon: IconChart },
   { key: 'chat', to: '/chat', label: 'AI Chat', Icon: IconChat },
   { key: 'notes', to: '/notes', label: 'Notes', Icon: IconNote },
+  { key: 'feedback', to: '/feedback', label: 'Feedback', Icon: IconMegaphone },
 ];
 
 /**

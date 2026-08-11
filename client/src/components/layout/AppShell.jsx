@@ -3,19 +3,22 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import { NARROW, useMediaQuery } from '../../hooks/useMediaQuery.js';
 import { useAuth } from '../../store/AuthContext.jsx';
+import { feedbackModal } from '../../store/feedbackModal.js';
+import { moduleVisible } from '../../store/modules.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
+import { FeedbackLauncher } from '../feedback/FeedbackLauncher.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
 import { Avatar } from '../ui/Avatar.jsx';
-import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
-import { IconLogout, IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
+import { IconLogout, IconMegaphone, IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
 import { isAnyModalOpen } from '../ui/Modal.jsx';
 import { AppearancePicker } from './AppearancePicker.jsx';
 import { Sidebar } from './Sidebar.jsx';
+import { SignOutDialog } from './SignOutDialog.jsx';
 
 export function AppShell() {
   const [collapsed, setCollapsed] = useLocalState('sidebar-collapsed', false);
-  const { user, logout } = useAuth();
+  const { user, modules } = useAuth();
   const { totals } = useRoadmap();
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
@@ -163,6 +166,23 @@ export function AppShell() {
             Add
           </button>
 
+          {/*
+            A third door to a dialog whose bubble is eighteen pixels away, and it
+            is here because it was asked for. Icon-only, because a labelled
+            button beside Add would be the second labelled button in a bar with
+            room for one — and the phone block hides it outright, where the
+            search field needs the width more than this needs the reminder.
+          */}
+          {moduleVisible(modules, 'feedback') && (
+            <button
+              className="icon-btn fb-topbar-btn"
+              onClick={() => feedbackModal.open('send')}
+              title="Send feedback"
+            >
+              <IconMegaphone size={15} />
+            </button>
+          )}
+
           <AppearancePicker />
 
           <button
@@ -195,19 +215,9 @@ export function AppShell() {
       {/* Every signed-in page, and no signed-out one — this shell is only
           mounted behind the auth branch in App.jsx. */}
       <ChatLauncher />
+      <FeedbackLauncher />
 
-
-      {signingOut && (
-        <ConfirmDialog
-          title="Sign out?"
-          message={`You'll be signed out of ${user?.email}.`}
-          detail="Your progress is saved to your account — signing back in picks up exactly where you left off."
-          confirmLabel="Sign out"
-          tone="danger"
-          onConfirm={logout}
-          onCancel={() => setSigningOut(false)}
-        />
-      )}
+      {signingOut && <SignOutDialog onCancel={() => setSigningOut(false)} />}
     </div>
   );
 }

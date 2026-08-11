@@ -43,5 +43,15 @@ const progressSchema = new mongoose.Schema(
 progressSchema.index({ user: 1, problem: 1 }, { unique: true });
 // Revision queue lookup
 progressSchema.index({ user: 1, nextReviewAt: 1 });
+/*
+  The admin dashboard's daily activity chart.
+
+  Every other query against this collection is scoped to one account and rides
+  the two indexes above. That one is deliberately site-wide, so it cannot — and
+  without this it is a full collection scan on the panel's landing page. A
+  multikey index over the embedded attempt dates costs one entry per attempt
+  logged, which is the same order as writing the attempt in the first place.
+*/
+progressSchema.index({ 'attempts.at': -1 });
 
 export const Progress = mongoose.model('Progress', progressSchema);

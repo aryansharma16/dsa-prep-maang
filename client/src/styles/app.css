@@ -1042,6 +1042,58 @@ table.problems tbody tr:last-child td {
   border-color: var(--easy);
 }
 
+/*
+  Feedback statuses, beside the two above so every status tint in the app is in
+  one block.
+
+  Prefixed rather than bare modifiers: `.open` and `.planned` are ordinary enough
+  words that a bare one on `.status-pill` would eventually be written twice by
+  two people who never met, in a stylesheet this long.
+
+  **Filled, not outlined, and never --accent.** The first version of these was an
+  accent-coloured word inside an accent-coloured border, which in this app is the
+  exact recipe for a button — accent is what links, the active tab and .btn.primary
+  all wear, and an outlined pill is the shape of .btn. People clicked "Open"
+  expecting it to open something. A tinted fill with a matching border is a label:
+  same information, no affordance, and accent goes back to meaning "you can click
+  this".
+
+  The two endings share no colour on purpose — "Done" and "Not planned" both close
+  the conversation, and reading one as the other is the mistake this whole feature
+  exists to avoid.
+*/
+.status-pill[class*='fb-'] {
+  font-family: var(--mono);
+  text-transform: none;
+  cursor: default;
+}
+/* Nobody has picked it up: no colour, because nothing has happened yet. */
+.status-pill.fb-open {
+  color: var(--text-2);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+.status-pill.fb-in_review {
+  color: var(--medium);
+  background: var(--medium-bg);
+  border-color: transparent;
+}
+.status-pill.fb-planned {
+  color: var(--syn-type);
+  background: var(--info-bg);
+  border-color: transparent;
+}
+.status-pill.fb-resolved {
+  color: var(--easy);
+  background: var(--easy-bg);
+  border-color: transparent;
+}
+.status-pill.fb-declined {
+  color: var(--text-3);
+  background: var(--surface-2);
+  border-color: transparent;
+}
+
 /* Five bars, filled to the confidence score. Reads at a glance in a way "3/5"
    in a column of numbers does not. */
 .conf {
@@ -2006,6 +2058,26 @@ tr.cursor .act {
 }
 .btn.danger:hover {
   filter: brightness(1.08);
+}
+/*
+  The amber one, for an action that is neither the safe way out nor the
+  destructive one.
+
+  It exists for exactly one place: the sign-out dialog, where Cancel is a ghost
+  and Sign out is danger, and a third button in either of those styles would
+  either disappear or read as another way to leave. Outlined rather than filled —
+  a solid amber block beside a solid red one is two things shouting, and this is
+  an invitation, not an instruction.
+*/
+.btn.warn {
+  background: var(--medium-bg);
+  border-color: var(--medium);
+  color: var(--medium);
+  font-weight: 500;
+}
+.btn.warn:hover {
+  background: var(--medium);
+  color: var(--accent-text);
 }
 .btn:disabled {
   opacity: 0.55;
@@ -3191,15 +3263,29 @@ img.avatar {
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
   margin-bottom: 16px;
 }
+/*
+  A column, explicitly.
+
+  This used to be a plain block, which left the three lines below depending on
+  the caller reaching for <div> rather than <span> — and one of the three places
+  that wrote this markup by hand reached for <span> and shipped a tile whose
+  label, number and sub-line ran together on one line. A class cannot state that
+  contract, so it states the layout instead. Use components/ui/Tile.jsx and the
+  question does not come up.
+*/
 .tile {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   padding: 11px 13px;
+  color: inherit;
+  text-decoration: none;
 }
 .tile .k {
   font-size: 10.5px;
@@ -3218,8 +3304,35 @@ img.avatar {
   font-variant-numeric: normal;
 }
 .tile .sub {
+  /* Pinned to the floor so sub-lines align across a row of tiles whose values
+     wrap to different heights. */
+  margin-top: auto;
+  padding-top: 3px;
   font-size: 11px;
   color: var(--text-3);
+}
+
+/*
+  The one tile on a page that is a to-do rather than an inventory.
+
+  `--medium`, deliberately not `--accent`: the accent is chosen by the reader and
+  can be any hue including a gray, and it is already carrying the active tab two
+  rows above. This is the app's existing warning tint, the same one the dev badge
+  wears, and it means the same thing on every deployment.
+*/
+.tile.attention {
+  background: var(--medium-bg);
+  border-color: var(--medium);
+}
+.tile.attention .k {
+  color: var(--medium);
+}
+a.tile:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-hover);
+}
+a.tile.attention:hover {
+  background: var(--medium-bg);
 }
 
 .panel {
@@ -3234,8 +3347,57 @@ img.avatar {
   font-size: 12.5px;
   font-weight: 600;
 }
+/*
+  A head with something on its right — a count, or a link into the tab it
+  summarises.
+
+  A modifier rather than making `.panel-head` flex outright, because two other
+  panels already put a `.spacer` inside a plain one and have been laying out as a
+  block the whole time. Turning the base class flex would silently re-lay-out
+  both of them, which is a different change than this one.
+*/
+.panel-head.split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.panel-head.split .hint {
+  font-weight: 400;
+}
 .panel-body {
   padding: 13px;
+}
+
+/*
+  The dashboard's two-panel row, at 3:2 rather than .grid-2's even split. System
+  health is six rows of prose and People is two meters; an even split leaves one
+  cramped and the other half empty.
+*/
+.dash-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 12px;
+}
+
+.dash-gaps {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+.dash-gaps li a {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11.5px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.dash-gaps li a:hover {
+  border-color: var(--accent-line);
+  color: var(--text);
 }
 
 .grid-2 {
@@ -3448,6 +3610,113 @@ img.avatar {
   margin: 0 1px;
 }
 
+/* -------------------------------------------------------- day column chart */
+
+/*
+  Thirty daily counts as CSS grid columns rather than SVG.
+
+  The same reasoning as the heatmap directly above: fractional columns mean the
+  chart is exactly as wide as the panel it is handed, at any width, with no
+  viewBox arithmetic and nothing to scroll. There is no curve to compute here —
+  a column is a rectangle whose height is a percentage — so SVG would buy nothing
+  but a fixed aspect ratio to fight.
+
+  It shares --heat-* and .heat-tip with the heatmap, which is why it lives here
+  rather than in the admin block: one sequential ramp, stepped once per theme,
+  used by both things that plot activity.
+*/
+.daycols-frame {
+  position: relative;
+  padding-left: 34px;
+}
+.daycols {
+  display: grid;
+  grid-template-columns: repeat(var(--day-cols, 30), minmax(0, 1fr));
+  /* Tall enough that a one-attempt day is still a mark beside a thirty-attempt
+     one; short enough that this sits above the fold with the tiles. */
+  height: 132px;
+  /* The surface gap between marks, not a border. */
+  gap: 2px;
+  align-items: end;
+}
+/* The hover target is the whole column, floor to ceiling. Aiming at a 4px bar
+   for a quiet day is not a hit target. */
+.daycol {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  border-radius: 3px;
+}
+.daycol:hover {
+  background: var(--surface-hover);
+}
+/*
+  Weekends are context, not data, so they sit under the bars in both senses.
+
+  Two things went wrong here before this landed, both only visible once rendered.
+  A full-height fill at --heat-0/0.4 reads as a bar at maximum, which is the
+  opposite of what a quiet Sunday means. And `opacity` is the wrong tool
+  entirely: it composites the whole column including the bar inside it, so a
+  weekend with real attempts drew its bar washed out — the days most worth seeing
+  were the ones being faded. A background colour tints the track and leaves the
+  mark alone.
+
+  --heat-0 rather than --surface-2 because it is the ramp's own "nothing here"
+  step, re-stepped per theme: it lifts very slightly off the dark surface and
+  sits very slightly under the light one. --surface-2 is pure white in light
+  mode, which made the weekend bands brighter than the panel behind them — chrome
+  that draws more attention than the data is chrome pointing the wrong way.
+*/
+.daycol.rest {
+  background: var(--heat-0);
+}
+.daycol.rest:hover {
+  background: var(--surface-hover);
+}
+.daycol i {
+  display: block;
+  width: 100%;
+  /* Capped, so a wide panel does not inflate thirty bars into slabs. */
+  max-width: 22px;
+  min-height: 2px;
+  /* Rounded at the data end, square on the baseline it is measured from. */
+  border-radius: 3px 3px 0 0;
+  background: var(--heat-2);
+}
+/* A day with nothing on it draws nothing. The empty track is the statement. */
+.daycol i[data-zero] {
+  background: none;
+  min-height: 0;
+}
+
+/* Baseline and peak only. Thirty columns behind five gridlines is more chrome
+   than data, and these are the two values worth reading off an axis. */
+.daycols-rule {
+  position: absolute;
+  left: 34px;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+.daycols-ytick {
+  position: absolute;
+  left: 0;
+  width: 30px;
+  text-align: right;
+  font-size: 10px;
+  color: var(--text-3);
+  transform: translateY(-50%);
+}
+.daycols-x {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
 /* ------------------------------------------------------------- solved ring */
 .ring-block {
   display: flex;
@@ -3615,7 +3884,8 @@ img.avatar {
   .problems.revision .col-cos {
     display: none;
   }
-  .grid-2 {
+  .grid-2,
+  .dash-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -3961,6 +4231,79 @@ img.avatar {
 }
 .cred-block .btn {
   margin-top: 10px;
+}
+
+/* ---- dashboard ---- */
+
+/*
+  One piece of state, as a dot and a word.
+
+  The word is the message and the dot is only how you find the interesting row.
+  Status colours are reserved — these four never carry a series or a category,
+  and a chart that needs a fifth colour does not take one from here.
+*/
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.chip i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+.chip.ok i {
+  background: var(--easy);
+}
+.chip.warn i {
+  background: var(--medium);
+}
+.chip.bad i {
+  background: var(--danger);
+}
+.chip.off i {
+  background: var(--text-3);
+}
+
+.health-row {
+  display: grid;
+  grid-template-columns: 104px auto 1fr;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.health-row:last-child {
+  border-bottom: none;
+}
+.health-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+.health-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+@media (max-width: 640px) {
+  /* Three columns in a phone-width panel leaves the sentence four characters
+     wide. Let it wrap under the label and the chip. */
+  .health-row {
+    grid-template-columns: auto 1fr;
+  }
+  .health-note {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ---- activity ---- */
@@ -4438,7 +4781,14 @@ img.avatar {
   launcher is permanent, and a stack that lands on the send button costs you the
   message you were typing. Vertical only — sliding sideways reads as a bug.
 */
-:root:has(.chat-launcher) .toasts {
+/*
+  Both bubbles are named, and the second one matters more than it looks. They sit
+  side by side, so either one alone still occupies the strip the toasts have to
+  clear — and the case that breaks is chat hidden with feedback visible, which is
+  a real deployment and the one nobody opens a toast in while testing.
+*/
+:root:has(.chat-launcher) .toasts,
+:root:has(.fb-launcher) .toasts {
   bottom: calc(var(--chat-gap) * 2 + var(--chat-bubble));
 }
 :root:has(.chat-dock) .toasts {
@@ -5338,8 +5688,15 @@ img.avatar {
   /* The dock is already clamped to the viewport width; this keeps the bubble
      it hangs off out of the way of the composer underneath it. */
   .chat-launcher,
+  .fb-launcher,
   .chat-dock {
     --chat-gap: 12px;
+  }
+
+  /* Two doors to the same dialog is one too many on a phone, and the bubble is
+     twelve pixels away. The search field wants this width more. */
+  .fb-topbar-btn {
+    display: none;
   }
 }
 
@@ -7936,4 +8293,275 @@ img.avatar {
   .ne-title {
     font-size: 24px;
   }
+}
+
+/* ========================================================================== */
+/* FEEDBACK                                                                   */
+/* ========================================================================== */
+
+/*
+  The bubble, beside the chat one rather than under it.
+
+  The box is copied from .chat-launcher instead of joining its selector list,
+  and that is deliberate: joining would make every existing
+  `:root:has(.chat-launcher)` rule in this file fire for this element too, and
+  those rules are about where the chat widget is, not about there being a bubble.
+*/
+.fb-launcher {
+  position: fixed;
+  right: var(--chat-gap);
+  bottom: var(--chat-gap);
+  width: var(--chat-bubble);
+  height: var(--chat-bubble);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 6px 20px var(--shadow);
+  cursor: pointer;
+  z-index: 40;
+  transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+.fb-launcher:hover {
+  transform: translateY(-2px);
+  background: var(--surface-hover);
+  border-color: var(--accent-line);
+}
+.fb-launcher.on { color: var(--text-2); }
+
+/*
+  Sideways when chat is there, into the corner when it is not.
+
+  `:has` rather than a class either component sets, because the chat bubble
+  disappears for two unrelated reasons — the module is hidden, or you are already
+  on /chat — and both of them are "the element is not in the document", which is
+  the one condition a selector can read without either component being told about
+  the other.
+
+  Sideways rather than stacked: the chat dock opens upward from 84px, and a
+  bubble stacked above this one would sit inside it.
+*/
+:root:has(.chat-launcher) .fb-launcher {
+  right: calc(var(--chat-gap) * 2 + var(--chat-bubble));
+}
+
+/* The two tabs in the dialog. The underline shape rather than a segmented pill —
+   a pill reads as a filter you could have both of, and these are two screens. */
+.fb-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 13px;
+  border-bottom: 1px solid var(--border);
+}
+.fb-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.fb-tabs button:hover { color: var(--text-2); }
+.fb-tabs button.on {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.fb-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fb-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: var(--surface-2);
+}
+.fb-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fb-item-head b {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+/* People press Enter. A bug report written as three steps should not arrive as
+   one paragraph. */
+.fb-item-msg {
+  white-space: pre-wrap;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.fb-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+/*
+  The reply, marked off by a rule down its left rather than another card.
+
+  It has to read as somebody answering, not as more of the same message — and the
+  accent is the app's existing "this came from us" signal.
+*/
+.fb-reply {
+  margin-top: 9px;
+  padding: 7px 0 2px 10px;
+  border-left: 2px solid var(--accent);
+}
+.fb-reply-label {
+  display: flex;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.fb-reply-label time {
+  font-weight: 400;
+  color: var(--text-3);
+}
+.fb-reply p {
+  white-space: pre-wrap;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* Only drawn near the ceiling, so it is a warning rather than a running total. */
+.fb-chars {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.fb-chars.warn { color: var(--medium); }
+
+.fb-form-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* The submission as staff read it, above the two controls that answer it. */
+.fb-detail-msg {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin: 10px 0 14px;
+}
+.fb-detail-msg b { font-size: 13px; }
+.fb-detail-msg p {
+  white-space: pre-wrap;
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+/* ========================================================================== */
+/* RATING                                                                     */
+/* ========================================================================== */
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.star-btn {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: color 0.1s ease, transform 0.1s ease;
+}
+/*
+  Amber, the same token the difficulty and warning marks use, rather than the
+  accent. The accent is user-chosen and can be a gray — a five-star control that
+  renders in gray on somebody's theme has lost the one convention it relies on.
+*/
+.star-btn.on {
+  color: var(--medium);
+}
+.star-btn:hover {
+  transform: scale(1.12);
+}
+.star-btn:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+.stars-word {
+  margin-left: 7px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  /* Holds its width so the row does not jog sideways as the word changes
+     length while the cursor travels along the stars. */
+  min-width: 34px;
+}
+
+/*
+  The admin column: the same marks, no controls, nothing focusable.
+
+  Coloured per star rather than on the row. Setting it on the container tinted
+  the empty ones too, so every rating below five drew its unearned stars in the
+  same amber as the earned ones — three out of five and five out of five looked
+  alike at a glance, which is the one thing this column exists to distinguish.
+*/
+.stars.ro {
+  gap: 1px;
+}
+.stars.ro svg {
+  color: var(--text-3);
+  opacity: 0.5;
+}
+.stars.ro svg.on {
+  color: var(--medium);
+  opacity: 1;
+}
+.stars.ro .hint {
+  font-size: 11px;
+}
+
+/*
+  The block in the sign-out dialog.
+
+  Boxed off from the two lines above it because it is a different kind of thing:
+  those explain what the button below does, this one asks for something and is
+  entirely optional. Without the separation it reads as a step in signing out.
+*/
+.signout-ask {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.signout-ask-q {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.signout-ask .hint {
+  margin: 0;
 }

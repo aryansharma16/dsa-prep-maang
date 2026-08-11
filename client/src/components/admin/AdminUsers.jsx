@@ -5,34 +5,11 @@ import { useAuth } from '../../store/AuthContext.jsx';
 import { ROLE_LABEL, can } from '../../store/caps.js';
 import { IconPlus } from '../ui/Icons.jsx';
 import { AvatarButton } from '../ui/PhotoPreview.jsx';
+import { StarRating } from '../ui/StarRating.jsx';
 import { CreateUserModal } from './CreateUserModal.jsx';
 import { UserDetailModal } from './UserDetailModal.jsx';
 import { Dropdown } from '../ui/Dropdown.jsx';
-
-const shortDate = (value) =>
-  new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-
-/**
- * How long ago, coarsely.
- *
- * A column scanned down a list wants "3d", not "3 days ago" — the unit is the
- * only part that varies and the eye is comparing magnitudes. The detail panel
- * spells the same fact out in words, where there is one of it to read.
- */
-function since(value) {
-  if (!value) return '—';
-  const mins = Math.round((Date.now() - new Date(value)) / 60000);
-  if (!Number.isFinite(mins)) return '—';
-  if (mins < 60) return 'now';
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.round(hours / 24);
-  if (days < 31) return `${days}d`;
-  const months = Math.round(days / 30);
-  return months < 12 ? `${months}mo` : `${Math.round(months / 12)}y`;
-}
-
-const exact = (value) => (value ? new Date(value).toLocaleString() : 'No record of this yet');
+import { exact, shortDate, since } from './time.js';
 
 export function AdminUsers() {
   const { user: me } = useAuth();
@@ -107,6 +84,7 @@ export function AdminUsers() {
               <tr>
                 <th>Person</th>
                 <th>Role</th>
+                <th>Rating</th>
                 <th>Joined</th>
                 {/* Active before signed-in: "are they still using this" is the
                     question this column gets opened for, and a sign-in months
@@ -131,6 +109,11 @@ export function AdminUsers() {
                   </td>
                   <td>
                     <span className={`role-pill ${u.role}`}>{ROLE_LABEL[u.role]}</span>
+                  </td>
+                  {/* Read-only: five buttons per row would put five tab stops in
+                      every row, and an admin does not rate on someone's behalf. */}
+                  <td title={u.rating?.at ? `Rated ${exact(u.rating.at)}` : undefined}>
+                    <StarRating value={u.rating?.stars || 0} readOnly size={13} />
                   </td>
                   <td className="cell-dim mono">{shortDate(u.createdAt)}</td>
                   <td className="cell-dim mono" title={exact(u.lastSeenAt)}>

@@ -41,6 +41,10 @@
   --easy-bg: rgba(0, 184, 163, 0.12);
   --medium-bg: rgba(255, 184, 0, 0.12);
   --hard-bg: rgba(255, 55, 95, 0.12);
+  /* The wash for --syn-type, which the feedback "Planned" badge borrows. Its own
+     token rather than an inline rgba, so the badge cannot drift from the colour
+     it tints when the syntax palette is re-stepped. */
+  --info-bg: rgba(130, 170, 255, 0.14);
 
   --accent: rgb(var(--accent-rgb));
   --accent-bg: rgb(var(--accent-rgb) / 0.12);
@@ -101,6 +105,8 @@
   --easy-bg: rgba(0, 135, 90, 0.1);
   --medium-bg: rgba(178, 94, 0, 0.1);
   --hard-bg: rgba(209, 41, 61, 0.1);
+  /* Re-stepped for the light surface, like the three above. */
+  --info-bg: rgba(64, 120, 242, 0.1);
 
   --accent: rgb(var(--accent-rgb));
   --accent-bg: rgb(var(--accent-rgb) / 0.12);

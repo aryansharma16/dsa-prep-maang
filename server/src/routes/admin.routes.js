@@ -37,6 +37,12 @@ import {
   unlockGuide,
 } from '../controllers/admin/guides.controller.js';
 import {
+  listFeedback,
+  listQuery as feedbackListQuery,
+  updateFeedback,
+  updateSchema as feedbackUpdateSchema,
+} from '../controllers/admin/feedback.controller.js';
+import {
   createSchema,
   createUser,
   deleteUser,
@@ -217,6 +223,30 @@ adminRouter.delete(
   requireCap('content:write'),
   validate(idParam, 'params'),
   deleteMotivation,
+);
+
+/* ------------------------------------------------------------- feedback */
+
+/*
+  Deliberately not behind `requireModule('feedback')`, and it must stay that way.
+  Hiding the module takes the form off the side menu and stops the API accepting
+  anything new; it does not empty a queue that already has people waiting in it,
+  and staff have to be able to answer what is in there. This surface sits above
+  every module gate in routes/index.js, so that holds structurally rather than by
+  anyone remembering it.
+*/
+adminRouter.get(
+  '/feedback',
+  requireCap('feedback:read'),
+  validate(feedbackListQuery, 'query'),
+  listFeedback,
+);
+adminRouter.patch(
+  '/feedback/:id',
+  requireCap('feedback:write'),
+  validate(idParam, 'params'),
+  validate(feedbackUpdateSchema),
+  updateFeedback,
 );
 
 /* --------------------------------------------------------------- guides */

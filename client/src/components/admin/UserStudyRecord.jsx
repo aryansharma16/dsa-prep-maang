@@ -14,6 +14,8 @@
  * streak, which is the kind of discrepancy nobody can explain a week later.
  */
 
+import { Tile } from '../ui/Tile.jsx';
+
 const DIFF_ORDER = { Easy: 0, Medium: 1, Hard: 2 };
 
 /** "3 hours ago", or "never" — the two answers this section is asked for. */
@@ -55,16 +57,6 @@ function timeSpent(minutes) {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   return rest ? `${hours}h ${rest}m` : `${hours}h`;
-}
-
-function Tile({ label, value, sub }) {
-  return (
-    <div className="tile">
-      <div className="k">{label}</div>
-      <div className="v">{value}</div>
-      {sub && <div className="sub">{sub}</div>}
-    </div>
-  );
 }
 
 export function UserStudyRecord({ user, stats, added, recent }) {

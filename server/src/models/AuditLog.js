@@ -19,9 +19,28 @@ const auditLogSchema = new mongoose.Schema(
     actorRole: { type: String, default: 'system' },
 
     action: { type: String, required: true, index: true },
+    /**
+     * Every value a controller passes has to be listed here.
+     *
+     * `recordAudit` swallows its own failures on purpose — a logging error must
+     * not fail the action it describes — so a missing value is not an exception
+     * anyone sees. It is a row that silently never gets written, and a gap in
+     * the activity feed nobody notices until they go looking for what happened.
+     * `module` was exactly that until it was added here.
+     */
     targetType: {
       type: String,
-      enum: ['user', 'problem', 'pattern', 'guide', 'motivation', 'settings', 'system'],
+      enum: [
+        'user',
+        'problem',
+        'pattern',
+        'guide',
+        'motivation',
+        'feedback',
+        'module',
+        'settings',
+        'system',
+      ],
       required: true,
     },
     targetId: { type: String, default: '' },

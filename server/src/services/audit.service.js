@@ -27,6 +27,19 @@ export const AUDIT = Object.freeze({
   MOTIVATION_UPDATE: 'motivation.update',
   MOTIVATION_DELETE: 'motivation.delete',
 
+  /*
+    One action for the whole PATCH rather than a status one and a reply one.
+    The granularity here follows routes — USER_ROLE and USER_PASSWORD are
+    separate because they are separate endpoints, while USER_UPDATE covers a
+    whole PATCH and puts the detail in `meta`. Triaging a submission is one
+    request that sets a status, writes a reply, or both.
+
+    Submitting feedback is deliberately absent. This collection records what
+    staff do to the app; no learner action is in it, and putting this one in
+    would fill the activity feed with the one kind of event it leaves out.
+  */
+  FEEDBACK_UPDATE: 'feedback.update',
+
   SETTINGS_UPDATE: 'settings.update',
   CHAT_PURGE: 'chat.purge',
 
@@ -55,6 +68,7 @@ export const AUDIT_LABEL = {
   [AUDIT.MOTIVATION_CREATE]: 'wrote the line',
   [AUDIT.MOTIVATION_UPDATE]: 'edited the line',
   [AUDIT.MOTIVATION_DELETE]: 'deleted the line',
+  [AUDIT.FEEDBACK_UPDATE]: 'answered the feedback',
   [AUDIT.SETTINGS_UPDATE]: 'changed the site settings',
   [AUDIT.CHAT_PURGE]: 'deleted all chat history',
   [AUDIT.MODULE_VISIBILITY]: 'changed who can see',

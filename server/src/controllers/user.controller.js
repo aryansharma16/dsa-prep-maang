@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { User, publicUser } from '../models/User.js';
 import { assertEmailNotReserved } from '../services/admin.guards.js';
 import { destroyAsset, folderFor, uploadBuffer } from '../services/media.service.js';
@@ -5,6 +6,31 @@ import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export { selfUpdateSchema } from '../config/profileFields.js';
+
+export const ratingSchema = z.object({ stars: z.number().int().min(1).max(5) });
+
+/**
+ * PUT /auth/me/rating — how this person feels about the place, out of five.
+ *
+ * Replaces rather than appends: one current opinion per account, the latest one
+ * winning. Rating again is changing your mind, not adding a second vote.
+ *
+ * Lives on /auth/me rather than under /feedback, and deliberately so. It writes
+ * to the caller's own document and needs no capability — but more to the point,
+ * the star picker sits in the sign-out dialog, which is on every page whether or
+ * not the Feedback module is switched on. Behind `requireModule('feedback')` it
+ * would 404 for everyone the moment a super admin hid the module, and the
+ * failure would show up in the one dialog nobody thinks to test.
+ */
+export const rateApp = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.userId);
+  if (!user) throw ApiError.unauthorized('Account no longer exists', 'NO_USER');
+
+  user.rating = { stars: req.body.stars, at: new Date() };
+  await user.save();
+
+  res.json({ user: publicUser(user) });
+});
 
 /**
  * The signed-in user editing their own details.

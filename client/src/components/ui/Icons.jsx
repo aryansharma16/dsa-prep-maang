@@ -430,3 +430,10 @@ export const IconLayers = (p) => (
     <path d="M2 11.6l6 3.2 6-3.2" opacity="0.45" />
   </Svg>
 );
+
+export const IconMegaphone = (p) => (
+  <Svg {...p}>
+    <path d="M13.1 3.1v9.8L5.6 10.3H3.4a1.4 1.4 0 01-1.4-1.4V7.1a1.4 1.4 0 011.4-1.4h2.2z" />
+    <path d="M5.6 10.4l.8 3.2h2.1l-.8-3" />
+  </Svg>
+);

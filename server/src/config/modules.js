@@ -23,6 +23,15 @@ export const MODULES = Object.freeze([
   { key: 'stats', label: 'Stats', path: '/stats' },
   { key: 'chat', label: 'AI Chat', path: '/chat' },
   { key: 'notes', label: 'Notes', path: '/notes' },
+  /*
+    Feedback is a module for the same reason the four above are: it is a side
+    menu entry and an API surface, and hiding it has to mean both. It is worth
+    knowing what hiding it costs, though — it is the channel people use to say
+    something is broken, so taking it away takes away the report as well as the
+    page. The queue in the admin panel is deliberately not behind this key, so
+    what has already been submitted stays answerable either way.
+  */
+  { key: 'feedback', label: 'Feedback', path: '/feedback' },
 ]);
 
 export const MODULE_KEYS = MODULES.map((module) => module.key);

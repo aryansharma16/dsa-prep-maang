@@ -9,6 +9,8 @@ import {
   registerSchema,
 } from '../controllers/auth.controller.js';
 import {
+  rateApp,
+  ratingSchema,
   removeAvatar,
   selfUpdateSchema,
   updateMe,
@@ -27,6 +29,13 @@ authRouter.post('/logout', logout);
 authRouter.get('/me', requireAuth, me);
 // Your own details. Needs no capability — it can only reach your own document.
 authRouter.patch('/me', requireAuth, validate(selfUpdateSchema), updateMe);
+
+/*
+  Your own rating. Not under /feedback, even though it belongs to that feature:
+  the star picker is in the sign-out dialog, which exists whether or not the
+  Feedback module is switched on.
+*/
+authRouter.put('/me/rating', requireAuth, validate(ratingSchema), rateApp);
 
 /*
   The avatar hangs off /me because that is the resource it belongs to. Auth

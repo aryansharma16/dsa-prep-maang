@@ -25,7 +25,8 @@ both auth pages and the document title read from it, so renaming is one edit.
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
 | **Motivation** | A line under every page heading, chosen from what you have actually solved |
-| **Admin** | Four roles, user management, content editing, a guide block editor and an audit log |
+| **Feedback** | Anyone can send a suggestion, a bug or a complaint — from a bubble, the topbar or its own page — and watch the status change. Staff triage the queue and leave one reply. Signing out asks for a rating out of five, which shows against the account in the panel |
+| **Admin** | Four roles, a dashboard, user management, content editing, a guide block editor and an audit log |
 | **Modules** | The super admin can hide a side-menu module while it is being built — gone from the menu, the routes and the API, for everyone but them |
 
 ## Running it
@@ -201,6 +202,10 @@ longest streak, active days, time logged, the solved ring, the activity heatmap,
 your strongest patterns, company coverage, and the last eight problems you
 solved. Recent solves are derived from the roadmap already in memory, so the page
 costs one request.
+
+**Your feedback** sits at the foot of the page — the last three things you sent
+and what happened to them, so a reply does not go unread behind a bubble you have
+stopped noticing.
 
 **About** holds the optional details — bio, college, graduation year, location,
 target role, GitHub, LinkedIn, LeetCode, website and target companies. Edit them
@@ -409,6 +414,76 @@ Full detail: [docs/aws-infrastructure.md](docs/aws-infrastructure.md) for what
 exists and why, [docs/aws-runbook.md](docs/aws-runbook.md) for deploying,
 verifying and fixing it.
 
+## Feedback
+
+Three doors to one dialog — a bubble beside the chat one, an icon in the topbar,
+and `/feedback` in the side menu — because the thing that kills a feedback channel
+is not being where someone was when they had the thought. All three open the same
+`Send` / `Yours` popup; the page carries the same form and list with more room.
+
+A submission is a **kind** (suggestion, bug, complaint, other), a one-line title,
+the detail, and the route you were on when you opened the form — "the stats page"
+is most of a bug report, and asking someone to remember where they were is asking
+for a worse one.
+
+| status | what it promises |
+|---|---|
+| Waiting | nobody has picked it up |
+| Being read | somebody is looking at it |
+| Planned | accepted, not built yet |
+| Done | done, or answered |
+| Not planned | read, and we are not doing it |
+
+**Two terminal states, not one.** Closing something you disagree with as "Done"
+is a lie the submitter can read, so declining is its own ending. Anything finer —
+duplicate, deferred, won't fix — is a sentence, and that is what the one reply
+per submission is for.
+
+**The cap is five open submissions per account, not a rate per hour.** A time
+window punishes the person who finds three bugs in ten minutes, which is exactly
+who this exists for, and it clears on a clock nobody controls. A cap on the
+unanswered clears when staff work the queue, so the limit tracks the conversation
+— and it needs no counter collection, no TTL and no timer.
+
+Submissions cannot be edited or deleted by their sender. A submission is a message
+that has been *received*: rewriting it after somebody has read and answered it
+makes the queue change under its reader, and deleting it deletes their reply.
+
+### Rating, and the sign-out dialog
+
+Signing out is the one moment somebody has just finished using the thing and has
+an opinion they will not have an hour later, so that dialog asks: five stars, and
+an amber **Send feedback** button beside them.
+
+It stays a confirmation first. The stars are optional, the button is optional, and
+neither stands between anyone and the **Sign out** they opened it to press — an
+exit survey you have to dismiss to leave is how you teach people to stop reading
+dialogs.
+
+The rating is **one value per account, latest wins**, on `User.rating`
+(`{ stars, at }`). Rating again is changing your mind, not casting a second vote;
+the question the panel answers is "how does this person feel about it now", not
+"how did their opinion move over eight months". It is **absent until they rate**,
+so "never said" and "said one star" cannot be confused — the second is a
+complaint, the first is silence, and the Users table prints `Not rated` rather
+than a row of empty stars.
+
+`PUT /auth/me/rating` lives on `/auth/me`, not under `/feedback`. It writes only to
+the caller's own document, and the picker sits in a dialog that exists whether or
+not the Feedback module is switched on — behind `requireModule('feedback')` it
+would 404 the moment a super admin hid the module, in the one dialog nobody thinks
+to test.
+
+**Admin → Users** shows it as a read-only column, hover-dated. Read-only because
+five buttons a row would put five tab stops in every row of the list, and because
+an admin does not hold an opinion on somebody else's behalf.
+
+**Admin → Feedback** is the queue — filter by status, kind or text, and open one
+to set its status and write the reply. Both save in one request, because they are
+decided in one sitting. Sorted by arrival and never by last-touched: a queue that
+reorders as you work it moves rows between pages under the person going down them.
+Every answer writes an audit row.
+
 ## Admin panel
 
 `/admin`, for the owner and a small team. Four roles, and the split is
@@ -429,6 +504,8 @@ administration are delegable.
 | Delete an account      |  –   |   –   |     –      |      ✓      |
 | See site settings      |  –   |   ✓   |     ✓      |      ✓      |
 | **Change site settings** |  –   |   –   |     –      |      ✓      |
+| Read the feedback queue |  –  |   ✓   |     ✓      |      ✓      |
+| Answer feedback        |  –   |   ✓   |     ✓      |      ✓      |
 | **See a module in development** | – | – |    –      |      ✓      |
 | **Hide / release a module** | –  |   –   |     –      |      ✓      |
 
@@ -442,6 +519,38 @@ checks for itself.
 
 A learner who types `/admin` is redirected home. Not a 403 page: that would
 confirm the route exists.
+
+`feedback:read` and `feedback:write` are split even though all three staff roles
+hold both today. Reading the queue is triage; writing on an item sends a sentence
+to a real person, signed with a name, in the product's voice. The overlap is what
+the matrix currently says, not a claim the two are the same power.
+
+### The dashboard
+
+The panel's landing page answers what an operator actually asks on arriving —
+*is anything waiting on me, is anything misconfigured, is the place alive* —
+rather than counting what exists.
+
+| Panel | Question | Form |
+|---|---|---|
+| Five tiles | Is anything waiting? | open feedback and how long the oldest has waited, active this week, new accounts, patterns with no guide, hand-edited problems |
+| Attempts, last 30 days | Is the place alive? | one column per UTC day, bucketed by the same `dayKey` the streak uses |
+| System | Is anything misconfigured? | AI providers ready, chat and its retention, uploads, hidden modules — each a dot **and** a word |
+| People | Who has keys, is anyone here? | 7-day and 30-day active against the account total, plus the staff roll |
+| Patterns without a guide | What is unfinished? | a worklist linking into Guides |
+| Recent activity | What changed? | the audit feed, and a link to all of it |
+
+**Every key is gated server-side and omitted when denied**, not sent and hidden in
+JSX — `content` needs `content:read`, `health` needs `settings:read`, `users`
+needs `user:read`, `feedback` needs `feedback:read`. The work behind a denied key
+is never run. The client renders on the *presence* of a key, so there is nothing
+for a client-side capability check to get wrong.
+
+The chart is CSS grid, not SVG, for the reason the activity heatmap is: fractional
+columns make it exactly as wide as the panel at any width, with no viewBox
+arithmetic and nothing to scroll. One series means one colour from the `--heat-*`
+ramp and no legend; weekends are a background band, never a mark; a day with
+nothing on it draws nothing.
 
 ### The super admin is pinned, not assigned
 
@@ -528,10 +637,17 @@ lives in `main` instead of on a branch nobody merges.
 | Stats | `/stats` |
 | AI Chat | `/chat` |
 | Notes | `/notes` |
+| Feedback | `/feedback` |
 
 The roadmap is deliberately not eligible: it is where the catch-all route, the
 admin redirect and every other redirect land, so hiding it would mean inventing
 a second place for people to end up.
+
+Feedback is worth hiding deliberately rather than by habit — it is the channel
+people use to report that something is broken, so taking it away takes the report
+with it. The queue in the panel is **not** behind the module gate: hiding the form
+stops new submissions, it does not empty a collection with people already waiting
+in it.
 
 **Hidden means three things at once**, and the third is the one that matters:
 
@@ -943,12 +1059,14 @@ client/
 |---|---|---|
 | `POST` | `/auth/register` · `/auth/login` · `/auth/logout` · `/auth/refresh` | session |
 | `GET` `PATCH` | `/auth/me` | the signed-in user with their capabilities and visible modules, and editing your own details |
+| `PUT` | `/auth/me/rating` | your own rating out of five — replaces, never appends |
 | `POST` `DELETE` | `/auth/me/avatar` | profile picture |
 | `GET` | `/patterns` · `/patterns/:slug/guide` | curriculum and guides |
 | `GET` | `/problems` · `/problems/:slug/description` | roadmap, statement on demand |
 | `POST` `PATCH` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems — edit and delete are owner-checked |
 | `GET` `PATCH` `POST` | `/progress/revision` · `/progress/:id` · `/progress/:id/attempt` | tracking |
 | `GET` | `/stats` | profile and stats pages |
+| `GET` `POST` | `/feedback` | your own submissions, and sending one — capped at 5 open per account |
 | `GET` | `/motivation` | the line for one page, chosen from your progress |
 | `GET` | `/motivation/login` | the sign-in page's line — **public on purpose** |
 | `GET` | `/companies/:slug/logo` | cached brand icons — **public on purpose** |

@@ -1,6 +1,7 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { AdminAudit } from '../components/admin/AdminAudit.jsx';
 import { AdminChat } from '../components/admin/AdminChat.jsx';
+import { AdminFeedback } from '../components/admin/AdminFeedback.jsx';
 import { AdminGuides } from '../components/admin/AdminGuides.jsx';
 import { AdminModules } from '../components/admin/AdminModules.jsx';
 import { AdminMotivation } from '../components/admin/AdminMotivation.jsx';
@@ -14,6 +15,9 @@ import { ROLE_LABEL, can } from '../store/caps.js';
 const SECTIONS = [
   { id: '', label: 'Overview', Component: AdminOverview },
   { id: 'users', label: 'Users', Component: AdminUsers, cap: 'user:read' },
+  // Next to Users deliberately: "who is here" and "what they are telling us" are
+  // one cluster, and this is the tab with a person waiting at the other end of it.
+  { id: 'feedback', label: 'Feedback', Component: AdminFeedback, cap: 'feedback:read' },
   { id: 'problems', label: 'Problems', Component: AdminProblems, cap: 'content:read' },
   { id: 'patterns', label: 'Patterns', Component: AdminPatterns, cap: 'content:read' },
   { id: 'guides', label: 'Guides', Component: AdminGuides, cap: 'content:read' },

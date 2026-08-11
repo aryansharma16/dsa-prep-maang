@@ -3,22 +3,8 @@ import { errorMessage } from '../api/http.js';
 import { statsApi } from '../api/index.js';
 import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
 import { SolvedRing } from '../components/stats/SolvedRing.jsx';
+import { MeterRow } from '../components/ui/MeterRow.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
-
-function Meter({ name, solved, total, muted }) {
-  const pct = total ? Math.round((solved / total) * 100) : 0;
-  return (
-    <div className="statrow">
-      <span className="nm">{name}</span>
-      <span className="bar">
-        <span style={{ width: `${pct}%`, background: muted ? 'var(--text-3)' : undefined }} />
-      </span>
-      <span className="fr">
-        {solved}/{total}
-      </span>
-    </div>
-  );
-}
 
 export function Stats() {
   const [data, setData] = useState(null);
@@ -113,7 +99,7 @@ export function Stats() {
                   Least complete first — a reasonable place to go next.
                 </p>
                 {nextUp.map((p) => (
-                  <Meter key={p.slug} name={p.name} solved={p.solved} total={p.total} />
+                  <MeterRow key={p.slug} name={p.name} value={p.solved} total={p.total} />
                 ))}
               </>
             )}
@@ -129,7 +115,7 @@ export function Stats() {
               byCompany
                 .slice(0, 10)
                 .map((c) => (
-                  <Meter key={c.name} name={c.name} solved={c.solved} total={c.total} />
+                  <MeterRow key={c.name} name={c.name} value={c.solved} total={c.total} />
                 ))
             )}
           </div>
@@ -177,7 +163,7 @@ export function Stats() {
             </table>
           ) : (
             byPattern.map((p) => (
-              <Meter key={p.slug} name={p.name} solved={p.solved} total={p.total} />
+              <MeterRow key={p.slug} name={p.name} value={p.solved} total={p.total} />
             ))
           )}
         </div>

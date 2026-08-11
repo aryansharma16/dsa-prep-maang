@@ -3,6 +3,7 @@ import { Admin } from './pages/Admin.jsx';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { Chat } from './pages/Chat.jsx';
 import { ChatProvider } from './store/ChatContext.jsx';
+import { Feedback } from './pages/Feedback.jsx';
 import { Login } from './pages/Login.jsx';
 import { NoteEdit } from './pages/NoteEdit.jsx';
 import { Notes } from './pages/Notes.jsx';
@@ -76,6 +77,7 @@ export function App() {
                 <Route path="/notes/:id/edit" element={<NoteEdit />} />
               </>
             )}
+            {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
             <Route path="/profile" element={<Profile />} />
             {/* Guards itself. A learner who types /admin is redirected home, so
                 the route is indistinguishable from one that does not exist. */}

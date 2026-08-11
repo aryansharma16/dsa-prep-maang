@@ -110,6 +110,29 @@ const userSchema = new mongoose.Schema(
      */
     lastSeenAt: { type: Date, default: null },
 
+    /**
+     * What this person thinks of the place, out of five.
+     *
+     * One value per account rather than a row per rating, and the latest one
+     * wins. The question being answered in the panel is "how does this person
+     * feel about it now", not "how did their opinion move over eight months" —
+     * and a history nobody reads is a collection somebody has to maintain.
+     *
+     * Absent until they actually rate, like `avatar`, so "has never rated" and
+     * "rated it one star" cannot be confused. That distinction matters: the
+     * second is a complaint, the first is silence.
+     */
+    rating: {
+      type: new mongoose.Schema(
+        {
+          stars: { type: Number, min: 1, max: 5, required: true },
+          at: { type: Date, default: Date.now },
+        },
+        { _id: false },
+      ),
+      default: undefined,
+    },
+
     // Optional, all of it. The user fills this in about themselves; a super
     // admin can correct it. Nothing here is required to use the app.
     profile: {
@@ -157,7 +180,7 @@ userSchema.set('toJSON', {
  * thing the easy thing: select these fields and the hash cannot come along.
  */
 export const USER_PUBLIC_FIELDS =
-  'email name avatar role profile createdAt updatedAt lastLoginAt lastSeenAt';
+  'email name avatar role profile rating createdAt updatedAt lastLoginAt lastSeenAt';
 
 /**
  * The signed-in user as the client receives it.

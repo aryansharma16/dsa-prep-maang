@@ -35,6 +35,7 @@ import { anyProviderConfigured } from '../services/ai/registry.js';
 import { adminRouter } from './admin.routes.js';
 import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
+import { feedbackRouter } from './feedback.routes.js';
 import { noteRouter, sharedNoteRouter } from './note.routes.js';
 
 export const router = Router();
@@ -135,5 +136,16 @@ router.post('/progress/:problemId/attempt', validate(attemptSchema), logAttempt)
 router.get('/stats', requireModule('stats'), getStats);
 
 router.use('/notes', requireModule('notes'), noteRouter);
+
+/*
+  Under the same module gate as notes and chat, so hiding Feedback takes the form
+  with the nav item rather than leaving a page that submits into a 404.
+
+  The queue staff work from is *not* gated, and cannot be from here — it hangs off
+  adminRouter, mounted above every requireModule in this file. That is deliberate:
+  hiding the form stops new submissions, it does not empty a collection that
+  already has people waiting in it.
+*/
+router.use('/feedback', requireModule('feedback'), feedbackRouter);
 
 router.get('/motivation', validate(surfaceQuery, 'query'), getMotivation);

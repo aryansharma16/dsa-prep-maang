@@ -14,6 +14,8 @@ export const authApi = {
   me: () => http.get('/auth/me').then((r) => r.data),
   /** Your own name and profile fields. Returns the whole updated user. */
   updateMe: (body) => http.patch('/auth/me', body).then((r) => r.data.user),
+  /** Out of five. Replaces any earlier rating — it is an opinion, not a vote. */
+  rate: (stars) => http.put('/auth/me/rating', { stars }).then((r) => r.data.user),
 
   /**
    * Both return the whole updated user, so the caller replaces its copy rather
@@ -116,6 +118,20 @@ export const motivationApi = {
 };
 
 /**
+ * What the people using this have to say about it.
+ *
+ * `mine` returns your own submissions and nothing else — the server filters by
+ * the session rather than by a parameter, so there is no shape of this request
+ * that reads somebody else's. Everything staff needs is on `adminApi` below,
+ * behind `feedback:read`, which is what keeps the two audiences off a single
+ * route that would have to remember which one is asking.
+ */
+export const feedbackApi = {
+  mine: (params) => http.get('/feedback', { params }).then((r) => r.data),
+  create: (body) => http.post('/feedback', body).then((r) => r.data),
+};
+
+/**
  * The admin panel.
  *
  * Guides are read through `adminApi.guide`, not `problemsApi.guide`: the public
@@ -170,6 +186,15 @@ export const adminApi = {
   deleteMotivation: (id) => http.delete(`/admin/motivation/${id}`).then((r) => r.data),
   /** Candidates only — nothing is written until the admin picks. */
   draftMotivation: (body) => http.post('/admin/motivation/draft', body).then((r) => r.data.drafts),
+
+  feedback: (params) => http.get('/admin/feedback', { params }).then((r) => r.data),
+  /**
+   * Status and the reply in one write. The panel edits both in one dialog and
+   * saves once, and two endpoints would mean a half-applied change whenever the
+   * second one failed.
+   */
+  updateFeedback: (id, body) =>
+    http.patch(`/admin/feedback/${id}`, body).then((r) => r.data.submission),
 
   settings: () => http.get('/admin/settings').then((r) => r.data),
   updateSettings: (body) => http.patch('/admin/settings', body).then((r) => r.data),

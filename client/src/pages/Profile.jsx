@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
 import { statsApi } from '../api/index.js';
+import { YourFeedbackPanel } from '../components/feedback/YourFeedbackPanel.jsx';
 import { EditProfileModal } from '../components/profile/EditProfileModal.jsx';
 import { ProfileHeader } from '../components/profile/ProfileHeader.jsx';
 import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
@@ -210,6 +211,11 @@ export function Profile() {
               </div>
             </div>
           </div>
+
+          {/* Last, because it is the least urgent thing on a page about your own
+              progress — but here at all so a reply does not sit unread behind a
+              bubble you have stopped noticing. */}
+          <YourFeedbackPanel />
         </div>
       </div>
 

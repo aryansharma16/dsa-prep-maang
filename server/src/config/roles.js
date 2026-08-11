@@ -31,6 +31,8 @@ export const DEFAULT_ROLE = 'user';
  *   user:delete    delete an account
  *   settings:read  see the site settings and which AI providers are reachable
  *   settings:write change them — chat retention, provider order, spend caps
+ *   feedback:read  see everything submitted through the feedback form
+ *   feedback:write set a submission's status and leave the one reply on it
  *   module:preview reach a side-menu module that is still being built
  *   module:write   decide which modules are still being built
  *
@@ -47,6 +49,13 @@ export const DEFAULT_ROLE = 'user';
  * anyone holding it can mint themselves an `admin` and sign in as it — which is
  * `user:role` by another route. It belongs to whoever already has that.
  *
+ * `feedback:read` and `feedback:write` are split the same way, and the split
+ * earns its keep sooner here than it does for settings. Reading the queue is
+ * triage, and it is safe in the hands of anyone who can open the panel. Writing
+ * on an item sends a sentence to the person who submitted it, signed with a
+ * name, in the product's voice. All three staff roles hold both today; that is
+ * what the current matrix says, not a claim that the two are the same power.
+ *
  * `module:preview` and `module:write` are split even though one role holds both
  * today, because they are answers to different questions. Preview is "an
  * unfinished feature is safe in my hands"; write is "I decide when it ships to
@@ -56,9 +65,28 @@ export const DEFAULT_ROLE = 'user';
 const CAPS = {
   user: [],
 
-  dev_member: ['panel', 'content:read', 'guide:write', 'user:read', 'user:write', 'settings:read'],
+  dev_member: [
+    'panel',
+    'content:read',
+    'guide:write',
+    'user:read',
+    'user:write',
+    'settings:read',
+    'feedback:read',
+    'feedback:write',
+  ],
 
-  admin: ['panel', 'content:read', 'guide:write', 'user:read', 'user:write', 'user:password', 'settings:read'],
+  admin: [
+    'panel',
+    'content:read',
+    'guide:write',
+    'user:read',
+    'user:write',
+    'user:password',
+    'settings:read',
+    'feedback:read',
+    'feedback:write',
+  ],
 
   super_admin: [
     'panel',
@@ -73,6 +101,8 @@ const CAPS = {
     'user:delete',
     'settings:read',
     'settings:write',
+    'feedback:read',
+    'feedback:write',
     'module:preview',
     'module:write',
   ],
