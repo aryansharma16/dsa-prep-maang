@@ -24,4 +24,14 @@ export class ApiError extends Error {
   static conflict(message, code) {
     return new ApiError(409, message, code);
   }
+
+  /**
+   * Rate limited. The one status here that is not about the request being wrong
+   * — it was fine, there have just been too many of them — so the message should
+   * say when to come back rather than what to fix. `meta.retryAfterSeconds`
+   * carries the number; see middleware/rateLimit.js.
+   */
+  static tooManyRequests(message = 'Too many requests', code = 'RATE_LIMITED') {
+    return new ApiError(429, message, code);
+  }
 }

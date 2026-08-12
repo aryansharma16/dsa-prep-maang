@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { aiLimiter } from '../middleware/rateLimit.js';
 import { validate } from '../middleware/validate.js';
 import { idParam } from '../utils/query.js';
 import {
@@ -32,7 +33,16 @@ export const chatRouter = Router();
 
 chatRouter.get('/config', getConfig);
 
-chatRouter.post('/stream', validate(sendSchema), stream);
+/*
+  The rate limit goes ahead of the validator, and ahead of the provider call it
+  guards — it is the only route in the app where one request spends money, so it
+  is checked before anything is read, let alone sent upstream.
+
+  It stops short of `/stop`, which must stay reachable. Cancelling a reply is how
+  someone stops a stream that is already costing tokens; rate limiting the brake
+  along with the accelerator would be the wrong way round.
+*/
+chatRouter.post('/stream', aiLimiter, validate(sendSchema), stream);
 chatRouter.post('/stop', validate(stopSchema), stop);
 
 chatRouter.get('/conversations', validate(listQuery, 'query'), listConversations);

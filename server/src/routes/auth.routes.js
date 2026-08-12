@@ -16,14 +16,27 @@ import {
   updateMe,
   uploadAvatar,
 } from '../controllers/user.controller.js';
+import { loginLimiter, registerLimiter, uploadLimiter } from '../middleware/rateLimit.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { singleImage } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
 
 export const authRouter = Router();
 
-authRouter.post('/register', validate(registerSchema), register);
-authRouter.post('/login', validate(loginSchema), login);
+/*
+  The two limiters sit ahead of their validators, so a request that never had a
+  well-formed body still spends budget. Someone walking a password list has no
+  reason to send valid-looking payloads once they learn that malformed ones are
+  free.
+
+  `/refresh` and `/logout` are left to the global limiter on purpose. Refresh is
+  not guessable — it needs a signed cookie this server minted — and the client
+  fires it automatically whenever a 15-minute access token expires mid-session,
+  so a strict per-address limit here would sign out everyone on a shared network
+  rather than stop anything.
+*/
+authRouter.post('/register', registerLimiter, validate(registerSchema), register);
+authRouter.post('/login', loginLimiter, validate(loginSchema), login);
 authRouter.post('/refresh', refresh);
 authRouter.post('/logout', logout);
 authRouter.get('/me', requireAuth, me);
@@ -38,9 +51,11 @@ authRouter.patch('/me', requireAuth, validate(selfUpdateSchema), updateMe);
 authRouter.put('/me/rating', requireAuth, validate(ratingSchema), rateApp);
 
 /*
-  The avatar hangs off /me because that is the resource it belongs to. Auth
-  comes first and multipart parsing second, so an unauthenticated request is
-  turned away before anyone can push five megabytes into this process's heap.
+  The avatar hangs off /me because that is the resource it belongs to. Auth comes
+  first, the rate limit second and multipart parsing last, so neither a stranger
+  nor someone already over their upload budget can push five megabytes into this
+  process's heap before being turned away. The limiter also needs `req.userId`,
+  which only exists after requireAuth has run.
 */
-authRouter.post('/me/avatar', requireAuth, singleImage('avatar', 5), uploadAvatar);
+authRouter.post('/me/avatar', requireAuth, uploadLimiter, singleImage('avatar', 5), uploadAvatar);
 authRouter.delete('/me/avatar', requireAuth, removeAvatar);

@@ -24,6 +24,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
+| **Rate limits** | Per-address and per-account ceilings on every route, tight on sign-in, registration, chat and uploads |
 | **Motivation** | A line under every page heading, chosen from what you have actually solved |
 | **Feedback** | Anyone can send a suggestion, a bug or a complaint — from a bubble, the topbar or its own page — and watch the status change. Staff triage the queue and leave one reply. Signing out asks for a rating out of five, which shows against the account in the panel |
 | **Admin** | Four roles, a dashboard, user management, content editing, a guide block editor and an audit log |
@@ -333,6 +334,68 @@ It takes no pointer events and tracks the cursor from the window, so it keeps
 reaching while you type. A radial scrim lays page colour under the middle of the
 column so no line ever crosses the text. Under `prefers-reduced-motion` it draws
 once and never animates; a hidden tab stops the loop.
+
+## Rate limiting
+
+`server/src/middleware/rateLimit.js`, in front of everything under `/api`.
+
+The threat is not a clever one. It's a loop: a script on `/auth/login` walking a
+password list, a script on `/chat/stream` spending the API key, or any route at
+all hit until a small instance stops answering. None of that needs a
+vulnerability — the endpoints work exactly as designed, just far more often than
+a person could ask.
+
+So the shape is **one generous ceiling over everything, and tight ones where a
+single request is expensive or a wrong answer is worth guessing at.** Tight
+everywhere is a limiter someone switches off the first time it fires on a real
+user, which is worse than not having one.
+
+| policy | window | limit | counted against |
+|---|---|---|---|
+| everything under `/api` | 1 min | 300 | client address |
+| `POST /auth/login` | 15 min | 10 **failures** | client address |
+| `POST /auth/register` | 1 hour | 5 | client address |
+| `POST /chat/stream` | 10 min | 20 | account |
+| avatar and note uploads | 1 hour | 30 | account |
+| every other write below `/admin` | 5 min | 120 | account |
+
+Four decisions in there are worth more than the numbers:
+
+- **Failures are what login counts.** A password manager filling the form
+  correctly, a shared office address, one person on a phone and a laptop — none
+  of those should spend budget that exists to stop guessing. Registration is the
+  same idea inverted and so can't share the limiter: there a *success* is the
+  abuse, so nothing is skipped.
+- **Signed-in routes count the account, not the address.** Shared egress is the
+  ordinary case for this audience — a college network, a hostel, a carrier's
+  CGNAT — and keying chat or uploads by address would have hundreds of people
+  who did nothing wrong locking each other out. It opens nothing: minting
+  accounts to buy budget has to get past the registration limit first, and the
+  address-keyed backstop runs above everything regardless of how many sessions a
+  connection spreads itself across.
+- **IPv6 is keyed by prefix.** A v4 line gives an attacker one address to be
+  counted by; a v6 subscriber is handed a whole block to rotate through for
+  free. Addresses collapse to their /56, so rotating inside your own allocation
+  buys nothing.
+- **`/api/health` is exempt.** It's the health check on both deployment paths,
+  and a 429 there doesn't read as "slow down" — it reads as "the service is
+  down", and the answer to that is a restart.
+
+A rejection is the same `{ error: { message, code, meta } }` every other failure
+is, with `code: "RATE_LIMITED"` and `meta.retryAfterSeconds`, so the UI can say
+*try again in 40 seconds* rather than *try again later*. The standard
+`RateLimit` and `Retry-After` headers go out alongside it.
+
+Two knobs, both optional: `RATE_LIMIT_GLOBAL_PER_MINUTE` raises the backstop if
+a shared network ever trips it, and `RATE_LIMIT_DISABLED=true` turns everything
+off for a load test you're running against yourself. The limits stay on in
+development on purpose, so they're exercised by ordinary use rather than
+discovered in production.
+
+The counters live in the process. That's exact on the single instance this
+deploys to, and it degrades honestly rather than silently if that changes — N
+instances means N times the limit, since each keeps its own tally. The fix at
+that point is `rate-limit-redis` in the `store` option, and nothing else moves.
 
 ## File uploads
 
@@ -1072,6 +1135,11 @@ client/
 | `GET` | `/companies/:slug/logo` | cached brand icons — **public on purpose** |
 | `GET` | `/health` | `ok`, uptime, whether uploads and AI are configured |
 | — | `/admin/*` | the panel — see [Admin panel](#admin-panel) for the capability behind each route |
+
+Every route above is behind a request ceiling, and the sign-in, registration,
+chat and upload routes are behind tighter ones — see
+[Rate limiting](#rate-limiting) for the numbers and what each is counted
+against.
 
 The logo and login-motivation routes are the only unauthenticated data routes.
 The second is handed no signals at all, so a visitor we know nothing about can

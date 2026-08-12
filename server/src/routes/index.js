@@ -26,6 +26,7 @@ import {
   revisionQueue,
 } from '../controllers/progress.controller.js';
 import { getStats } from '../controllers/stats.controller.js';
+import { writeLimiter } from '../middleware/rateLimit.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireModule } from '../middleware/requireModule.js';
 import { validate } from '../middleware/validate.js';
@@ -110,6 +111,21 @@ router.use(requireAuth);
   adminRouter.
 */
 router.use('/admin', adminRouter);
+
+/*
+  Positional, like the gate above it, and placed here for two reasons.
+
+  Below `/admin`, so staff are not counted. The panel writes in bursts by design
+  — importing content, answering a queue, editing a guide section by section —
+  and a learner-shaped ceiling would fire on the ordinary use of a surface that
+  is already behind a role and a capability check. They are still under
+  `apiLimiter`, which is what actually bounds a runaway client.
+
+  Above everything else, so a route added anywhere below this line is covered by
+  having been added at all. It skips GET and HEAD itself, so it costs reads
+  nothing — see middleware/rateLimit.js.
+*/
+router.use(writeLimiter);
 
 /*
   `requireModule` guards the four learner modules that can be taken off the side

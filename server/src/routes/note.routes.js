@@ -19,6 +19,7 @@ import {
   updateSchema,
   uploadAssets,
 } from '../controllers/note.controller.js';
+import { uploadLimiter } from '../middleware/rateLimit.js';
 import { multipleFiles } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
 import { idParam } from '../utils/query.js';
@@ -67,9 +68,15 @@ noteRouter.delete('/:id/permanent', validate(idParam, 'params'), purge);
   the count is what bounds the request: memory storage means 10 × 25MB is a
   quarter gigabyte of buffers in the worst case, which is already as much as a
   small instance should hold for one upload.
+
+  `uploadLimiter` is what bounds the *sequence*, and it comes first — before the
+  id is even validated, so multer never allocates for a request that is going to
+  be refused anyway. Worth reading against the numbers above: this is the route
+  where one caller can ask this process to hold the most memory at once.
 */
 noteRouter.post(
   '/:id/assets',
+  uploadLimiter,
   validate(idParam, 'params'),
   multipleFiles('files', { maxMb: 25, maxFiles: 10 }),
   uploadAssets,

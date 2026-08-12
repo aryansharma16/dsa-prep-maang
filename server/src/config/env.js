@@ -93,6 +93,26 @@ export const env = {
    * Optional — leave it unset and the app simply has no super admin.
    */
   superAdminEmail: (process.env.SUPER_ADMIN_EMAIL || '').trim().toLowerCase(),
+  /**
+   * Request ceilings. The limits themselves live in middleware/rateLimit.js,
+   * next to the reasoning that picked them; only the two worth changing on a
+   * running box without a redeploy are here.
+   *
+   * `enabled` is the escape hatch, and it is a kill switch rather than an
+   * environment test on purpose: the limits stay on in development so they are
+   * exercised by ordinary use rather than discovered in production, and the one
+   * time you genuinely want them off — a load test you are running yourself — is
+   * a decision to state out loud.
+   *
+   * `globalPerMinute` is the backstop that covers every route, keyed by address.
+   * Raise it if a shared network — a college, an office, one carrier's CGNAT —
+   * ever puts enough real learners behind one address to trip it; the tight
+   * limits that actually matter are keyed per account and are unaffected.
+   */
+  rateLimit: {
+    enabled: process.env.RATE_LIMIT_DISABLED !== 'true',
+    globalPerMinute: Number(process.env.RATE_LIMIT_GLOBAL_PER_MINUTE) || 300,
+  },
   cloudinary: {
     ...cloudinary,
     configured: Boolean(cloudinary.cloudName && cloudinary.apiKey && cloudinary.apiSecret),
