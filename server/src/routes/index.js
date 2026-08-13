@@ -26,6 +26,13 @@ import {
   revisionQueue,
 } from '../controllers/progress.controller.js';
 import { getStats } from '../controllers/stats.controller.js';
+import {
+  clearView,
+  getView,
+  saveView,
+  saveViewSchema,
+  scopeSchema,
+} from '../controllers/view.controller.js';
 import { writeLimiter } from '../middleware/rateLimit.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireModule } from '../middleware/requireModule.js';
@@ -150,6 +157,26 @@ router.patch('/progress/:problemId', validate(patchSchema), patchProgress);
 router.post('/progress/:problemId/attempt', validate(attemptSchema), logAttempt);
 
 router.get('/stats', requireModule('stats'), getStats);
+
+/*
+  How a screen is set up for the caller — today, the filters they left on.
+
+  Not behind `requireModule`, on purpose. The scope is a string the client picks,
+  so gating this would mean mapping scopes to modules here — a second copy of a
+  list that already lives in config/modules.js, drifting the first time somebody
+  adds a scope. There is nothing to protect either way: a saved view holds the
+  filter names the caller themselves sent, so a hidden module's view leaks
+  nothing about the module. The screen it belongs to is still gated, and a view
+  for a screen you cannot open is a document nobody reads.
+*/
+router.get('/views/:scope', validate(scopeSchema, 'params'), getView);
+router.put(
+  '/views/:scope',
+  validate(scopeSchema, 'params'),
+  validate(saveViewSchema),
+  saveView,
+);
+router.delete('/views/:scope', validate(scopeSchema, 'params'), clearView);
 
 router.use('/notes', requireModule('notes'), noteRouter);
 

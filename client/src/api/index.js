@@ -61,6 +61,24 @@ export const statsApi = {
 };
 
 /**
+ * How a screen is set up for you — today, the filters you left on it.
+ *
+ * Deliberately untyped in both directions: the server bounds the payload and
+ * stores it without reading inside, so a module can add a filter without this
+ * file, that file, or the database learning what it means. `scope` is the one
+ * part it does check — see the server's config/viewScopes.js.
+ *
+ * `get` answers `null` for an account that has never saved this screen, which is
+ * an ordinary first answer rather than a missing resource. `save` with an empty
+ * bag is how you clear: it removes the row rather than storing "nothing on".
+ */
+export const viewsApi = {
+  get: (scope) => http.get(`/views/${scope}`).then((r) => r.data.view),
+  save: (scope, filters) => http.put(`/views/${scope}`, { filters }).then((r) => r.data.view),
+  clear: (scope) => http.delete(`/views/${scope}`).then((r) => r.data.view),
+};
+
+/**
  * Notes — the personal write-ups, and the only module here with a public half.
  *
  * `shared` and `browse` hit routes mounted above the server's auth gate, so they

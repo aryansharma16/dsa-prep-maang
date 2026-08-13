@@ -28,7 +28,14 @@ import { IconCheck, IconChevronRight, IconSearch } from './Icons.jsx';
  * aria-activedescendant moves. Roving focus would fight the search field for
  * it, and the field has to keep focus to be typed into.
  *
+ * `multiple` turns it into a set picker: `value` is an array, clicking toggles,
+ * and the menu stays open with the search text intact — picking four companies
+ * is one gesture, and a menu that closed and forgot what you had typed would
+ * make it four. Nothing else changes, which is the point: the portalling, the
+ * flipping and the keyboard are the hard parts and they are already here.
+ *
  * @param options {{value: string, label: string, note?: string, disabled?: boolean}[]}
+ * @param value   {string | string[]} an array when `multiple`
  */
 
 /** Past this many, scrolling costs more than typing. */
@@ -52,6 +59,9 @@ export function Dropdown({
   ariaLabel,
   searchable,
   disabled,
+  /** Set picker rather than a choice: `value` is an array and the menu stays
+      open across picks. */
+  multiple = false,
   /** 'field' fills its form row; 'inline' is the compact filter-bar shape. */
   variant = 'field',
   /** Marks an inline trigger as narrowing something. Defaults to "has a
@@ -73,8 +83,15 @@ export function Dropdown({
 
   const inline = variant === 'inline';
   const withSearch = searchable ?? options.length >= SEARCH_FROM;
-  const selected = options.find((o) => o.value === value);
-  const marked = on ?? (inline && Boolean(value));
+
+  const picked = useMemo(() => (multiple ? new Set(value || []) : null), [multiple, value]);
+  const isPicked = (option) => (multiple ? picked.has(option.value) : option.value === value);
+
+  const selected = multiple ? null : options.find((o) => o.value === value);
+  const chosen = multiple ? picked.size : 0;
+  // A multi-select is marked in either variant: unlike a single choice, whose
+  // label already says what is chosen, its trigger only shows a count.
+  const marked = on ?? (multiple ? chosen > 0 : inline && Boolean(value));
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -144,12 +161,16 @@ export function Dropdown({
 
   useEffect(() => {
     if (!open) return;
-    const at = latest.current.options.findIndex((o) => o.value === latest.current.value);
+    // In multi mode there is no single "what is chosen" to land on, so the
+    // cursor starts at the top of the list.
+    const at = multiple
+      ? -1
+      : latest.current.options.findIndex((o) => o.value === latest.current.value);
     setActive(at < 0 ? 0 : at);
     setQuery('');
     // The field only exists once the portal has rendered.
     requestAnimationFrame(() => searchRef.current?.focus() ?? menuRef.current?.focus());
-  }, [open]);
+  }, [open, multiple]);
 
   // A filtered list can be shorter than where the cursor was standing.
   useEffect(() => {
@@ -198,10 +219,25 @@ export function Dropdown({
     return () => window.removeEventListener('keydown', onEsc, true);
   }, [open, close]);
 
+  /*
+    A choice is a decision and closes; a set is a session and does not. Leaving
+    the search text alone matters as much as leaving the menu open — "goog",
+    tick, "amaz", tick is the actual gesture, and a field that cleared itself
+    after every pick would make it twice the typing.
+  */
   const pick = (option) => {
     if (option.disabled) return;
-    onChange(option.value);
-    close();
+    if (!multiple) {
+      onChange(option.value);
+      close();
+      return;
+    }
+    const current = value || [];
+    onChange(
+      picked.has(option.value)
+        ? current.filter((v) => v !== option.value)
+        : [...current, option.value],
+    );
   };
 
   const onKeyDown = (e) => {
@@ -270,6 +306,7 @@ export function Dropdown({
         id={`${baseId}-list`}
         className="dd-list"
         role="listbox"
+        aria-multiselectable={multiple || undefined}
         aria-label={ariaLabel}
         // Only focusable when there is no field to hold focus instead.
         tabIndex={withSearch ? -1 : 0}
@@ -283,16 +320,18 @@ export function Dropdown({
               optionRefs.current[i] = el;
             }}
             role="option"
-            aria-selected={option.value === value}
+            aria-selected={isPicked(option)}
             aria-disabled={option.disabled || undefined}
-            className={`dd-item ${option.value === value ? 'on' : ''} ${
-              i === active ? 'active' : ''
-            } ${option.disabled ? 'off' : ''}`}
+            className={`dd-item ${isPicked(option) ? 'on' : ''} ${i === active ? 'active' : ''} ${
+              option.disabled ? 'off' : ''
+            }`}
             onMouseEnter={() => setActive(i)}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => pick(option)}
           >
-            <span className="dd-tick">{option.value === value && <IconCheck size={11} />}</span>
+            <span className={`dd-tick ${multiple ? 'box' : ''}`}>
+              {isPicked(option) && <IconCheck size={11} />}
+            </span>
             <span className="dd-text">
               <span className="nm">{option.label}</span>
               {option.note && <span className="dd-note">{option.note}</span>}
@@ -318,8 +357,17 @@ export function Dropdown({
         aria-expanded={open}
         aria-label={ariaLabel}
       >
-        <span className={`nm ${selected ? '' : 'dd-placeholder'}`}>
-          {selected ? selected.label : placeholder}
+        {/* In multi mode the trigger says how many, not which — the chips below
+            it are the list, and repeating four company names inside a control
+            this narrow would only ever show the first one and a half. */}
+        <span className={`nm ${selected || chosen ? '' : 'dd-placeholder'}`}>
+          {multiple
+            ? chosen
+              ? `${chosen} selected`
+              : placeholder
+            : selected
+              ? selected.label
+              : placeholder}
         </span>
         <IconChevronRight size={11} className="dd-caret" />
       </button>

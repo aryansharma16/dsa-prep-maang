@@ -17,7 +17,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 
 | | |
 |---|---|
-| **Roadmap** | 429 problems in 22 patterns, filters, a configurable table, inline statements and notes |
+| **Roadmap** | 429 problems in 22 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread |
@@ -158,10 +158,28 @@ The whole curated list — ~430 problems — ships in one response and the clien
 filters locally. Search and filters are instant, and the server keeps a single
 query shape.
 
-Difficulty · company · sheet · status, plus **Flagged** and **Needs revision**
-toggles, and the search box in the top bar (`/`) covers titles, companies and
-topic tags. Searching from Stats or Revision navigates you to the roadmap first,
-rather than leaving you typing into a box that does nothing.
+**Filters** opens the dialog: difficulty · status · sheet · topics · companies.
+**Flagged**, **Needs revision** and **Added by me** stay out in the bar, because
+those are the ones you flip mid-session and flip back. The search box in the top
+bar (`/`) covers titles, companies and topic tags; searching from Stats or
+Revision navigates you to the roadmap first, rather than leaving you typing into
+a box that does nothing.
+
+**Topics** matches a problem's tags rather than the pattern it is filed under, so
+it cuts across the sections — binary search turns up inside Sorting and inside
+Intervals, and picking it collects both.
+
+Topics and companies are multi-select. Ticking several is OR within the field and
+AND across fields: two companies and Hard means *asked at either, and hard*. The
+menu stays open across picks and keeps what you typed into it, so choosing four
+companies is one gesture; what you chose shows as accent chips under the control,
+and clicking a chip takes it back off. The count on the **Filters** chip counts
+fields, not values — three companies is one reason the list is short, not three.
+
+Filters are saved to your account, so the roadmap you left narrowed is the one
+you come back to, on any machine. The search box is deliberately not saved: it's
+a question you asked, not a decision about how you're working. See
+[Saved views](#saved-views) for how that round-trips.
 
 While anything is filtering, every pattern section expands and empty ones
 disappear — a collapsed section that happens to hold your only match is a search
@@ -1042,6 +1060,68 @@ new one on boot but never drops the old one, so without this the original unique
 npm run migrate:problem-slugs   # in server/, safe to run twice
 ```
 
+## Saved views
+
+Filters are declared, not hand-wired. A screen describes what it can be narrowed
+by, and the dialog, the count on the chip, what Clear all clears, the row
+matching and the round-trip to the account all fall out of that one description.
+The roadmap's lives in `filters/roadmap.js`; the engine is `filters/spec.js`.
+
+```js
+export const ROADMAP_FILTERS = defineFilters([
+  {
+    id: 'topics',            // the key in the bag, and in the database
+    kind: 'many',            // 'one' | 'many' | 'flag'
+    label: 'Topics',
+    place: 'dialog',         // 'dialog' (behind the button) | 'bar'
+    match: (p, values) => (p.topicTags || []).some((t) => values.includes(t)),
+  },
+  …
+])
+```
+
+`match` is only ever called with a value that is actually set, so it never opens
+with an "if nothing is selected" guard — that check lives in the engine, once.
+The three kinds are the three shapes a control can produce, not three ideas about
+data. Add `control: 'segmented'` to render a `one` as a row of buttons instead of
+a dropdown, and omit `options` for a field whose choices come from loaded data.
+
+`<FiltersModal spec={…} value={…} options={…}>` renders the whole dialog from
+that, and `useSavedFilters(scope, spec)` is the state:
+
+```js
+const [filters, setFilters] = useSavedFilters('roadmap', ROADMAP_FILTERS)
+```
+
+Two stores, for the reason `AppearanceContext` keeps two. The account is where
+the choice lives — that's what makes it survive a reload on another machine — but
+the account arrives a request after the first paint, and restoring from the
+server alone would render all 429 problems and then collapse to eleven a beat
+later. So localStorage answers synchronously and the server reconciles behind it.
+Where the two disagree, the account wins; nothing is pushed until the fetch has
+been heard from, so a save can't overtake it and leave the two out of step while
+both believe they're in sync. Writes are debounced, and a failed one is retried
+by the next change rather than surfaced — the filter is applied and stored
+locally either way.
+
+Server-side it's `GET`/`PUT`/`DELETE /api/views/:scope`, one `UserView` row per
+account per scope. The bag is stored opaquely on purpose: the server bounds it
+and never reads inside it, so the roadmap gained a topic filter without the
+database learning what a topic is. What it does enforce is a boundary — `scope`
+is an allowlist and the payload is capped on every axis a caller controls (24
+fields, 40-char names, 80-char values, 60 values per multi-select), all in
+`config/viewScopes.js`. Clearing every filter deletes the row instead of storing
+an empty one.
+
+Stale values are kept, not dropped. A saved company that's no longer in the
+roadmap stays selected and shows as a chip matching nothing — visible and
+removable, which silently discarding it would not be. A filter that no longer
+exists in the spec *is* dropped on load, the same way a stale saved column layout
+is reconciled.
+
+Scopes are declared for `roadmap`, `revision`, `notes` and `problems`; only the
+roadmap uses one so far.
+
 ## Shared UI
 
 `components/ui/Modal.jsx` is the base dialog — focus trap, Escape, backdrop
@@ -1085,8 +1165,8 @@ with a dialog open.
 server/
   src/
     config/      env, db connection
-    models/      User, Pattern, Problem, Progress, PatternGuide, CompanyLogo,
-                 AuditLog, Motivation, DailyLine
+    models/      User, UserView, Pattern, Problem, Progress, PatternGuide,
+                 CompanyLogo, AuditLog, Motivation, DailyLine
     routes/      route tables only
     controllers/ request/response
     services/    auth, leetcode, spaced repetition, media, logos, gemini,
@@ -1103,11 +1183,14 @@ client/
     components/
       layout/    AppShell, Sidebar, AuthLayout, ParticleWeb
       problem/   table, guide reader, notes, statement, modals
+      filters/   the spec-driven filters dialog and its chips
       profile/   avatar upload
       stats/     solved ring, activity heatmap
       admin/     panel tabs, editors, the motivation corpus
-      ui/        Modal, ConfirmDialog, Avatar, PhotoPreview, MotivationLine, Icons
-    hooks/       useGuide, useMotivation, useLocalState, useTableLayout
+      ui/        Modal, ConfirmDialog, Dropdown, Avatar, PhotoPreview, Icons
+    filters/     what each screen can be narrowed by, and the engine
+    hooks/       useGuide, useMotivation, useLocalState, useTableLayout,
+                 useSavedFilters
     pages/       Login, Register, Roadmap, Revision, Stats, Profile, Admin
     store/       Auth, Roadmap, Toast contexts
     styles/      tokens, base, app
@@ -1129,6 +1212,7 @@ client/
 | `POST` `PATCH` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems — edit and delete are owner-checked |
 | `GET` `PATCH` `POST` | `/progress/revision` · `/progress/:id` · `/progress/:id/attempt` | tracking |
 | `GET` | `/stats` | profile and stats pages |
+| `GET` `PUT` `DELETE` | `/views/:scope` | the filters you left on a screen — see [Saved views](#saved-views) |
 | `GET` `POST` | `/feedback` | your own submissions, and sending one — capped at 5 open per account |
 | `GET` | `/motivation` | the line for one page, chosen from your progress |
 | `GET` | `/motivation/login` | the sign-in page's line — **public on purpose** |

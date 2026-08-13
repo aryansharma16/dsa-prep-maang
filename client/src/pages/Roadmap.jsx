@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { FiltersModal } from '../components/filters/FiltersModal.jsx';
 import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
-import { FiltersModal } from '../components/problem/FiltersModal.jsx';
 import { GuideReader } from '../components/problem/GuideReader.jsx';
 import { PatternSection } from '../components/problem/PatternSection.jsx';
 import {
@@ -13,13 +13,17 @@ import {
   IconFilter,
 } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
+import { ROADMAP_FILTERS } from '../filters/roadmap.js';
+import { activeCount, clearPatch, matchesFilters } from '../filters/spec.js';
 import { useLocalState } from '../hooks/useLocalState.js';
+import { useSavedFilters } from '../hooks/useSavedFilters.js';
 import { useTableLayout } from '../hooks/useTableLayout.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 import { useToast } from '../store/ToastContext.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
-// The option lists moved to FiltersModal with the controls that read them.
+// What you can narrow by, and what each one means, lives in filters/roadmap.js.
+// This page renders it and matches rows with it; it does not enumerate it.
 
 export function Roadmap() {
   const { groups, loading, loadError, setProgress, reload } = useRoadmap();
@@ -27,17 +31,23 @@ export function Roadmap() {
   const { query, setQuery } = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [difficulty, setDifficulty] = useState('');
-  const [company, setCompany] = useState('');
-  const [sheet, setSheet] = useState('');
-  const [status, setStatus] = useState('');
-  const [flagged, setFlagged] = useState(false);
-  const [revision, setRevision] = useState(false);
-  // A toggle in the bar rather than a fourth entry in the filters dialog: it is
-  // the one filter you flip to go and manage something — edit a title, delete a
-  // problem you added twice — which makes it a mid-session reach, like the two
-  // flags beside it.
-  const [mine, setMine] = useState(false);
+  /*
+    One bag rather than a `useState` per filter, and saved to the account rather
+    than to this tab. Coming back to a roadmap you left narrowed to Hard graph
+    problems is the point: a filter set is how you decided to work this week, not
+    a thing you re-pick every morning.
+
+    The search box is deliberately not in here. It is a question you ask and get
+    an answer to, and restoring last night's into an input you did not type in
+    would read as the page ignoring you.
+  */
+  const [filters, setFilters] = useSavedFilters('roadmap', ROADMAP_FILTERS);
+  const patch = useCallback(
+    (values) => setFilters((prev) => ({ ...prev, ...values })),
+    [setFilters],
+  );
+
+  const { flagged, revision, mine } = filters;
 
   const [openSections, setOpenSections] = useLocalState('open-sections', []);
   const [cursorId, setCursorId] = useState(null);
@@ -59,27 +69,34 @@ export function Roadmap() {
     [groups],
   );
 
-  const companyOptions = useMemo(() => {
-    const set = new Set();
-    for (const g of groups) for (const p of g.problems) for (const c of p.companies || []) set.add(c.name);
-    return [...set].sort();
+  /*
+    The two lists the dialog offers, taken from the roadmap actually loaded
+    rather than from a constant. A company nobody has been asked by and a tag
+    nothing carries are options that can only ever return nothing.
+  */
+  const options = useMemo(() => {
+    const companies = new Set();
+    const topics = new Set();
+    for (const g of groups) {
+      for (const p of g.problems) {
+        for (const c of p.companies || []) companies.add(c.name);
+        for (const t of p.topicTags || []) topics.add(t);
+      }
+    }
+    return { companies: [...companies].sort(), topics: [...topics].sort() };
   }, [groups]);
+
+  const narrowingCount = activeCount(ROADMAP_FILTERS, filters, 'dialog');
+  const filterCount = activeCount(ROADMAP_FILTERS, filters);
+  const isFiltering = Boolean(query.trim()) || filterCount > 0;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const active = q || difficulty || company || sheet || status || flagged || revision || mine;
 
     return groups.map((g) => {
-      if (!active) return g;
+      if (!isFiltering) return g;
       const problems = g.problems.filter((p) => {
-        const prog = p.progress || {};
-        if (difficulty && p.difficulty !== difficulty) return false;
-        if (company && !(p.companies || []).some((c) => c.name === company)) return false;
-        if (sheet && !(p.sheets || []).some((s) => s.sheet === sheet)) return false;
-        if (status && (prog.status || 'todo') !== status) return false;
-        if (flagged && !prog.flagged) return false;
-        if (revision && !prog.needsRevision) return false;
-        if (mine && !p.mine) return false;
+        if (!matchesFilters(ROADMAP_FILTERS, filters, p)) return false;
         if (q) {
           const haystack = [
             p.title,
@@ -94,12 +111,9 @@ export function Roadmap() {
       });
       return { ...g, problems };
     });
-  }, [groups, query, difficulty, company, sheet, status, flagged, revision, mine]);
+  }, [groups, query, filters, isFiltering]);
 
   const visible = useMemo(() => filtered.filter((g) => g.problems.length > 0), [filtered]);
-
-  const isFiltering =
-    Boolean(query.trim()) || difficulty || company || sheet || status || flagged || revision || mine;
 
   const isOpen = useCallback(
     (slug) => isFiltering || openSections.includes(slug),
@@ -111,24 +125,9 @@ export function Roadmap() {
       prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
     );
 
-  /*
-    The four narrowing filters, handled as one value because they now live and
-    move together behind a dialog. The bar shows only how many are on — four
-    selects out there were most of a phone screen spent on controls that, most
-    sessions, nobody touched.
-  */
-  const narrowing = { difficulty, company, sheet, status };
-  const narrowingCount = Object.values(narrowing).filter(Boolean).length;
-
-  const setNarrowing = (patch) => {
-    if ('difficulty' in patch) setDifficulty(patch.difficulty);
-    if ('company' in patch) setCompany(patch.company);
-    if ('sheet' in patch) setSheet(patch.sheet);
-    if ('status' in patch) setStatus(patch.status);
-  };
-
-  const clearNarrowing = () =>
-    setNarrowing({ difficulty: '', company: '', sheet: '', status: '' });
+  /* Empties the dialog's filters and leaves the bar's toggles alone — the X sits
+     against the Filters chip, so it should clear what is behind that chip. */
+  const clearNarrowing = () => patch(clearPatch(ROADMAP_FILTERS, 'dialog'));
 
   /* Open counts as "every pattern", not "every pattern with matches" — the
      button has to be able to close what it opened after a filter is cleared. */
@@ -275,15 +274,11 @@ export function Roadmap() {
     return () => window.removeEventListener('keydown', onKey);
   }, [flatRows, cursorId, setProgress, pickRandom]);
 
-  const clearFilters = () => {
+  // The bar's own Clear, next to the "n shown" count: everything narrowing the
+  // list right now, the search box included.
+  const clearAll = () => {
     setQuery('');
-    setDifficulty('');
-    setCompany('');
-    setSheet('');
-    setStatus('');
-    setFlagged(false);
-    setRevision(false);
-    setMine(false);
+    patch(clearPatch(ROADMAP_FILTERS));
   };
 
   const shown = visible.reduce((n, g) => n + g.problems.length, 0);
@@ -329,7 +324,7 @@ export function Roadmap() {
 
       {/*
         Left to right: what narrows the list, then what it narrowed to. The
-        dialog button leads because it is the one that holds four filters
+        dialog button leads because it is the one that holds five filters
         behind it; Expand all and Columns are shelved on the right because they
         change how the roadmap is drawn, not what is in it.
       */}
@@ -337,7 +332,7 @@ export function Roadmap() {
         <button
           className={`toggle-chip ${narrowingCount ? 'on' : ''}`}
           onClick={() => setFiltersOpen(true)}
-          title="Difficulty, status, sheet and company"
+          title="Difficulty, status, sheet, topics and companies"
         >
           <IconFilter size={12} />
           Filters
@@ -358,15 +353,18 @@ export function Roadmap() {
           </button>
         )}
 
+        {/* The three bar filters. Same saved bag as the dialog's — see
+            filters/roadmap.js, where `place: 'bar'` is the only thing that puts
+            them out here rather than behind the button. */}
         <button
           className={`toggle-chip ${flagged ? 'on' : ''}`}
-          onClick={() => setFlagged((v) => !v)}
+          onClick={() => patch({ flagged: !flagged })}
         >
           Flagged
         </button>
         <button
           className={`toggle-chip ${revision ? 'on' : ''}`}
-          onClick={() => setRevision((v) => !v)}
+          onClick={() => patch({ revision: !revision })}
         >
           Needs revision
         </button>
@@ -376,7 +374,7 @@ export function Roadmap() {
         {ownedCount > 0 && (
           <button
             className={`toggle-chip ${mine ? 'on' : ''}`}
-            onClick={() => setMine((v) => !v)}
+            onClick={() => patch({ mine: !mine })}
             title="Only the problems you added yourself"
           >
             Added by me
@@ -401,7 +399,7 @@ export function Roadmap() {
         {isFiltering && (
           <>
             <span className="hint mono">{shown} shown</span>
-            <button className="link-btn" onClick={clearFilters}>
+            <button className="link-btn" onClick={clearAll}>
               Clear
             </button>
           </>
@@ -444,7 +442,7 @@ export function Roadmap() {
         <div className="empty">
           <h3>Nothing matches</h3>
           <p>Try clearing a filter or searching for something else.</p>
-          <button className="btn" style={{ marginTop: 12 }} onClick={clearFilters}>
+          <button className="btn" style={{ marginTop: 12 }} onClick={clearAll}>
             Clear filters
           </button>
         </div>
@@ -477,12 +475,12 @@ export function Roadmap() {
 
       {filtersOpen && (
         <FiltersModal
-          value={narrowing}
-          companies={companyOptions}
+          spec={ROADMAP_FILTERS}
+          value={filters}
+          options={options}
           shown={shown}
           total={totalProblems}
-          onChange={setNarrowing}
-          onClear={clearNarrowing}
+          onChange={patch}
           onClose={() => setFiltersOpen(false)}
         />
       )}
