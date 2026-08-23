@@ -5734,6 +5734,9 @@ a.tile.attention:hover {
   }
   .modal {
     max-height: calc(100vh - 24px);
+    /* The unit that follows the URL bar, so a tall dialog is not cut off by
+       chrome that `vh` pretends is not there. */
+    max-height: calc(100dvh - 24px);
   }
 
   /* Stats: the pattern name was taking 176px of a 390px row and leaving the
@@ -5755,6 +5758,80 @@ a.tile.attention:hover {
      twelve pixels away. The search field wants this width more. */
   .fb-topbar-btn {
     display: none;
+  }
+
+  /*
+    The columns dialog, restacked.
+
+    Its five tracks are 356px of fixed width before the name column is given a
+    pixel, inside a modal body 336px wide on a 390px screen. The size buttons
+    and the px readout were pushed past the right edge with nothing to scroll
+    them back — the one dialog whose entire job is choosing widths could not be
+    used on a phone.
+
+    Two rows: what the column is on top, how wide it is underneath. Placed
+    explicitly rather than left to auto-flow, because source order here is
+    grip, name, sizes, px, move — which auto-places the move buttons onto the
+    second row and separates them from the row they act on.
+  */
+  .col-table-head {
+    /* Headings for tracks that no longer sit under them. */
+    display: none;
+  }
+  .col-row {
+    height: auto;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    row-gap: 7px;
+    padding: 9px 10px;
+  }
+  .col-grip {
+    grid-area: 1 / 1;
+  }
+  .col-name {
+    grid-area: 1 / 2;
+  }
+  .col-move {
+    grid-area: 1 / 3;
+  }
+  .size-group {
+    grid-area: 2 / 2 / 3 / 3;
+  }
+  .col-px {
+    grid-area: 2 / 3 / 3 / 4;
+  }
+  /* Same trade the table's own controls make above: mouse measurements out,
+     fingertips in. */
+  .size-group button {
+    height: 30px;
+  }
+  .col-move .icon-btn {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+  }
+
+  /*
+    The audit log. A 108px timestamp beside a 190px name is 322px of the 355px
+    a phone has, which left the sentence saying what actually happened about
+    four characters wide and wrapping one word per line.
+
+    Both labels size to their own content and the entry takes the row under
+    them — it is the part you are reading, and the only one whose length is
+    not known in advance.
+  */
+  .audit-row {
+    flex-wrap: wrap;
+    gap: 0 10px;
+  }
+  .audit-when,
+  .audit-who {
+    width: auto;
+  }
+  .audit-who {
+    max-width: 60%;
+  }
+  .audit-what {
+    flex: 1 0 100%;
   }
 }
 
@@ -8281,6 +8358,8 @@ a.tile.attention:hover {
 
 .shared {
   min-height: 100vh;
+  /* Tracks the iOS URL bar — see --chat-dock-h in tokens.css. */
+  min-height: 100dvh;
   background: var(--bg);
 }
 .shared-head {
@@ -8646,4 +8725,79 @@ a.tile.attention:hover {
 }
 .signout-ask .hint {
   margin: 0;
+}
+
+/* ==========================================================================
+   Typing on a phone
+
+   Last in the file, and that placement is the whole mechanism. Every rule
+   below repeats a selector declared earlier — `.search input`, `.field input`,
+   `.np-search input` — at exactly the same specificity, so the only thing that
+   decides the winner is which comes second. Several of the originals live
+   further down this file than the small-screen block above, so folding these
+   into it would silently lose to them.
+
+   The problem is not aesthetic. WebKit zooms the page in when a text field
+   under 16px takes focus, and it does not zoom back out when the field is
+   done. Every browser on iOS is WebKit, so tapping the roadmap's search box
+   left you on a table two-thirds off-screen with no gesture that undid it —
+   the app read as broken on a phone for the sake of three pixels of type.
+
+   So 16px is a threshold, not a size anyone chose: it is the number Safari
+   checks against. The design's 13px stays exactly as it is on a mouse.
+   ========================================================================== */
+
+@media (max-width: 760px) {
+  input,
+  textarea,
+  select,
+  .search input,
+  .field input,
+  .field select,
+  .field textarea,
+  .notes-box textarea,
+  .taginput input,
+  .admin-search input,
+  .draft-row textarea,
+  .gb-variant-tab input,
+  .gb-cell input,
+  .chat-composer textarea,
+  .chat-sheet-head input,
+  .dd-search input,
+  .emo-search input,
+  .notes-search input,
+  .np-search input,
+  .nb-point input,
+  .nb-link-row input,
+  /* Its own :nth-child rule outranks a plain `.nb-link-row input`, so it has
+     to be named rather than covered. */
+  .nb-link-row input:nth-child(2),
+  .nb-table input,
+  .nv-link input {
+    font-size: 16px;
+  }
+
+  /*
+    The boxes that grew a third of a line of type, given the room for it. Only
+    the three you spend real time in — the rest set a height that already
+    clears a 16px line box, and widening every control on the page would cost
+    more vertical room than it buys.
+
+    They land near 40px, which is also the first honest touch target in this
+    file: 34px was a mouse's measurement, the same way the 36px table rows
+    above it were.
+  */
+  .field input,
+  .field select {
+    height: 40px;
+  }
+  .search input {
+    height: 36px;
+  }
+  .taginput {
+    min-height: 40px;
+  }
+  .taginput input {
+    height: 28px;
+  }
 }

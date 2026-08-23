@@ -90,11 +90,17 @@ export function EmojiPicker({
     const below = window.innerHeight - r.bottom;
     const up = below < PANEL_H + GUTTER && r.top > below;
 
+    // PANEL_W is a preference, not a promise: on a 320px phone a 340px panel
+    // hangs off the screen no matter where it is placed, and the clamp below
+    // would only pin it to the left gutter and let it overflow the right one.
+    const width = Math.min(PANEL_W, window.innerWidth - GUTTER * 2);
+
     setPos({
-      left: Math.max(GUTTER, Math.min(r.left, window.innerWidth - PANEL_W - GUTTER)),
+      left: Math.max(GUTTER, Math.min(r.left, window.innerWidth - width - GUTTER)),
       top: up ? undefined : r.bottom + 6,
       bottom: up ? window.innerHeight - r.top + 6 : undefined,
       height: Math.min(PANEL_H, Math.max(240, (up ? r.top : below) - 14)),
+      width,
     });
   }, []);
 
@@ -241,7 +247,7 @@ export function EmojiPicker({
     <div
       ref={panelRef}
       className="emo-panel"
-      style={{ left: pos.left, top: pos.top, bottom: pos.bottom, width: PANEL_W, height: pos.height }}
+      style={{ left: pos.left, top: pos.top, bottom: pos.bottom, width: pos.width, height: pos.height }}
       onKeyDown={onKeyDown}
     >
       <div className="emo-search">

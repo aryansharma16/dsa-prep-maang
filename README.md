@@ -310,6 +310,54 @@ request fails the row rolls back and a toast says so.
 Single-key shortcuts are suppressed while you're typing in a field and while any
 dialog or the guide reader is open.
 
+## Small screens
+
+Two steps, both stated in `styles/app.css` and one of them mirrored in JS.
+
+**1024px — tablet.** The sidebar has already collapsed to its icon rail by
+here, so this step gives the page back the margins the rail freed and lets any
+panel holding a table scroll sideways rather than crushing its columns.
+
+**760px — phone.** The shell itself stops working: the sidebar leaves the flex
+row and becomes a drawer over the content, opened by a button that only exists
+below this width. The breakpoint is also `NARROW` in `hooks/useMediaQuery.js`,
+and **the two have to stay equal** — the drawer's only opener is revealed by the
+stylesheet while the table's frozen columns are dropped by the hook, so a drift
+between them leaves the nav unopenable or the columns sheared.
+
+Both steps prefer letting a wide thing scroll over hiding it. A table you have
+to swipe is usable; a column that silently vanished is a bug report.
+
+What the phone step actually changes, beyond the drawer: the keyboard hints go
+(there is no keyboard), rows grow from 36px to 42px and icon buttons from 24px
+to 28px (a fingertip is nearer 9mm than a cursor is), dialogs open against the
+top rather than the middle (centred, a form with the keyboard up puts its
+heading behind the notch and its buttons under the keyboard), and the columns
+dialog and the audit log restack from one row into two — both had more fixed
+track than a 390px screen has width, which pushed the size buttons off the
+right edge and left the audit entry forty pixels wide.
+
+### Typing on a phone
+
+Every text field goes to 16px below 760px, and that block is deliberately the
+last thing in `app.css`.
+
+The size is not a type choice. WebKit zooms the page in when a field under 16px
+takes focus and does not zoom back out when the field is done — so tapping the
+search box left you on a table two-thirds off-screen with no gesture that undid
+it. Every browser on iOS is WebKit, including Chrome, so this was every iOS
+user rather than the Safari ones. 16px is simply the threshold Safari checks.
+
+It sits at the end of the file because it repeats selectors declared earlier at
+the same specificity, and several of those originals (`.np-search input`,
+`.nb-table input`) live further down than the small-screen block — folding
+these rules into that block would silently lose to them.
+
+Viewport heights use `dvh` with a `vh` line above as the fallback. On iOS
+`100vh` is the viewport with the URL bar *retracted*, which is taller than what
+is on screen while the bar is showing — a chat dock sized from it put its
+composer under the browser chrome exactly when the keyboard was up.
+
 ## Signing in
 
 Email and password. The access token lives 15 minutes and the refresh token 30
@@ -1261,6 +1309,29 @@ deployment works without adding its URL anywhere.
 
 So **leave `VITE_API_URL` unset on Vercel.** Setting it bypasses the rewrite and
 reintroduces exactly that problem. It exists only for hosts that cannot proxy.
+
+A production build now refuses to start if it is set, because that warning was
+not enough once already: the variable was set on the project, the bundle called
+`api.algoforge.work` directly, and sign-in failed on every iOS device while
+working perfectly on the desktop Chrome it was tested in. The cookies were
+third-party, WebKit dropped the `Set-Cookie`, and the next `/auth/me` bounced
+straight back to the login screen.
+
+That is the worst shape a bug can have — one platform completely broken, the
+one you develop on fine — so `vite.config.js` turns it into a build failure
+with the explanation attached:
+
+```
+VITE_API_URL is set to "https://api.algoforge.work".
+
+That bypasses the /api rewrite and makes the auth cookies third-party,
+which every browser on iOS blocks — sign-in fails there and nowhere else.
+```
+
+Set `ALLOW_CROSS_ORIGIN_API=true` alongside it for a host that genuinely cannot
+proxy. It downgrades the failure to a warning, and it is deliberately a second
+variable rather than a flag on the first: bypassing the rewrite should be a
+decision someone states out loud, not a default they inherit.
 
 On the API box, `NODE_ENV=production` is what makes cookies `Secure` +
 `SameSite=None`, and `MONGO_URI` / `JWT_*` / `CLIENT_URL` / `CLOUDINARY_URL` come

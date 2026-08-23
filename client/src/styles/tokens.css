@@ -203,7 +203,18 @@
   --chat-gap: 18px;
   --chat-bubble: 48px;
   --chat-dock-w: 372px;
+  /*
+    `dvh` under the `vh` it repeats, not instead of it.
+
+    On iOS `100vh` is the viewport with the URL bar *retracted* — taller than
+    what is on screen while the bar is showing — so a dock sized from it puts
+    its composer under the browser chrome exactly when the keyboard is up and
+    the composer is the point. `dvh` tracks the bar as it moves. The `vh` line
+    stays as the fallback for a browser that does not know the unit, which
+    ignores the second declaration and keeps the first.
+  */
   --chat-dock-h: min(560px, calc(100vh - 150px));
+  --chat-dock-h: min(560px, calc(100dvh - 150px));
 
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
     sans-serif;
