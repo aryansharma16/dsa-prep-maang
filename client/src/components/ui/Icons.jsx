@@ -437,3 +437,46 @@ export const IconMegaphone = (p) => (
     <path d="M5.6 10.4l.8 3.2h2.1l-.8-3" />
   </Svg>
 );
+
+/**
+ * Three columns of unequal fill — a board, as distinct from `IconColumns`,
+ * which is a table's columns and is already spoken for by the layout editor.
+ * The uneven heights are what make it read as cards rather than as a grid.
+ */
+export const IconBoard = (p) => (
+  <Svg {...p}>
+    <rect x="2" y="2.6" width="3.4" height="10.8" rx="1" />
+    <rect x="6.3" y="2.6" width="3.4" height="7.2" rx="1" />
+    <rect x="10.6" y="2.6" width="3.4" height="5" rx="1" />
+  </Svg>
+);
+
+export const IconCalendar = (p) => (
+  <Svg {...p}>
+    <rect x="2.2" y="3.2" width="11.6" height="10.6" rx="1.4" />
+    <path d="M2.2 6.4h11.6M5.4 1.9v2.6M10.6 1.9v2.6" />
+  </Svg>
+);
+
+export const IconPaperclip = (p) => (
+  <Svg {...p}>
+    <path d="M11.9 7.4l-4.6 4.6a2.8 2.8 0 01-4-4l5.1-5.1a1.9 1.9 0 012.7 2.7l-5 5a1 1 0 01-1.4-1.4l4.5-4.5" />
+  </Svg>
+);
+
+/** A checklist item, for subtasks — a box that has been ticked. */
+export const IconCheckSquare = (p) => (
+  <Svg {...p}>
+    <path d="M13.6 7.6v4.6a1.4 1.4 0 01-1.4 1.4H3.8a1.4 1.4 0 01-1.4-1.4V3.8a1.4 1.4 0 011.4-1.4h6.4" />
+    <path d="M5.6 7.6l2.2 2.2 6-6.4" strokeWidth={1.9} />
+  </Svg>
+);
+
+/** The overflow affordance on a card. */
+export const IconMore = (p) => (
+  <Svg {...p}>
+    <circle cx="3.2" cy="8" r="1.15" fill="currentColor" stroke="none" />
+    <circle cx="8" cy="8" r="1.15" fill="currentColor" stroke="none" />
+    <circle cx="12.8" cy="8" r="1.15" fill="currentColor" stroke="none" />
+  </Svg>
+);

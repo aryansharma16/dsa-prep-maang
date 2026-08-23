@@ -21,6 +21,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread |
+| **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
@@ -214,6 +215,241 @@ a queue that quietly shows fewer items than you have is worse than a slow one.
 The ladder is 3 → 7 → 21 → 60 days, multiplied by confidence: 1 shrinks the gap
 to 0.4×, 5 stretches it to 2×.
 
+## Tasks
+
+The roadmap records what happened. This records what you *meant* to happen — a
+sentence like "I'll do these three sliding-window questions today" is about
+three problems at once, has a deadline, and is true before any of them is
+opened, so `Progress` has nowhere to put it.
+
+One board per account. There is no board switcher and no assignees: this is a
+self-learning platform, so the board has exactly one reader, and the space a
+column of avatars would take goes to the two things that actually matter here —
+the questions attached and the time spent.
+
+**Four views over one fetch.** Board, List, Table and Calendar all read the same
+array. The whole board arrives in one request and is filtered in the browser,
+the same bargain the roadmap strikes and for the same reasons: the collection is
+bounded at 500 tasks, every view needs the whole set to group and count, and a
+paged board cannot tell you how much is in the column below the fold. Which view
+you are on is a device preference, not an account one — it depends on the screen
+you are at. Below 760px the board falls back to List, because four columns in
+360px is a horizontal scroll showing one column at a time, which is a worse list
+than a list.
+
+### The four views
+
+| view | what it is for |
+|---|---|
+| **Board** | the shape of the week. Columns, cards, drag. The default, and the only one that cannot be drawn on a phone |
+| **List** | working through a task. Rows grouped under their column, with subtasks and questions nested and tickable in place. Also what the board becomes below 760px |
+| **Table** | the questions the board cannot answer — what is oldest, what has taken longest, what is due first *across* every column at once. Six sortable columns |
+| **Calendar** | a month by deadline, with an **Unscheduled** tray beside it. Drag a task onto a day to give it a deadline, or back to the tray to clear it |
+
+The Table deliberately does not use `useTableLayout`. That hook is bound to the
+roadmap's 22-column registry and its saved layout, and the show/hide/resize/pin
+it buys is worth having on 22 columns and not on six — bending it here would
+couple two screens that have no reason to move together.
+
+The Calendar's tray is not a nicety either. Deadlines default to unlimited, so
+most tasks have none; a calendar that drew only the dated ones would show an
+almost empty month and read as broken rather than as accurate.
+
+### Narrowing it down
+
+Search is a plain box over title, notes, tags, subtask titles and question
+titles. Filters are the roadmap's engine, declared in `filters/tasks.js`:
+priority and deadline in the dialog, three flags in the bar, tags from whatever
+the loaded board actually uses.
+
+The two are treated differently on purpose, the same split the roadmap makes: a
+**filter** describes a view you want to come back to, so it is saved to the
+account; a **search** is a thing you are doing right now, so it is not. Opening
+the board to three cards and no visible reason why is the failure that avoids.
+
+There is deliberately no filter on *column*. The board **is** the columns, so
+narrowing by one would empty three of the four panes it is made of — and in List
+and Table the grouping already does that job.
+
+### Columns are yours
+
+Add, rename, recolour, reorder, delete. The colours are the notes builder's
+block hues, stored as a *name* and resolved by `[data-hue]` in `tokens.css` — a
+stored `#26c281` would be a dark-theme green forever, and this way one attribute
+recolours a column in both themes.
+
+What a column **means** is a separate field from what it is called:
+
+| kind | |
+|---|---|
+| `open` | work that is waiting. Most columns |
+| `active` | where started work lives |
+| `done` | finishes the task, stamps it, and stops its clock. Only one per board |
+
+Behaviour hangs off `kind` and never off the name, which is the whole point:
+rename "Done" to "Shipped" and completion, the stopped timer and the filled ring
+all still work. Matching on the string is how that quietly breaks the first time
+somebody edits a column. Changing a column's kind re-completes — or un-completes
+— everything already sitting in it, so `completedAt` means the same thing however
+it was set.
+
+Deleting a column that holds tasks asks where they go. It is not a yes/no
+question, so it is not a `ConfirmDialog`: deleting the tasks with the column
+would make a mistyped name unrecoverable, and moving them somewhere you did not
+pick is a guess that is only ever noticed too late. The last column cannot be
+deleted — a board with none has nowhere to put the next task.
+
+### Dragging, and the two ways that are not dragging
+
+Cards drag between and within columns, with a line showing where the card will
+land and **nothing moving until the drop**. That is the notes builder's pattern
+rather than the guide editor's swap-on-hover, which mutates the list under the
+pointer while you are still deciding, so a drag across four cards shuffles all
+four and the drop lands somewhere you did not choose.
+
+Drag is a shortcut, not the only path. Every card has a `…` menu with **Move
+to**, and `[` / `]` move a focused card between columns — a touchscreen has no
+hover and a keyboard has no drag. Same argument the column layout editor makes
+by putting up and down buttons beside its grip.
+
+A move sends the destination column **in full**, in the order it was drawn:
+`POST /tasks/move` with `{ id, status, ids }`. So within-column and cross-column
+moves are one operation with no second endpoint to keep in step, and the server
+never has to reconstruct what the board looked like. Deliberately not fractional
+indices — a personal board has tens of cards per column, a full-column write is
+one round trip and cannot drift, and the fractional scheme buys a smaller write
+in exchange for rebalancing logic exercised only in the rare case, which is
+where it breaks.
+
+### Questions from the roadmap
+
+A task can name any problem you can see. The picker makes **no request**:
+`RoadmapContext` is mounted for every signed-in route, so all 429 problems are
+already a local array — the same trick the chat composer uses, and the reason
+`RoadmapProvider` sits above everything in `App.jsx`.
+
+Each link stores a ref **and** a snapshot, following `Conversation`. Neither
+alone works. A slug is ambiguous, because `Problem` is uniquely indexed on
+`{ slug, owner }` and an unscoped lookup can match a stranger's custom problem.
+A bare ObjectId dangles, because you can delete a problem you added while a task
+still names it — and a dangling id renders as a blank row, which reads as
+corruption, where a dangling title reads as history. So the ref finds live
+progress and the snapshot is what is drawn when it no longer resolves. The
+snapshot is written server-side from the problem row and never echoed from the
+request, the rule `resolveAssets` already applies to note assets.
+
+**The ring on a card is derived, never stored**, and half of what it counts does
+not live on the task:
+
+```
+done  = subtasks ticked + linked questions solved
+total = subtasks + linked questions
+```
+
+Solving a linked problem on the roadmap moves the ring on the board with no
+write, no refetch and nothing to keep in step. A stored percentage would be that
+answer taken at the moment you last opened this page. A task with nothing to
+count shows no ring rather than a permanent 0% — zero progress and nothing to
+measure are different states, and only one of them reads as failure.
+
+Subtasks are one level, by schema. A subtask holding subtasks turns the progress
+count, the renderer and the drag target into recursive walks with depth guards,
+which is the argument `Note.blocks` already makes about nesting.
+
+### The clock
+
+**One timer runs at a time, anywhere in the account.** Starting one stops
+whatever else was running and banks it as a session, so a task shows both a
+total and how many sittings it took.
+
+`runningSince` is a timestamp and elapsed time is never stored ticking. That is
+what makes a reload, a second tab and a closed laptop all agree — each is just a
+different "now" applied to the same instant — and a running timer costs zero
+writes per second instead of one. Every timer response also carries the server's
+own `now`, so a browser whose clock is four minutes fast does not show four
+extra minutes.
+
+One-at-a-time is enforced twice. The service stops before it starts, and a
+partial unique index backs that up so two tabs racing cannot both win:
+
+```js
+taskSchema.index({ user: 1 }, {
+  unique: true,
+  partialFilterExpression: { runningSince: { $gt: new Date(0) } },
+})
+```
+
+`$gt` rather than `$ne: null`, because partial filters accept only a few
+operators and `$ne` is not among them. It selects the same rows: BSON orders
+null below Date, so a task that has never run is not in the index at all. A
+start that loses the race catches the duplicate-key and retries once — the shape
+`upsertProgress` uses for a double-clicked status.
+
+Two bounds worth knowing. A session is **capped at twelve hours** and flagged
+`truncated`: one timer left running overnight otherwise reports nineteen hours
+on one problem and ruins the average the feature exists to produce, and the flag
+is what lets it be corrected rather than believed. A run under five seconds is
+discarded — that is a misclick, not a sitting.
+
+Time can also be typed in afterwards, and a typed session is stored exactly like
+a measured one. The timer you forgot to start is the common case, and a tracker
+you cannot correct is one you stop trusting.
+
+**The running clock shows in the top bar on every page.** That is why its state
+is a context rather than page state, and it is the actual fix for the failure
+the twelve-hour cap only bounds: a timer you cannot see is a timer you forget to
+stop. Every consumer of it shares one interval, so N timers on screen still tick
+once.
+
+Dropping a card into the done column stops its clock. Finishing something and
+leaving it running is not a state worth being able to reach.
+
+### Files
+
+Images and PDFs, through `services/file.service.js` to the same private bucket
+note attachments use — `purpose: 'task-attachment'`, `linkedTo: { type: 'task' }`,
+keys under `tasks/<id>/`. No schema change: `File` was already polymorphic.
+
+Drop them, pick them, or paste them. Paste is the one that earns its place — the
+thing most often attached to a task like this is a screenshot of a failing test,
+and Cmd-Shift-4 then Cmd-V is the shortest path from the screen to the card.
+
+Types are sniffed from the leading bytes, never taken from the request, for the
+reason [Note and task attachments go to S3](#note-and-task-attachments-go-to-s3) gives. A rejected
+file lands in `failed` rather than failing the batch, and the toast repeats the
+server's own reason — "images and PDFs only" is a confusing thing to be told
+when the real answer is that this deployment has no bucket configured.
+
+Deleting a task is soft, like a note's, because the row owns S3 objects and
+dropping it is what makes their keys unfindable.
+
+### What it will not let you do
+
+Every one of these is a bound on a loop rather than a shape on the feature —
+the numbers are far above any real board, the way `VIEW_LIMITS` is.
+
+| | |
+|---|---|
+| tasks per account | 500 live ones. Soft-deleted rows do not count |
+| columns per board | 12 |
+| `done` columns | 1 |
+| title | 200 characters |
+| notes | 4,000 |
+| column name | 40 |
+| tags | 20 per task, 40 characters each |
+| questions attached at once | 50 |
+| attachments | 10 files per request, 25MB each, images and PDFs only |
+| one sitting | 12 hours measured, 12 hours typed. Under 5 seconds is discarded |
+| uploads | 30 an hour, per account — the ceiling avatars and notes already share |
+
+Everything else is the ordinary write limiter: 120 writes per five minutes per
+account, which the module inherits by being mounted below it in
+`routes/index.js` rather than by declaring anything.
+
+The full reference — every field, every endpoint with its request and response
+shapes, every error code, and how to verify the module end to end — is
+[docs/tasks.md](docs/tasks.md).
+
 ## Profile
 
 Your picture, name and email, then joined date, solved count, current and
@@ -304,11 +540,22 @@ request fails the row rolls back and a toast says so.
 | `n` | notes |
 | `o` | open the problem in a new tab |
 | `/` | search |
-| `Esc` | leave the search box, or close a dialog or the guide reader |
+| `Esc` | leave the search box, or close a dialog, the guide reader or the task drawer |
 | `Ctrl` `B` | collapse the sidebar |
 
 Single-key shortcuts are suppressed while you're typing in a field and while any
 dialog or the guide reader is open.
+
+On the task board, with a card focused:
+
+| key | |
+|---|---|
+| `Enter` | open the card |
+| `[` / `]` | move it a column left or right |
+
+Those two are bound to the focused card rather than to the page, so they need no
+suppressing: while the drawer is open focus is trapped inside it and no card can
+receive them.
 
 ## Small screens
 
@@ -422,7 +669,7 @@ user, which is worse than not having one.
 | `POST /auth/login` | 15 min | 10 **failures** | client address |
 | `POST /auth/register` | 1 hour | 5 | client address |
 | `POST /chat/stream` | 10 min | 20 | account |
-| avatar and note uploads | 1 hour | 30 | account |
+| avatar, note and task uploads | 1 hour | 30 | account |
 | every other write below `/admin` | 5 min | 120 | account |
 
 Four decisions in there are worth more than the numbers:
@@ -510,11 +757,11 @@ the process heap. The cap is 5MB for images, 10MB for documents.
 
 `CLOUDINARY_URL` wins when both are set.
 
-### Note attachments go to S3
+### Note and task attachments go to S3
 
-Images and PDFs dropped into a note take a second path, behind
-`services/s3.service.js`, with `services/file.service.js` as the seam between
-the bytes in the bucket and the rows that index them. Same bargain as
+Images and PDFs dropped into a note — or onto a task — take a second path,
+behind `services/s3.service.js`, with `services/file.service.js` as the seam
+between the bytes in the bucket and the rows that index them. Same bargain as
 Cloudinary — callers hand over a buffer and a key, nobody outside those files
 imports the SDK.
 
@@ -524,6 +771,14 @@ S3 will happily accept a renamed executable, label it `image/png` because the
 request said so, and serve it back with that type forever. So the check that
 came free there is rebuilt here in `sniffType()`, from the file's own leading
 bytes. Stored types are sniffed, never echoed from the request.
+
+Two consumers, one `File` collection, and no schema change for the second.
+`File.linkedTo` is `{ type, id }` and was polymorphic from the start, so tasks
+only had to pick their own values — `purpose: 'task-attachment'`,
+`linkedTo: { type: 'task' }`, keys under `tasks/<id>/` — and the
+`{ 'linkedTo.type', 'linkedTo.id', deletedAt }` index already covered the
+lookup. Detaching is scoped by `linkedTo` as well as by owner, so a file id
+belonging to your avatar cannot be deleted through a tasks route.
 
 There are exactly two env vars, and no credential:
 
@@ -766,6 +1021,7 @@ lives in `main` instead of on a branch nobody merges.
 | Stats | `/stats` |
 | AI Chat | `/chat` |
 | Notes | `/notes` |
+| Tasks | `/tasks` |
 | Feedback | `/feedback` |
 
 The roadmap is deliberately not eligible: it is where the catch-all route, the
@@ -1167,8 +1423,10 @@ removable, which silently discarding it would not be. A filter that no longer
 exists in the spec *is* dropped on load, the same way a stale saved column layout
 is reconciled.
 
-Scopes are declared for `roadmap`, `revision`, `notes` and `problems`; only the
-roadmap uses one so far.
+Scopes are declared for `roadmap`, `revision`, `notes`, `problems` and `tasks`.
+Two are wired up — the roadmap and the board — and the board is what proves the
+engine generalises: it needed a new `filters/tasks.js`, and on the server one
+string in the allowlist and nothing else.
 
 ## Shared UI
 
@@ -1214,11 +1472,12 @@ server/
   src/
     config/      env, db connection
     models/      User, UserView, Pattern, Problem, Progress, PatternGuide,
-                 CompanyLogo, AuditLog, Motivation, DailyLine
+                 CompanyLogo, AuditLog, Motivation, DailyLine, Task, TaskBoard
     routes/      route tables only
     controllers/ request/response
     services/    auth, leetcode, spaced repetition, media, logos, gemini,
-                 audit, activity, motivation (signals, picker, daily line)
+                 audit, activity, motivation (signals, picker, daily line),
+                 tasks (the board, the clock, attachments)
     middleware/  requireAuth, errorHandler, validate, upload
   scripts/seed/  fetch-sources -> curate -> seed
     guides/      one file per pattern, written with block constructors
@@ -1232,17 +1491,21 @@ client/
       layout/    AppShell, Sidebar, AuthLayout, ParticleWeb
       problem/   table, guide reader, notes, statement, modals
       filters/   the spec-driven filters dialog and its chips
+      tasks/     the board, its four views, the drawer and the timer
       profile/   avatar upload
       stats/     solved ring, activity heatmap
       admin/     panel tabs, editors, the motivation corpus
       ui/        Modal, ConfirmDialog, Dropdown, Avatar, PhotoPreview, Icons
     filters/     what each screen can be narrowed by, and the engine
     hooks/       useGuide, useMotivation, useLocalState, useTableLayout,
-                 useSavedFilters
-    pages/       Login, Register, Roadmap, Revision, Stats, Profile, Admin
-    store/       Auth, Roadmap, Toast contexts
+                 useSavedFilters, useBoardDrag
+    pages/       Login, Register, Roadmap, Revision, Stats, Tasks, Profile,
+                 Admin
+    store/       Auth, Roadmap, Tasks, Toast contexts
     styles/      tokens, base, app
     brand.js     the product name, in one place
+docs/          the deep-dive references the README links out to:
+               aws-infrastructure, aws-runbook, tasks
 ```
 
 `route → controller → service`, models alongside. No repository layer, no DI.
@@ -1260,6 +1523,11 @@ client/
 | `POST` `PATCH` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems — edit and delete are owner-checked |
 | `GET` `PATCH` `POST` | `/progress/revision` · `/progress/:id` · `/progress/:id/attempt` | tracking |
 | `GET` | `/stats` | profile and stats pages |
+| `GET` `POST` `PATCH` `DELETE` | `/tasks` · `/tasks/:id` | the board and everything on it in one read; a task |
+| `POST` | `/tasks/move` | a drag — `{ id, status, ids }`, the destination column in the order it was drawn |
+| `POST` `PUT` `PATCH` `DELETE` | `/tasks/board/statuses` · `/tasks/board/statuses/:statusId` | your columns; `PUT` reorders them, `DELETE` takes `?moveTo=` for the tasks inside |
+| `POST` `PATCH` `DELETE` | `/tasks/:id/subtasks` · `/tasks/:id/questions` · `/tasks/:id/attachments` · `/tasks/:id/sessions` | the parts of a task — see [Tasks](#tasks) |
+| `GET` `POST` | `/tasks/timer` · `/tasks/:id/timer/start` · `/tasks/:id/timer/stop` | the one running clock |
 | `GET` `PUT` `DELETE` | `/views/:scope` | the filters you left on a screen — see [Saved views](#saved-views) |
 | `GET` `POST` | `/feedback` | your own submissions, and sending one — capped at 5 open per account |
 | `GET` | `/motivation` | the line for one page, chosen from your progress |

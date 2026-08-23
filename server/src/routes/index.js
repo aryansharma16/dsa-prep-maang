@@ -45,6 +45,7 @@ import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { feedbackRouter } from './feedback.routes.js';
 import { noteRouter, sharedNoteRouter } from './note.routes.js';
+import { taskRouter } from './task.routes.js';
 
 export const router = Router();
 
@@ -179,6 +180,14 @@ router.put(
 router.delete('/views/:scope', validate(scopeSchema, 'params'), clearView);
 
 router.use('/notes', requireModule('notes'), noteRouter);
+
+/*
+  The board, and everything on it. Behind the same gate as notes and chat.
+
+  Nothing here has a public surface — a task has no share link and no second
+  reader — so unlike notes there is only one mount to remember.
+*/
+router.use('/tasks', requireModule('tasks'), taskRouter);
 
 /*
   Under the same module gate as notes and chat, so hiding Feedback takes the form

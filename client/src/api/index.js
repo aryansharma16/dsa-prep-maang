@@ -170,6 +170,83 @@ export const chatApi = {
   stop: (conversationId) => http.post('/chat/stop', { conversationId }).then((r) => r.data),
 };
 
+/**
+ * The task board.
+ *
+ * Almost every mutation resolves to the whole updated task rather than to `ok`.
+ * A task is small and the page holds it in one array, so returning it means the
+ * caller replaces its copy instead of patching a field in and hoping the two
+ * stay in step — the argument `authApi.updateMe` already makes about the user.
+ *
+ * The timer calls are the exception: they also carry the server's `now`, which
+ * is what the elapsed counter is measured against. See TasksContext.
+ */
+export const tasksApi = {
+  /** Board and tasks together — one request paints the page. */
+  board: () => http.get('/tasks').then((r) => r.data),
+  get: (id) => http.get(`/tasks/${id}`).then((r) => r.data.task),
+  create: (body) => http.post('/tasks', body).then((r) => r.data.task),
+  update: (id, body) => http.patch(`/tasks/${id}`, body).then((r) => r.data.task),
+  remove: (id) => http.delete(`/tasks/${id}`).then((r) => r.data),
+  restore: (id) => http.post(`/tasks/${id}/restore`).then((r) => r.data.task),
+
+  /**
+   * A drag. `ids` is the destination column in full, in the order it was drawn,
+   * so within-column and cross-column moves are one call.
+   */
+  move: (body) => http.post('/tasks/move', body).then((r) => r.data.task),
+
+  addStatus: (body) => http.post('/tasks/board/statuses', body).then((r) => r.data),
+  updateStatus: (statusId, body) =>
+    http.patch(`/tasks/board/statuses/${statusId}`, body).then((r) => r.data),
+  removeStatus: (statusId, moveTo) =>
+    http
+      .delete(`/tasks/board/statuses/${statusId}`, { params: moveTo ? { moveTo } : {} })
+      .then((r) => r.data),
+  reorderStatuses: (ids) => http.put('/tasks/board/statuses', { ids }).then((r) => r.data.board),
+
+  addSubtask: (id, title) => http.post(`/tasks/${id}/subtasks`, { title }).then((r) => r.data.task),
+  updateSubtask: (id, subtaskId, body) =>
+    http.patch(`/tasks/${id}/subtasks/${subtaskId}`, body).then((r) => r.data.task),
+  removeSubtask: (id, subtaskId) =>
+    http.delete(`/tasks/${id}/subtasks/${subtaskId}`).then((r) => r.data.task),
+
+  /** Ids only — the server reads the titles off the roadmap. */
+  addQuestions: (id, problemIds) =>
+    http.post(`/tasks/${id}/questions`, { problemIds }).then((r) => r.data.task),
+  removeQuestion: (id, problemId) =>
+    http.delete(`/tasks/${id}/questions/${problemId}`).then((r) => r.data.task),
+
+  timerStart: (id) => http.post(`/tasks/${id}/timer/start`).then((r) => r.data),
+  timerStop: (id) => http.post(`/tasks/${id}/timer/stop`).then((r) => r.data),
+  timer: () => http.get('/tasks/timer').then((r) => r.data),
+
+  addSession: (id, minutes) =>
+    http.post(`/tasks/${id}/sessions`, { minutes }).then((r) => r.data.task),
+  removeSession: (id, sessionId) =>
+    http.delete(`/tasks/${id}/sessions/${sessionId}`).then((r) => r.data.task),
+
+  /**
+   * No Content-Type header: the browser has to set it itself, because only it
+   * knows the multipart boundary it just generated.
+   *
+   * Resolves to `{ attachments, failed, total, task }` — `failed` names what to
+   * retry, so nine good screenshots are not lost to one rejected file.
+   */
+  upload: (id, files, onProgress) => {
+    const form = new FormData();
+    for (const file of files) form.append('files', file);
+    return http
+      .post(`/tasks/${id}/attachments`, form, {
+        onUploadProgress: (event) =>
+          onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
+      })
+      .then((r) => r.data);
+  },
+  removeAttachment: (id, fileId) =>
+    http.delete(`/tasks/${id}/attachments/${fileId}`).then((r) => r.data.task),
+};
+
 export const adminApi = {
   overview: () => http.get('/admin/overview').then((r) => r.data),
   audit: (params) => http.get('/admin/audit', { params }).then((r) => r.data),

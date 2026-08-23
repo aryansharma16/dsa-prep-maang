@@ -23,6 +23,7 @@ export const MODULES = Object.freeze([
   { key: 'stats', label: 'Stats', path: '/stats' },
   { key: 'chat', label: 'AI Chat', path: '/chat' },
   { key: 'notes', label: 'Notes', path: '/notes' },
+  { key: 'tasks', label: 'Tasks', path: '/tasks' },
   /*
     Feedback is a module for the same reason the four above are: it is a side
     menu entry and an API surface, and hiding it has to mean both. It is worth

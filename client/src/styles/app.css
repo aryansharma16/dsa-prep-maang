@@ -8801,3 +8801,1713 @@ a.tile.attention:hover {
     height: 28px;
   }
 }
+
+/* ------------------------------------------------------------- tasks */
+
+/*
+  The board.
+
+  Every column carries `data-hue`, which resolves to `--hue` and `--hue-rgb` in
+  tokens.css. Nothing below names a colour: the dot, the count, the card's edge
+  and the progress ring all read those two, so recolouring a column is one
+  attribute rather than a rule per hue per element. `--text-3` is the fallback
+  for anywhere a hue has not been set — the top bar's pill, mainly, which
+  belongs to no column.
+*/
+
+.tk-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tk-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.tk-head .page-head {
+  margin-bottom: 0;
+}
+.tk-head .btn {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------------- the bar */
+
+.tk-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.tk-views {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.tk-views button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  border-right: 1px solid var(--border);
+}
+.tk-views button:last-child {
+  border-right: 0;
+}
+.tk-views button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.tk-views button.on {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 500;
+}
+.tk-views button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tk-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 10px;
+  min-width: 200px;
+  flex: 1 1 200px;
+  max-width: 320px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-3);
+}
+.tk-search:focus-within {
+  border-color: var(--accent);
+}
+.tk-search input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+.tk-search input:focus {
+  outline: none;
+}
+
+/* ---------------------------------------------------------------- columns */
+
+/*
+  One horizontal scroller holding columns that scroll their own cards.
+
+  The alternative — letting the page scroll — puts the heading of the column you
+  are reading off the top of the screen exactly when you need to know which
+  column it is. `min-height: 0` on the body is what lets a flex child actually
+  scroll instead of growing to fit.
+*/
+.tk-board {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  /* The shell's own padding is what the 150px stands in for; the columns get
+     the rest of the viewport so their inner scroll is the one that moves. */
+  max-height: calc(100vh - 210px);
+}
+
+.tk-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  flex: 0 0 288px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+/* While a card is in the hand, every column reads as a target. */
+.tk-board.is-dragging .tk-col {
+  border-color: var(--border-soft);
+}
+
+.tk-col-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  flex: 0 0 auto;
+}
+.tk-col-head h2 {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tk-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--hue, var(--text-3));
+  flex: 0 0 auto;
+}
+
+.tk-col-count {
+  font-size: 10.5px;
+  color: var(--text-3);
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 1px 6px;
+  flex: 0 0 auto;
+}
+
+/* The header doubles as the column's drag handle. The grip appears on hover
+   like the tools do, for the same reason. */
+.tk-col-head {
+  cursor: grab;
+}
+.tk-col-head:active {
+  cursor: grabbing;
+}
+.tk-col-grip {
+  display: inline-flex;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  margin-left: -2px;
+}
+.tk-col:hover .tk-col-grip {
+  opacity: 1;
+}
+.tk-col.col-dragging {
+  opacity: 0.45;
+}
+.tk-col.col-over {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Revealed on hover, because three icons per column times five columns is
+   fifteen pieces of chrome competing with the cards for attention. Focus
+   counts as hover, or they would be unreachable by keyboard. */
+.tk-col-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 1px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.tk-col:hover .tk-col-tools,
+.tk-col-tools:focus-within {
+  opacity: 1;
+}
+
+.tk-col-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tk-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Where the card will land. Nothing moves until the drop — this line is the
+   entire feedback, which is why it is the accent and not a subtle grey. */
+.tk-gap {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ------------------------------------------------------------------ cards */
+
+.tk-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color 0.14s ease, transform 0.14s ease;
+}
+.tk-card:hover {
+  border-color: var(--accent-line);
+  transform: translateY(-1px);
+}
+.tk-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.tk-card.is-dragging {
+  opacity: 0.4;
+}
+.tk-card.is-done .tk-card-title {
+  color: var(--text-2);
+}
+
+/* The column's hue as a hairline down the left edge — enough to place a card
+   that has been dragged out of context, not enough to fight the text. */
+.tk-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--hue, transparent);
+  opacity: 0.55;
+}
+
+/* Priority raises that edge to the full height and its own colour. Only three
+   values draw anything: "none" is the default and most cards are it. */
+.tk-card[data-priority='high']::before {
+  background: var(--hard);
+  opacity: 1;
+  top: 0;
+  bottom: 0;
+}
+.tk-card[data-priority='med']::before {
+  background: var(--medium);
+  opacity: 1;
+}
+.tk-card[data-priority='low']::before {
+  background: var(--text-3);
+  opacity: 0.8;
+}
+
+.tk-card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+/* Two lines, then an ellipsis. A card is an index entry, not the document. */
+.tk-card-notes {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-3);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tk-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tk-card-meta,
+.tk-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+}
+.tk-card-foot {
+  margin-top: 1px;
+}
+
+.tk-due {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.tk-due.soon {
+  color: var(--medium);
+}
+.tk-due.overdue {
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.tk-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.tk-card-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+/* ------------------------------------------------------------------- ring */
+
+.tk-ring {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.tk-ring .mono {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.tk-ring-track {
+  fill: none;
+  stroke: var(--border);
+}
+.tk-ring-fill {
+  fill: none;
+  stroke: var(--hue, var(--accent));
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+/* Finished is a fact about the work, not about which column it is in — so it
+   is the same green wherever it sits. */
+.tk-ring.done .tk-ring-fill {
+  stroke: var(--easy);
+}
+.tk-ring.done .mono {
+  color: var(--easy);
+}
+
+/* ------------------------------------------------------------------ timer */
+
+.tk-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+.tk-timer-btn {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-3);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.tk-timer-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.tk-timer.on .tk-timer-btn {
+  border-color: var(--danger);
+  background: var(--hard-bg);
+  color: var(--danger);
+}
+.tk-timer.lg .tk-timer-btn {
+  width: 24px;
+  height: 24px;
+}
+
+.tk-timer-live {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--danger);
+  font-variant-numeric: tabular-nums;
+}
+.tk-timer.lg .tk-timer-live {
+  font-size: 13px;
+}
+.tk-timer-total {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------- card menu */
+
+/* Fixed, and rendered into <body> — see TaskMenu.jsx. The column it belongs to
+   scrolls, and an absolutely positioned menu is clipped by it. */
+.tk-menu {
+  position: fixed;
+  /* Above the board it is portalled out of, below the modal layer at 50. */
+  z-index: 45;
+  width: 176px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-2);
+  box-shadow: 0 8px 24px var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  cursor: default;
+}
+.tk-menu-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  font-weight: 600;
+  padding: 6px 8px 3px;
+}
+.tk-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  text-align: left;
+  width: 100%;
+}
+.tk-menu-item:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.tk-menu-item.on {
+  color: var(--text);
+}
+.tk-menu-item:disabled {
+  cursor: default;
+}
+.tk-menu-item svg:last-child {
+  margin-left: auto;
+  color: var(--accent);
+}
+.tk-menu-item.danger {
+  color: var(--danger);
+  margin-top: 3px;
+  border-top: 1px solid var(--border-soft);
+  border-radius: 0 0 3px 3px;
+  padding-top: 7px;
+}
+.tk-menu-item.danger:hover {
+  background: var(--hard-bg);
+  color: var(--danger);
+}
+
+/* ------------------------------------------------------- add a task / column */
+
+.tk-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 4px;
+  border: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-3);
+  width: 100%;
+}
+.tk-add-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+.tk-add {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--accent-line);
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+.tk-add input {
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  font-size: 12.5px;
+  color: var(--text);
+}
+.tk-add input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.tk-add-foot {
+  display: flex;
+  gap: 6px;
+}
+.tk-add-foot .btn {
+  height: 26px;
+  font-size: 12px;
+}
+
+.tk-col-add {
+  flex: 0 0 152px;
+  align-self: stretch;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.tk-col-add:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+/* ----------------------------------------------------------------- drawer */
+
+/*
+  A side panel rather than a centred dialog. The board is the context — which
+  column this is in, what else is in it — and dimming all of it to show one card
+  throws that away. The scrim is lighter than `.overlay` for the same reason.
+*/
+/*
+  Below `.overlay`, which is 50, and that is load-bearing rather than arbitrary.
+
+  The drawer is a base surface — a page that slid in — not something that sits
+  above dialogs. It opens two of its own (the question picker, the delete
+  confirmation), and at 60 its full-viewport scrim covered them: the picker was
+  visible through a 32% wash and every click on a problem row hit the scrim
+  instead, which is wired to close the drawer.
+
+  The Dropdowns inside it still work, because `.dd-menu` portals to <body> at
+  60 — above both this and any modal. That is the whole reason that component
+  is portalled, and it is what lets this sit low without trapping its own
+  controls underneath the page.
+*/
+.tk-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  z-index: 40;
+}
+.tk-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  width: min(468px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 32px var(--shadow);
+  animation: tk-slide 0.16s ease;
+}
+@keyframes tk-slide {
+  from {
+    transform: translateX(14px);
+    opacity: 0.4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk-drawer {
+    animation: none;
+  }
+}
+
+.tk-drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+.tk-drawer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.tk-drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px 16px 20px;
+}
+
+/* A textarea rather than an input, so a long title wraps instead of scrolling
+   sideways. `field-sizing` grows it where supported; the rows=1 floor is the
+   fallback everywhere else. */
+.tk-drawer-title {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  padding: 4px 6px;
+  margin: 0 0 12px -6px;
+  font: inherit;
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  resize: none;
+  overflow: hidden;
+  field-sizing: content;
+}
+.tk-drawer-title:hover {
+  border-color: var(--border-soft);
+}
+.tk-drawer-title:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg);
+}
+
+.tk-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.tk-field {
+  display: block;
+  min-width: 0;
+}
+.tk-field > span {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+
+.tk-section {
+  margin-bottom: 18px;
+}
+.tk-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.tk-section h4 .link-btn {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.tk-section-count {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.tk-drawer-notes {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  resize: vertical;
+  min-height: 62px;
+}
+.tk-drawer-notes:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.tk-drawer-foot {
+  padding-top: 6px;
+  border-top: 1px solid var(--border-soft);
+}
+.tk-drawer-foot .link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 0 0;
+}
+
+/* -------------------------------------------------------------- questions */
+
+.tk-questions,
+.tk-subtasks ul,
+.tk-sessions ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tk-questions li,
+.tk-subtasks li,
+.tk-sessions li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  min-width: 0;
+}
+.tk-questions li:hover,
+.tk-subtasks li:hover,
+.tk-sessions li:hover {
+  background: var(--surface-2);
+}
+.tk-questions .nm {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-questions li.solved .nm {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-3);
+}
+
+/*
+   The tick a linked question earns by being solved on the roadmap.
+
+   A circle, where a subtask's is a square — and that is the whole reason it is
+   drawn rather than reusing the checkbox. Nothing on this page can set it: you
+   solve the problem on the roadmap and this follows. A control shaped exactly
+   like the checkbox sitting under it, which does nothing when clicked, is worse
+   than no control at all.
+*/
+.tk-q-tick {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  color: var(--easy);
+  flex: 0 0 auto;
+}
+.tk-questions li.solved .tk-q-tick,
+.tk-row-subs li.solved .tk-q-tick {
+  border-color: var(--easy);
+  background: var(--easy-bg);
+}
+
+/* Only on hover — a row of trash cans reads as a page about deleting things. */
+.tk-questions li .icon-btn,
+.tk-subtasks li .icon-btn,
+.tk-sessions li .icon-btn {
+  opacity: 0;
+}
+.tk-questions li:hover .icon-btn,
+.tk-subtasks li:hover .icon-btn,
+.tk-sessions li:hover .icon-btn,
+.tk-questions li .icon-btn:focus-visible,
+.tk-subtasks li .icon-btn:focus-visible,
+.tk-sessions li .icon-btn:focus-visible {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------- subtasks */
+
+.tk-subtasks label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.tk-subtasks label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-subtasks li.done label span,
+.tk-row-subs li.done label span {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+.tk-inline-add {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px;
+  margin-top: 3px;
+  border-radius: 3px;
+  color: var(--text-3);
+}
+.tk-inline-add:focus-within {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+.tk-inline-add input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.tk-inline-add input:focus {
+  outline: none;
+}
+
+/* --------------------------------------------------------------- deadline */
+
+.tk-deadline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/*
+  The app's first date input. The engine paints the picker itself, which is why
+  `color-scheme` in tokens.css matters here more than anywhere else on the page
+  — without it this drops a white calendar out of a dark field.
+*/
+.tk-date {
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.tk-date:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.tk-deadline-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+.tk-deadline-quick .toggle-chip {
+  height: 24px;
+  font-size: 11.5px;
+  padding: 0 8px;
+}
+.tk-deadline .hint {
+  margin: 7px 0 0;
+}
+.hint.danger {
+  color: var(--danger);
+}
+
+/* ------------------------------------------------------------ attachments */
+
+.tk-file-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tk-file {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+.tk-file-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  flex: 0 0 auto;
+}
+.tk-file-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tk-file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.tk-file-name {
+  font-size: 12.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-file-meta .hint {
+  margin: 0;
+}
+
+.tk-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 5px;
+  text-align: center;
+}
+.tk-drop.over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.tk-drop.busy {
+  opacity: 0.7;
+}
+.tk-drop .hint {
+  margin: 0;
+}
+
+/* --------------------------------------------------------------- sessions */
+
+.tk-session-len {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 52px;
+}
+.tk-session-when {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.tag-mini.warn {
+  color: var(--medium);
+  border-color: var(--medium);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.tk-session-add {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 6px;
+}
+.tk-session-add input {
+  width: 66px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 12.5px;
+  color: var(--text);
+}
+.tk-session-add input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.tk-session-add .btn {
+  height: 28px;
+  font-size: 12px;
+}
+.tk-sessions .link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding-left: 0;
+}
+
+/* ----------------------------------------------------------- hue swatches */
+
+.tk-hues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tk-hue {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--hue);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.tk-hue:hover {
+  transform: scale(1.1);
+}
+.tk-hue.on {
+  border-color: var(--surface);
+  box-shadow: 0 0 0 2px var(--hue);
+}
+
+/* ---------------------------------------------------------- question pick */
+
+.tk-pick-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+.tk-pick-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-3);
+}
+.tk-pick-search:focus-within {
+  border-color: var(--accent);
+}
+.tk-pick-search input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+.tk-pick-search input:focus {
+  outline: none;
+}
+.tk-pick-search .mono {
+  font-size: 11px;
+}
+
+.tk-pick {
+  max-height: min(52vh, 440px);
+  overflow-y: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+}
+.tk-pick-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+}
+.tk-pick-head .count {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-weight: 400;
+  text-transform: none;
+}
+.tk-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  text-align: left;
+}
+.tk-pick-item:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.tk-pick-item.on {
+  background: var(--accent-bg);
+  color: var(--text);
+}
+.tk-pick-item:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.tk-pick-box {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  color: var(--accent-text);
+  flex: 0 0 auto;
+}
+.tk-pick-item.on .tk-pick-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.tk-pick-item:disabled .tk-pick-box {
+  background: var(--text-3);
+  border-color: var(--text-3);
+  color: var(--surface);
+}
+.tk-pick-item .nm {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-pick-note {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--text-3);
+}
+.tk-pick-note.solved {
+  color: var(--easy);
+}
+
+/* ------------------------------------------------------------------- list */
+
+.tk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tk-list-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.tk-list-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.tk-list-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tk-list-toggle svg:first-child {
+  transition: transform 0.15s ease;
+  color: var(--text-3);
+}
+.tk-list-toggle.open svg:first-child {
+  transform: rotate(90deg);
+}
+/* The icon and its word are one label. `.link-btn` is inline by default, so
+   without this they render as "+Add". */
+.tk-list-head .link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tk-list-empty {
+  padding: 10px 12px;
+  margin: 0;
+}
+
+.tk-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tk-rows > li {
+  border-bottom: 1px solid var(--border-soft);
+}
+.tk-rows > li:last-child {
+  border-bottom: 0;
+}
+.tk-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  cursor: pointer;
+  min-width: 0;
+}
+.tk-row:hover {
+  background: var(--surface-hover);
+}
+.tk-row:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.tk-row-title {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 46%;
+}
+
+.tk-row-subs {
+  list-style: none;
+  margin: 0;
+  padding: 0 11px 8px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tk-row-subs li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-2);
+  min-width: 0;
+}
+.tk-row-subs label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  min-width: 0;
+}
+.tk-row-subs li.done span {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+/* ------------------------------------------------------------------ table */
+
+.tk-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.tk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.tk-table th {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.tk-table th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 11px;
+  width: 100%;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+}
+.tk-table th button:hover {
+  color: var(--text);
+}
+.tk-table td {
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-2);
+  vertical-align: middle;
+}
+.tk-table tr:last-child td {
+  border-bottom: 0;
+}
+.tk-table tbody tr {
+  cursor: pointer;
+}
+.tk-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+.tk-table tbody tr:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.tk-td-title {
+  color: var(--text);
+  font-weight: 500;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-td-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.tk-td-dim {
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+.tk-pri {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.tk-pri.high {
+  color: var(--hard);
+  background: var(--hard-bg);
+}
+.tk-pri.med {
+  color: var(--medium);
+  background: var(--medium-bg);
+}
+.tk-pri.low {
+  color: var(--text-3);
+  background: var(--bg);
+}
+
+/* --------------------------------------------------------------- calendar */
+
+.tk-cal-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 244px;
+  gap: 10px;
+  align-items: start;
+}
+.tk-cal {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.tk-cal-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.tk-cal-head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 132px;
+  text-align: center;
+}
+.tk-cal-head .icon-btn.back svg {
+  transform: rotate(180deg);
+}
+.tk-cal-head .btn {
+  height: 26px;
+  font-size: 12px;
+}
+
+.tk-cal-days,
+.tk-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.tk-cal-days {
+  border-bottom: 1px solid var(--border-soft);
+}
+.tk-cal-days span {
+  padding: 5px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+}
+.tk-cal-cell {
+  min-height: 82px;
+  padding: 4px;
+  border-right: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.tk-cal-cell:nth-child(7n) {
+  border-right: 0;
+}
+.tk-cal-cell:nth-last-child(-n + 7) {
+  border-bottom: 0;
+}
+/* Dimmed, not hidden. The row has to be seven cells wide whatever month it is. */
+.tk-cal-cell.outside {
+  background: var(--bg);
+  opacity: 0.5;
+}
+.tk-cal-cell.today {
+  background: var(--accent-bg);
+}
+.tk-cal-cell.over {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.tk-cal-num {
+  font-size: 10.5px;
+  color: var(--text-3);
+  padding: 1px 3px;
+}
+.tk-cal-cell.today .tk-cal-num {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tk-cal-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  font-size: 11px;
+  color: var(--text-2);
+  text-align: left;
+  min-width: 0;
+  cursor: grab;
+}
+.tk-cal-chip:hover {
+  border-color: var(--accent-line);
+  color: var(--text);
+}
+.tk-cal-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tk-cal-tray {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 11px;
+}
+.tk-cal-tray.over {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.tk-cal-tray h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.tk-cal-tray .hint {
+  margin: 0 0 9px;
+}
+.tk-cal-loose {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+/* ----------------------------------------------------------- the top pill */
+
+/*
+  Drawn on every page while a clock runs, and nowhere otherwise. A timer you
+  cannot see is a timer you forget to stop, and a forgotten one makes every
+  number this feature produces a lie.
+*/
+.tk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 5px 0 3px;
+  border: 1px solid var(--danger);
+  border-radius: 14px;
+  background: var(--hard-bg);
+  flex: 0 0 auto;
+}
+.tk-pill-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--danger);
+  max-width: 210px;
+}
+.tk-pill-open .mono {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.tk-pill-title {
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: tk-pulse 1.8s ease-in-out infinite;
+  flex: 0 0 auto;
+}
+@keyframes tk-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk-pill-dot {
+    animation: none;
+  }
+}
+.tk-pill .icon-btn {
+  color: var(--danger);
+}
+
+/* ----------------------------------------------------------------- narrow */
+
+@media (max-width: 1100px) {
+  /* The tray under the month rather than beside it — at this width a 244px
+     column leaves the cells too narrow to hold a chip. */
+  .tk-cal-wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tk-cal-loose {
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-height: none;
+  }
+  /* The title is the first thing to go: the clock is the part you cannot
+     reconstruct by looking at the page you are on. */
+  .tk-pill-title {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .tk-head {
+    flex-wrap: wrap;
+  }
+  .tk-bar {
+    gap: 6px;
+  }
+  .tk-search {
+    order: 3;
+    max-width: none;
+    flex: 1 1 100%;
+  }
+  .tk-views {
+    flex: 1 1 auto;
+  }
+  .tk-views button {
+    flex: 1;
+    justify-content: center;
+    padding: 0 8px;
+  }
+  /* The label goes and the icon carries the tab. Four labelled tabs do not fit
+     360px, and the board tab is disabled here anyway. */
+  .tk-views button span,
+  .tk-views button {
+    font-size: 0;
+  }
+  .tk-views button svg {
+    font-size: 12.5px;
+  }
+
+  /* Full width, and sliding from the bottom would fight the keyboard when the
+     title is being edited. */
+  .tk-drawer {
+    width: 100vw;
+    border-left: 0;
+  }
+  .tk-fields {
+    grid-template-columns: 1fr;
+  }
+
+  /*
+    The row wraps, and the title takes the whole first line.
+
+    Unwrapped at this width the title is the flex item that yields — it is the
+    only one that can — so a card reads "Finis…" beside a full deadline, a
+    timer and a ring. The title is the one thing on the row that cannot be
+    reconstructed from the others.
+  */
+  .tk-row {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .tk-row-title {
+    max-width: none;
+    flex: 1 1 100%;
+  }
+  .tk-row-subs {
+    padding-left: 16px;
+  }
+  .tk-cal-cell {
+    min-height: 62px;
+  }
+  /* Below this the chips are unreadable, so the day count is the whole cell and
+     the tray underneath is where the tasks are read. */
+  .tk-cal-chip span {
+    display: none;
+  }
+
+  .tk-pill {
+    height: 26px;
+  }
+}

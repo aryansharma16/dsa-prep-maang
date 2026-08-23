@@ -8,6 +8,7 @@ import { moduleVisible } from '../../store/modules.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
 import { FeedbackLauncher } from '../feedback/FeedbackLauncher.jsx';
+import { TimerPill } from '../tasks/TimerPill.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
 import { Avatar } from '../ui/Avatar.jsx';
 import { IconLogout, IconMegaphone, IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
@@ -151,6 +152,15 @@ export function AppShell() {
           </div>
 
           <div className="spacer" />
+
+          {/*
+            Renders nothing unless a clock is running, which is most of the
+            time. It sits before the solved counter rather than after it because
+            when it is there it is the more urgent of the two — and because
+            appearing to the left of a fixed element pushes nothing around that
+            the eye was already tracking.
+          */}
+          <TimerPill />
 
           <div className="overall">
             <span>
