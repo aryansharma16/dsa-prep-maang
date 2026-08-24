@@ -470,7 +470,7 @@ export async function stopTimer(task) {
  * the client's titles are ignored: the scope clause is what stops a task naming
  * a problem in someone else's private set, and re-reading the row is what stops
  * a caller inventing a title for one. The same argument `resolveAssets` makes
- * about note assets.
+ * about attachments.
  *
  * An id that does not resolve is an error rather than a silent drop. The client
  * picks these from the roadmap it was handed, so an unresolvable id is a bug or
@@ -512,8 +512,8 @@ export async function resolveQuestions(problemIds, userId) {
  * than failing the whole request, because nine good screenshots should not be
  * lost to one renamed archive.
  *
- * Task attachments are never public — unlike a note's, which can be — so the
- * stakes are lower here than there. The check is the same anyway: the argument
+ * Task attachments are never public, so the stakes are lower than on a surface
+ * that hands the bytes to a stranger. The check is worth it anyway: the argument
  * for sniffing is that S3 will serve back whatever type it was told, forever.
  */
 export async function uploadTaskFiles(task, files, user) {
@@ -557,8 +557,8 @@ export async function uploadTaskFiles(task, files, user) {
  * Detaches one file.
  *
  * Scoped by `linkedTo` as well as by owner, so a file id belonging to the
- * caller's avatar or one of their notes cannot be deleted through a tasks
- * route. Soft, like everything else — the sweeper takes the bytes later.
+ * caller's avatar cannot be deleted through a tasks route. Soft, like
+ * everything else — the sweeper takes the bytes later.
  */
 export async function detachAttachment(task, fileId, userId) {
   const file = await File.findOne({

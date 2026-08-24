@@ -44,7 +44,6 @@ import { adminRouter } from './admin.routes.js';
 import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { feedbackRouter } from './feedback.routes.js';
-import { noteRouter, sharedNoteRouter } from './note.routes.js';
 import { taskRouter } from './task.routes.js';
 
 export const router = Router();
@@ -89,25 +88,6 @@ router.get('/companies/:slug/logo', getLogo);
  */
 router.get('/motivation/login', getLoginMotivation);
 
-/**
- * Public because sharing a note is the feature. A link sent to someone who has
- * no account has to open, or "public" means nothing.
- *
- * It is narrow in the way the two routes above are. Only notes their author
- * marked public or unlisted *and* published are reachable, and the check lives
- * in `assertCanRead` and `buildFilter` rather than in a filter written here — so
- * the guarantee is a property of the notes service, not of this line's position
- * in this file. A private note 404s here exactly as it does for a signed-in
- * stranger, and the share id is 11 random characters, so it cannot be walked.
- *
- * `requireModule` applies here too, and it has to. Notes being hidden means the
- * module has not shipped, and a share link is the one part of it that reaches
- * people who never signed in — leaving this open would publish an unfinished
- * feature to exactly the audience it was withheld from. The super admin's own
- * links still open for them: they hold `module:preview`.
- */
-router.use('/notes/public', requireModule('notes'), sharedNoteRouter);
-
 // Everything below needs a session.
 router.use(requireAuth);
 
@@ -136,9 +116,9 @@ router.use('/admin', adminRouter);
 router.use(writeLimiter);
 
 /*
-  `requireModule` guards the four learner modules that can be taken off the side
+  `requireModule` guards the learner modules that can be taken off the side
   menu while they are being built. It sits on the mount rather than inside each
-  router, so a route added to notes or chat tomorrow is covered by having been
+  router, so a route added to chat or tasks tomorrow is covered by having been
   added there at all — see config/modules.js.
 */
 router.use('/chat', requireModule('chat'), chatRouter);
@@ -179,18 +159,16 @@ router.put(
 );
 router.delete('/views/:scope', validate(scopeSchema, 'params'), clearView);
 
-router.use('/notes', requireModule('notes'), noteRouter);
-
 /*
-  The board, and everything on it. Behind the same gate as notes and chat.
+  The board, and everything on it. Behind the same gate as chat.
 
   Nothing here has a public surface — a task has no share link and no second
-  reader — so unlike notes there is only one mount to remember.
+  reader — so there is only one mount to remember.
 */
 router.use('/tasks', requireModule('tasks'), taskRouter);
 
 /*
-  Under the same module gate as notes and chat, so hiding Feedback takes the form
+  Under the same module gate as chat and tasks, so hiding Feedback takes the form
   with the nav item rather than leaving a page that submits into a 404.
 
   The queue staff work from is *not* gated, and cannot be from here — it hangs off

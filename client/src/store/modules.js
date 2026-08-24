@@ -3,7 +3,6 @@ import {
   IconChart,
   IconChat,
   IconMegaphone,
-  IconNote,
   IconRotate,
 } from '../components/ui/Icons.jsx';
 
@@ -18,14 +17,13 @@ import {
  *
  * All of this is for rendering. Hiding a nav item is a courtesy; the routes
  * behind a hidden module are locked by `requireModule` on the server, so a
- * bookmark to /notes gets the same 404 as a URL that never existed.
+ * bookmark to /tasks gets the same 404 as a URL that never existed.
  */
 
 export const MODULE_NAV = [
   { key: 'revision', to: '/revision', label: 'Revision', Icon: IconRotate },
   { key: 'stats', to: '/stats', label: 'Stats', Icon: IconChart },
   { key: 'chat', to: '/chat', label: 'AI Chat', Icon: IconChat },
-  { key: 'notes', to: '/notes', label: 'Notes', Icon: IconNote },
   { key: 'tasks', to: '/tasks', label: 'Tasks', Icon: IconBoard },
   { key: 'feedback', to: '/feedback', label: 'Feedback', Icon: IconMegaphone },
 ];

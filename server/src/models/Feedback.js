@@ -59,7 +59,7 @@ const feedbackSchema = new mongoose.Schema(
     submitter: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 
     /**
-     * Denormalised, both of them, the same way `Note.authorName` is.
+     * Denormalised, both of them.
      *
      * The queue has to stay readable after an account is deleted — a row that
      * says "someone reported this" is a row nobody can follow up on. The cost is

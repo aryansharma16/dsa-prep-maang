@@ -142,8 +142,8 @@ Neither alone works.
 
 So the ref finds live progress, and the snapshot is what is drawn when the ref
 no longer resolves. The snapshot is written **server-side from the problem row**
-and never echoed from the request, the rule `resolveAssets` applies to note
-assets: a client cannot name a problem it cannot see.
+and never echoed from the request, the same rule `resolveAssets` applies to
+attachments: a client cannot name a problem it cannot see.
 
 ---
 

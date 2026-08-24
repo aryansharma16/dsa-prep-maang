@@ -79,8 +79,8 @@ export function SystemHealth({ health }) {
           chip={uploads.configured ? 'configured' : 'no store'}
         >
           {uploads.configured
-            ? 'Profile pictures and note attachments will save'
-            : 'Pictures and attachments will fail until a store is configured'}
+            ? 'Profile pictures will save'
+            : 'Profile pictures will fail until a store is configured'}
         </Row>
 
         <Row

@@ -15,9 +15,8 @@ import { paged, pageQuery } from '../utils/query.js';
 /*
   `requireAuth` leaves `req.userId` as a plain string, deliberately — it reads no
   database. Mongoose casts that inside a `find` filter but not inside an
-  aggregation `$match`, so everything here goes through the same helper
-  note.controller.js uses rather than relying on which of the two a line happens
-  to be.
+  aggregation `$match`, so everything here casts through the same helper rather
+  than relying on which of the two a line happens to be.
 */
 const oid = (id) => new mongoose.Types.ObjectId(id);
 
@@ -112,8 +111,8 @@ export const create = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  // Read once and copy in, the way a note copies its author's name. The row has
-  // to stay readable after the account is gone.
+  // Read once and copy in. The row has to stay readable after the account is
+  // gone.
   const user = await User.findById(submitter).select('name email').lean();
 
   const item = await Feedback.create({

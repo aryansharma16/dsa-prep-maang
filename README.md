@@ -273,9 +273,9 @@ and Table the grouping already does that job.
 
 ### Columns are yours
 
-Add, rename, recolour, reorder, delete. The colours are the notes builder's
-block hues, stored as a *name* and resolved by `[data-hue]` in `tokens.css` — a
-stored `#26c281` would be a dark-theme green forever, and this way one attribute
+Add, rename, recolour, reorder, delete. The colours are the shared block hues,
+stored as a *name* and resolved by `[data-hue]` in `tokens.css` — a stored
+`#26c281` would be a dark-theme green forever, and this way one attribute
 recolours a column in both themes.
 
 What a column **means** is a separate field from what it is called:
@@ -302,10 +302,10 @@ deleted — a board with none has nowhere to put the next task.
 ### Dragging, and the two ways that are not dragging
 
 Cards drag between and within columns, with a line showing where the card will
-land and **nothing moving until the drop**. That is the notes builder's pattern
-rather than the guide editor's swap-on-hover, which mutates the list under the
-pointer while you are still deciding, so a drag across four cards shuffles all
-four and the drop lands somewhere you did not choose.
+land and **nothing moving until the drop**. That is a gap indicator rather than
+the guide editor's swap-on-hover, which mutates the list under the pointer while
+you are still deciding, so a drag across four cards shuffles all four and the
+drop lands somewhere you did not choose.
 
 Drag is a shortcut, not the only path. Every card has a `…` menu with **Move
 to**, and `[` / `]` move a focused card between columns — a touchscreen has no
@@ -336,7 +336,7 @@ still names it — and a dangling id renders as a blank row, which reads as
 corruption, where a dangling title reads as history. So the ref finds live
 progress and the snapshot is what is drawn when it no longer resolves. The
 snapshot is written server-side from the problem row and never echoed from the
-request, the rule `resolveAssets` already applies to note assets.
+request, the same rule `resolveAssets` applies to attachments.
 
 **The ring on a card is derived, never stored**, and half of what it counts does
 not live on the task:
@@ -354,7 +354,7 @@ measure are different states, and only one of them reads as failure.
 
 Subtasks are one level, by schema. A subtask holding subtasks turns the progress
 count, the renderer and the drag target into recursive walks with depth guards,
-which is the argument `Note.blocks` already makes about nesting.
+and nothing this feature is for needs the second level.
 
 ### The clock
 
@@ -406,22 +406,22 @@ leaving it running is not a state worth being able to reach.
 
 ### Files
 
-Images and PDFs, through `services/file.service.js` to the same private bucket
-note attachments use — `purpose: 'task-attachment'`, `linkedTo: { type: 'task' }`,
-keys under `tasks/<id>/`. No schema change: `File` was already polymorphic.
+Images and PDFs, through `services/file.service.js` to a private S3 bucket —
+`purpose: 'task-attachment'`, `linkedTo: { type: 'task' }`, keys under
+`tasks/<id>/`. No schema change: `File` was already polymorphic.
 
 Drop them, pick them, or paste them. Paste is the one that earns its place — the
 thing most often attached to a task like this is a screenshot of a failing test,
 and Cmd-Shift-4 then Cmd-V is the shortest path from the screen to the card.
 
 Types are sniffed from the leading bytes, never taken from the request, for the
-reason [Note and task attachments go to S3](#note-and-task-attachments-go-to-s3) gives. A rejected
+reason [Task attachments go to S3](#task-attachments-go-to-s3) gives. A rejected
 file lands in `failed` rather than failing the batch, and the toast repeats the
 server's own reason — "images and PDFs only" is a confusing thing to be told
 when the real answer is that this deployment has no bucket configured.
 
-Deleting a task is soft, like a note's, because the row owns S3 objects and
-dropping it is what makes their keys unfindable.
+Deleting a task is soft because the row owns S3 objects and dropping it is what
+makes their keys unfindable.
 
 ### What it will not let you do
 
@@ -440,7 +440,7 @@ the numbers are far above any real board, the way `VIEW_LIMITS` is.
 | questions attached at once | 50 |
 | attachments | 10 files per request, 25MB each, images and PDFs only |
 | one sitting | 12 hours measured, 12 hours typed. Under 5 seconds is discarded |
-| uploads | 30 an hour, per account — the ceiling avatars and notes already share |
+| uploads | 30 an hour, per account — the ceiling avatars already share |
 
 Everything else is the ordinary write limiter: 120 writes per five minutes per
 account, which the module inherits by being mounted below it in
@@ -669,7 +669,7 @@ user, which is worse than not having one.
 | `POST /auth/login` | 15 min | 10 **failures** | client address |
 | `POST /auth/register` | 1 hour | 5 | client address |
 | `POST /chat/stream` | 10 min | 20 | account |
-| avatar, note and task uploads | 1 hour | 30 | account |
+| avatar and task uploads | 1 hour | 30 | account |
 | every other write below `/admin` | 5 min | 120 | account |
 
 Four decisions in there are worth more than the numbers:
@@ -757,11 +757,11 @@ the process heap. The cap is 5MB for images, 10MB for documents.
 
 `CLOUDINARY_URL` wins when both are set.
 
-### Note and task attachments go to S3
+### Task attachments go to S3
 
-Images and PDFs dropped into a note — or onto a task — take a second path,
-behind `services/s3.service.js`, with `services/file.service.js` as the seam
-between the bytes in the bucket and the rows that index them. Same bargain as
+Images and PDFs dropped onto a task take a second path, behind
+`services/s3.service.js`, with `services/file.service.js` as the seam between
+the bytes in the bucket and the rows that index them. Same bargain as
 Cloudinary — callers hand over a buffer and a key, nobody outside those files
 imports the SDK.
 
@@ -772,7 +772,7 @@ request said so, and serve it back with that type forever. So the check that
 came free there is rebuilt here in `sniffType()`, from the file's own leading
 bytes. Stored types are sniffed, never echoed from the request.
 
-Two consumers, one `File` collection, and no schema change for the second.
+One `File` collection, and no schema change to add a consumer to it.
 `File.linkedTo` is `{ type, id }` and was polymorphic from the start, so tasks
 only had to pick their own values — `purpose: 'task-attachment'`,
 `linkedTo: { type: 'task' }`, keys under `tasks/<id>/` — and the
@@ -1020,7 +1020,6 @@ lives in `main` instead of on a branch nobody merges.
 | Revision | `/revision` |
 | Stats | `/stats` |
 | AI Chat | `/chat` |
-| Notes | `/notes` |
 | Tasks | `/tasks` |
 | Feedback | `/feedback` |
 
@@ -1043,17 +1042,12 @@ in it.
    built, the same line `/admin` takes;
 3. **the API answers 404.** `requireModule(key)` sits on the mount in
    `routes/index.js`. Without it, hiding a module is a hidden door: the link is
-   gone and `/api/notes` still answers anyone who reads the bundle or kept a
+   gone and `/api/tasks` still answers anyone who reads the bundle or kept a
    bookmark.
 
 404 rather than 403, worded identically to the `notFound` middleware, because a
 403 announces that the feature exists. The super admin sees the module with a
 **Dev** badge, so an unfinished page is never mistaken for a shipped one.
-
-Notes is the one module with a public surface — `/api/notes/public/:publicId`,
-the share links — and that is gated too. Hiding the module means it has not
-shipped, so publishing it to people who never signed in is the opposite of the
-intent. Existing links resume working when it is released; nothing is deleted.
 
 Two capabilities, not one: `module:preview` is "an unfinished feature is safe in
 my hands", `module:write` is "I decide when it ships". Both are the super
@@ -1423,7 +1417,7 @@ removable, which silently discarding it would not be. A filter that no longer
 exists in the spec *is* dropped on load, the same way a stale saved column layout
 is reconciled.
 
-Scopes are declared for `roadmap`, `revision`, `notes`, `problems` and `tasks`.
+Scopes are declared for `roadmap`, `revision`, `problems` and `tasks`.
 Two are wired up — the roadmap and the board — and the board is what proves the
 engine generalises: it needed a new `filters/tasks.js`, and on the server one
 string in the allowlist and nothing else.

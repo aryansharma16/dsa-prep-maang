@@ -68,10 +68,10 @@ empty is the right split for a single-account app: one place to read, one place
 to change, and no chance of the two disagreeing about who may write.
 
 **CORS is empty and that is correct today.** Every asset is consumed by the
-browser as an `<img src>` or an `<iframe src>` — see
-[NoteBlocks.jsx:138](../client/src/components/notes/NoteBlocks.jsx#L138) — and
-cross-origin image and iframe loads are not subject to CORS. Uploads go through
-the API, not to S3 directly.
+browser as an `<img src>` or a plain link — see
+[AttachmentGrid.jsx:39](../client/src/components/tasks/AttachmentGrid.jsx#L39) —
+and cross-origin image and navigation loads are not subject to CORS. Uploads go
+through the API, not to S3 directly.
 
 It stops being correct the moment either of these happens, and both are on the
 table:
@@ -341,8 +341,8 @@ The instance has **1 GiB of RAM** and uploads are buffered in the heap —
 `multer.memoryStorage()`, chosen because bytes go straight back out to S3 and a
 disk round trip would buy nothing.
 
-The note-assets route
-([note.routes.js:74](../server/src/routes/note.routes.js#L74)) accepts
+The task-attachments route
+([task.routes.js:152](../server/src/routes/task.routes.js#L152)) accepts
 `maxMb: 25, maxFiles: 10`, so the worst case for **one** request is:
 
 | | |

@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 /**
  * Dragging a card between and within the board's columns.
  *
- * The gap-indicator pattern from the notes builder, widened from one list to
+ * The gap-indicator pattern, widened from one list to
  * several. Nothing moves until the drop and a line shows where the card will
  * land — rather than the swap-on-hover the guide editor uses, which mutates the
  * list under the pointer while you are still deciding, so a drag across four

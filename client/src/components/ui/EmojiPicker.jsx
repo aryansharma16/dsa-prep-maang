@@ -17,11 +17,11 @@ import { EMOJI_GROUPS, searchEmoji } from './emojiData.js';
  * means knowing the shortcode or leaving the app to find one. And it had no
  * answer for the most common intent of all: clearing the one already set.
  *
- * Portalled and fixed, like Dropdown, because `.ne-canvas` scrolls — an
- * absolutely positioned panel would be clipped at its edge. Same reason the
- * position is measured from the trigger on every scroll and resize.
+ * Portalled and fixed, like Dropdown, because a scrolling ancestor would clip
+ * an absolutely positioned panel at its edge. Same reason the position is
+ * measured from the trigger on every scroll and resize.
  *
- * Recents are local rather than on the account. A note icon is a per-machine
+ * Recents are local rather than on the account. Picking an icon is a per-machine
  * habit, and a round trip to store one would be a request per pick.
  */
 

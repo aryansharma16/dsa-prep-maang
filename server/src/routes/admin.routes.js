@@ -272,7 +272,7 @@ adminRouter.post('/settings/chat-purge', requireCap('settings:write'), purgeChat
 /* -------------------------------------------------------------- modules */
 
 /*
-  Split the same way, and for a sharper reason: reading tells an admin that Notes
+  Split the same way, and for a sharper reason: reading tells an admin that Tasks
   is missing on purpose rather than broken, while writing takes a feature away
   from every learner on the deployment. `module:write` is the super admin's.
 */

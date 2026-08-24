@@ -4,7 +4,7 @@
  * A module is one entry in the side menu *and* the API surface behind it, which
  * is the whole point of naming them here: hiding has to mean both halves of the
  * same decision. A nav item removed on its own is a hidden door — the link is
- * gone and `/notes` still loads for anyone who remembers the URL, or for anyone
+ * gone and `/tasks` still loads for anyone who remembers the URL, or for anyone
  * who reads the bundle. Each key below is claimed by a `requireModule(key)` in
  * routes/index.js, so the two move together.
  *
@@ -22,7 +22,6 @@ export const MODULES = Object.freeze([
   { key: 'revision', label: 'Revision', path: '/revision' },
   { key: 'stats', label: 'Stats', path: '/stats' },
   { key: 'chat', label: 'AI Chat', path: '/chat' },
-  { key: 'notes', label: 'Notes', path: '/notes' },
   { key: 'tasks', label: 'Tasks', path: '/tasks' },
   /*
     Feedback is a module for the same reason the four above are: it is a side

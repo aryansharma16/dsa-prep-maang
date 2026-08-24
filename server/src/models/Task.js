@@ -26,9 +26,8 @@ import { kindFor } from './File.js';
  *
  * A subtask holding subtasks turns every consumer — the progress count, the
  * renderer, the drag target, the "is this finished" test — into a recursive
- * walk with a depth guard, which is the argument `Note.blocks` already makes
- * about nesting. Nothing this feature is for needs the second level: "do these
- * three questions" is a list, not a tree.
+ * walk with a depth guard. Nothing this feature is for needs the second level:
+ * "do these three questions" is a list, not a tree.
  */
 const subtaskSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 200 },
@@ -52,8 +51,8 @@ const subtaskSchema = new mongoose.Schema({
  *
  * So: the ref is how live progress is looked up, the snapshot is what is drawn
  * when the ref no longer resolves. The snapshot is written server-side from the
- * problem row and never echoed from the request — the rule `resolveAssets`
- * applies to note assets, for the same reason. A client cannot name a problem
+ * problem row and never echoed from the request — the same rule `resolveAssets`
+ * applies to attachments, for the same reason. A client cannot name a problem
  * it cannot see.
  */
 const questionSchema = new mongoose.Schema(
@@ -69,10 +68,10 @@ const questionSchema = new mongoose.Schema(
 );
 
 /**
- * A file on the task. The same shape `Note` stores, and for the same reasons:
- * a denormalised copy of the `File` row so rendering a task is one read, with
- * `url` left null because the bucket is private and a permanent URL would be a
- * lie. Signed URLs are attached on read — see `hydrateTask`.
+ * A file on the task: a denormalised copy of the `File` row so rendering a task
+ * is one read, with `url` left null because the bucket is private and a
+ * permanent URL would be a lie. Signed URLs are attached on read — see
+ * `hydrateTask`.
  */
 const attachmentSchema = new mongoose.Schema(
   {
@@ -278,8 +277,7 @@ taskSchema.set('toJSON', {
  * An attachment as the browser sees it: enough to render, and no S3 key.
  *
  * A key is not a credential, but publishing one invites a direct request to the
- * bucket and pins a storage layout the client has no business learning — the
- * argument `publicAsset` makes for notes, and the same one holds here.
+ * bucket and pins a storage layout the client has no business learning.
  */
 export const publicAttachment = (asset) =>
   asset && asset.key
@@ -325,11 +323,10 @@ const publicSession = (session) => ({
 /**
  * The whole task.
  *
- * There is no separate card shape, unlike notes. The expensive field on a note
- * is its blocks, and a list of thirty would ship every code block for nothing;
- * a task's largest field is 4000 characters of notes and the board wants the
- * subtasks and questions anyway, to draw the progress ring. One shape means the
- * drawer and the card can never disagree about what a task is.
+ * There is no separate card shape. A task's largest field is 4000 characters of
+ * notes and the board wants the subtasks and questions anyway, to draw the
+ * progress ring, so a trimmed second shape would save nothing worth the risk of
+ * the drawer and the card disagreeing about what a task is.
  *
  * `elapsedSeconds` is deliberately absent. The client computes it from
  * `runningSince` against the server clock, so a number that changes every

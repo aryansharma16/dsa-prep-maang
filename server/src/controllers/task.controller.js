@@ -254,9 +254,9 @@ export const update = asyncHandler(async (req, res) => {
 /**
  * DELETE /api/tasks/:id — soft.
  *
- * Soft for the reason a note's is: the task owns S3 objects, and dropping the
- * row is what makes their keys unfindable. It also gives an undo on a button
- * whose mistake is otherwise unrecoverable.
+ * Soft because the task owns S3 objects, and dropping the row is what makes
+ * their keys unfindable. It also gives an undo on a button whose mistake is
+ * otherwise unrecoverable.
  */
 export const remove = asyncHandler(async (req, res) => {
   const userId = oid(req.userId);

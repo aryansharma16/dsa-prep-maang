@@ -234,7 +234,7 @@ export const uploadLimiter = limiter({
  * Everything that changes something, for signed-in callers.
  *
  * Reads are already covered by `apiLimiter` and cost a query. Writes cost a
- * document that stays — notes, custom problems, feedback, attempt history — so
+ * document that stays — tasks, custom problems, feedback, attempt history — so
  * the failure mode is not load, it is a collection quietly filling up with
  * whatever a script felt like inserting overnight.
  *

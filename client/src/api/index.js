@@ -79,50 +79,6 @@ export const viewsApi = {
 };
 
 /**
- * Notes — the personal write-ups, and the only module here with a public half.
- *
- * `shared` and `browse` hit routes mounted above the server's auth gate, so they
- * work with no session at all. That is what makes a link sent to someone without
- * an account open, and it is why they are named apart from the rest rather than
- * being `get`/`list` with a flag: two different audiences, two different
- * guarantees, and nothing that silently falls back from one to the other.
- */
-export const notesApi = {
-  list: (params) => http.get('/notes', { params }).then((r) => r.data),
-  tags: () => http.get('/notes/tags').then((r) => r.data.tags),
-  get: (id) => http.get(`/notes/${id}`).then((r) => r.data),
-  create: (body) => http.post('/notes', body).then((r) => r.data.note),
-  update: (id, body) => http.patch(`/notes/${id}`, body).then((r) => r.data.note),
-  remove: (id) => http.delete(`/notes/${id}`).then((r) => r.data),
-  restore: (id) => http.post(`/notes/${id}/restore`).then((r) => r.data.note),
-  purge: (id) => http.delete(`/notes/${id}/permanent`).then((r) => r.data),
-
-  /**
-   * No Content-Type header: the browser has to set it itself, because only it
-   * knows the multipart boundary it just generated.
-   *
-   * Returns `{ assets, failed, total }` rather than throwing on a bad file —
-   * nine good screenshots should not be lost to one rejected PDF.
-   */
-  upload: (id, files, onProgress) => {
-    const form = new FormData();
-    for (const file of files) form.append('files', file);
-    return http
-      .post(`/notes/${id}/assets`, form, {
-        onUploadProgress: (event) =>
-          onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
-      })
-      .then((r) => r.data);
-  },
-  removeAsset: (id, fileId) => http.delete(`/notes/${id}/assets/${fileId}`).then((r) => r.data),
-
-  /** Public. The feed of notes people chose to publish. */
-  browse: (params) => http.get('/notes/public', { params }).then((r) => r.data),
-  /** Public. One note by the share id in its link. */
-  shared: (publicId) => http.get(`/notes/public/${publicId}`).then((r) => r.data.note),
-};
-
-/**
  * One line, chosen server-side from what you have actually done.
  *
  * `line` is null when nothing matches — a deployment that has not been seeded,

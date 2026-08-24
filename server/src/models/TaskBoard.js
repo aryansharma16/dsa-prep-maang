@@ -19,11 +19,10 @@ import mongoose from 'mongoose';
 /**
  * The hues a column may wear.
  *
- * These are the notes builder's block hues, named rather than stored as colour:
- * the resolved value differs between light and dark, and a stored `#26c281`
- * would be a dark-theme green forever. The client turns the name into a colour
- * with `[data-hue='green']`, which is the same mechanism a note block uses, so
- * a column and a note gutter are drawn from one palette rather than two.
+ * Named rather than stored as colour: the resolved value differs between light
+ * and dark, and a stored `#26c281` would be a dark-theme green forever. The
+ * client turns the name into a colour with `[data-hue='green']`, so every
+ * column is drawn from one palette rather than a value per board.
  *
  * Kept in sync with the `[data-hue]` rules at the foot of client/src/styles/
  * tokens.css. A name absent there resolves to no colour at all, so this list is

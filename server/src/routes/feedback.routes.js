@@ -16,7 +16,7 @@ import { validate } from '../middleware/validate.js';
  * already has. Anyone adding one later should also note that a literal segment —
  * `/feedback/stats`, say — has to be declared *above* it, or Express reads the
  * word as an id and the validator rejects it with a message about the id that
- * route does not have. note.routes.js has the worked example.
+ * route does not have. task.routes.js has the worked example.
  *
  * Editing and deleting are absent on purpose. A submission is a message that has
  * been received; rewriting it after somebody has read and answered it makes the

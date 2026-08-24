@@ -14,7 +14,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
  * else — nav item gone, route gone, API answering 404. The alternative is a
  * long-lived branch or a half-built page that learners can find.
  *
- * Read is `settings:read`, so an admin can see that Notes is missing on purpose
+ * Read is `settings:read`, so an admin can see that Tasks is missing on purpose
  * rather than broken. Every write is `module:write`, which only the super admin
  * holds; the panel renders read-only for everyone else rather than hiding
  * itself, the same way AdminChat does.
@@ -135,11 +135,7 @@ export function AdminModules() {
         <ConfirmDialog
           title={`Hide ${confirming.label}?`}
           message={`${confirming.label} disappears from the side menu for every account except yours.`}
-          detail={
-            confirming.key === 'notes'
-              ? 'Anything already saved is kept and comes back untouched when you release it. Shared note links stop opening while it is hidden.'
-              : 'Anything already saved is kept and comes back untouched when you release it.'
-          }
+          detail="Anything already saved is kept and comes back untouched when you release it."
           confirmLabel="Hide it"
           busy={busy}
           onConfirm={() => apply(confirming, true)}

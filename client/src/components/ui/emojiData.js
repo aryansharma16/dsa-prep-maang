@@ -2,7 +2,7 @@
  * A curated emoji set, not the full Unicode table.
  *
  * The whole table is ~1,900 characters and needs a shortname database to be
- * searchable at all. Nobody picking an icon for a note wants to scroll it, and
+ * searchable at all. Nobody picking an icon wants to scroll it, and
  * shipping the database costs more than the feature is worth. This is the
  * subset people actually reach for, each with the words they would type to
  * find it — which is what makes the search field useful rather than decorative.

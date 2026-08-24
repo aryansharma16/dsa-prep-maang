@@ -222,16 +222,15 @@
 }
 
 /*
-  Block hues, for the notes builder.
+  Block hues — the palette a task board's columns are drawn from.
 
-  Fourteen block types is past the number anyone reads as a list, so each one
-  wears a colour: in the palette glyph, in the stripe down the block's left edge
-  on the canvas, and in the type badge. Nowhere else — a hue behind body text
-  would fight the reading, which is the whole reason the accent system keeps its
-  own colour to borders and marks.
+  A colour per column, worn by the dot, the count, a card's edge and the
+  progress ring. Nowhere else — a hue behind body text would fight the reading,
+  which is the whole reason the accent system keeps its own colour to borders
+  and marks.
 
   These are the accent palette's own values rather than a second set invented
-  for this feature, so a note's gutter and the user's chosen accent are drawn
+  for this feature, so a column's colour and the user's chosen accent are drawn
   from one family. Light values are re-picked for white, not lightened, for the
   reason the block at the top of this file gives.
 

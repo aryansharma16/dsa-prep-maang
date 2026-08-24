@@ -9,7 +9,7 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 /**
  * Which side-menu modules have shipped.
  *
- * Read is `settings:read`, so an admin can see that Notes is missing on purpose
+ * Read is `settings:read`, so an admin can see that Tasks is missing on purpose
  * and is not broken — the question they would otherwise ask the super admin.
  * Write is `module:write`, which only the super admin holds.
  */

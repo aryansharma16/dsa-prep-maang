@@ -49,9 +49,9 @@ import { idParam } from '../utils/query.js';
 /**
  * The tasks module.
  *
- * One router, unlike notes — nothing here is reachable without a session. A
- * board has one reader by design: there are no assignees, no sharing and no
- * public surface, so there is no second audience to keep in a separate object.
+ * One router — nothing here is reachable without a session. A board has one
+ * reader by design: there are no assignees, no sharing and no public surface,
+ * so there is no second audience to keep in a separate object.
  *
  * Everything is mounted below `requireAuth` and below `writeLimiter` in
  * routes/index.js, which is what covers every route in this file by having been
@@ -140,8 +140,8 @@ taskRouter.delete('/:id/sessions/:sessionId', validate(sessionParam, 'params'), 
 /* ------------------------------------------------------------ attachments */
 
 /*
-  Images and PDFs, the same pair a note takes and for the same reason: a task
-  carries the screenshot of the failure and the PDF of the paper.
+  Images and PDFs, and for the obvious reason: a task carries the screenshot of
+  the failure and the PDF of the paper.
 
   `uploadLimiter` comes first — before the id is even validated — so multer
   never allocates for a request that is going to be refused. Ten files at 25MB

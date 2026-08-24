@@ -163,7 +163,7 @@ distinguish causes that otherwise look identical from the browser.
 | Small files upload, files over ~5MB fail | Missing multipart permissions | Add `s3:AbortMultipartUpload` and `s3:ListMultipartUploadParts` |
 | Uploads work but listing fails | `s3:ListBucket` granted on `bucket/*` instead of the bucket ARN | Grant bucket actions on `arn:aws:s3:::<bucket>` with **no** `/*` |
 | 400 `BAD_FILE_TYPE` on an iPhone photo | HEIC is rejected by the multer filter before it reaches S3 | See [the known issue](./aws-infrastructure.md#heic-is-accepted-by-s3-and-rejected-by-the-upload-filter) |
-| 400 `FILE_TOO_LARGE` | Over the route's per-file cap (25MB for note assets) | Expected; raise the route limit only with the [memory ceiling](./aws-infrastructure.md#memory-ceiling) in view |
+| 400 `FILE_TOO_LARGE` | Over the route's per-file cap (25MB for task attachments) | Expected; raise the route limit only with the [memory ceiling](./aws-infrastructure.md#memory-ceiling) in view |
 | Process restarts mid-upload | OOM on a 1 GiB instance | See [memory ceiling](./aws-infrastructure.md#memory-ceiling) |
 | 201 with empty `assets` and a populated `failed[]` | Not a transport error — every file failed individually. The reason is in `failed[].error` | Read that message and re-enter this table with it |
 
