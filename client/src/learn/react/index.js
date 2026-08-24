@@ -448,4 +448,99 @@ export const sections = [
       },
     ],
   },
+  {
+    key: 'ecosystem',
+    title: 'The ecosystem',
+    blurb: 'Everything a React job expects that React itself does not ship — the libraries, the types, and the tests.',
+    topics: [
+      {
+        slug: 'state-management',
+        title: 'State management',
+        summary: 'Four kinds of state, and why most of what people put in a store does not belong there.',
+        tags: ['state', 'redux', 'zustand', 'context', 'interview'],
+        ask: [
+          'When do I actually need Redux or Zustand?',
+          'Why is context not a state management library?',
+        ],
+        load: () => import('./state-management.js'),
+      },
+      {
+        slug: 'data-fetching',
+        title: 'Data fetching',
+        summary: 'Server data is a cache, not state — TanStack Query, invalidation and optimistic updates.',
+        tags: ['data', 'react-query', 'fetch', 'caching', 'interview'],
+        ask: [
+          'Why not just useEffect and fetch?',
+          'How do optimistic updates work with React Query?',
+        ],
+        load: () => import('./data-fetching.js'),
+      },
+      {
+        slug: 'react-router',
+        title: 'Routing',
+        summary: 'Nested layouts, loaders that fetch before render, and keeping filters in the URL.',
+        tags: ['routing', 'react-router', 'url', 'interview'],
+        ask: [
+          'What does a data router give me over useEffect fetching?',
+          'Why does my app redirect to login on every refresh?',
+        ],
+        load: () => import('./react-router.js'),
+      },
+      {
+        slug: 'forms-at-scale',
+        title: 'Forms at scale',
+        summary: 'Where controlled inputs stop scaling, and React Hook Form with a shared Zod schema.',
+        tags: ['forms', 'validation', 'react-hook-form', 'zod'],
+        ask: [
+          'Why is React Hook Form faster than controlled inputs?',
+          'How do I show a server validation error on the right field?',
+        ],
+        load: () => import('./forms-at-scale.js'),
+      },
+      {
+        slug: 'typescript-with-react',
+        title: 'TypeScript with React',
+        summary: 'Typing props, hooks and events without reaching for any — and why React.FC is out.',
+        tags: ['typescript', 'types', 'props', 'interview'],
+        ask: [
+          'How do I type props and children properly?',
+          'Why should I not use React.FC?',
+        ],
+        load: () => import('./typescript-with-react.js'),
+      },
+      {
+        slug: 'testing-react',
+        title: 'Testing components',
+        summary: 'Testing Library, user-event and MSW — testing what a user does, not what the component holds.',
+        tags: ['testing', 'rtl', 'msw', 'vitest', 'interview'],
+        ask: [
+          'What should I actually assert in a component test?',
+          'How do I test a component that fetches data?',
+        ],
+        load: () => import('./testing-react.js'),
+      },
+      {
+        slug: 'performance-in-practice',
+        title: 'Performance in practice',
+        summary: 'Profile first, then move state down, virtualise, and split the bundle — memo comes last.',
+        tags: ['performance', 'profiler', 'virtualization', 'bundle', 'interview'],
+        ask: [
+          'How do I find out what is actually slow in my React app?',
+          'When should I virtualise a list?',
+        ],
+        load: () => import('./performance-in-practice.js'),
+      },
+      {
+        slug: 'rendering-and-nextjs',
+        title: 'Rendering and Next.js',
+        summary: 'CSR, SSR, SSG, ISR, hydration and Server Components — and whether you need any of it.',
+        tags: ['ssr', 'nextjs', 'rsc', 'hydration', 'seo', 'interview'],
+        ask: [
+          'What is the difference between SSR, SSG and ISR?',
+          'What can a Server Component not do?',
+        ],
+        load: () => import('./rendering-and-nextjs.js'),
+      },
+    ],
+  },
 ];

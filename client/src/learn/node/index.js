@@ -824,4 +824,44 @@ export const sections = [
       },
     ],
   },
+  {
+    key: 'production',
+    title: 'Production essentials',
+    blurb: 'The three things a real service needs that a tutorial API does not: a cache, somewhere to put slow work, and tests that prove it still works.',
+    topics: [
+      {
+        slug: 'redis',
+        title: 'Redis and caching',
+        summary: 'Cache-aside, TTLs, rate limits and locks — and the three ways a cache fails under load.',
+        tags: ['redis', 'caching', 'performance', 'interview'],
+        ask: [
+          'Explain cache-aside and when the cache goes stale.',
+          'What is a cache stampede and how do I prevent it?',
+        ],
+        load: () => import('./redis.js'),
+      },
+      {
+        slug: 'queues',
+        title: 'Queues and background jobs',
+        summary: 'Getting slow work out of the request with BullMQ — retries, backoff, idempotency and the outbox.',
+        tags: ['queues', 'bullmq', 'jobs', 'reliability', 'interview'],
+        ask: [
+          'Why should sending an email go through a queue?',
+          'What is at-least-once delivery and how do I make a job idempotent?',
+        ],
+        load: () => import('./queues.js'),
+      },
+      {
+        slug: 'testing',
+        title: 'Testing',
+        summary: 'API tests against a real database, what to mock, and the one test that catches a missing ownership check.',
+        tags: ['testing', 'supertest', 'vitest', 'interview'],
+        ask: [
+          'How should I test an Express API?',
+          'Should I mock the database in my tests?',
+        ],
+        load: () => import('./testing.js'),
+      },
+    ],
+  },
 ];
