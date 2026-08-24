@@ -19,7 +19,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 |---|---|
 | **Roadmap** | 429 problems in 22 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
-| **Learn** | Reference notes for the things around the algorithms. Two tracks — React, 35 topics from the virtual DOM to React 19, and Node.js, 65 topics from closures to a hardened API — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
+| **Learn** | Reference notes for the things around the algorithms. Two tracks — React, 43 topics from the virtual DOM through the ecosystem a job expects, and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
@@ -147,9 +147,10 @@ error; the reader shows the blurb and the key techniques instead.
 
 The roadmap teaches the algorithms. **Learn** is for everything around them —
 the vocabulary you use every day and could not define under pressure. There are
-two tracks: **React**, 35 topics from what happens between a `setState` and the
-pixels through to what React 19 changed; and **Node.js**, 65 topics that start
-at closures and `map` and end at a hardened, paginated, authenticated API.
+two tracks: **React**, 43 topics from what happens between a `setState` and the
+pixels through to the ecosystem a React job actually expects; and **Node.js**,
+68 topics that start at closures and `map` and end at a hardened, paginated,
+authenticated API with a cache, a queue and tests behind it.
 
 Sidebar → **Learn** → a track → a topic. Each topic is the same shape, so it
 reads as a cheatsheet and holds up as documentation: the definition in the
@@ -157,7 +158,7 @@ official docs' terms, why the API exists, its signature as a table, the smallest
 example that shows the point, how it actually works, the mistakes people make,
 a one-line "when do I reach for this" table, and a link back to the official page.
 
-### React — the 35 topics
+### React — the 43 topics
 
 | | |
 |---|---|
@@ -167,8 +168,14 @@ a one-line "when do I reach for this" table, and a link back to the official pag
 | **Advanced** (6) | Context patterns · memo and performance · Error boundaries · Portals · lazy and Suspense · Refs to components |
 | **React 19** (4) | Actions and form hooks · `useOptimistic` · The `use` API · Other React 19 changes |
 | **Pitfalls** (1) | Common pitfalls — stale closures, derived state, effect abuse, unstable deps |
+| **The ecosystem** (8) | State management · Data fetching · Routing · Forms at scale · TypeScript with React · Testing components · Performance in practice · Rendering and Next.js |
 
-### Node.js — the 65 topics
+The first six sections are React itself. **The ecosystem** is everything a React
+job expects that React does not ship — and because that is the material an
+interview probes, those eight topics each end with an **Interview** table, the
+same as the whole Node track. The rest of React stays pure reference.
+
+### Node.js — the 68 topics
 
 | | |
 |---|---|
@@ -184,6 +191,7 @@ a one-line "when do I reach for this" table, and a link back to the official pag
 | **PostgreSQL** (6) | SQL basics · Joins and aggregates · Postgres from Node · Transactions and concurrency · Prisma · Indexes and performance |
 | **Authentication** (5) | Authentication vs authorization · Passwords · JWT · Sessions and cookies · Authorization and RBAC |
 | **Security** (5) | The threats that matter · Injection · XSS and CSRF · CORS and security headers · Secrets and rate limiting |
+| **Production essentials** (3) | Redis and caching · Queues and background jobs · Testing |
 
 The Node track is ordered easy to hard and written for interviews as well as for
 reference, so it differs from React in two ways. Every topic ends with an
@@ -192,7 +200,9 @@ a line each — and its examples are **runnable**: real files with the command t
 run them, where sections 7 to 12 build one `/tasks` API across topics rather
 than showing unrelated fragments. You write the server with `http.createServer`,
 rewrite it on Express, give it layers, REST semantics and cursor pagination, put
-it on Postgres, add login, and then attack it.
+it on Postgres, add login, and then attack it. **Production essentials** closes
+it out with the three things a tutorial API never has: a cache, somewhere to put
+slow work, and tests.
 
 A one-line summary of every topic in both tracks is in
 [docs/learn.md](docs/learn.md#what-is-in-each-track). **SQL** will get its own

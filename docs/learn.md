@@ -28,10 +28,10 @@ client/src/
     progress.js               which topics you have read
     react/
       index.js                the track's table of contents; metadata only
-      use-effect.js           one topic, one module          (35 of these)
+      use-effect.js           one topic, one module          (43 of these)
     node/
       index.js                the same, for Node.js
-      event-loop-phases.js    one topic, one module          (65 of these)
+      event-loop-phases.js    one topic, one module          (68 of these)
   hooks/useLearnDoc.js        the cache around the dynamic imports
   hooks/useScrollContainer.js the element that actually scrolls, found at runtime
   pages/Learn.jsx             /learn            the hub
@@ -84,16 +84,18 @@ The house shape, so the whole track reads the same way:
 5. `h('How it works')` — the mechanism.
 6. `warn` / `tip` — the gotchas.
 7. `cheat(...)` — the "when do I reach for this" table.
-8. `h('Interview')` + `asked(...)` — **Node only.** The questions this topic gets
-   asked, answered in a line each.
+8. `h('Interview')` + `asked(...)` — the questions this topic gets asked,
+   answered in a line each. **Every Node topic, and the React ecosystem
+   section.** Not the rest of React.
 9. `links(reactDoc(...))` — always back to the official page.
 
-Step 8 is the one difference between the two tracks. React is written as
-reference you reach for while building; Node is written for people preparing for
-a backend interview as well, and a topic that cannot be explained out loud has
-not been learned. Its examples are also **runnable** — a real file with the
-command to run it — and sections 07 to 12 build one `/tasks` API across topics
-rather than showing unrelated fragments.
+Step 8 marks the interview-oriented material. React's first six sections are
+reference you reach for while building, so they stop at step 7; the Node track
+and React's `ecosystem` section are also written for someone preparing for an
+interview, and a topic that cannot be explained out loud has not been learned.
+Node's examples are additionally **runnable** — a real file with the command to
+run it — and its sections 07 to 12 build one `/tasks` API across topics rather
+than showing unrelated fragments.
 
 Text is written from the official docs in our own sentences, with the canonical
 page linked at the foot. Never bulk-pasted.
@@ -298,10 +300,12 @@ cd client && npm run dev
 
 - Sidebar shows **Learn**, in both the collapsed rail and the expanded menu.
 - `/learn` lists React and Node.js live, SQL as *Soon* and not clickable.
-- `/learn/react` renders 6 sections and 35 topics; the filter matches title,
-  summary **and** tags — try `hook`, `performance`, `ref`.
-- `/learn/node` renders 12 sections and 65 topics; try the filter on `closure`,
+- `/learn/react` renders 7 sections and 43 topics; the filter matches title,
+  summary **and** tags — try `hook`, `performance`, `ref`, `typescript`.
+- `/learn/node` renders 13 sections and 68 topics; try the filter on `closure`,
   `event loop`, `interview`, `express`.
+- `/learn/react` ends with **The ecosystem** — 8 topics carrying Interview
+  tables, unlike the six sections above them.
 - `/learn/node/native-server` and `/learn/node/scope-and-closures` render the
   Interview table, terminal blocks, and `process` / `require` coloured as
   globals. Copy a runnable snippet into a scratch file and run it.
@@ -342,7 +346,7 @@ summaries live. If you add a topic, copy its row here too.
 
 ### React
 
-35 topics in 6 sections, in reading order. Each file is
+43 topics in 7 sections, in reading order. Each file is
 `client/src/learn/react/<slug>.js`.
 
 **Foundations** — What React is doing between your state update and the pixels.
@@ -410,9 +414,22 @@ summaries live. If you add a topic, copy its row here too.
 |---|---|
 | **Common pitfalls** <br> `common-pitfalls` | Stale closures, derived state, effect abuse, unstable deps. |
 
+**The ecosystem** — Everything a React job expects that React itself does not ship — the libraries, the types, and the tests.
+
+| topic | |
+|---|---|
+| **State management** <br> `state-management` | Four kinds of state, and why most of what people put in a store does not belong there. |
+| **Data fetching** <br> `data-fetching` | Server data is a cache, not state — TanStack Query, invalidation and optimistic updates. |
+| **Routing** <br> `react-router` | Nested layouts, loaders that fetch before render, and keeping filters in the URL. |
+| **Forms at scale** <br> `forms-at-scale` | Where controlled inputs stop scaling, and React Hook Form with a shared Zod schema. |
+| **TypeScript with React** <br> `typescript-with-react` | Typing props, hooks and events without reaching for any — and why React.FC is out. |
+| **Testing components** <br> `testing-react` | Testing Library, user-event and MSW — testing what a user does, not what the component holds. |
+| **Performance in practice** <br> `performance-in-practice` | Profile first, then move state down, virtualise, and split the bundle — memo comes last. |
+| **Rendering and Next.js** <br> `rendering-and-nextjs` | CSR, SSR, SSG, ISR, hydration and Server Components — and whether you need any of it. |
+
 ### Node.js
 
-65 topics in 12 sections, in reading order. Each file is
+68 topics in 13 sections, in reading order. Each file is
 `client/src/learn/node/<slug>.js`.
 
 **JavaScript foundations** — The language Node runs. Most "Node is confusing" is really this, unlearned.
@@ -539,6 +556,14 @@ summaries live. If you add a topic, copy its row here too.
 | **XSS and CSRF** <br> `xss-and-csrf` | Two browser attacks, why one still hits your JSON API, and where each is stopped. |
 | **CORS and security headers** <br> `cors-and-headers` | What CORS is really protecting, the preflight, and what helmet sets for you. |
 | **Secrets and rate limiting** <br> `secrets-and-rate-limiting` | Keeping keys out of the repo, and keeping one client from being all your traffic. |
+
+**Production essentials** — The three things a real service needs that a tutorial API does not: a cache, somewhere to put slow work, and tests that prove it still works.
+
+| topic | |
+|---|---|
+| **Redis and caching** <br> `redis` | Cache-aside, TTLs, rate limits and locks — and the three ways a cache fails under load. |
+| **Queues and background jobs** <br> `queues` | Getting slow work out of the request with BullMQ — retries, backoff, idempotency and the outbox. |
+| **Testing** <br> `testing` | API tests against a real database, what to mock, and the one test that catches a missing ownership check. |
 
 ### SQL
 
