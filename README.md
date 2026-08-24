@@ -19,7 +19,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 |---|---|
 | **Roadmap** | 429 problems in 22 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
-| **Learn** | Reference notes for the things around the algorithms. React first — 35 topics from the virtual DOM to React 19 — each a definition, why the API exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
+| **Learn** | Reference notes for the things around the algorithms. Two tracks — React, 35 topics from the virtual DOM to React 19, and Node.js, 65 topics from closures to a hardened API — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
@@ -146,24 +146,57 @@ error; the reader shows the blurb and the key techniques instead.
 ## Learn
 
 The roadmap teaches the algorithms. **Learn** is for everything around them —
-the vocabulary you use every day and could not define under pressure. The first
-track is **React**: 35 topics from what actually happens between a `setState`
-and the pixels, through every built-in hook, to what React 19 changed.
+the vocabulary you use every day and could not define under pressure. There are
+two tracks: **React**, 35 topics from what happens between a `setState` and the
+pixels through to what React 19 changed; and **Node.js**, 65 topics that start
+at closures and `map` and end at a hardened, paginated, authenticated API.
 
 Sidebar → **Learn** → a track → a topic. Each topic is the same shape, so it
 reads as a cheatsheet and holds up as documentation: the definition in the
 official docs' terms, why the API exists, its signature as a table, the smallest
 example that shows the point, how it actually works, the mistakes people make,
-a one-line "when do I reach for this" table, and a link back to react.dev.
+a one-line "when do I reach for this" table, and a link back to the official page.
+
+### React — the 35 topics
 
 | | |
 |---|---|
-| **Foundations** | Render/reconcile/commit, fiber, JSX, `createRoot` and hydration, StrictMode |
-| **Components and state** | Props, the state snapshot, batching, lists and keys, forms, lifting state |
-| **Hooks** | All fourteen, `useEffect` at length — when it runs, when the cleanup runs, and when not to use one |
-| **Advanced** | Context patterns, `memo`, error boundaries, portals, `lazy` and Suspense, refs to components |
-| **React 19** | Actions, `useActionState`, `useOptimistic`, `use`, and the removals |
-| **Pitfalls** | Stale closures, derived state, unstable dependencies, index keys |
+| **Foundations** (4) | How React works · JSX · ReactDOM and roots · StrictMode |
+| **Components and state** (6) | Components and props · State · Lists and keys · Conditional rendering · Forms and controlled inputs · Lifting state and composition |
+| **Hooks** (14) | Rules of hooks · `useState` · `useEffect` · `useLayoutEffect` · `useRef` · `useContext` · `useReducer` · `useMemo` · `useCallback` · `useTransition` · `useDeferredValue` · `useId` · `useSyncExternalStore` · Custom hooks |
+| **Advanced** (6) | Context patterns · memo and performance · Error boundaries · Portals · lazy and Suspense · Refs to components |
+| **React 19** (4) | Actions and form hooks · `useOptimistic` · The `use` API · Other React 19 changes |
+| **Pitfalls** (1) | Common pitfalls — stale closures, derived state, effect abuse, unstable deps |
+
+### Node.js — the 65 topics
+
+| | |
+|---|---|
+| **JavaScript foundations** (7) | Values and types · Functions · Scope and closures · `this` and context · Objects and destructuring · Array methods · Classes and prototypes |
+| **Async JavaScript** (5) | Callbacks · Promises · `async`/`await` · Promise combinators · Errors and throwing |
+| **Node fundamentals** (6) | What is Node.js · Node architecture · Your first script · npm and package.json · Globals · `process` and the environment |
+| **Modules** (4) | CommonJS · ES modules · Module resolution · The built-in modules |
+| **The event loop** (5) | Event loop phases · Microtasks and macrotasks · Timers · Blocking the event loop · Async patterns |
+| **Files, buffers and streams** (6) | The `fs` module · Paths and directories · Buffers · Streams · Backpressure · EventEmitter |
+| **HTTP and your first server** (5) | HTTP fundamentals · Methods and status codes · Your first server · Routing by hand · Headers and cookies |
+| **Express** (6) | Express basics · Routing · Middleware · Error handling · Project structure · Config and environments |
+| **REST APIs** (5) | REST principles · API design · Pagination, filtering, sorting · Validation · Versioning and idempotency |
+| **PostgreSQL** (6) | SQL basics · Joins and aggregates · Postgres from Node · Transactions and concurrency · Prisma · Indexes and performance |
+| **Authentication** (5) | Authentication vs authorization · Passwords · JWT · Sessions and cookies · Authorization and RBAC |
+| **Security** (5) | The threats that matter · Injection · XSS and CSRF · CORS and security headers · Secrets and rate limiting |
+
+The Node track is ordered easy to hard and written for interviews as well as for
+reference, so it differs from React in two ways. Every topic ends with an
+**Interview** table — the questions that topic actually gets asked, answered in
+a line each — and its examples are **runnable**: real files with the command to
+run them, where sections 7 to 12 build one `/tasks` API across topics rather
+than showing unrelated fragments. You write the server with `http.createServer`,
+rewrite it on Express, give it layers, REST semantics and cursor pagination, put
+it on Postgres, add login, and then attack it.
+
+A one-line summary of every topic in both tracks is in
+[docs/learn.md](docs/learn.md#what-is-in-each-track). **SQL** will get its own
+section there as it is written.
 
 The reading page is built for reference rather than for essays. Prose is held
 to about 74 characters, but **code blocks and tables get the full column**,
@@ -189,7 +222,7 @@ Every topic carries two or three questions wired to the assistant. Clicking one
 opens the chat dock and sends it, so the question the notes did not answer is
 one click rather than a context switch.
 
-Node.js and SQL are listed as **Soon**. Adding one is a folder and an entry in
+**SQL** is listed as **Soon**. Adding a track is a folder and an entry in
 `client/src/learn/tracks.js` — see [docs/learn.md](docs/learn.md) for the block
 vocabulary and how to add a topic or a track.
 
@@ -1106,8 +1139,8 @@ ships as modules in the client bundle, so there is no API surface to guard and
 no `requireModule('learn')` line to write. Hiding it is therefore cosmetic —
 which is safe here for the reason the rule exists in the first place: the hidden
 door that rule prevents is a route still serving somebody else's records, and
-there are no records. Anyone who reads the bundle finds the same React notes the
-nav item would have linked to.
+there are no records. Anyone who reads the bundle finds the same notes the nav
+item would have linked to.
 
 Two capabilities, not one: `module:preview` is "an unfinished feature is safe in
 my hands", `module:write` is "I decide when it ships". Both are the super
@@ -1555,7 +1588,7 @@ client/
     hooks/       useGuide, useLearnDoc, useMotivation, useLocalState,
                  useTableLayout, useSavedFilters, useBoardDrag
     learn/       the Learn content itself — track registry, block
-                 constructors, and one module per topic
+                 constructors, and one module per topic (react/, node/)
     pages/       Login, Register, Roadmap, Revision, Stats, Tasks, Learn,
                  Profile, Admin
     store/       Auth, Roadmap, Tasks, Toast contexts

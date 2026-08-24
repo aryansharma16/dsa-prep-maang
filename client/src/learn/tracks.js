@@ -26,9 +26,11 @@ export const TRACKS = [
   {
     slug: 'node',
     name: 'Node.js',
-    status: 'soon',
+    status: 'live',
     Icon: IconGlobe,
-    blurb: 'The event loop, modules, streams, and the built-ins worth knowing by name.',
+    blurb:
+      'The language first, then the runtime: closures and promises, the event loop, your first server, and the backend a real API needs behind it.',
+    load: () => import('./node/index.js'),
   },
   {
     slug: 'sql',

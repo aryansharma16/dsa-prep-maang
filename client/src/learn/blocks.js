@@ -39,6 +39,13 @@ export const jsx = (source, label = 'JSX') => ({ lang: 'jsx', label, code: sourc
 export const js = (source, label = 'JS') => ({ lang: 'js', label, code: source.trim() });
 export const ts = (source, label = 'TS') => ({ lang: 'ts', label, code: source.trim() });
 
+/**
+ * Shell commands. `sh` is deliberately not a name `JS_LANGS` knows, so the
+ * highlighter falls through to its neutral scan rather than colouring `install`
+ * as an identifier and `npm` as a call — a command list reads better plain.
+ */
+export const sh = (source, label = 'Terminal') => ({ lang: 'sh', label, code: source.trim() });
+
 export const table = (columns, rows) => ({ type: 'table', columns, rows });
 
 /**
@@ -50,6 +57,13 @@ export const sig = (rows) => table(['Parameter', 'Type', 'What it does'], rows);
 
 /** The "when do I reach for this" table every topic closes with. */
 export const cheat = (rows) => table(['Want to', 'Reach for'], rows);
+
+/**
+ * The interview table the Node topics close with, for the same reason `sig` and
+ * `cheat` exist. Answers are one line on purpose: the table is a check that you
+ * can say the thing out loud, not a second copy of the prose above it.
+ */
+export const asked = (rows) => table(['Asked in interviews', 'The answer in one line'], rows);
 
 export const note = (text) => ({ type: 'callout', tone: 'note', text });
 export const tip = (text) => ({ type: 'callout', tone: 'tip', text });
@@ -75,3 +89,13 @@ export const link = (label, url) => ({
  * the URLs are all the same shape.
  */
 export const reactDoc = (path, label) => link(label, `https://react.dev/${path}`);
+
+/** The same, for the Node API reference — `nodeDoc('fs.html', 'fs')`. */
+export const nodeDoc = (path, label) => link(label, `https://nodejs.org/api/${path}`);
+
+/**
+ * MDN, for the topics that are about the language rather than the runtime.
+ * `mdn('Web/JavaScript/Closures', 'Closures')`.
+ */
+export const mdn = (path, label) =>
+  link(label, `https://developer.mozilla.org/en-US/docs/${path}`);

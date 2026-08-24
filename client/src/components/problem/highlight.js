@@ -64,6 +64,9 @@ const JS_KEYWORDS = new Set([
 const JS_TYPES = new Set([
   'string', 'number', 'boolean', 'symbol', 'bigint', 'object', 'any',
   'unknown', 'never', 'console', 'window', 'document', 'globalThis',
+  // Node globals, so a server snippet reads the same way a browser one does.
+  // None of these appear in React or pattern-guide code, so nothing else moves.
+  'process', 'global', 'require', 'module', 'exports', '__dirname', '__filename',
 ]);
 
 // Order matters — comments and strings must win before anything inside them
