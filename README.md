@@ -19,6 +19,7 @@ both auth pages and the document title read from it, so renaming is one edit.
 |---|---|
 | **Roadmap** | 429 problems in 22 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
+| **Learn** | Reference notes for the things around the algorithms. React first — 35 topics from the virtual DOM to React 19 — each a definition, why the API exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
@@ -141,6 +142,56 @@ error; the reader shows the blurb and the key techniques instead.
 
 `editedAt` on a guide is what stops the seeder overwriting hand edits. Null means
 "still exactly what was seeded" and the seeder is free to refresh it.
+
+## Learn
+
+The roadmap teaches the algorithms. **Learn** is for everything around them —
+the vocabulary you use every day and could not define under pressure. The first
+track is **React**: 35 topics from what actually happens between a `setState`
+and the pixels, through every built-in hook, to what React 19 changed.
+
+Sidebar → **Learn** → a track → a topic. Each topic is the same shape, so it
+reads as a cheatsheet and holds up as documentation: the definition in the
+official docs' terms, why the API exists, its signature as a table, the smallest
+example that shows the point, how it actually works, the mistakes people make,
+a one-line "when do I reach for this" table, and a link back to react.dev.
+
+| | |
+|---|---|
+| **Foundations** | Render/reconcile/commit, fiber, JSX, `createRoot` and hydration, StrictMode |
+| **Components and state** | Props, the state snapshot, batching, lists and keys, forms, lifting state |
+| **Hooks** | All fourteen, `useEffect` at length — when it runs, when the cleanup runs, and when not to use one |
+| **Advanced** | Context patterns, `memo`, error boundaries, portals, `lazy` and Suspense, refs to components |
+| **React 19** | Actions, `useActionState`, `useOptimistic`, `use`, and the removals |
+| **Pitfalls** | Stale closures, derived state, unstable dependencies, index keys |
+
+The reading page is built for reference rather than for essays. Prose is held
+to about 74 characters, but **code blocks and tables get the full column**,
+which is a third wider than the pattern-guide reader — a code sample is a
+figure, not a paragraph, and holding one to a text measure is what makes a docs
+page feel cramped. A rule under the top bar fills as you scroll, the side rail
+tracks the heading you are on, clicking one puts the anchor in the address bar
+so a section is linkable, and `←` and `→` walk the track. Reaching the bottom
+ticks the topic off; the ticks and counts show up again on the track index and
+as a meter on the hub, so you can see what is left. That progress lives in the
+browser, not the account — Learn has no API to store it in.
+
+It renders through the **same block renderer** as the pattern guides — Learn
+content is authored as the same typed blocks, so code tabs, copy buttons,
+callouts and syntax colours were already built. What the two do not share is storage: a
+pattern guide is prose in Mongo behind an endpoint, while Learn is authored
+reference text nobody but us edits, so it ships as JavaScript modules and needs
+no model, no controller and no seed script. Each topic is its own lazily
+imported chunk, so the hub costs nothing and a topic costs a few kilobytes —
+prefetched when your pointer touches its card.
+
+Every topic carries two or three questions wired to the assistant. Clicking one
+opens the chat dock and sends it, so the question the notes did not answer is
+one click rather than a context switch.
+
+Node.js and SQL are listed as **Soon**. Adding one is a folder and an entry in
+`client/src/learn/tracks.js` — see [docs/learn.md](docs/learn.md) for the block
+vocabulary and how to add a topic or a track.
 
 ## Tracking
 
@@ -1049,6 +1100,15 @@ in it.
 403 announces that the feature exists. The super admin sees the module with a
 **Dev** badge, so an unfinished page is never mistaken for a shipped one.
 
+**Learn is the one exception to the third point**, and the exception is worth
+naming rather than leaving to be discovered. Its content is authored prose that
+ships as modules in the client bundle, so there is no API surface to guard and
+no `requireModule('learn')` line to write. Hiding it is therefore cosmetic —
+which is safe here for the reason the rule exists in the first place: the hidden
+door that rule prevents is a route still serving somebody else's records, and
+there are no records. Anyone who reads the bundle finds the same React notes the
+nav item would have linked to.
+
 Two capabilities, not one: `module:preview` is "an unfinished feature is safe in
 my hands", `module:write` is "I decide when it ships". Both are the super
 admin's today, and handing a dev_member the first later must not hand them the
@@ -1489,17 +1549,20 @@ client/
       profile/   avatar upload
       stats/     solved ring, activity heatmap
       admin/     panel tabs, editors, the motivation corpus
+      learn/     track and topic cards, the side rail, the Ask-AI buttons
       ui/        Modal, ConfirmDialog, Dropdown, Avatar, PhotoPreview, Icons
     filters/     what each screen can be narrowed by, and the engine
-    hooks/       useGuide, useMotivation, useLocalState, useTableLayout,
-                 useSavedFilters, useBoardDrag
-    pages/       Login, Register, Roadmap, Revision, Stats, Tasks, Profile,
-                 Admin
+    hooks/       useGuide, useLearnDoc, useMotivation, useLocalState,
+                 useTableLayout, useSavedFilters, useBoardDrag
+    learn/       the Learn content itself — track registry, block
+                 constructors, and one module per topic
+    pages/       Login, Register, Roadmap, Revision, Stats, Tasks, Learn,
+                 Profile, Admin
     store/       Auth, Roadmap, Tasks, Toast contexts
     styles/      tokens, base, app
     brand.js     the product name, in one place
 docs/          the deep-dive references the README links out to:
-               aws-infrastructure, aws-runbook, tasks
+               aws-infrastructure, aws-runbook, tasks, learn
 ```
 
 `route → controller → service`, models alongside. No repository layer, no DI.

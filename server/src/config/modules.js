@@ -22,6 +22,20 @@ export const MODULES = Object.freeze([
   { key: 'revision', label: 'Revision', path: '/revision' },
   { key: 'stats', label: 'Stats', path: '/stats' },
   { key: 'chat', label: 'AI Chat', path: '/chat' },
+  /*
+    Learn is the one module with no API surface, and so the one key with no
+    matching `requireModule` in routes/index.js. Its content is authored as JS
+    modules in the client bundle rather than stored here, because it is
+    reference prose we write ourselves — nobody's data, nothing per-account,
+    nothing to fetch.
+
+    That makes hiding it purely cosmetic, which is exactly what the header above
+    warns about, so it is worth being explicit about why it is acceptable here:
+    the "hidden door" this normally leaves open is a route that still serves
+    somebody else's records. There are no records. Someone who reads the bundle
+    finds the same React notes the nav item would have linked to.
+  */
+  { key: 'learn', label: 'Learn', path: '/learn' },
   { key: 'tasks', label: 'Tasks', path: '/tasks' },
   /*
     Feedback is a module for the same reason the four above are: it is a side

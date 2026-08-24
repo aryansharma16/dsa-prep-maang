@@ -4,6 +4,9 @@ import { AppShell } from './components/layout/AppShell.jsx';
 import { Chat } from './pages/Chat.jsx';
 import { ChatProvider } from './store/ChatContext.jsx';
 import { Feedback } from './pages/Feedback.jsx';
+import { Learn } from './pages/Learn.jsx';
+import { LearnTopic } from './pages/LearnTopic.jsx';
+import { LearnTrack } from './pages/LearnTrack.jsx';
 import { Login } from './pages/Login.jsx';
 import { Profile } from './pages/Profile.jsx';
 import { Register } from './pages/Register.jsx';
@@ -66,6 +69,16 @@ export function App() {
               {has('revision') && <Route path="/revision" element={<Revision />} />}
               {has('stats') && <Route path="/stats" element={<Stats />} />}
               {has('chat') && <Route path="/chat" element={<Chat />} />}
+              {/*
+                Three routes for one module, and all three go together — a
+                bookmark to a topic inside a hidden Learn falls through to the
+                roadmap like the hub does. The pages are imported eagerly; it is
+                the *content* that is lazy, one chunk per topic behind the
+                registry in learn/tracks.js.
+              */}
+              {has('learn') && <Route path="/learn" element={<Learn />} />}
+              {has('learn') && <Route path="/learn/:track" element={<LearnTrack />} />}
+              {has('learn') && <Route path="/learn/:track/:topic" element={<LearnTopic />} />}
               {has('tasks') && <Route path="/tasks" element={<Tasks />} />}
               {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
               <Route path="/profile" element={<Profile />} />

@@ -1,13 +1,16 @@
 import { memo, useMemo, useState } from 'react';
 import { IconCheck, IconCopy, IconExternal } from '../ui/Icons.jsx';
 import { highlight } from './highlight.js';
+import { inline } from './inline.jsx';
 
 /**
- * Renders a guide's typed blocks.
+ * Renders a guide's typed blocks. Shared by the pattern guides and the Learn
+ * track, which author the same shapes from two different places.
  *
  * Every block is a React element built from structured data — nothing here goes
  * through dangerouslySetInnerHTML, so the guide content never depends on the
- * regex sanitizer that guards the LeetCode statement.
+ * regex sanitizer that guards the LeetCode statement. `inline` keeps that true
+ * at the span level too: it returns elements, not markup.
  */
 
 /**
@@ -21,8 +24,12 @@ function CodeBlock({ variants }) {
 
   const current = variants?.[Math.min(active, variants.length - 1)];
   // Tokenising is the expensive part of rendering a guide, and the source never
-  // changes — only which tab is showing.
-  const lines = useMemo(() => (current ? highlight(current.code) : []), [current]);
+  // changes — only which tab is showing. The lang picks the keyword set: the
+  // guides are Java and C++, the Learn track is JS and JSX.
+  const lines = useMemo(
+    () => (current ? highlight(current.code, current.lang) : []),
+    [current],
+  );
 
   if (!variants?.length) return null;
 
@@ -116,13 +123,13 @@ function Block({ block, index }) {
       );
 
     case 'paragraph':
-      return <p>{block.text}</p>;
+      return <p>{inline(block.text)}</p>;
 
     case 'bullets':
       return (
         <ul>
           {block.items.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}>{inline(item)}</li>
           ))}
         </ul>
       );
@@ -136,7 +143,7 @@ function Block({ block, index }) {
       return (
         <aside className={`guide-callout ${tone}`}>
           <span className="guide-callout-tag">{CALLOUT[tone]}</span>
-          <p>{block.text}</p>
+          <p>{inline(block.text)}</p>
         </aside>
       );
     }
@@ -156,7 +163,7 @@ function Block({ block, index }) {
               {block.rows.map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
-                    <td key={j}>{cell}</td>
+                    <td key={j}>{inline(cell)}</td>
                   ))}
                 </tr>
               ))}

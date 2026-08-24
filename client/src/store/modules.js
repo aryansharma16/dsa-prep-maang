@@ -1,5 +1,6 @@
 import {
   IconBoard,
+  IconBook,
   IconChart,
   IconChat,
   IconMegaphone,
@@ -24,6 +25,7 @@ export const MODULE_NAV = [
   { key: 'revision', to: '/revision', label: 'Revision', Icon: IconRotate },
   { key: 'stats', to: '/stats', label: 'Stats', Icon: IconChart },
   { key: 'chat', to: '/chat', label: 'AI Chat', Icon: IconChat },
+  { key: 'learn', to: '/learn', label: 'Learn', Icon: IconBook },
   { key: 'tasks', to: '/tasks', label: 'Tasks', Icon: IconBoard },
   { key: 'feedback', to: '/feedback', label: 'Feedback', Icon: IconMegaphone },
 ];

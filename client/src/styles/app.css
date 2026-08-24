@@ -8233,3 +8233,733 @@ a.tile.attention:hover {
     height: 26px;
   }
 }
+
+/* ==========================================================================
+   LEARN
+   Reference notes — the hub, a track's index, and one topic read.
+
+   The document body itself is not here. A topic renders through GuideBlocks,
+   so `.guide-body`, `.guide-h`, `.guide-code`, `.guide-callout` and
+   `.guide-table` up at the pattern-guide reader are doing that work and a fix
+   to any of them lands on both surfaces. What follows is the furniture around
+   it, plus a set of overrides scoped to `.learn-col` — never to `.guide-body`
+   itself, so the reader keeps the measure and scale it was designed at.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------- hub */
+.learn-hub {
+  display: grid;
+  gap: 10px;
+  /*
+    One column until there is genuinely room for two full blurbs side by side.
+    A track card is a sentence wide, not a tile, and two of them squeezed into
+    a narrow pane wrap into unreadable ribbons.
+  */
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  max-width: 1320px;
+}
+
+.track-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 16px 15px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.12s, background 0.12s;
+}
+.track-card:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-hover);
+}
+.track-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* Not a link, and must not read as one — no hover, no chevron, no pointer. */
+.track-card.soon {
+  background: transparent;
+  border-style: dashed;
+  cursor: default;
+}
+.track-card.soon:hover {
+  border-color: var(--border);
+  background: transparent;
+}
+.track-card.soon .track-card-icon,
+.track-card.soon .track-card-name,
+.track-card.soon .track-card-blurb {
+  color: var(--text-3);
+}
+
+.track-card-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.track-card.soon .track-card-icon {
+  background: var(--surface);
+}
+.track-card-text {
+  flex: 1;
+  min-width: 0;
+}
+.track-card-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.track-card-pill {
+  padding: 1px 6px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.track-card-blurb {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.track-card-meter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 11px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.track-card-meter .minibar {
+  flex: 0 0 120px;
+}
+.track-card-go {
+  align-self: center;
+  color: var(--text-3);
+}
+.track-card:hover .track-card-go {
+  color: var(--accent);
+}
+
+/* ----------------------------------------------------------------- crumb */
+.learn-crumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.learn-crumb a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.learn-crumb a:hover {
+  color: var(--accent);
+}
+/* Where you are in the track. Small, and on the right, so it reads as a page
+   number rather than as part of the breadcrumb. */
+.learn-crumb-pos {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* --------------------------------------------------------------- toolbar */
+.learn-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-bottom: 26px;
+}
+.learn-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 320px;
+  max-width: 420px;
+  padding: 0 10px;
+  height: 34px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-3);
+}
+.learn-search:focus-within {
+  border-color: var(--accent-line);
+}
+.learn-search input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text);
+}
+.learn-search input:focus {
+  outline: none;
+}
+.learn-search-count {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.learn-progress {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.learn-progress .minibar {
+  flex: 0 0 90px;
+}
+.learn-progress-clear {
+  font-size: 11px;
+  color: var(--text-3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.learn-progress-clear:hover {
+  color: var(--danger);
+}
+
+/* -------------------------------------------------------------- sections */
+.learn-section + .learn-section {
+  margin-top: 34px;
+}
+.learn-section-head h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.learn-section-count {
+  font-size: 10.5px;
+  letter-spacing: 0;
+  color: var(--text-3);
+  opacity: 0.75;
+}
+.learn-section-head p {
+  margin: 5px 0 12px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.learn-topics {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+}
+
+.topic-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.12s, background 0.12s;
+}
+.topic-card:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-hover);
+}
+.topic-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.topic-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.topic-card-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+/*
+  Always laid out, only ever faded in — a tick that appears from nothing would
+  reflow the title beside it the moment a topic is marked read.
+*/
+.topic-card-tick {
+  display: grid;
+  place-items: center;
+  flex: 0 0 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.topic-card.read .topic-card-tick {
+  opacity: 1;
+}
+.topic-card.read .topic-card-title {
+  color: var(--text-2);
+}
+.topic-card-summary {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.topic-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  /* Pushed to the bottom so tags line up across a row of uneven summaries. */
+  margin-top: auto;
+  padding-top: 9px;
+}
+.topic-tag {
+  padding: 1px 6px;
+  font-size: 10px;
+  color: var(--text-3);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------------ topic page */
+.learn-page {
+  display: flex;
+  align-items: flex-start;
+  gap: 44px;
+  /*
+    Bounded and centred rather than left-aligned in `.content`'s 1500px. On a
+    wide monitor the alternative is a column of prose hard against the sidebar
+    with a third of the screen empty beside it.
+  */
+  max-width: 1340px;
+  margin: 0 auto;
+}
+.learn-col {
+  flex: 1;
+  min-width: 0;
+  /*
+    Wider than the guide reader's 720px on purpose. The measure that matters is
+    the one prose is set at, and that is held separately below — this width is
+    what code blocks and tables get, and they are the blocks that were cramped.
+  */
+  max-width: 1000px;
+  padding-bottom: 60px;
+}
+
+/*
+  How far through the topic you are.
+
+  A sibling of `.learn-page` rather than a child of it: `.learn-page` is a flex
+  row, and a full-width bar inside one is a flex item competing with the column
+  and the rail for the same horizontal space. Out here it is an ordinary block
+  that sticks to the top of `.content`, which is the element that scrolls.
+*/
+.learn-rule {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 2px;
+  max-width: 1340px;
+  margin: 0 auto 10px;
+  background: var(--border-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.learn-rule span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  /* Transform only: the bar never triggers layout while you scroll. */
+  transform: scaleX(0);
+}
+
+.learn-toc {
+  position: sticky;
+  /* Clears the top bar, which is what is above this on every page. */
+  top: 18px;
+  flex: 0 0 216px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+.learn-toc-label {
+  margin: 0 0 10px 11px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.learn-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* One continuous hairline the active marker rides on, so the rail reads as a
+     spine rather than as ten unrelated buttons. */
+  border-left: 1px solid var(--border-soft);
+}
+.learn-toc button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-3);
+  /* The active marker is drawn as a border that is always there, so becoming
+     current moves no text sideways. */
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+  transition: color 0.12s;
+}
+.learn-toc button:hover {
+  color: var(--text);
+}
+.learn-toc button.on {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 500;
+}
+
+/* ----------------------------------------------------- the document body */
+/*
+  Everything below is scoped to `.learn-col`. The pattern-guide reader shares
+  this renderer and these class names, and it is a different surface — a modal
+  at a fixed 720px — so widening the type there would be a regression, not an
+  improvement.
+*/
+.learn-col .page-head h1 {
+  font-size: 30px;
+  letter-spacing: -0.025em;
+}
+.learn-col .page-head p {
+  font-size: 15.5px;
+  max-width: 70ch;
+}
+
+.learn-col .guide-body {
+  font-size: 16px;
+  line-height: 1.8;
+}
+.learn-col .guide-body > * + * {
+  margin-top: 20px;
+}
+/*
+  The measure lives on the prose blocks, not on the column. Long-form text is
+  unreadable past about 75 characters, but a code block or a comparison table
+  is not text — it is a figure, and cramping one into a text measure is what
+  makes reference pages feel claustrophobic. So paragraphs and lists hold the
+  line and everything else gets the full width.
+*/
+.learn-col .guide-body > p,
+.learn-col .guide-body > ul,
+.learn-col .guide-body > .guide-callout {
+  max-width: 74ch;
+}
+
+.learn-col .guide-h {
+  margin-top: 52px;
+  padding-top: 26px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 20px;
+  letter-spacing: -0.015em;
+  /* Clears the sticky progress rule when the rail jumps here. */
+  scroll-margin-top: 16px;
+}
+.learn-col .guide-body > .guide-h:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.learn-col .guide-body > .guide-h + * {
+  margin-top: 14px;
+}
+
+/* The opening definition, which is doing the same job as a lede. */
+.learn-col .guide-body > p:first-child {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.learn-col .guide-body ul {
+  padding-left: 20px;
+}
+.learn-col .guide-body li {
+  padding-left: 3px;
+}
+.learn-col .guide-body li + li {
+  margin-top: 10px;
+}
+.learn-col .guide-body p code,
+.learn-col .guide-body li code {
+  font-size: 13.5px;
+  padding: 1.5px 5px;
+  color: var(--text);
+}
+
+/* Tables read as reference material, so they get room and a striped body. */
+.learn-col .guide-table {
+  font-size: 14px;
+}
+.learn-col .guide-table th {
+  padding: 10px 15px;
+}
+.learn-col .guide-table td {
+  padding: 11px 15px;
+}
+.learn-col .guide-table tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+/*
+  The first column is a parameter name in most of these tables, and `nowrap` on
+  it is right for a short identifier and wrong for the prose that appears there
+  in the cheatsheets. Cap it instead: it still resists wrapping in the common
+  case and stops eating the row in the uncommon one.
+*/
+.learn-col .guide-table td:first-child {
+  font-size: 13px;
+  white-space: normal;
+  max-width: 260px;
+}
+
+/* A tinted box with a tag reads as an aside; a rule down its edge reads as a
+   margin note, which is what these are. */
+.learn-col .guide-callout {
+  border-left-width: 2px;
+}
+
+.learn-col .guide-code {
+  /* Slightly more separation than a paragraph gets — a code block is a figure,
+     and figures want air. */
+  margin-top: 22px;
+}
+.learn-col .guide-body > .guide-code + p {
+  margin-top: 22px;
+}
+
+/* --------------------------------------------------------------- ask ai */
+.learn-ask {
+  margin: 34px 0 0;
+  padding: 15px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  max-width: 74ch;
+}
+/* The copy under the lede, before the reader has a question yet — quieter, and
+   no box, so it does not compete with the first paragraph. */
+.learn-ask.compact {
+  margin: 0 0 28px;
+  padding: 0;
+  background: none;
+  border: none;
+}
+.learn-ask-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 9px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.learn-ask-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.learn-ask-btn {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.learn-ask-btn:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+.learn-ask-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------ read + pager */
+.learn-done {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 34px;
+}
+.learn-done-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.learn-done-btn:hover {
+  border-color: var(--accent-line);
+  color: var(--text);
+}
+.learn-done-btn.on {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-line);
+}
+.learn-done-hint {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.learn-done-hint kbd {
+  padding: 1px 5px;
+  font-size: 10.5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.learn-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 40px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.learn-nav-link {
+  flex: 0 1 auto;
+  max-width: 48%;
+  padding: 11px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.12s, background 0.12s;
+}
+.learn-nav-link.next {
+  text-align: right;
+  /* Wins over `justify-content` when there is no previous link to push it
+     across — the last-topic case, where `next` is the only child. */
+  margin-left: auto;
+}
+.learn-nav-link:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-hover);
+}
+.learn-nav-dir {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.learn-nav-link.next .learn-nav-dir {
+  justify-content: flex-end;
+}
+.learn-nav-title {
+  display: block;
+  margin-top: 3px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.learn-nav-link:hover .learn-nav-title {
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- narrow */
+@media (max-width: 1240px) {
+  /*
+    The rail is the first thing to go. It is a convenience on a page whose
+    headings are all reachable by scrolling, and below this width it is taking
+    a fifth of the measure away from the prose it exists to serve.
+  */
+  .learn-toc {
+    display: none;
+  }
+  .learn-col {
+    max-width: none;
+  }
+  .learn-hub {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .learn-col .page-head h1 {
+    font-size: 24px;
+  }
+  .learn-col .guide-body {
+    font-size: 15.5px;
+    line-height: 1.75;
+  }
+  .learn-col .guide-h {
+    font-size: 18px;
+    margin-top: 40px;
+    padding-top: 20px;
+  }
+  .learn-topics {
+    grid-template-columns: 1fr;
+  }
+  /* Stacked, because two half-width pager cards at this size are two truncated
+     titles. */
+  .learn-nav {
+    flex-direction: column;
+  }
+  .learn-nav-link {
+    max-width: none;
+  }
+  .learn-nav-link.next {
+    text-align: left;
+    margin-left: 0;
+  }
+  .learn-nav-link.next .learn-nav-dir {
+    justify-content: flex-start;
+  }
+  /* The arrow-key hint is desktop-only advice. */
+  .learn-done-hint {
+    display: none;
+  }
+}
