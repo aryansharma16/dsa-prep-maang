@@ -28,6 +28,8 @@ import {
   logAttempt,
   patchProgress,
   patchSchema,
+  reviewProgress,
+  reviewSchema,
   revisionQueue,
 } from '../controllers/progress.controller.js';
 import { getStats } from '../controllers/stats.controller.js';
@@ -139,6 +141,12 @@ router.patch('/problems/:id', validate(problemUpdateSchema), updateCustom);
 router.delete('/problems/:id', removeCustom);
 
 router.get('/progress/revision', requireModule('revision'), revisionQueue);
+router.post(
+  '/progress/:problemId/review',
+  requireModule('revision'),
+  validate(reviewSchema),
+  reviewProgress,
+);
 router.patch('/progress/:problemId', validate(patchSchema), patchProgress);
 router.post('/progress/:problemId/attempt', validate(attemptSchema), logAttempt);
 router.get('/progress/:problemId/attempts', listAttempts);

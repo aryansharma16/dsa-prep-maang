@@ -429,7 +429,31 @@ removes it immediately — and puts it back if the write actually failed, becaus
 a queue that quietly shows fewer items than you have is worse than a slow one.
 
 The ladder is 3 → 7 → 21 → 60 days, multiplied by confidence: 1 shrinks the gap
-to 0.4×, 5 stretches it to 2×.
+to 0.4×, 5 stretches it to 2×. It caps at 60: `LADDER_DAYS[min(stage, 3)]`.
+
+### Two ways in, so two ways out
+
+A row is in the queue because `needsRevision` is set **or** because
+`nextReviewAt` has passed, and the two actions on it mean different things:
+
+| | |
+|---|---|
+| **✓ I got it** | a review that went well. The ladder moves on a rung and the next date is recomputed from today |
+| **↻ Take it off** | clears the flag, and clears the schedule *only if that schedule is what put the row here*. One still in the future is left alone — dismissing a flag should not silently retire a problem from revision |
+
+Both go to `POST /progress/:id/review` with `result: 'recalled' | 'dismissed'`,
+and **not** to the status patch. That is the fix for a real bug: both buttons
+used to send `{ needsRevision: false }`, which does nothing at all to a row that
+is due by schedule. `patchProgress` could not have helped either — it advances
+the ladder only when the status *transitions* to solved, and a row due for
+revision is already solved. So the row vanished optimistically, the write
+succeeded, no error showed, and it was back on the next load. Twenty-one of
+twenty-six rows in one real queue were stuck that way, some overdue by twelve
+days.
+
+The lesson is in the route, not the patch: "set this field" and "I reviewed
+this" are different requests, and only the second one has any business moving a
+schedule.
 
 ## Tasks
 
@@ -762,11 +786,25 @@ journey**; signed in it renders inside the shell and picks up the sidebar. The
 only other thing that changes with the session is the button at the foot, which
 becomes **Back to the course**. Nothing on the page fetches.
 
+It is built on one idea: **a guide to a tool should let you work the tool.**
+Every mechanic that a paragraph explains badly is a thing you can operate on the
+page instead — the status circle cycles, the stopwatch runs, picking an outcome
+drives a mock roadmap row so you watch the revision flag light up, and the
+confidence dial recomputes the ladder live off the same curve
+`services/review.service.js` uses. None of it fetches and none of it touches an
+account; the rows are props, not `Progress`. Prose is around the demos rather
+than instead of them.
+
+Two measures, named as `--docs-wide` against the prose cap: running text stays
+near 68 characters because that is what it takes to read, and a table, a demo or
+a keyboard grid is scanned rather than read and has no business being that
+narrow. The section hues come from the board's own `[data-hue]` palette — ten
+identical grey headings read as one wall, and the colour is what lets you find
+where you were.
+
 It is styled entirely from `styles/tokens.css`, so it follows the reader's theme
 and their chosen accent like everything else — there is no second palette to
-keep in step. The one place it takes a liberty is the outcome table, whose rows
-carry a difficulty-coloured stripe: that table is the thing a learner has to
-internalise, and it is worth reading as a shape as well as as words.
+keep in step.
 
 There is deliberately **no second copy in `docs/`**. Those files are references
 for someone working on the code; this is the one written for someone using it,
@@ -1782,6 +1820,7 @@ docs/          the deep-dive references the README links out to:
 | `GET` | `/problems` · `/problems/:slug/description` | roadmap, statement on demand |
 | `POST` `PATCH` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems — edit and delete are owner-checked |
 | `GET` `PATCH` `POST` | `/progress/revision` · `/progress/:id` · `/progress/:id/attempt` | tracking |
+| `POST` | `/progress/:id/review` | working the revision queue — `recalled` advances the ladder, `dismissed` only clears what put the row there |
 | `GET` `PATCH` `DELETE` | `/progress/:id/attempts` · `/progress/:id/attempts/:attemptId` | the attempt log for one problem, and editing or removing one of them — see [Attempts](#attempts) |
 | `GET` | `/stats` | profile and stats pages |
 | `GET` `POST` `PATCH` `DELETE` | `/tasks` · `/tasks/:id` | the board and everything on it in one read; a task |

@@ -63,7 +63,13 @@ function parseColor(value) {
   return [128, 128, 128];
 }
 
-export function ParticleWeb() {
+/**
+ * `className` positions the host, and defaults to the sign-in page's own — the
+ * only rule it needs is `position: absolute; inset: 0`. The guide's hero passes
+ * its own so the same traversal can sit behind a different panel without the
+ * two sharing a stylesheet rule that means something different in each.
+ */
+export function ParticleWeb({ className = 'auth-web' }) {
   const hostRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -389,7 +395,7 @@ export function ParticleWeb() {
   }, []);
 
   return (
-    <div className="auth-web" ref={hostRef} aria-hidden="true">
+    <div className={className} ref={hostRef} aria-hidden="true">
       <canvas ref={canvasRef} />
     </div>
   );

@@ -9,7 +9,7 @@ import {
 import { HUES } from '../config/hues.js';
 import { Problem } from '../models/Problem.js';
 import { Progress } from '../models/Progress.js';
-import { nextReview } from '../services/review.service.js';
+import { LADDER_RUNGS, nextReview } from '../services/review.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { objectId } from '../utils/query.js';
@@ -316,6 +316,73 @@ export const deleteAttempt = asyncHandler(async (req, res) => {
   res.json({ progress });
 });
 
+export const reviewSchema = z.object({
+  /*
+    What the two buttons on the revision queue actually mean. They are different
+    intentions and only one of them is a review: `recalled` is "I came back to
+    this and got it", `dismissed` is "take it off the list".
+  */
+  result: z.enum(['recalled', 'dismissed']),
+  confidence: z.number().int().min(1).max(5).optional(),
+});
+
+/**
+ * POST /api/progress/:problemId/review — working the revision queue.
+ *
+ * This exists because the queue has two ways in and the page only had one way
+ * out. A row is due because `needsRevision` is set *or* because `nextReviewAt`
+ * has passed, and both buttons used to send `{ needsRevision: false }` — which
+ * does nothing at all to a row that was due by schedule. `patchProgress` could
+ * not help either: it advances the ladder only when the status *transitions* to
+ * solved, and a scheduled row is already solved. So the row vanished
+ * optimistically, the write succeeded, and it was back on the next load.
+ *
+ * Overloading the status patch to fix that would have been worse. "Set this
+ * field" and "I reviewed this" are different requests, and only the second one
+ * should be allowed to move a schedule.
+ */
+export const reviewProgress = asyncHandler(async (req, res) => {
+  const problem = await visibleProblem(req.params.problemId, req.userId);
+
+  const existing = await Progress.findOne({ user: oid(req.userId), problem: problem._id });
+  if (!existing) throw ApiError.notFound('Nothing to review here', 'NO_PROGRESS');
+
+  const { result, confidence } = req.body;
+  const set = { needsRevision: false };
+  if (confidence) set.confidence = confidence;
+
+  if (result === 'recalled') {
+    // A successful review is exactly what the ladder is counting, so it moves
+    // on by a rung — the same arithmetic `logAttempt` does for a solve.
+    const stage = existing.reviewStage ?? 0;
+    set.lastReviewedAt = new Date();
+    set.reviewStage = stage + 1;
+    set.nextReviewAt = nextReview(stage, confidence ?? existing.confidence ?? 3).nextReviewAt;
+
+    // You can only have recalled it if you can do it.
+    if (existing.status !== 'solved') {
+      set.status = 'solved';
+      set.solvedAt = existing.solvedAt || new Date();
+    }
+  } else {
+    /*
+      Dismissing takes it off the queue and does nothing else — which means
+      clearing only what was putting it there. A schedule still in the future is
+      not why this row is in front of you, and wiping it would silently retire a
+      problem from revision because you tidied up a flag.
+    */
+    if (existing.nextReviewAt && existing.nextReviewAt <= new Date()) set.nextReviewAt = null;
+  }
+
+  const progress = await Progress.findOneAndUpdate(
+    { _id: existing._id },
+    { $set: set },
+    { new: true },
+  );
+
+  res.json({ progress });
+});
+
 /**
  * GET /api/progress/revision
  * Anything explicitly flagged for revision, or whose spaced-repetition date has
@@ -351,6 +418,18 @@ export const revisionQueue = asyncHandler(async (req, res) => {
         recentAttempts: (r.attempts || []).slice(-4),
       },
       dueReason: r.needsRevision ? 'marked' : 'scheduled',
+      /*
+        Where this problem is on the ladder, and what getting it right would
+        buy — computed here rather than sent as raw stage numbers, because the
+        multiplier curve is the server's and a client that reimplements it will
+        eventually disagree with the date the server actually writes.
+      */
+      review: {
+        stage: Math.min(r.reviewStage ?? 0, LADDER_RUNGS),
+        rungs: LADDER_RUNGS,
+        lastReviewedAt: r.lastReviewedAt || r.solvedAt || null,
+        nextGapDays: nextReview(r.reviewStage ?? 0, r.confidence ?? 3).days,
+      },
     }));
 
   res.json({ items, count: items.length });

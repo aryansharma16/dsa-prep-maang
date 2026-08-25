@@ -201,6 +201,35 @@ export function RoadmapProvider({ children }) {
     [syncAttempts],
   );
 
+  /**
+   * Working the revision queue.
+   *
+   * Answers true/false like `setProgress`, because its caller drops the row on
+   * the way out and has to be able to put it back. The roadmap is updated too:
+   * a recall moves the next-review date, and that is a column on the table.
+   */
+  const reviewProblem = useCallback(
+    async (problemId, result, confidence) => {
+      const before = snapshot(problemId);
+      try {
+        const saved = await progressApi.review(problemId, result, confidence);
+        applyLocal(problemId, {
+          status: saved.status,
+          needsRevision: saved.needsRevision,
+          confidence: saved.confidence,
+          nextReviewAt: saved.nextReviewAt,
+          solvedAt: saved.solvedAt,
+        });
+        return true;
+      } catch (err) {
+        applyLocal(problemId, before);
+        toastError(errorMessage(err, 'Could not update the revision queue'));
+        return false;
+      }
+    },
+    [applyLocal, snapshot, toastError],
+  );
+
   const addProblem = useCallback(async (body) => {
     const problem = await problemsApi.create(body);
     setGroups((prev) =>
@@ -284,6 +313,7 @@ export function RoadmapProvider({ children }) {
       logAttempt,
       editAttempt,
       deleteAttempt,
+      reviewProblem,
       addProblem,
       updateProblem,
       removeProblem,
@@ -298,6 +328,7 @@ export function RoadmapProvider({ children }) {
       logAttempt,
       editAttempt,
       deleteAttempt,
+      reviewProblem,
       addProblem,
       updateProblem,
       removeProblem,

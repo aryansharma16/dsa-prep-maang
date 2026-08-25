@@ -1,6 +1,9 @@
 // Spaced repetition ladder. Solving something schedules it to come back; how
 // confident you felt stretches or compresses the gap.
-const LADDER_DAYS = [3, 7, 21, 60];
+export const LADDER_DAYS = [3, 7, 21, 60];
+
+/** How many rungs there are, for anything drawing the position on the ladder. */
+export const LADDER_RUNGS = LADDER_DAYS.length;
 
 const confidenceMultiplier = (confidence) => {
   if (confidence <= 1) return 0.4;

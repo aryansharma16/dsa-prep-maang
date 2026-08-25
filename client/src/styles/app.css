@@ -9450,25 +9450,59 @@ a.tile.attention:hover {
 }
 
 /* ========================================================================== */
-/* docs — what the platform is and how to use it, for people using it         */
+/* docs — the guide, for people using the app rather than building it         */
 /* ========================================================================== */
 
 /*
   Public, and mounted on both sides of the auth branch: signed in it lands
   inside the shell's content column, signed out it is the whole page. The two
-  differ only in the bar at the top, so everything below is written to work
-  either way — no fixed positioning, no assumed viewport, and the width cap on
-  .docs-shell rather than on the body.
+  differ only in the bar at the top, so everything here is written to work
+  either way — no fixed positioning that assumes the viewport, and the width cap
+  on .docs-shell rather than on the body.
+
+  Every colour comes from tokens.css. That is what lets the page follow the
+  reader's theme *and* their chosen accent with no second palette to keep in
+  step, and it is why the section hues below are the board's `[data-hue]` set
+  rather than thirteen values invented here.
 */
 .docs {
   color: var(--text);
+  --docs-ease: cubic-bezier(0.22, 0.68, 0.24, 1);
+  /*
+    Two measures, on purpose. Running text stays near 68 characters because that
+    is what it takes to read comfortably; a table, a demo or a keyboard grid is
+    scanned rather than read and has no business being that narrow. Naming both
+    is what stops the second silently inheriting the first.
+  */
+  --docs-wide: 860px;
 }
-/* Signed out there is no shell painting the ground behind this. */
 .docs-public {
   min-height: 100%;
   background: var(--bg);
 }
 
+/* ---------------------------------------------------------------- progress
+   How far through you are. Transformed rather than sized, so it rides the
+   compositor and a fast scroll cannot make it stutter. */
+.docs-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
+}
+.docs-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* --------------------------------------------------------------- public bar */
 .docs-bar {
   display: flex;
   align-items: center;
@@ -9476,10 +9510,11 @@ a.tile.attention:hover {
   height: var(--topbar-h);
   padding: 0 18px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
 }
 .docs-bar-brand {
   display: inline-flex;
@@ -9490,26 +9525,162 @@ a.tile.attention:hover {
 }
 
 .docs-shell {
-  max-width: 1120px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px 80px;
+  padding: 0 28px 96px;
 }
-.docs-public .docs-shell {
-  padding-top: 8px;
-}
-/* Inside the shell the content column already carries the page padding, and
-   doubling it costs 40px a side and 160px of dead space at the foot. */
 .docs:not(.docs-public) .docs-shell {
-  padding: 0;
+  padding: 0 0 40px;
 }
 
-/* ---------------------------------------------------------------- masthead
-   The rule under it is the accent, because the one colour the reader has
-   already chosen is the one thing that should greet them here. */
-.docs-masthead {
-  padding: 54px 0 28px;
-  border-bottom: 2px solid var(--accent-line);
-  margin-bottom: 40px;
+/* -------------------------------------------------------------------- hero
+   The app's own metaphor rather than a picture of it — the canvas behind the
+   sign-in form is a breadth-first search, which is a pattern this curriculum
+   spends a section on. */
+.docs-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  margin: 22px 0 26px;
+  isolation: isolate;
+}
+.docs-public .docs-hero {
+  margin-top: 26px;
+}
+
+.docs-hero-web {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.docs-hero-web canvas {
+  display: block;
+}
+
+/* A scrim between the web and the words: opaque under the text, gone by the
+   right edge, so the traversal stays lively where nothing has to be read.
+   Both stops are the same colour so the fade cannot pick up a grey cast. */
+.docs-hero-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      100deg,
+      var(--surface) 34%,
+      color-mix(in srgb, var(--surface) 55%, transparent) 62%,
+      transparent 92%
+    ),
+    radial-gradient(64% 120% at 6% 24%, var(--accent-glow) 0%, transparent 58%);
+}
+
+/*
+  Two columns once there is room: the argument on the left, and on the right the
+  thing being argued about. The card is what stops the traversal behind it
+  having to carry half a hero on its own.
+*/
+.docs-hero-inner {
+  position: relative;
+  z-index: 2;
+  padding: clamp(34px, 4.4vw, 58px) clamp(24px, 3.4vw, 50px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 348px;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+}
+.docs-hero-copy {
+  max-width: 620px;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------- hero card */
+.docs-hero-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 14px;
+  box-shadow: 0 18px 44px var(--shadow);
+  animation: docs-rise 0.8s var(--docs-ease) 0.42s both;
+}
+.docs-hero-card-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.docs-hero-card-row .status-btn {
+  pointer-events: none;
+  flex: 0 0 18px;
+}
+.docs-hero-card-idx {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.docs-hero-card-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-right: auto;
+}
+.docs-hero-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 12px 0 8px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--text-3);
+}
+.docs-hero-card-head span:last-child {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0;
+}
+/* The colour is a stripe down the edge, the way it is on a real log row. */
+.docs-hero-log {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  animation: docs-rise 0.55s var(--docs-ease) var(--log-delay, 0ms) both;
+}
+.docs-hero-log + .docs-hero-log {
+  margin-top: 4px;
+}
+.docs-hero-log.good {
+  border-left-color: var(--easy);
+}
+.docs-hero-log.mid {
+  border-left-color: var(--medium);
+}
+.docs-hero-log.bad {
+  border-left-color: var(--hard);
+}
+.docs-hero-log-day {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.docs-hero-log-mins {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.docs .docs-hero-card-say {
+  margin: 12px 0 2px;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
 }
 
 .docs-kind {
@@ -9520,37 +9691,101 @@ a.tile.attention:hover {
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--text-3);
+  color: var(--accent);
+  padding: 4px 10px 4px 8px;
+  border: 1px solid var(--accent-line);
+  border-radius: 20px;
+  background: var(--accent-bg);
   margin-bottom: 22px;
 }
 
 .docs h1 {
   margin: 0;
-  font-size: clamp(32px, 5.4vw, 54px);
-  line-height: 1.04;
-  letter-spacing: -0.03em;
+  font-size: clamp(34px, 5.4vw, 58px);
+  line-height: 1.03;
+  letter-spacing: -0.033em;
   font-weight: 700;
-  max-width: 16ch;
+  max-width: 17ch;
   text-wrap: balance;
 }
+.docs-h1-line {
+  display: block;
+  /* Each line rises on load. Two lines, staggered — enough to read as
+     deliberate, not enough to make anyone wait for the headline. */
+  animation: docs-rise 0.7s var(--docs-ease) both;
+}
+.docs-h1-line:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.docs-h1-accent {
+  color: var(--accent);
+}
 
-.docs-standfirst {
-  margin: 20px 0 0;
+@keyframes docs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.docs .docs-standfirst {
+  margin: 24px 0 0;
   font-size: 17px;
   line-height: 1.55;
   color: var(--text-2);
   max-width: 54ch;
+  animation: docs-rise 0.7s var(--docs-ease) 0.2s both;
 }
 
-.docs-thesis {
-  margin: 24px 0 0;
-  padding: 14px 18px;
+.docs-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 30px;
+  animation: docs-rise 0.7s var(--docs-ease) 0.28s both;
+}
+.docs-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.docs-stats b {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+}
+/* The label only. Without the child combinator this also matches the counter's
+   own span *inside* the <b>, and the 30px number renders at 12px. */
+.docs-stats > div > span {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.docs-hero-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 32px;
+  animation: docs-rise 0.7s var(--docs-ease) 0.36s both;
+}
+.docs-cta {
+  height: 36px;
+  padding: 0 16px;
+}
+
+.docs .docs-thesis {
+  margin: 0 0 48px;
+  padding: 15px 20px;
   border-left: 2px solid var(--accent);
   background: var(--accent-bg);
   border-radius: 0 var(--radius) var(--radius) 0;
   font-size: 15px;
-  line-height: 1.6;
-  max-width: 60ch;
+  line-height: 1.62;
+  color: var(--text-2);
+  max-width: 68ch;
 }
 .docs-thesis b {
   color: var(--text);
@@ -9560,11 +9795,10 @@ a.tile.attention:hover {
 /* -------------------------------------------------------------------- rail */
 .docs-cols {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  gap: 48px;
+  grid-template-columns: 214px minmax(0, 1fr);
+  gap: 60px;
   align-items: start;
 }
-
 .docs-main {
   min-width: 0;
 }
@@ -9585,7 +9819,7 @@ a.tile.attention:hover {
   color: var(--text-3);
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .docs-rail nav {
@@ -9593,55 +9827,83 @@ a.tile.attention:hover {
   flex-direction: column;
 }
 .docs-rail a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   font-size: 13px;
   line-height: 1.35;
   color: var(--text-3);
-  padding: 6px 0 6px 12px;
+  padding: 7px 0 7px 11px;
   border-left: 2px solid var(--border-soft);
-  transition: color 0.14s ease, border-color 0.14s ease;
+  transition: color 0.16s ease, border-color 0.16s ease, padding-left 0.16s var(--docs-ease);
+}
+/* The dot carries the section's hue, so the rail is a legend as well as a
+   contents list — the colour beside a heading is the colour in the rail. */
+.docs-rail-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+  flex: 0 0 auto;
+  transition: background 0.16s ease, box-shadow 0.16s ease, transform 0.16s var(--docs-ease);
 }
 .docs-rail a:hover {
   color: var(--text);
-  border-left-color: var(--text-3);
+  padding-left: 14px;
+}
+.docs-rail a:hover .docs-rail-dot {
+  background: var(--hue, var(--text-3));
 }
 .docs-rail a[aria-current='true'] {
-  color: var(--accent);
-  border-left-color: var(--accent);
+  color: var(--text);
+  border-left-color: var(--hue, var(--accent));
   font-weight: 500;
+}
+.docs-rail a[aria-current='true'] .docs-rail-dot {
+  background: var(--hue, var(--accent));
+  transform: scale(1.4);
+  box-shadow: 0 0 0 3px rgb(var(--hue-rgb) / 0.18);
 }
 
 /* ---------------------------------------------------------------- sections */
 .docs section {
-  scroll-margin-top: 24px;
+  scroll-margin-top: 26px;
 }
 .docs-public section {
-  scroll-margin-top: calc(var(--topbar-h) + 20px);
+  scroll-margin-top: calc(var(--topbar-h) + 22px);
 }
 .docs section + section {
-  margin-top: 56px;
+  margin-top: 72px;
 }
 
 .docs-eyebrow {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--mono);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: var(--text-3);
-  margin-bottom: 8px;
+  color: var(--hue, var(--text-3));
+  margin-bottom: 10px;
+}
+.docs-eyebrow-dot {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--hue, var(--text-3));
 }
 
 .docs h2 {
-  margin: 0 0 16px;
-  font-size: clamp(22px, 3vw, 29px);
-  line-height: 1.14;
-  letter-spacing: -0.022em;
+  margin: 0 0 18px;
+  font-size: clamp(23px, 3vw, 31px);
+  line-height: 1.12;
+  letter-spacing: -0.024em;
   font-weight: 700;
   text-wrap: balance;
 }
-
 .docs h3 {
-  margin: 32px 0 10px;
+  margin: 34px 0 10px;
   font-size: 16.5px;
   line-height: 1.3;
   letter-spacing: -0.012em;
@@ -9649,13 +9911,14 @@ a.tile.attention:hover {
 }
 
 .docs p {
-  margin: 0 0 14px;
-  max-width: 66ch;
+  margin: 0 0 15px;
+  max-width: 68ch;
   font-size: 14.5px;
-  line-height: 1.68;
+  line-height: 1.7;
   color: var(--text-2);
 }
-.docs p b {
+.docs p b,
+.docs-list b {
   color: var(--text);
   font-weight: 600;
 }
@@ -9664,26 +9927,21 @@ a.tile.attention:hover {
   font-style: italic;
   color: var(--text);
 }
-
 .docs-lede {
-  font-size: 16px !important;
+  font-size: 16.5px !important;
   color: var(--text) !important;
 }
 
 .docs-list {
-  margin: 0 0 14px;
+  margin: 0 0 15px;
   padding-left: 19px;
-  max-width: 66ch;
+  max-width: 68ch;
   font-size: 14.5px;
-  line-height: 1.68;
+  line-height: 1.7;
   color: var(--text-2);
 }
 .docs-list li {
-  margin-bottom: 7px;
-}
-.docs-list b {
-  color: var(--text);
-  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .docs code {
@@ -9696,37 +9954,57 @@ a.tile.attention:hover {
   color: var(--text);
 }
 
-/* ------------------------------------------------------------------- steps
-   Numbered because these five are a real sequence. Nothing else on the page
-   is, and nothing else is numbered. */
+/* ------------------------------------------------------------------ reveal
+   Once, on the way down only. An element that re-animates every time it
+   crosses the fold turns scrolling back to re-read into a flicker. */
+.docs-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s var(--docs-ease), transform 0.6s var(--docs-ease);
+}
+.docs-reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------- steps */
 .docs-steps {
   list-style: none;
   margin: 0 0 18px;
   padding: 0;
   counter-reset: docs-step;
-  max-width: 68ch;
+  max-width: var(--docs-wide);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 8px;
   overflow: hidden;
 }
 .docs-steps li {
   counter-increment: docs-step;
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 38px minmax(0, 1fr);
   gap: 14px;
-  padding: 14px 16px;
+  padding: 15px 17px;
   background: var(--surface);
+  position: relative;
+  transition: background 0.18s ease;
 }
 .docs-steps li + li {
   border-top: 1px solid var(--border-soft);
+}
+.docs-steps li:hover {
+  background: var(--surface-hover);
 }
 .docs-steps li::before {
   content: counter(docs-step, decimal-leading-zero);
   font-family: var(--mono);
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--hue, var(--accent));
   padding-top: 2px;
+  transition: transform 0.18s var(--docs-ease);
+}
+.docs-steps li:hover::before {
+  transform: translateX(2px);
 }
 .docs-steps b {
   display: block;
@@ -9742,9 +10020,10 @@ a.tile.attention:hover {
 
 /* ------------------------------------------------------------------ tables */
 .docs-tablewrap {
+  max-width: var(--docs-wide);
   overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 8px;
   background: var(--surface);
   margin-bottom: 16px;
 }
@@ -9761,59 +10040,27 @@ a.tile.attention:hover {
   letter-spacing: 0.11em;
   color: var(--text-3);
   font-weight: 500;
-  padding: 10px 14px;
+  padding: 11px 15px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 .docs-tablewrap td {
-  padding: 12px 14px;
+  padding: 13px 15px;
   border-bottom: 1px solid var(--border-soft);
   vertical-align: top;
   line-height: 1.55;
+}
+.docs-tablewrap tbody tr {
+  transition: background 0.16s ease;
+}
+.docs-tablewrap tbody tr:hover {
+  background: var(--surface-hover);
 }
 .docs-tablewrap tr:last-child td {
   border-bottom: none;
 }
 .docs-gloss {
   color: var(--text-2);
-}
-.docs-center {
-  text-align: center;
-}
-
-/* The outcome table is the one thing here a reader has to internalise, so its
-   rows carry their meaning in form as well as in words. */
-.docs-outcomes td:first-child {
-  border-left: 3px solid transparent;
-}
-.docs-outcomes tr.tone-good td:first-child {
-  border-left-color: var(--easy);
-}
-.docs-outcomes tr.tone-mid td:first-child {
-  border-left-color: var(--medium);
-}
-.docs-outcomes tr.tone-bad td:first-child {
-  border-left-color: var(--hard);
-}
-
-.docs-yes,
-.docs-no {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-}
-.docs-yes {
-  color: var(--easy);
-  background: var(--easy-bg);
-}
-.docs-no {
-  color: var(--text-3);
-  background: var(--surface-2);
 }
 
 /* ------------------------------------------------------------------- chips */
@@ -9844,36 +10091,282 @@ a.tile.attention:hover {
   border-color: var(--hard);
   background: var(--hard-bg);
 }
+.docs-chip.pop {
+  animation: docs-pop 0.34s var(--docs-ease) both;
+}
+@keyframes docs-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(3px);
+  }
+}
 
-/* ------------------------------------------------------------------ ladder
-   Drawn to scale, so the widening gap is what you see rather than four
-   numbers you have to compare. */
+/* ------------------------------------------------------------------- demos
+   The page's argument: a guide to a tool should let you work the tool. Each of
+   these is the real mechanic, wired to nothing — no account is touched. */
+.docs-demo {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 16px 18px 18px;
+  margin: 0 0 18px;
+  max-width: var(--docs-wide);
+  box-shadow: 0 1px 0 var(--border-soft);
+}
+.docs-demo-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.docs-demo-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--hue, var(--accent));
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: 20px;
+}
+.docs-demo-head .link-btn,
+.docs-demo-head .docs-mult {
+  margin-left: auto;
+}
+.docs-mult {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--hue, var(--accent));
+}
+.docs-demo-say {
+  margin: 12px 0 0 !important;
+  font-size: 13.5px !important;
+  color: var(--text-2) !important;
+  min-height: 20px;
+}
+.docs-verdict {
+  font-weight: 600;
+  margin-right: 7px;
+}
+.docs-verdict.good {
+  color: var(--easy);
+}
+.docs-verdict.mid {
+  color: var(--medium);
+}
+.docs-verdict.bad {
+  color: var(--hard);
+}
+
+/* the status circle, on its own */
+.docs-try {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  margin-bottom: 16px;
+  max-width: var(--docs-wide);
+}
+.docs-status-demo {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  transition: transform 0.2s var(--docs-ease);
+}
+.docs-status-demo:hover {
+  transform: scale(1.12);
+}
+.docs-status-demo:active {
+  transform: scale(0.94);
+}
+.docs-try-say b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+.docs-try-say span {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* the mock roadmap row the outcome demo drives */
+.docs-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+.docs-row-status {
+  flex: 0 0 18px;
+  pointer-events: none;
+}
+.docs-row-index {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.docs-row-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.docs-row-chips {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 10px;
+  min-width: 0;
+}
+.docs-row-acts {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+  padding-left: 12px;
+}
+.docs-row-acts .act {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text-3);
+  border-radius: 4px;
+}
+/* The one control the demo actually drives. It lights in the same colour the
+   real row uses for a raised revision flag. */
+.docs-row-acts .act.rev.on {
+  color: var(--medium);
+  background: var(--medium-bg);
+  animation: docs-flag 0.4s var(--docs-ease);
+}
+@keyframes docs-flag {
+  40% {
+    transform: rotate(-18deg) scale(1.15);
+  }
+}
+
+.docs-outcome-picks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 7px;
+}
+.docs-outcome-btn {
+  text-align: left;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s var(--docs-ease);
+}
+.docs-outcome-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-3);
+}
+.docs-outcome-btn b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.docs-outcome-btn span {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-3);
+  display: block;
+}
+.docs-outcome-btn.on.good {
+  border-color: var(--easy);
+  background: var(--easy-bg);
+}
+.docs-outcome-btn.on.mid {
+  border-color: var(--medium);
+  background: var(--medium-bg);
+}
+.docs-outcome-btn.on.bad {
+  border-color: var(--hard);
+  background: var(--hard-bg);
+}
+
+/* the stopwatch */
+.docs-clockbox {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  margin-bottom: 16px;
+  max-width: var(--docs-wide);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.docs-clockbox.live {
+  border-color: var(--danger);
+  background: var(--hard-bg);
+}
+.docs-clock {
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.docs-clockbox.live .docs-clock {
+  color: var(--danger);
+}
+.docs-clock-acts {
+  display: flex;
+  gap: 7px;
+  margin-left: auto;
+}
+.docs-clock-say {
+  flex: 1 0 100%;
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: var(--text-3) !important;
+}
+
+/* the ladder */
 .docs-ladder {
   display: flex;
   align-items: stretch;
-  gap: 4px;
-  margin: 0 0 14px;
-  max-width: 66ch;
+  gap: 5px;
+  margin: 0 0 16px;
 }
 .docs-rung {
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-bottom: 3px solid var(--accent-line);
-  border-radius: var(--radius);
-  padding: 11px 8px;
+  border-bottom: 3px solid var(--hue, var(--accent-line));
+  border-radius: 7px;
+  padding: 13px 8px;
   text-align: center;
   min-width: 0;
+  flex-basis: 0;
+  /* Grows and shrinks with the confidence dial rather than cutting to a new
+     width, which is the whole point of the demo. */
+  transition: flex-grow 0.45s var(--docs-ease);
 }
 .docs-rung.last {
-  border-bottom-color: var(--accent);
+  border-bottom-width: 4px;
 }
 .docs-rung b {
   display: block;
   font-family: var(--mono);
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 .docs-rung span {
   font-family: var(--mono);
@@ -9882,21 +10375,44 @@ a.tile.attention:hover {
   letter-spacing: 0.1em;
   color: var(--text-3);
 }
+.docs-conf-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.docs-conf-label {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.docs-conf-row .conf-dot {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.16s var(--docs-ease);
+}
+.docs-conf-row .conf-dot:hover {
+  transform: scale(1.14);
+}
 
-/* ---------------------------------------------------------------- timeline
-   One attempt end to end. A strip rather than a list, because the point is
-   that the part you can still change is a short window near the start. */
+/* --------------------------------------------------------------- timeline */
 .docs-timeline {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
-  gap: 2px;
-  margin: 0 0 16px;
-  max-width: 68ch;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 3px;
+  margin: 0 0 18px;
+  max-width: var(--docs-wide);
 }
 .docs-beat {
   background: var(--surface);
   border: 1px solid var(--border-soft);
-  padding: 12px 13px;
+  border-top: 2px solid var(--hue, var(--accent));
+  border-radius: 6px;
+  padding: 13px 14px;
+  animation: docs-rise 0.5s var(--docs-ease) var(--beat-delay, 0ms) both;
+}
+.docs-beat.shut {
+  border-top-color: var(--border);
+  opacity: 0.72;
 }
 .docs-beat-when {
   display: block;
@@ -9904,7 +10420,7 @@ a.tile.attention:hover {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.11em;
-  color: var(--accent);
+  color: var(--hue, var(--accent));
   margin-bottom: 5px;
 }
 .docs-beat.shut .docs-beat-when {
@@ -9916,20 +10432,26 @@ a.tile.attention:hover {
   font-weight: 600;
   margin-bottom: 3px;
 }
-.docs-beat span {
+/* The body line, addressed through the <b> above it — a bare `.docs-beat span`
+   also matches the eyebrow and outranks its own rule. */
+.docs-beat b + span {
   font-size: 12.5px;
   color: var(--text-2);
   line-height: 1.45;
 }
 
-/* --------------------------------------------------------------------- box */
+/* -------------------------------------------------------------------- box */
 .docs-box {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 8px;
   padding: 16px 18px;
   margin-bottom: 16px;
-  max-width: 68ch;
+  max-width: var(--docs-wide);
+  transition: border-color 0.18s ease, transform 0.18s var(--docs-ease);
+}
+.docs-box:hover {
+  border-color: color-mix(in srgb, var(--hue, var(--accent)) 45%, var(--border));
 }
 .docs-box p {
   max-width: none;
@@ -9941,13 +10463,12 @@ a.tile.attention:hover {
   font-size: 9.5px;
   text-transform: uppercase;
   letter-spacing: 0.13em;
-  color: var(--accent);
+  color: var(--hue, var(--accent));
   margin-bottom: 7px;
 }
-
 .docs-duo {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(252px, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
@@ -9958,23 +10479,36 @@ a.tile.attention:hover {
 
 /* -------------------------------------------------------------------- keys */
 .docs-keys {
+  max-width: var(--docs-wide);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
   gap: 1px;
   background: var(--border-soft);
   border: 1px solid var(--border-soft);
-  border-radius: var(--radius);
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 .docs-key {
   background: var(--surface);
-  padding: 10px 13px;
+  padding: 11px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 13.5px;
   color: var(--text-2);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+/* Flashes when that key is actually pressed — the list is listening. */
+.docs-key.hit {
+  background: var(--accent-bg);
+  color: var(--text);
+}
+.docs-key.hit kbd {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(1px);
+  border-bottom-width: 1px;
 }
 .docs-key-caps {
   display: inline-flex;
@@ -9991,47 +10525,49 @@ a.tile.attention:hover {
   padding: 1px 5px;
   color: var(--text);
   white-space: nowrap;
+  transition: all 0.12s ease;
 }
 
 /* ------------------------------------------------------------------- close */
 .docs-closer {
-  margin-top: 60px;
-  padding: 26px 28px;
+  margin-top: 72px;
+  padding: 30px 32px;
   border: 1px solid var(--accent-line);
-  background: var(--accent-bg);
-  border-radius: 6px;
-  max-width: 68ch;
+  border-radius: 10px;
+  background:
+    radial-gradient(90% 160% at 0% 0%, var(--accent-glow) 0%, transparent 62%),
+    var(--surface);
+  max-width: var(--docs-wide);
 }
 .docs-closer h2 {
-  font-size: 22px;
-  margin-bottom: 12px;
+  font-size: 23px;
+  margin-bottom: 13px;
 }
 .docs-closer p {
   font-size: 15px;
 }
-.docs-cta {
-  margin-top: 8px;
-  height: 34px;
+.docs-closer .docs-cta {
+  margin-top: 10px;
 }
 
 .docs-colophon {
-  margin-top: 32px !important;
+  margin-top: 36px !important;
   padding-top: 18px;
   border-top: 1px solid var(--border);
   font-size: 12.5px !important;
   color: var(--text-3) !important;
-  max-width: 68ch;
+  max-width: var(--docs-wide);
 }
 
 /* ------------------------------------------------------------------ narrow */
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .docs-cols {
     grid-template-columns: 1fr;
     gap: 0;
   }
   .docs-rail {
     position: static;
-    margin-bottom: 34px;
+    margin-bottom: 36px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border);
   }
@@ -10047,29 +10583,199 @@ a.tile.attention:hover {
     padding: 5px 11px;
     font-size: 12px;
   }
+  .docs-rail a:hover {
+    padding-left: 11px;
+  }
   .docs-rail a[aria-current='true'] {
-    border-color: var(--accent);
-    background: var(--accent-bg);
+    border-color: var(--hue, var(--accent));
+    background: rgb(var(--hue-rgb) / 0.1);
   }
-  .docs-masthead {
-    padding-top: 34px;
+  .docs-hero-inner {
+    grid-template-columns: 1fr;
   }
-  .docs-ladder {
-    flex-wrap: wrap;
+  .docs-hero-card {
+    max-width: 380px;
   }
-  .docs-rung {
-    flex: 1 1 40% !important;
+  .docs-hero-veil {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface) 62%, transparent) 0%, var(--surface) 52%),
+      radial-gradient(80% 90% at 20% 10%, var(--accent-glow) 0%, transparent 60%);
   }
 }
 
 @media (max-width: 640px) {
   .docs-shell {
-    padding: 0 16px 60px;
+    padding: 0 16px 68px;
   }
   .docs-bar {
     padding: 0 12px;
   }
+  .docs-stats {
+    gap: 20px;
+  }
+  .docs-stats b {
+    font-size: 24px;
+  }
   .docs-timeline {
     grid-template-columns: 1fr;
+  }
+  .docs-clock-acts {
+    margin-left: 0;
+  }
+}
+
+/*
+  Motion off: everything that moved is a state change instead. The reveal has to
+  be forced visible rather than merely un-animated — an element left at
+  `opacity: 0` with its transition removed never appears at all.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .docs-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .docs-h1-line,
+  .docs-standfirst,
+  .docs-stats,
+  .docs-hero-acts,
+  .docs-hero-card,
+  .docs-hero-log,
+  .docs-beat,
+  .docs-chip.pop {
+    animation: none;
+  }
+  .docs-rung,
+  .docs-key,
+  .docs-outcome-btn,
+  .docs-box,
+  .docs-rail a,
+  .docs-rail-dot,
+  .docs-status-demo,
+  .docs kbd {
+    transition: none;
+  }
+  .docs-outcome-btn:hover,
+  .docs-status-demo:hover,
+  .docs-conf-row .conf-dot:hover {
+    transform: none;
+  }
+  .docs-row-acts .act.rev.on {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------- revision: how it works
+   Collapsible and remembered. The explanation earns its space the first week
+   and is in the way by the third, so the page it sits on is the one that
+   decides — see useLocalState in the component. */
+.rev-how {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  margin: 12px 0 16px;
+  overflow: hidden;
+}
+.rev-how-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-align: left;
+}
+.rev-how-toggle:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.rev-how.open .rev-how-toggle {
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+}
+.rev-how-body {
+  padding: 14px 14px 12px;
+}
+.rev-how-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 18px;
+}
+.rev-how-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.rev-how-body p {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.rev-how-body p:last-child {
+  margin-bottom: 0;
+}
+.rev-how-body b {
+  color: var(--text);
+  font-weight: 600;
+}
+.rev-how-foot {
+  margin-top: 14px !important;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 12px !important;
+  color: var(--text-3) !important;
+}
+.rev-how-foot a {
+  color: var(--accent);
+}
+
+/* ----------------------------------------------------- revision: per problem
+   Which rung this one is on, and what a tick would buy it. Four pips beat a
+   sentence in a table cell, and the number beside them is the server's own —
+   see the `review` block on the queue endpoint. */
+.rev-ladder {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+.rev-pips {
+  display: inline-flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+.rev-pips i {
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.rev-pips i.done {
+  background: var(--text-3);
+}
+.rev-pips i.now {
+  background: var(--accent);
+}
+.rev-ladder-say {
+  font-size: 10.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.rev-ladder-say b {
+  color: var(--easy);
+  font-weight: 600;
+  font-family: var(--mono);
+}
+
+@media (max-width: 700px) {
+  .rev-how-grid {
+    gap: 14px;
   }
 }

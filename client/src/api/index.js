@@ -70,6 +70,16 @@ export const progressApi = {
   deleteAttempt: (problemId, attemptId) =>
     http.delete(`/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
   revision: () => http.get('/progress/revision').then((r) => r.data),
+  /*
+    Working the queue. `recalled` advances the spaced-repetition ladder;
+    `dismissed` only clears what was putting the row in front of you. Both are
+    posted rather than patched because "I reviewed this" is an event, not a
+    field — see the server for what the patch route could not do here.
+  */
+  review: (problemId, result, confidence) =>
+    http
+      .post(`/progress/${problemId}/review`, { result, ...(confidence ? { confidence } : {}) })
+      .then((r) => r.data.progress),
 };
 
 export const statsApi = {
