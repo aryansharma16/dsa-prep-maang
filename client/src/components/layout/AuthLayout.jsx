@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motivationApi } from '../../api/index.js';
 import { BRAND } from '../../brand.js';
-import { IconCheck } from '../ui/Icons.jsx';
+import { IconBook, IconCheck } from '../ui/Icons.jsx';
 import { randomAuthLine } from './authLines.js';
 import { ParticleWeb } from './ParticleWeb.jsx';
 
@@ -139,6 +139,14 @@ export function AuthLayout({ title, subtitle, children, footer }) {
         <Link to="/login" className="auth-brand">
           <span className="brand-mark">{BRAND.mark}</span>
           {BRAND.name}
+        </Link>
+
+        {/* The only link on this page that goes somewhere other than into an
+            account. Someone who has not decided yet needs to be able to read
+            what this is without making one up first. */}
+        <Link to="/docs" className="auth-docs">
+          <IconBook size={12} />
+          What is {BRAND.name}?
         </Link>
 
         <div className="auth-card">

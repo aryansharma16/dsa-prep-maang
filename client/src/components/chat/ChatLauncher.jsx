@@ -53,8 +53,7 @@ export function ChatLauncher() {
       </button>
 
       {/*
-        No click-outside close. AttemptPopover's dismiss-on-outside-click is
-        right for a 210px popover; a chat panel you are reading while scrolling
+        No click-outside close. A chat panel you are reading while scrolling
         the roadmap behind it must not vanish when you click the page. Escape,
         the ✕, and the bubble itself are the three ways out.
       */}

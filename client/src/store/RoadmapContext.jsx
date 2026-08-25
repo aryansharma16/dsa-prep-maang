@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { problemsApi, progressApi } from '../api/index.js';
 import { errorMessage } from '../api/http.js';
+import { outcomeOf } from '../components/problem/attempts.js';
 import { useToast } from './ToastContext.jsx';
 
 const RoadmapContext = createContext(null);
@@ -12,7 +13,23 @@ const emptyProgress = {
   confidence: 3,
   notes: '',
   attemptCount: 0,
+  attemptMinutes: 0,
+  recentAttempts: [],
 };
+
+/**
+ * The attempt summary the table draws, recomputed from a saved progress row.
+ *
+ * The write endpoints answer with the whole document, attempts and all, while
+ * the roadmap ships only the tail — so this is where the two shapes are made
+ * the same. The same four-attempt window as the aggregation in
+ * server/src/controllers/problem.controller.js, for the same reason.
+ */
+const attemptSummary = (attempts = []) => ({
+  attemptCount: attempts.length,
+  attemptMinutes: attempts.reduce((n, a) => n + (a.minutes || 0), 0),
+  recentAttempts: attempts.slice(-4),
+});
 
 const countSolved = (problems) =>
   problems.reduce((n, p) => n + (p.progress?.status === 'solved' ? 1 : 0), 0);
@@ -84,7 +101,7 @@ export function RoadmapProvider({ children }) {
           notes: saved.notes,
           nextReviewAt: saved.nextReviewAt,
           solvedAt: saved.solvedAt,
-          attemptCount: saved.attempts?.length ?? before.attemptCount,
+          ...(saved.attempts ? attemptSummary(saved.attempts) : {}),
         });
         return true;
       } catch (err) {
@@ -99,14 +116,38 @@ export function RoadmapProvider({ children }) {
   const logAttempt = useCallback(
     async (problemId, body) => {
       const before = snapshot(problemId);
-      const stuck = body.outcome === 'stuck';
+      /*
+        The same table the server decides by — see components/problem/attempts.js.
+        It is mirrored rather than awaited so the row settles on the frame the
+        dialog closes; the server's answer replaces all of this a moment later,
+        and the only cost of the mirror being wrong is one frame of flicker.
+      */
+      const effect = outcomeOf(body.outcome);
+      const attempt = {
+        // No `_id` — the server mints that, and the chip this draws is replaced
+        // by the real one as soon as the write lands.
+        at: new Date().toISOString(),
+        loggedAt: new Date().toISOString(),
+        minutes: body.minutes,
+        outcome: body.outcome,
+        color: body.color || '',
+        timed: Boolean(body.timed),
+        confidence: body.confidence ?? null,
+        note: body.note || '',
+      };
+
       applyLocal(problemId, {
-        // Getting stuck on something already solved does not un-solve it — mirror
-        // the server's rule so the row doesn't flicker back and forth.
-        status: stuck ? (before.status === 'solved' ? 'solved' : 'attempted') : 'solved',
-        needsRevision: stuck ? true : before.needsRevision,
+        // Not solving it does not un-solve it: an attempt says how one sitting
+        // went, not what you know.
+        status: effect.solves ? 'solved' : before.status === 'solved' ? 'solved' : 'attempted',
+        needsRevision: effect.flagsRevision ? true : before.needsRevision,
+        confidence: body.confidence ?? before.confidence,
         attemptCount: (before.attemptCount || 0) + 1,
+        attemptMinutes: (before.attemptMinutes || 0) + (body.minutes || 0),
+        // The window the column draws, with this sitting on the end of it.
+        recentAttempts: [...(before.recentAttempts || []), attempt].slice(-4),
       });
+
       try {
         const saved = await progressApi.attempt(problemId, body);
         applyLocal(problemId, {
@@ -115,7 +156,7 @@ export function RoadmapProvider({ children }) {
           confidence: saved.confidence,
           nextReviewAt: saved.nextReviewAt,
           solvedAt: saved.solvedAt,
-          attemptCount: saved.attempts?.length ?? 0,
+          ...attemptSummary(saved.attempts || []),
         });
       } catch (err) {
         applyLocal(problemId, before);
@@ -123,6 +164,41 @@ export function RoadmapProvider({ children }) {
       }
     },
     [applyLocal, snapshot, toastError],
+  );
+
+  /**
+   * An attempt was edited or removed in the log dialog.
+   *
+   * These exist here rather than being called straight off `progressApi` for
+   * one reason: the table behind the dialog draws a chip per attempt, and a
+   * dialog that quietly kept its edit to itself left the row showing the colour
+   * you just changed and the sitting you just deleted until a reload.
+   *
+   * Both answer with the whole progress document, so the row is refreshed from
+   * what the server actually stored rather than from what was asked for.
+   *
+   * Unlike `logAttempt` these let the error out instead of toasting it. The
+   * caller is a dialog with a place to put a message, and a toast behind an
+   * open modal is a message in the one place the reader is not looking.
+   */
+  const syncAttempts = useCallback(
+    (problemId, saved) => {
+      applyLocal(problemId, attemptSummary(saved.attempts || []));
+      return saved;
+    },
+    [applyLocal],
+  );
+
+  const editAttempt = useCallback(
+    async (problemId, attemptId, patch) =>
+      syncAttempts(problemId, await progressApi.editAttempt(problemId, attemptId, patch)),
+    [syncAttempts],
+  );
+
+  const deleteAttempt = useCallback(
+    async (problemId, attemptId) =>
+      syncAttempts(problemId, await progressApi.deleteAttempt(problemId, attemptId)),
+    [syncAttempts],
   );
 
   const addProblem = useCallback(async (body) => {
@@ -206,6 +282,8 @@ export function RoadmapProvider({ children }) {
       reload: load,
       setProgress,
       logAttempt,
+      editAttempt,
+      deleteAttempt,
       addProblem,
       updateProblem,
       removeProblem,
@@ -218,6 +296,8 @@ export function RoadmapProvider({ children }) {
       load,
       setProgress,
       logAttempt,
+      editAttempt,
+      deleteAttempt,
       addProblem,
       updateProblem,
       removeProblem,

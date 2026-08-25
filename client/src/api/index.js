@@ -53,6 +53,22 @@ export const progressApi = {
   patch: (problemId, body) => http.patch(`/progress/${problemId}`, body).then((r) => r.data.progress),
   attempt: (problemId, body) =>
     http.post(`/progress/${problemId}/attempt`, body).then((r) => r.data.progress),
+  /*
+    The whole log for one problem, with whole notes. The roadmap already carries
+    the last few attempts with their notes truncated, which is what the table
+    column draws — this is the version worth a request because you opened the
+    dialog to read it.
+  */
+  attempts: (problemId) => http.get(`/progress/${problemId}/attempts`).then((r) => r.data),
+  /*
+    Addressed by the attempt's own id. It used to be the index, on the argument
+    that an append-only array cannot move — which stopped being true the moment
+    one could be deleted.
+  */
+  editAttempt: (problemId, attemptId, body) =>
+    http.patch(`/progress/${problemId}/attempts/${attemptId}`, body).then((r) => r.data.progress),
+  deleteAttempt: (problemId, attemptId) =>
+    http.delete(`/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
   revision: () => http.get('/progress/revision').then((r) => r.data),
 };
 

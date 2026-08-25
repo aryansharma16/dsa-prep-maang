@@ -968,19 +968,6 @@ table.problems tbody tr:last-child td {
   background: var(--surface-hover);
 }
 
-/*
-  The attempt popover opens inside the frozen Track cell, and every frozen cell
-  shares one z-index — so the rows *below* it, painting later, came out on top
-  and sliced the popover in half. The popover's own z-index cannot help: it is
-  trapped in the stacking context its cell creates. Lifting the cell is what
-  gets the whole thing out, and only the row with a popover open is lifted, so
-  the frozen column keeps its normal layering everywhere else.
-*/
-.problems tbody tr.pop-open td.pin,
-.problems tbody tr.pop-open td.col-acts {
-  z-index: 5;
-}
-
 /* Only where content is actually hidden — see the edge measurement in
    PatternSection. */
 .tablewrap.cut-left .pin-left.pin-edge::after,
@@ -2552,28 +2539,7 @@ tr.cursor .act {
   opacity: 0.7;
 }
 
-/* attempt popover */
-.pop {
-  position: absolute;
-  right: 0;
-  top: 26px;
-  width: 210px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  box-shadow: 0 8px 24px var(--shadow);
-  padding: 10px;
-  z-index: 20;
-  text-align: left;
-}
-.pop h4 {
-  margin: 0 0 7px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-3);
-  font-weight: 600;
-}
+/* attempt chips — the presets and outcomes in the log dialog */
 .chips {
   display: flex;
   gap: 4px;
@@ -2950,6 +2916,7 @@ img.avatar {
    edge, and that column is what gets centred in the half — not each piece
    independently. They also sit above the web. */
 .auth-brand,
+.auth-docs,
 .auth-card,
 .auth-foot {
   position: relative;
@@ -2962,10 +2929,28 @@ img.avatar {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-bottom: 34px;
+  /* The guide link sits directly under this and the pair reads as one block,
+     so the gap that used to separate the brand from the card now sits below
+     the link instead. */
+  margin-bottom: 9px;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+
+/* Small on purpose. It is the one way out of this page that is not an account,
+   and it has to be findable without competing with the form. */
+.auth-docs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 26px;
+  padding-left: 34px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.auth-docs:hover {
+  color: var(--accent);
 }
 .auth-brand .brand-mark {
   width: 25px;
@@ -8961,5 +8946,1130 @@ a.tile.attention:hover {
   /* The arrow-key hint is desktop-only advice. */
   .learn-done-hint {
     display: none;
+  }
+}
+
+/* ========================================================================== */
+/* attempts — the log dialog, its chips in the table, and the problem pill     */
+/* ========================================================================== */
+
+/*
+  Wider than `lg`, because the dialog is two columns: what you are logging on
+  the left, what you logged before on the right. One column would put the log
+  below the fold of the thing it is context for.
+*/
+.modal.xl {
+  max-width: 900px;
+}
+
+/* The small button. Only the timer row uses it — three controls that must not
+   read as heavily as the dialog's own Log attempt. */
+.btn.sm {
+  height: 26px;
+  padding: 0 9px;
+  font-size: 12px;
+  gap: 5px;
+}
+
+.att-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+.att-form {
+  min-width: 0;
+}
+.att-block {
+  margin-bottom: 14px;
+}
+.att-block:last-child {
+  margin-bottom: 0;
+}
+.att-block h4 {
+  margin: 0 0 7px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.att-hint {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-3);
+  min-height: 16px;
+}
+
+/* ----------------------------------------------------------------- clock */
+
+.att-timer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+/* Only while it is actually counting. A paused clock in danger red reads as a
+   clock you have forgotten, which is the one thing it is not. */
+.att-timer.live {
+  border-color: var(--danger);
+  background: var(--hard-bg);
+}
+.att-clock {
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.att-timer.live .att-clock {
+  color: var(--danger);
+}
+.att-timer-acts {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.att-elsewhere {
+  flex: 1 0 100%;
+}
+
+/* ------------------------------------------------------- time and outcome */
+
+.att-times {
+  align-items: center;
+}
+.att-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-left: 4px;
+}
+.att-custom input {
+  width: 58px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+.att-usetimer {
+  font-size: 11px;
+  margin-left: 2px;
+}
+.att-timed-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--easy);
+  margin-left: 2px;
+}
+
+/*
+  Three tones over five outcomes — see components/problem/attempts.js. The tone
+  only appears on the chosen chip: five coloured chips in a row is a palette,
+  not a choice.
+*/
+.att-outcome.on.good {
+  border-color: var(--easy);
+  color: var(--easy);
+  background: var(--easy-bg);
+}
+.att-outcome.on.mixed {
+  border-color: var(--medium);
+  color: var(--medium);
+  background: var(--medium-bg);
+}
+.att-outcome.on.bad {
+  border-color: var(--hard);
+  color: var(--hard);
+  background: var(--hard-bg);
+}
+.att-outcome {
+  font-family: var(--font);
+  font-size: 12px;
+  height: 26px;
+}
+
+.att-note {
+  width: 100%;
+  min-height: 74px;
+  resize: vertical;
+  padding: 8px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.att-hues {
+  margin-top: 9px;
+}
+/* "No colour" cannot be drawn in a colour. A hollow swatch with a slash reads
+   as the absence rather than as a fourteenth hue. */
+.att-hue-none {
+  background: transparent;
+  position: relative;
+}
+.att-hue-none::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-top: 1px solid var(--text-3);
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+.att-hue-none.on {
+  box-shadow: 0 0 0 2px var(--text-3);
+}
+
+/* ------------------------------------------------------------------- log */
+
+.att-log {
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+  max-height: 62vh;
+  overflow-y: auto;
+}
+.att-log-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+.att-log-head h4 {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.att-log-total {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.att-empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.att-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/*
+  The colour is a stripe down the edge rather than a fill. It is a mark you put
+  on a sitting to find it again, and a tinted block behind the note would fight
+  the reading — the same rule the board's columns follow.
+*/
+.att-item {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: var(--surface-2);
+}
+.att-item[data-hue] {
+  border-left-color: var(--hue);
+}
+.att-item-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+}
+.att-item-when {
+  color: var(--text-3);
+}
+.att-item-mins {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-2);
+  margin-left: auto;
+}
+/* Sits with the outcome pill on the left of the gap, not with the minutes on
+   the right of it — it is part of how the sitting went, not part of its cost. */
+.att-item-conf {
+  flex: 0 0 auto;
+}
+.att-item-edit {
+  font-size: 11px;
+}
+.att-item-note {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.att-edit {
+  margin-top: 7px;
+}
+.att-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.att-edit-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.att-edit-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+/* Destructive at rest here, not only on hover: it sits next to Keep, and the
+   two have to be told apart before the pointer is on either. */
+.att-edit-foot .link-btn.danger {
+  color: var(--hard);
+  font-weight: 500;
+}
+.att-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+}
+.att-delete:hover {
+  color: var(--hard);
+}
+/* The dots as a fact rather than a control — smaller than the ones you click,
+   because the log row is a line of five other facts. */
+.att-item-conf i {
+  height: 9px;
+  width: 3px;
+}
+/* Sits after the minutes, which already took the gap. */
+.att-item-locked {
+  font-size: 10.5px;
+  color: var(--text-3);
+  font-style: italic;
+}
+/* The countdown on an attempt that can still be changed. Amber, because it is a
+   deadline — and it is the only explanation the Edit button beside it gets for
+   disappearing. */
+.att-item-window {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--medium);
+  white-space: nowrap;
+}
+.att-edit textarea {
+  width: 100%;
+  min-height: 58px;
+  resize: vertical;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.att-edit .tk-hue {
+  width: 16px;
+  height: 16px;
+}
+.att-edit .att-hues {
+  margin-top: 7px;
+}
+
+.att-outcome-pill {
+  padding: 1px 6px;
+  border-radius: 9px;
+  font-size: 10.5px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.att-outcome-pill.good {
+  color: var(--easy);
+  background: var(--easy-bg);
+  border-color: var(--easy);
+}
+.att-outcome-pill.mixed {
+  color: var(--medium);
+  background: var(--medium-bg);
+  border-color: var(--medium);
+}
+.att-outcome-pill.bad {
+  color: var(--hard);
+  background: var(--hard-bg);
+  border-color: var(--hard);
+}
+
+/* --------------------------------------------------------- the table cell */
+
+/*
+  One chip per sitting, oldest first, so the row reads left to right as the
+  history it is. Never wraps: a table row is one line tall and a second line of
+  chips would push every other row's content off its baseline.
+*/
+.att-cell {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+}
+.att-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  border-left-width: 2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+/* Tone on the border, hue on the left edge — the outcome and the colour you
+   gave it are two different facts and each keeps its own side of the chip. */
+.att-chip.good {
+  border-color: var(--easy);
+  color: var(--easy);
+}
+.att-chip.mixed {
+  border-color: var(--medium);
+  color: var(--medium);
+}
+.att-chip.bad {
+  border-color: var(--hard);
+  color: var(--hard);
+}
+.att-chip[data-hue] {
+  border-left-color: var(--hue);
+}
+/* There is a note on this one. A dot, because the cell has no room for it and
+   the tooltip already carries the text. */
+.att-chip-note {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-left: 1px;
+}
+.att-chip-more {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------ row marking */
+
+/* Which row the pill in the top bar is counting. */
+.problems tbody tr.timing td.col-acts .act.on {
+  color: var(--danger);
+}
+.act.ticking {
+  animation: tk-pulse 1.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .act.ticking {
+    animation: none;
+  }
+}
+
+/* The problem pill sits beside the task one and has to be told apart from it at
+   a glance — the accent rather than danger red, and paused it goes quiet. */
+.att-pill {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.att-pill .tk-pill-open,
+.att-pill .icon-btn {
+  color: var(--accent);
+}
+.att-pill .tk-pill-dot {
+  background: var(--accent);
+}
+.att-pill.held {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+.att-pill.held .tk-pill-open,
+.att-pill.held .icon-btn {
+  color: var(--text-2);
+}
+.att-pill.held .tk-pill-dot {
+  background: var(--text-3);
+  animation: none;
+}
+
+/* ---------------------------------------------------------------- narrow */
+
+@media (max-width: 860px) {
+  /* The log goes under the form rather than beside it, and stops being a
+     column with its own scrollbar inside a dialog that already scrolls. */
+  .att-body {
+    grid-template-columns: 1fr;
+  }
+  .att-log {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-left: 0;
+    padding-top: 12px;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* ========================================================================== */
+/* docs — what the platform is and how to use it, for people using it         */
+/* ========================================================================== */
+
+/*
+  Public, and mounted on both sides of the auth branch: signed in it lands
+  inside the shell's content column, signed out it is the whole page. The two
+  differ only in the bar at the top, so everything below is written to work
+  either way — no fixed positioning, no assumed viewport, and the width cap on
+  .docs-shell rather than on the body.
+*/
+.docs {
+  color: var(--text);
+}
+/* Signed out there is no shell painting the ground behind this. */
+.docs-public {
+  min-height: 100%;
+  background: var(--bg);
+}
+
+.docs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--topbar-h);
+  padding: 0 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.docs-bar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.docs-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+.docs-public .docs-shell {
+  padding-top: 8px;
+}
+/* Inside the shell the content column already carries the page padding, and
+   doubling it costs 40px a side and 160px of dead space at the foot. */
+.docs:not(.docs-public) .docs-shell {
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------- masthead
+   The rule under it is the accent, because the one colour the reader has
+   already chosen is the one thing that should greet them here. */
+.docs-masthead {
+  padding: 54px 0 28px;
+  border-bottom: 2px solid var(--accent-line);
+  margin-bottom: 40px;
+}
+
+.docs-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+  margin-bottom: 22px;
+}
+
+.docs h1 {
+  margin: 0;
+  font-size: clamp(32px, 5.4vw, 54px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  max-width: 16ch;
+  text-wrap: balance;
+}
+
+.docs-standfirst {
+  margin: 20px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--text-2);
+  max-width: 54ch;
+}
+
+.docs-thesis {
+  margin: 24px 0 0;
+  padding: 14px 18px;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 60ch;
+}
+.docs-thesis b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------------------- rail */
+.docs-cols {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.docs-main {
+  min-width: 0;
+}
+
+.docs-rail {
+  position: sticky;
+  top: 20px;
+}
+.docs-public .docs-rail {
+  top: calc(var(--topbar-h) + 16px);
+}
+
+.docs-rail-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.docs-rail nav {
+  display: flex;
+  flex-direction: column;
+}
+.docs-rail a {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text-3);
+  padding: 6px 0 6px 12px;
+  border-left: 2px solid var(--border-soft);
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+.docs-rail a:hover {
+  color: var(--text);
+  border-left-color: var(--text-3);
+}
+.docs-rail a[aria-current='true'] {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------- sections */
+.docs section {
+  scroll-margin-top: 24px;
+}
+.docs-public section {
+  scroll-margin-top: calc(var(--topbar-h) + 20px);
+}
+.docs section + section {
+  margin-top: 56px;
+}
+
+.docs-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+
+.docs h2 {
+  margin: 0 0 16px;
+  font-size: clamp(22px, 3vw, 29px);
+  line-height: 1.14;
+  letter-spacing: -0.022em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.docs h3 {
+  margin: 32px 0 10px;
+  font-size: 16.5px;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  font-weight: 600;
+}
+
+.docs p {
+  margin: 0 0 14px;
+  max-width: 66ch;
+  font-size: 14.5px;
+  line-height: 1.68;
+  color: var(--text-2);
+}
+.docs p b {
+  color: var(--text);
+  font-weight: 600;
+}
+.docs p i,
+.docs li i {
+  font-style: italic;
+  color: var(--text);
+}
+
+.docs-lede {
+  font-size: 16px !important;
+  color: var(--text) !important;
+}
+
+.docs-list {
+  margin: 0 0 14px;
+  padding-left: 19px;
+  max-width: 66ch;
+  font-size: 14.5px;
+  line-height: 1.68;
+  color: var(--text-2);
+}
+.docs-list li {
+  margin-bottom: 7px;
+}
+.docs-list b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.docs code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 3px;
+  padding: 0.08em 0.32em;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------- steps
+   Numbered because these five are a real sequence. Nothing else on the page
+   is, and nothing else is numbered. */
+.docs-steps {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  counter-reset: docs-step;
+  max-width: 68ch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.docs-steps li {
+  counter-increment: docs-step;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--surface);
+}
+.docs-steps li + li {
+  border-top: 1px solid var(--border-soft);
+}
+.docs-steps li::before {
+  content: counter(docs-step, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  padding-top: 2px;
+}
+.docs-steps b {
+  display: block;
+  font-weight: 600;
+  font-size: 14.5px;
+  margin-bottom: 2px;
+}
+.docs-steps span {
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+/* ------------------------------------------------------------------ tables */
+.docs-tablewrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin-bottom: 16px;
+}
+.docs-tablewrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.docs-tablewrap th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--text-3);
+  font-weight: 500;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.docs-tablewrap td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+  line-height: 1.55;
+}
+.docs-tablewrap tr:last-child td {
+  border-bottom: none;
+}
+.docs-gloss {
+  color: var(--text-2);
+}
+.docs-center {
+  text-align: center;
+}
+
+/* The outcome table is the one thing here a reader has to internalise, so its
+   rows carry their meaning in form as well as in words. */
+.docs-outcomes td:first-child {
+  border-left: 3px solid transparent;
+}
+.docs-outcomes tr.tone-good td:first-child {
+  border-left-color: var(--easy);
+}
+.docs-outcomes tr.tone-mid td:first-child {
+  border-left-color: var(--medium);
+}
+.docs-outcomes tr.tone-bad td:first-child {
+  border-left-color: var(--hard);
+}
+
+.docs-yes,
+.docs-no {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.docs-yes {
+  color: var(--easy);
+  background: var(--easy-bg);
+}
+.docs-no {
+  color: var(--text-3);
+  background: var(--surface-2);
+}
+
+/* ------------------------------------------------------------------- chips */
+.docs-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.docs-chip.good {
+  color: var(--easy);
+  border-color: var(--easy);
+  background: var(--easy-bg);
+}
+.docs-chip.mid {
+  color: var(--medium);
+  border-color: var(--medium);
+  background: var(--medium-bg);
+}
+.docs-chip.bad {
+  color: var(--hard);
+  border-color: var(--hard);
+  background: var(--hard-bg);
+}
+
+/* ------------------------------------------------------------------ ladder
+   Drawn to scale, so the widening gap is what you see rather than four
+   numbers you have to compare. */
+.docs-ladder {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0 0 14px;
+  max-width: 66ch;
+}
+.docs-rung {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: 3px solid var(--accent-line);
+  border-radius: var(--radius);
+  padding: 11px 8px;
+  text-align: center;
+  min-width: 0;
+}
+.docs-rung.last {
+  border-bottom-color: var(--accent);
+}
+.docs-rung b {
+  display: block;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.docs-rung span {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+
+/* ---------------------------------------------------------------- timeline
+   One attempt end to end. A strip rather than a list, because the point is
+   that the part you can still change is a short window near the start. */
+.docs-timeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
+  gap: 2px;
+  margin: 0 0 16px;
+  max-width: 68ch;
+}
+.docs-beat {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  padding: 12px 13px;
+}
+.docs-beat-when {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+.docs-beat.shut .docs-beat-when {
+  color: var(--text-3);
+}
+.docs-beat b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.docs-beat span {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------- box */
+.docs-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  max-width: 68ch;
+}
+.docs-box p {
+  max-width: none;
+  margin-bottom: 0;
+}
+.docs-box-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--accent);
+  margin-bottom: 7px;
+}
+
+.docs-duo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.docs-duo .docs-box {
+  margin-bottom: 0;
+  max-width: none;
+}
+
+/* -------------------------------------------------------------------- keys */
+.docs-keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(224px, 1fr));
+  gap: 1px;
+  background: var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.docs-key {
+  background: var(--surface);
+  padding: 10px 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+.docs-key-caps {
+  display: inline-flex;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+.docs kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------- close */
+.docs-closer {
+  margin-top: 60px;
+  padding: 26px 28px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-bg);
+  border-radius: 6px;
+  max-width: 68ch;
+}
+.docs-closer h2 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+.docs-closer p {
+  font-size: 15px;
+}
+.docs-cta {
+  margin-top: 8px;
+  height: 34px;
+}
+
+.docs-colophon {
+  margin-top: 32px !important;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px !important;
+  color: var(--text-3) !important;
+  max-width: 68ch;
+}
+
+/* ------------------------------------------------------------------ narrow */
+@media (max-width: 900px) {
+  .docs-cols {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .docs-rail {
+    position: static;
+    margin-bottom: 34px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .docs-rail nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .docs-rail a {
+    border-left: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 11px;
+    font-size: 12px;
+  }
+  .docs-rail a[aria-current='true'] {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+  }
+  .docs-masthead {
+    padding-top: 34px;
+  }
+  .docs-ladder {
+    flex-wrap: wrap;
+  }
+  .docs-rung {
+    flex: 1 1 40% !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .docs-shell {
+    padding: 0 16px 60px;
+  }
+  .docs-bar {
+    padding: 0 12px;
+  }
+  .docs-timeline {
+    grid-template-columns: 1fr;
   }
 }

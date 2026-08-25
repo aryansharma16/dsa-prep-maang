@@ -9,6 +9,7 @@ import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
 import { FeedbackLauncher } from '../feedback/FeedbackLauncher.jsx';
 import { TimerPill } from '../tasks/TimerPill.jsx';
+import { AttemptTimerPill } from '../problem/AttemptTimerPill.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
 import { Avatar } from '../ui/Avatar.jsx';
 import { IconLogout, IconMegaphone, IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
@@ -161,6 +162,10 @@ export function AppShell() {
             the eye was already tracking.
           */}
           <TimerPill />
+          {/* Beside it, not instead of it. They measure different things and
+              can run at once — an afternoon booked on the board, one problem
+              inside it. */}
+          <AttemptTimerPill />
 
           <div className="overall">
             <span>

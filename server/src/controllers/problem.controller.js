@@ -68,7 +68,40 @@ export const listGrouped = asyncHandler(async (req, res) => {
               notes: 1,
               solvedAt: 1,
               nextReviewAt: 1,
-              attemptCount: { $size: '$attempts' },
+              attemptCount: { $size: { $ifNull: ['$attempts', []] } },
+              attemptMinutes: { $sum: '$attempts.minutes' },
+              /*
+                The tail of the log, so the table can show how the last few
+                sittings actually went rather than a count that says nothing
+                about whether you are getting anywhere.
+
+                Bounded twice, because this ships once per problem for every
+                problem on the roadmap: the last four attempts, and their notes
+                cut to a tooltip's worth. The dialog fetches the whole log with
+                whole notes when you open it — see listAttempts.
+              */
+              recentAttempts: {
+                $map: {
+                  input: { $slice: [{ $ifNull: ['$attempts', []] }, -4] },
+                  as: 'a',
+                  in: {
+                    // The address the dialog edits and deletes by. Null on the
+                    // attempts written before ids — see the migration.
+                    _id: { $ifNull: ['$$a._id', null] },
+                    at: '$$a.at',
+                    // What the dialog's half-hour window is measured from, so
+                    // the preview it shows before its own fetch lands does not
+                    // offer an Edit that the server will refuse.
+                    loggedAt: { $ifNull: ['$$a.loggedAt', null] },
+                    minutes: '$$a.minutes',
+                    outcome: '$$a.outcome',
+                    color: { $ifNull: ['$$a.color', ''] },
+                    timed: { $ifNull: ['$$a.timed', false] },
+                    confidence: { $ifNull: ['$$a.confidence', null] },
+                    note: { $substrCP: [{ $ifNull: ['$$a.note', ''] }, 0, 120] },
+                  },
+                },
+              },
             },
           },
         ],

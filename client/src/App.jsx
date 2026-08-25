@@ -16,6 +16,8 @@ import { Stats } from './pages/Stats.jsx';
 import { Tasks } from './pages/Tasks.jsx';
 import { useAuth } from './store/AuthContext.jsx';
 import { moduleVisible } from './store/modules.js';
+import { Docs } from './pages/Docs.jsx';
+import { AttemptTimerProvider } from './store/AttemptTimerContext.jsx';
 import { RoadmapProvider } from './store/RoadmapContext.jsx';
 import { TasksProvider } from './store/TasksContext.jsx';
 
@@ -32,6 +34,14 @@ export function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        {/*
+          The one route that exists on both sides of this branch. Someone
+          deciding whether to sign up is the reader who most needs to know what
+          this is, and a page that answers that from behind a login answers
+          nobody. It draws its own bar out here; inside the shell below it
+          picks up the sidebar instead.
+        */}
+        <Route path="/docs" element={<Docs />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -51,44 +61,52 @@ export function App() {
     whether the module is on, and the provider reads that itself and never
     fetches when it is off. A conditional provider would make the hook throw on
     every page the moment the module was hidden.
+
+    AttemptTimerProvider is the same shape for the problem stopwatch, and is
+    mounted here for the same reason: its pill is drawn in the top bar, so the
+    clock cannot live on the roadmap route. It holds no server state at all —
+    see the file for why that one is local.
   */
   return (
     <RoadmapProvider>
       <ChatProvider>
         <TasksProvider>
-          <Routes>
-            <Route element={<AppShell />}>
-              <Route path="/" element={<Roadmap />} />
-              {/*
-                A module the super admin has hidden is not declared at all, so its
-                URL falls through to the catch-all and lands on the roadmap —
-                indistinguishable from a route that was never built, which is the
-                same line /admin takes below. Cosmetic, like every guard in this
-                file: `requireModule` locks the API behind each of these.
-              */}
-              {has('revision') && <Route path="/revision" element={<Revision />} />}
-              {has('stats') && <Route path="/stats" element={<Stats />} />}
-              {has('chat') && <Route path="/chat" element={<Chat />} />}
-              {/*
-                Three routes for one module, and all three go together — a
-                bookmark to a topic inside a hidden Learn falls through to the
-                roadmap like the hub does. The pages are imported eagerly; it is
-                the *content* that is lazy, one chunk per topic behind the
-                registry in learn/tracks.js.
-              */}
-              {has('learn') && <Route path="/learn" element={<Learn />} />}
-              {has('learn') && <Route path="/learn/:track" element={<LearnTrack />} />}
-              {has('learn') && <Route path="/learn/:track/:topic" element={<LearnTopic />} />}
-              {has('tasks') && <Route path="/tasks" element={<Tasks />} />}
-              {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
-              <Route path="/profile" element={<Profile />} />
-              {/* Guards itself. A learner who types /admin is redirected home, so
-                  the route is indistinguishable from one that does not exist. */}
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/admin/:section" element={<Admin />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <AttemptTimerProvider>
+            <Routes>
+              <Route element={<AppShell />}>
+                <Route path="/" element={<Roadmap />} />
+                {/*
+                  A module the super admin has hidden is not declared at all, so its
+                  URL falls through to the catch-all and lands on the roadmap —
+                  indistinguishable from a route that was never built, which is the
+                  same line /admin takes below. Cosmetic, like every guard in this
+                  file: `requireModule` locks the API behind each of these.
+                */}
+                {has('revision') && <Route path="/revision" element={<Revision />} />}
+                {has('stats') && <Route path="/stats" element={<Stats />} />}
+                {has('chat') && <Route path="/chat" element={<Chat />} />}
+                {/*
+                  Three routes for one module, and all three go together — a
+                  bookmark to a topic inside a hidden Learn falls through to the
+                  roadmap like the hub does. The pages are imported eagerly; it is
+                  the *content* that is lazy, one chunk per topic behind the
+                  registry in learn/tracks.js.
+                */}
+                {has('learn') && <Route path="/learn" element={<Learn />} />}
+                {has('learn') && <Route path="/learn/:track" element={<LearnTrack />} />}
+                {has('learn') && <Route path="/learn/:track/:topic" element={<LearnTopic />} />}
+                {has('tasks') && <Route path="/tasks" element={<Tasks />} />}
+                {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
+                <Route path="/docs" element={<Docs />} />
+                <Route path="/profile" element={<Profile />} />
+                {/* Guards itself. A learner who types /admin is redirected home, so
+                    the route is indistinguishable from one that does not exist. */}
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin/:section" element={<Admin />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </AttemptTimerProvider>
         </TasksProvider>
       </ChatProvider>
     </RoadmapProvider>

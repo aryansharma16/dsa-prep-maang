@@ -13,11 +13,17 @@ both auth pages and the document title read from it, so renaming is one edit.
 
 ---
 
+**Using it rather than building it?** The app documents itself: **`/docs`** is a
+guide to every feature in the order a learner needs it, with no setup and no
+code. It is [public](#the-guide) — it needs no session, so it is reachable from
+the sign-in page as well as from the sidebar.
+
 ## What's in it
 
 | | |
 |---|---|
 | **Roadmap** | 429 problems in 22 patterns, filters that follow your account, a configurable table, inline statements and notes |
+| **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Learn** | Reference notes for the things around the algorithms. Two tracks — React, 43 topics from the virtual DOM through the ecosystem a job expects, and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
@@ -74,6 +80,7 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:logos` | pre-warms the company logo cache |
 | `npm run ai:draft` | drafts new motivational lines with Gemini, for you to curate |
 | `npm run migrate:problem-slugs` | one-off: makes a problem slug unique per owner rather than globally — see [Yours is yours](#yours-is-yours) |
+| `npm run migrate:attempt-ids` | one-off: gives an id and a `loggedAt` to attempts logged before they had them, without which they show as locked — see [Attempts](#attempts) |
 
 ## The curriculum
 
@@ -243,9 +250,124 @@ vocabulary and how to add a topic or a track.
 - **Statement** — expand a problem to read it inline, fetched from LeetCode on
   first open and cached in the DB afterwards
 - **Notes** — inline, autosaving, with a 1–5 confidence rating
-- **Log attempt** — optional two-tap popover for time spent and outcome
+- **Log attempt** — a stopwatch, five outcomes, and a note, a colour and a
+  confidence per sitting, correctable for half an hour after logging — see
+  [Attempts](#attempts)
 - **Revision queue** — solving schedules a review on a 3/7/21/60-day ladder,
   stretched or compressed by your confidence
+
+### Attempts
+
+A sitting with a problem, written down: how long it took, how it went, and what
+you want to remember about it. The clock icon on any row opens the log.
+
+**The stopwatch.** Start it, close the dialog, go and solve the thing — it keeps
+running in a pill in the top bar next to the task timer, and the row's clock
+icon pulses so the table says which problem is being counted. Open the log again
+and the elapsed time is already in the minutes field, marked `timed`, and it
+keeps tracking the clock while the dialog sits open. Touch a preset or type a
+number and it stops: then the number is yours and the `timed` mark comes off,
+because a measured minute and a guessed one should not read as the same evidence
+when the question is whether you are getting faster. Presets are still there —
+5 / 15 / 30 / 45 / 60 / 90 — and logging with the defaults is still two taps.
+
+Unlike the task timer, this clock is *local*. A task's tracked seconds are a
+property of a server object that outlives the tab; a problem's are a measurement
+in flight, which becomes `minutes` on an attempt the moment you log it and is
+the server's from there. So it lives in localStorage: no model, no endpoint, no
+round trip per tick, and one cost — a clock started on the laptop is not running
+on the phone. It is anchored to a wall-clock instant rather than counting ticks,
+so a reload, a sleeping laptop and a background tab all come back with the right
+number. Twelve hours is the cap, the same one the board takes.
+
+**Five outcomes**, and the table in `server/src/config/attemptOutcomes.js` is the
+rule rather than a branch in the controller:
+
+| outcome | marks it solved | flags it for revision |
+|---|---|---|
+| Solved | ✓ | – |
+| With hints | ✓ | – |
+| After video | ✓ | ✓ |
+| Partial | – | ✓ |
+| Stuck | – | ✓ |
+
+"After video" is why the table exists: it solves the problem *and* should bring
+it back around, which is not something a boolean can say. An outcome may raise
+the revision flag and may never lower one — how one sitting went is not evidence
+that a flag you set by hand no longer applies — and getting stuck on something
+already solved does not un-solve it.
+
+**A note, a colour and a confidence per attempt.** Each has a twin on the
+problem itself, and the pair says two different things. The problem's note is
+what you eventually understood; the attempt's is the account of one sitting. The
+problem's confidence is the current number the revision ladder multiplies by and
+is overwritten every time you log; the attempt's stays where it was written,
+which is what turns the log into a series — 2 → 3 → 4 over three sittings is a
+problem you are learning, and three 2s is a problem you are re-reading. The
+colour is a mark you put on a sitting to find it again, from the same named
+palette the board's columns are drawn from, so it survives a theme switch.
+
+**Editable and deletable for thirty minutes, then not.** All three fields can be
+changed after the fact and the whole attempt can be removed — which is the way
+out of a mis-tap that used to mean deleting the problem — but only inside a
+half-hour window from when it was logged. The log is a record, not a draft:
+left open forever it stops being evidence of anything, because a history you can
+rewrite at leisure is a history that agrees with whatever you believe today,
+which is the opposite of what timing yourself is for. Left closed entirely it
+punishes the ordinary mis-tap — logging against the row above, or 30m when you
+meant 3. Half an hour is the span in which you are still in the sitting you just
+logged and can remember what happened in it.
+
+Each row counts its window down (`24m left`, then `40s left`) and says **locked**
+once it is gone, so the Edit button disappearing has a visible reason rather than
+reading as a bug. An editor still open when the window closes shuts itself — a
+textarea whose next save will be refused is one that quietly eats what you typed.
+The rule is the server's: `ATTEMPT_EDIT_WINDOW_MS` in
+`server/src/config/attempts.js`, enforced in the update's own filter so the check
+and the write cannot drift apart. The client mirrors it to draw the countdown.
+
+The window is measured from `loggedAt` and never from `at`. They are the same
+instant today and are not the same fact: `at` is when the sitting happened and is
+what a "log yesterday's attempt" feature would let you set, `loggedAt` is when
+the record was written and is immutable. A grace period anchored to a value its
+beneficiary can choose is not a grace period.
+
+Deleting one removes the sitting and nothing else: the row's status, its solve
+date and its place on the revision ladder are the server's reading of everything
+up to now rather than a running total of the array, and recomputing them would
+need the history the delete just threw away. If the status is actually wrong,
+the circle in the first column is one click.
+
+The **Attempts** column draws one chip per sitting, oldest first, with the
+outcome on the border and your colour down the left edge: three attempts ending
+in green is a different problem from three ending in red, and the count column
+beside it cannot tell them apart. It ships with the roadmap — the last four
+attempts with their notes cut to 120 characters, which is what the tooltip
+shows. The dialog fetches the whole log with whole notes, because that is worth
+a request once you have opened it and is not worth shipping 430 times over.
+
+**Attempts carry ids**, and did not always. While the array was append-only an
+index was a stable address and the sub-documents were stored with `_id: false`.
+Delete ended that: once a sitting can be removed, every index after the hole
+shifts, so an edit issued against a number read a moment ago lands on the wrong
+one. An id does not move.
+
+Attempts logged before that change have neither an id nor a `loggedAt`, and both
+have to be backfilled — one command, safe to run twice:
+
+```bash
+cd server && npm run migrate:attempt-ids
+```
+
+It is not optional and it is not only for old data. An attempt with no id cannot
+be addressed by the edit and delete endpoints, so the dialog shows it as
+**locked** — which is true, and reads as a broken clock, because the reason on
+screen is a deadline that has not passed. Anything logged in the half hour
+either side of the deploy is exactly the case that looks wrong, and so is
+anything logged by a server process that has not restarted onto the new code.
+Hovering a locked row says which of the two it is. `loggedAt` is copied from `at`
+rather than stamped with now, so migrating does not hand every attempt in the
+history a fresh half-hour of editability.
 
 ### Filtering
 
@@ -282,7 +404,7 @@ that looks like it found nothing.
 
 ### The problems table
 
-Twenty-two columns exist; you choose which you see. **Columns** in the toolbar
+Twenty-four columns exist; you choose which you see. **Columns** in the toolbar
 opens the editor — show/hide, reorder, five width presets (`XS`–`XL`, scaled off
 the width each column was designed at), and pinning.
 
@@ -622,6 +744,34 @@ space, clipped on a phone, and its `overflow-x: auto` also produced a stray
 
 Every change writes to the screen first and persists in the background. If the
 request fails the row rolls back and a toast says so.
+
+## The guide
+
+`/docs` is the app explaining itself: what Ember is for, the first hour, the
+roadmap, logging an attempt, the revision ladder, and every shortcut — written
+for someone using it rather than building it.
+
+It is **the one route mounted on both sides of the auth branch** in `App.jsx`.
+The reader who most needs to know what this is has not signed up yet, and a page
+that answers that from behind a login answers nobody. So it is reachable three
+ways: **Guide** in the sidebar, a small *What is Ember?* under the brand on both
+auth pages, and `/docs` directly.
+
+Signed out it draws its own thin bar with **Sign in** and **Start your
+journey**; signed in it renders inside the shell and picks up the sidebar. The
+only other thing that changes with the session is the button at the foot, which
+becomes **Back to the course**. Nothing on the page fetches.
+
+It is styled entirely from `styles/tokens.css`, so it follows the reader's theme
+and their chosen accent like everything else — there is no second palette to
+keep in step. The one place it takes a liberty is the outcome table, whose rows
+carry a difficulty-coloured stripe: that table is the thing a learner has to
+internalise, and it is worth reading as a shape as well as as words.
+
+There is deliberately **no second copy in `docs/`**. Those files are references
+for someone working on the code; this is the one written for someone using it,
+and two versions of the same guide is the drift this codebase avoids everywhere
+else.
 
 ## Keyboard
 
@@ -1611,7 +1761,7 @@ client/
                  constructors, and one module per topic (react/, node/)
     pages/       Login, Register, Roadmap, Revision, Stats, Tasks, Learn,
                  Profile, Admin
-    store/       Auth, Roadmap, Tasks, Toast contexts
+    store/       Auth, Roadmap, Tasks, AttemptTimer, Toast contexts
     styles/      tokens, base, app
     brand.js     the product name, in one place
 docs/          the deep-dive references the README links out to:
@@ -1632,6 +1782,7 @@ docs/          the deep-dive references the README links out to:
 | `GET` | `/problems` · `/problems/:slug/description` | roadmap, statement on demand |
 | `POST` `PATCH` `DELETE` | `/problems` · `/problems/lookup` · `/problems/:id` | your own problems — edit and delete are owner-checked |
 | `GET` `PATCH` `POST` | `/progress/revision` · `/progress/:id` · `/progress/:id/attempt` | tracking |
+| `GET` `PATCH` `DELETE` | `/progress/:id/attempts` · `/progress/:id/attempts/:attemptId` | the attempt log for one problem, and editing or removing one of them — see [Attempts](#attempts) |
 | `GET` | `/stats` | profile and stats pages |
 | `GET` `POST` `PATCH` `DELETE` | `/tasks` · `/tasks/:id` | the board and everything on it in one read; a task |
 | `POST` | `/tasks/move` | a drag — `{ id, status, ids }`, the destination column in the order it was drawn |

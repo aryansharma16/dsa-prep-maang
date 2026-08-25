@@ -1,4 +1,5 @@
-import { IconCheck, IconExternal, IconNote, IconPlay } from '../ui/Icons.jsx';
+import { IconCheck, IconClock, IconExternal, IconNote, IconPlay } from '../ui/Icons.jsx';
+import { attemptTitle, minutesLabel, outcomeOf } from './attempts.js';
 import { CompanyChips } from './CompanyChips.jsx';
 
 /**
@@ -239,11 +240,68 @@ export const COLUMNS = [
   },
   {
     id: 'attempts',
-    label: 'Attempts',
-    width: 76,
+    // "Tries", because the column below it is the one called Attempts now. Two
+    // entries with the same name in the Columns dialog is a coin toss.
+    label: 'Tries',
+    width: 66,
     hidden: true,
     className: 'cell-mono cell-dim',
     cell: ({ progress }) => progress.attemptCount || <Empty />,
+  },
+  {
+    id: 'attemptLog',
+    label: 'Attempts',
+    width: 186,
+    /*
+      A chip per sitting, newest last, read the way the companies and topics
+      columns are read — as a shape rather than a number. Three attempts ending
+      in green is a different problem from three ending in red, and the count
+      column beside it cannot tell them apart.
+
+      Visible by default, unlike almost everything else here. The chips are the
+      reason the log is worth keeping, and a feature nobody switches on is a
+      feature nobody has. Anyone who disagrees turns it off in Columns, and a
+      layout saved before this existed picks it up at its default position — see
+      reconcile() in hooks/useTableLayout.js.
+    */
+    cell: ({ progress, problem, width }) => {
+      const attempts = progress.recentAttempts || [];
+      if (!attempts.length) return <Empty />;
+
+      // The chips are ~46px each. Show what fits, and say how many are behind
+      // the ones shown rather than silently cutting the history off.
+      const max = Math.max(1, Math.floor((width - 30) / 46));
+      const shown = attempts.slice(-max);
+      const hidden = (progress.attemptCount || attempts.length) - shown.length;
+
+      return (
+        <div className="att-cell" title={`${problem.title}\n\n${attempts.map(attemptTitle).join('\n\n')}`}>
+          {shown.map((attempt, i) => (
+            <span
+              key={attempt._id || `${attempt.at}-${i}`}
+              className={`att-chip ${outcomeOf(attempt.outcome).tone}`}
+              data-hue={attempt.color || undefined}
+            >
+              {attempt.timed && <IconClock size={9} />}
+              {minutesLabel(attempt.minutes)}
+              {attempt.note && <i className="att-chip-note" />}
+            </span>
+          ))}
+          {hidden > 0 && <span className="att-chip-more">+{hidden}</span>}
+        </div>
+      );
+    },
+  },
+  {
+    id: 'timeSpent',
+    label: 'Time spent',
+    width: 88,
+    hidden: true,
+    className: 'cell-mono cell-dim',
+    // Every minute ever logged against it. The one number that answers "is this
+    // problem expensive", which neither the count nor the last attempt does.
+    cell: ({ progress }) =>
+      progress.attemptMinutes ? minutesLabel(progress.attemptMinutes) : <Empty />,
   },
   {
     id: 'solvedAt',

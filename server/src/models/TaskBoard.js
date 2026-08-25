@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { HUES } from '../config/hues.js';
 
 /**
  * One board per account, holding the columns its tasks sit in.
@@ -17,32 +18,11 @@ import mongoose from 'mongoose';
  */
 
 /**
- * The hues a column may wear.
- *
- * Named rather than stored as colour: the resolved value differs between light
- * and dark, and a stored `#26c281` would be a dark-theme green forever. The
- * client turns the name into a colour with `[data-hue='green']`, so every
- * column is drawn from one palette rather than a value per board.
- *
- * Kept in sync with the `[data-hue]` rules at the foot of client/src/styles/
- * tokens.css. A name absent there resolves to no colour at all, so this list is
- * the enum rather than a suggestion.
+ * The hues a column may wear — the shared palette, re-exported under the name
+ * the board's code has always called it. See config/hues.js for why the list
+ * itself is not here.
  */
-export const STATUS_HUES = [
-  'slate',
-  'amber',
-  'orange',
-  'red',
-  'pink',
-  'fuchsia',
-  'violet',
-  'indigo',
-  'blue',
-  'sky',
-  'teal',
-  'green',
-  'lime',
-];
+export const STATUS_HUES = HUES;
 
 /**
  * What a column *means*, as opposed to what it is called.

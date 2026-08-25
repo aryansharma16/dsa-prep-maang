@@ -252,6 +252,13 @@ export const IconSend = (p) => (
   </Svg>
 );
 
+export const IconPause = (p) => (
+  <Svg {...p} fill="currentColor" strokeWidth={0}>
+    <rect x="4.4" y="3.6" width="2.4" height="8.8" rx="0.9" />
+    <rect x="9.2" y="3.6" width="2.4" height="8.8" rx="0.9" />
+  </Svg>
+);
+
 export const IconStop = (p) => (
   <Svg {...p} fill="currentColor" strokeWidth={0}>
     <rect x="4.6" y="4.6" width="6.8" height="6.8" rx="1.4" />

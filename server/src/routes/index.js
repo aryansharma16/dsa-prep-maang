@@ -19,7 +19,12 @@ import {
   updateSchema as problemUpdateSchema,
 } from '../controllers/problem.controller.js';
 import {
+  attemptEditSchema,
+  attemptIdParam,
   attemptSchema,
+  deleteAttempt,
+  editAttempt,
+  listAttempts,
   logAttempt,
   patchProgress,
   patchSchema,
@@ -136,6 +141,18 @@ router.delete('/problems/:id', removeCustom);
 router.get('/progress/revision', requireModule('revision'), revisionQueue);
 router.patch('/progress/:problemId', validate(patchSchema), patchProgress);
 router.post('/progress/:problemId/attempt', validate(attemptSchema), logAttempt);
+router.get('/progress/:problemId/attempts', listAttempts);
+router.patch(
+  '/progress/:problemId/attempts/:attemptId',
+  validate(attemptIdParam, 'params'),
+  validate(attemptEditSchema),
+  editAttempt,
+);
+router.delete(
+  '/progress/:problemId/attempts/:attemptId',
+  validate(attemptIdParam, 'params'),
+  deleteAttempt,
+);
 
 router.get('/stats', requireModule('stats'), getStats);
 

@@ -6,6 +6,7 @@ import { MODULE_NAV, modulePreview, moduleVisible } from '../../store/modules.js
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import {
+  IconBook,
   IconChevronRight,
   IconGrid,
   IconMenu,
@@ -45,6 +46,8 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
 
     The roadmap is not in here: it is the app's home, where the catch-all route
     and every redirect land, so it is never hideable. See config/modules.js.
+    Nor is the guide, for the opposite reason — it is not a module at all, it
+    needs no session, and it is mounted outside this shell as well.
   */
   const nav = MODULE_NAV.filter((item) => moduleVisible(modules, item.key));
 
@@ -92,6 +95,14 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
                 <Icon size={15} />
               </NavLink>
             ))}
+            <NavLink
+              onClick={onNavigate}
+              to="/docs"
+              className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
+              title="Guide — what this is and how to use it"
+            >
+              <IconBook size={15} />
+            </NavLink>
             {showAdmin && (
               <NavLink
                 to="/admin"
@@ -136,6 +147,14 @@ export function Sidebar({ collapsed, onToggle, onNavigate }) {
                 {modulePreview(modules, key) && <span className="dev-pill">Dev</span>}
               </NavLink>
             ))}
+            <NavLink
+              onClick={onNavigate}
+              to="/docs"
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            >
+              <IconBook size={14} />
+              Guide
+            </NavLink>
             {showAdmin && (
               <NavLink
                 to="/admin"
