@@ -5,7 +5,7 @@ import { Progress } from '../../models/Progress.js';
 import { AUDIT, diff, recordAudit } from '../../services/audit.service.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
-import { escapeRegex, paged, pageQuery } from '../../utils/query.js';
+import { escapeRegex, makePageQuery, paged } from '../../utils/query.js';
 
 /*
   Every write here stamps `editedAt`. That is not bookkeeping — it is what stops
@@ -17,7 +17,14 @@ const stamp = (req) => ({ editedAt: new Date(), editedBy: req.actor._id });
 
 /* ------------------------------------------------------------- problems */
 
-export const problemQuery = pageQuery.extend({
+/*
+  A wider ceiling than the shared default, and `limit=all` on top of it. The row
+  here is a positive projection of scalars — no descriptionHtml — so the whole
+  curated list plus everyone's custom problems is a few hundred KB, which is
+  cheaper to fetch once than to page through twenty times when you are building
+  a table or auditing the set.
+*/
+export const problemQuery = makePageQuery({ max: 1000 }).extend({
   q: z.string().max(120).optional(),
   pattern: z.string().max(60).optional(),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional(),

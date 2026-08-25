@@ -1196,6 +1196,16 @@ the owner on each row. A super admin can edit or delete any of them; the delete
 confirmation says whose roadmap it is coming out of, because "removed for
 everyone" was wrong in exactly the case that mattered.
 
+`GET /api/admin/problems` pages like every other admin list — `page` and
+`limit`, `limit` defaulting to 25 — but its ceiling is 1000 rather than the
+shared 100, and `limit=all` asks for one page of everything up to that ceiling.
+The row is a projection of scalars with no `descriptionHtml`, so the whole
+curated list and every custom problem on top of it is a few hundred KB: cheaper
+to pull once for a quick list or an audit than to walk twenty pages. The
+envelope still reports `total` and `pages`, which is how you know whether `all`
+actually got all of it. `limit=all` works on the other admin lists too, at their
+own ceiling of 100.
+
 ### Activity
 
 Every content and user change is recorded with who, what and when, filterable by
