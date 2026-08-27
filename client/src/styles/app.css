@@ -88,10 +88,20 @@
   inset: 0 auto 0 0;
   z-index: 30;
   width: var(--sidebar-w);
-  /* Opaque while it is over the page rather than beside it. In the row the rail
-     is glass on the shell's wash, which is the whole look; unfurled across a
-     table it would be a window onto the rows behind it. */
-  background: var(--solid);
+  /*
+    Opaque while it is over the page rather than beside it — unfurled across a
+    table, glass would be a window onto the rows behind it.
+
+    Opaque, but not flat. In the row the rail is translucent over `.shell`'s
+    wash, and it is stood in front of the brightest part of that wash, so a
+    plain `--solid` slab reads as a panel from a different app the moment it
+    opens. The accent light is painted back on over the opaque base, which is
+    the same picture arrived at from the other side.
+  */
+  background:
+    radial-gradient(420px 460px at 55% -12%, rgb(var(--accent-rgb) / 0.13), transparent 72%)
+      no-repeat,
+    var(--solid);
   box-shadow: 8px 0 32px var(--shadow);
 }
 .sidebar-peek-space {
@@ -850,11 +860,18 @@
   padding: 11px 4px 11px 14px;
   text-align: left;
 }
-/* The wash is painted from the row, not the button, so it runs under the guide
-   button too — otherwise the highlight stops short and leaves a seam. */
-.pattern-heading:hover .pattern-head {
-  background: var(--surface-hover);
-}
+/*
+  The wash is painted once, from the row, and deliberately not from the button:
+  `.pattern-head` is only part of the row — the info button and the guide button
+  sit beside it — so a highlight painted there stops short of them.
+
+  It used to be painted in both places. That was invisible while --surface-hover
+  was an opaque grey, because painting the same solid colour twice looks exactly
+  like painting it once. It stopped being invisible the moment the token became
+  translucent: the overlap took a second helping of white and the row grew a
+  bright block that ended where `.pattern-head` did, with the info button left
+  sitting in the single-strength tint. One paint, one tint, no seam.
+*/
 .pattern-head-main {
   display: flex;
   align-items: center;
@@ -5925,9 +5942,12 @@ a.tile.attention:hover {
     flex-basis: 0;
     transform: translateX(-100%);
     transition: transform 0.18s ease;
-    /* Opaque, for the reason `.sidebar.collapsed.peek` is: down here the rail
-       is a drawer over the page, not a column beside it. */
-    background: var(--solid);
+    /* Opaque and relit, for the reason `.sidebar.collapsed.peek` is: down here
+       the rail is a drawer over the page, not a column beside it. */
+    background:
+      radial-gradient(420px 460px at 55% -12%, rgb(var(--accent-rgb) / 0.13), transparent 72%)
+        no-repeat,
+      var(--solid);
     box-shadow: 8px 0 32px var(--shadow);
   }
   .shell.nav-open .sidebar {

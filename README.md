@@ -2099,6 +2099,14 @@ row and draws over the page. The rule is one line long and it is in
 `tokens.css`: if you add a sticky or fixed element with a background, it takes a
 twin.
 
+**Hover replaces a fill; it never layers on one.** Almost every rule reads
+`--surface-hover` as a plain `X:hover { background: ... }` on something already
+painted `--surface`, so the value has to clear it by enough to be a step. The
+trap is painting it on an element *and* its ancestor: identical opaque greys
+made that harmless for years, and translucency turned it into a double tint with
+a visible seam where the inner element stopped. The roadmap's pattern heading
+had exactly that — the row lit up brighter than the guide button beside it.
+
 **It costs nothing to scroll.** The wash lives on `.shell`, which is
 `height: 100%` and does not scroll — `.content` inside it owns the scrollbar —
 so it paints once at mount and again only on resize. Nothing in the material

@@ -64,20 +64,44 @@
      a chip inside the card, each one step brighter than what it sits on. */
   --surface: rgb(255 255 255 / 0.045);
   --surface-2: rgb(255 255 255 / 0.062);
-  /* A tint that goes *on top of* whatever it lands on, not a colour of its own —
-     that is what lets one hover value work on a table row, a menu item and a
-     sidebar link, all of which sit on different fills. */
-  --surface-hover: rgb(255 255 255 / 0.06);
+  /*
+    Hover *replaces* a fill; it does not layer on one. Almost every rule that
+    reads this is a plain `X:hover { background: var(--surface-hover) }` on
+    something already painted `--surface`, so the value has to clear 4.5% by
+    enough to be a step rather than a suspicion — 6% was not, and a card lit up
+    by a point and a half of white reads as nothing happening.
+
+    Two rules follow from "replaces":
+      - never paint it on an element *and* its ancestor. Opaque greys made that
+        harmless, translucency makes it a double tint with a visible seam where
+        the inner element stops. `.pattern-heading` had exactly that.
+      - it may sit above --surface-2, and does. It is a state, not a layer.
+  */
+  --surface-hover: rgb(255 255 255 / 0.09);
   --border: rgb(255 255 255 / 0.1);
   --border-soft: rgb(255 255 255 / 0.055);
 
-  /* The opaque twins — see THE MATERIAL above. Hand-picked rather than
-     `color-mix`ed: these are read by sticky cells inside a scrolling table, and
-     a colour the browser has to resolve per paint is the wrong thing to put
-     there. */
-  --solid: #1b1d22;
-  --solid-2: #212429;
-  --solid-hover: #292b2f;
+  /*
+    The opaque twins — see THE MATERIAL above. Each one is *exactly* its glass
+    token composited over `--bg`, and that exactness is the requirement rather
+    than a nicety: a frozen column sits in the middle of a row it must be
+    indistinguishable from, and a sticky `<th>` sits in a header row beside
+    ordinary ones. A twin that is merely close puts a visible block in the
+    middle of a table.
+
+    So the twins do not carry a "lift" of their own. The floating things that
+    read as raised — menus, toasts, the chat dock — get that from their border
+    and their shadow, and a dialog gets it from the scrim behind it.
+
+    Hand-picked rather than `color-mix`ed: these are read by sticky cells inside
+    a scrolling table, and a colour the browser has to resolve per paint is the
+    wrong thing to put there.
+  */
+  --solid: #191b1e;
+  --solid-2: #1d1f22;
+  /* --surface then --surface-hover, both over --bg: a frozen cell in a row the
+     pointer is on. */
+  --solid-hover: #2e2f32;
 
   /* The specular top edge. One inset hairline of light is what makes a
      translucent box read as a lit surface rather than as a lighter rectangle,
@@ -180,9 +204,9 @@
   --border: rgb(15 23 42 / 0.1);
   --border-soft: rgb(15 23 42 / 0.06);
 
-  --solid: #ffffff;
+  --solid: #fbfcfd;
   --solid-2: #ffffff;
-  --solid-hover: #f0f2f6;
+  --solid-hover: #f0f1f3;
 
   --sheen: rgb(255 255 255 / 0.85);
   --lift: 0 12px 30px -22px rgb(15 23 42 / 0.35);
