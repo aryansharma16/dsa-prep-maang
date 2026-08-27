@@ -1,4 +1,4 @@
-import { IconGlobe, IconLayers, IconTable } from '../components/ui/Icons.jsx';
+import { IconClock, IconGlobe, IconLayers, IconTable } from '../components/ui/Icons.jsx';
 
 /**
  * What Learn covers, and what it is going to cover.
@@ -14,6 +14,22 @@ import { IconGlobe, IconLayers, IconTable } from '../components/ui/Icons.jsx';
  * costs one small chunk and opening a topic costs one more.
  */
 export const TRACKS = [
+  /*
+    First, ahead of the two framework tracks, because it is the only one that is
+    about the curriculum this app exists for. React and Node are notes for the
+    day job; this is the maths the roadmap assumes you already have, and a
+    reader who does not have it gets nothing from a pattern guide that opens
+    with "this is O(n log n)".
+  */
+  {
+    slug: 'complexity',
+    name: 'Complexity',
+    status: 'live',
+    Icon: IconClock,
+    blurb:
+      'Logarithms from scratch, then Big-O: what each shape costs, how to count it off your own code, and the tables worth knowing cold.',
+    load: () => import('./complexity/index.js'),
+  },
   {
     slug: 'react',
     name: 'React',

@@ -11,6 +11,7 @@ and how to add a topic or a whole new track.
 - [Adding a topic](#adding-a-topic)
 - [Adding a track](#adding-a-track)
 - [The reading page](#the-reading-page)
+  - [What scrolling costs](#what-scrolling-costs)
 - [Syntax highlighting](#syntax-highlighting)
 - [Ask AI](#ask-ai)
 - [Verifying it](#verifying-it)
@@ -23,11 +24,14 @@ and how to add a topic or a whole new track.
 ```
 client/src/
   learn/
-    tracks.js                 the track registry — React, Node.js, and what is coming
+    tracks.js                 the track registry — Complexity, React, Node.js, and what is coming
     blocks.js                 the block constructors content is written with
     progress.js               which topics you have read
-    react/
+    complexity/
       index.js                the track's table of contents; metadata only
+      logarithms.js           one topic, one module           (6 of these)
+    react/
+      index.js                the same, for React
       use-effect.js           one topic, one module          (43 of these)
     node/
       index.js                the same, for Node.js
@@ -89,6 +93,15 @@ The house shape, so the whole track reads the same way:
    section.** Not the rest of React.
 9. `links(reactDoc(...))` — always back to the official page.
 
+**Complexity is the exception**, and deliberately. It has no API to sign, so
+there is no `sig` step; the tables it does carry are `table(...)` with their own
+headers, because "Parameter / Type / What it does" describes nothing about a
+sorting algorithm. Its footer link is `wiki(...)` rather than a vendor doc — the
+material has no vendor — and its code carries `java` and `js` tabs rather than
+`jsx`: Java because it is `DEFAULT_LANG` on the roadmap, JavaScript because it
+is the language this reader thinks in, and complexity is a shape that reads the
+same in both.
+
 Step 8 marks the interview-oriented material. React's first six sections are
 reference you reach for while building, so they stop at step 7; the Node track
 and React's `ecosystem` section are also written for someone preparing for an
@@ -113,13 +126,14 @@ bundle has no business reaching across the repo for it.
 | `p(text)` · `ul(...items)` | prose |
 | `code(jsx(src), js(src), ts(src))` | a code block; several variants become a tab strip |
 | `code(sh(src))` | a terminal block — commands, not JavaScript |
+| `code(java(src))` | the same, for the Complexity track — `java` is not in `JS_LANGS`, so it takes the highlighter's C-family scan, which is the one the pattern guides have always used |
 | `table(columns, rows)` | a table |
 | `sig(rows)` | `table` with the header `Parameter / Type / What it does` |
 | `cheat(rows)` | `table` with the header `Want to / Reach for` |
 | `asked(rows)` | `table` with the header `Asked in interviews / The answer in one line` |
 | `note` · `tip` · `warn` | a labelled callout |
 | `links(link(label, url))` | the footer links |
-| `reactDoc(path, label)` · `nodeDoc(path, label)` · `mdn(path, label)` | a footer link to react.dev, nodejs.org/api or MDN |
+| `reactDoc(path, label)` · `nodeDoc(path, label)` · `mdn(path, label)` · `wiki(path, label)` | a footer link to react.dev, nodejs.org/api, MDN or Wikipedia |
 
 `sig`, `cheat` and `asked` exist so the header row is written once. Writing
 `['Parameter', 'Type', 'What it does']` at the top of twenty files is how the
@@ -244,11 +258,55 @@ when the real node attaches.
 
 | behaviour | how |
 |---|---|
-| Progress rule | `scrollProgress(container)` into a `scaleX` transform. Sticky, transform-only, so scrolling never lays anything out. Sits **outside** `.learn-page` — a full-width bar inside a flex row is an item competing for horizontal space. |
-| Side rail | Scroll-spy on the same container. A heading is current once it reaches the upper quarter of the scroll region. rAF-throttled. |
+| Progress rule | `scrollProgress(container)` written straight onto the bar's `style.transform` through a ref — **not** React state. Sticky and transform-only, so scrolling never lays anything out. Sits **outside** `.learn-page` — a full-width bar inside a flex row is an item competing for horizontal space. |
+| Side rail | Scroll-spy on the same container, against heading offsets measured once rather than re-read every frame. A heading is current once it reaches the upper quarter of the scroll region. rAF-throttled. |
 | Deep links | A rail click writes `#heading-id` with `replaceState`, so a section is copyable from the address bar without piling up history entries. On load, a hash suppresses the scroll-to-top and scrolls to the anchor once the topic's chunk has landed. |
 | Arrow keys | `←` / `→` walk the track. Ignored while typing (input, textarea, select, contenteditable), while a modifier is held, and while a modal is open. |
 | Read tracking | `learn/progress.js` — `useLocalState` over one map keyed `track/slug`. Auto-marked at 90% scrolled, plus a button to set or unset it. Drives the ticks on topic cards, the per-section counts, and the meters on the track and hub pages. |
+
+### What scrolling costs
+
+Two things move as you scroll a topic, and both used to do real work per frame.
+
+**The progress rule was React state.** `setProgress` on every animation frame
+re-rendered `LearnTopic` — the crumb, both Ask-AI blocks, the revision panel,
+the pager and `LearnToc` — sixty times a second to move one bar. `GuideBlocks`
+is memoised and sat it out, which is why the page was not *worse*, but
+everything around it was not. It is a ref and one `style.transform` write now.
+The bar starts at `scaleX(0)` in the stylesheet and the effect takes it from
+there, so there is no first-frame flash to render from state either.
+
+**The side rail measured everything, every frame.** A `getElementById` and a
+`getBoundingClientRect()` per heading per frame — cheap on a settled page, and a
+forced synchronous reflow the moment anything else in the same frame has dirtied
+layout, which is exactly what the progress bar above was doing. Heading
+positions do not move while you scroll, so they are measured once as offsets
+*within the scroll content* (`rect.top - containerRect.top + scrollTop`) and
+compared against `scrollTop` after that. The active rule is arithmetically
+identical to the old one — the same heading lights up at the same moment.
+
+Re-measured on resize, and whenever `container.scrollHeight` changes. That last
+one is the self-healing part: a code tab switching to a longer variant, an image
+landing, a web font swapping in are all invisible from here individually, and
+all of them move `scrollHeight`. One number read per frame beats twenty
+rectangles, and beats a `ResizeObserver` on content this component does not own.
+
+Neither change is visible. Both were found by asking what the page does on a
+frame where nothing has happened, which for a reading page is nearly all of
+them.
+
+`TopicCard`'s hover prefetch is the same kind of fix one page up: it fired on
+`mouseenter`, so reaching a card at the bottom of the 68-card Node grid dragged
+the pointer across a dozen others and fetched all of them. It waits 120ms for
+the pointer to settle now — long enough to tell "on the way past" from "about to
+click", short enough that the chunk still lands before the click does.
+
+`useLocalState` also stopped writing what it had just read. Its effect runs on
+mount as well as on change, so every component using it serialised its whole
+value and wrote it back unchanged on arrival — and `learn-read` is read by the
+hub, the track page and every topic, so walking a track was one redundant
+synchronous write of the whole map per navigation. It compares against
+`getItem` first now. That one is app-wide, not Learn-only.
 
 Read state is in localStorage, not on the server, which is a deliberate
 downgrade from how the roadmap stores progress: Learn has no API, and inventing
@@ -299,7 +357,12 @@ cd client && npm run dev
 ```
 
 - Sidebar shows **Learn**, in both the collapsed rail and the expanded menu.
-- `/learn` lists React and Node.js live, SQL as *Soon* and not clickable.
+- `/learn` lists Complexity, React and Node.js live — Complexity first — with
+  SQL as *Soon* and not clickable.
+- `/learn/complexity` renders 3 sections and 6 topics.
+- `/learn/complexity/logarithms` renders the halving table, the Java/JS code
+  tabs and the rules table. `/learn/complexity/cheatsheet` renders eight tables
+  and none of them scrolls sideways at 1000px.
 - `/learn/react` renders 7 sections and 43 topics; the filter matches title,
   summary **and** tags — try `hook`, `performance`, `ref`, `typescript`.
 - `/learn/node` renders 13 sections and 68 topics; try the filter on `closure`,
@@ -314,11 +377,16 @@ cd client && npm run dev
   react.dev links. Inline `` `code` `` renders as code.
 - The side rail tracks the heading you are reading; clicking one jumps to it and
   writes the anchor to the address bar. It disappears below 1240px.
-- The rule under the top bar fills as you scroll.
+- The rule under the top bar fills as you scroll. With the Profiler recording,
+  scrolling a long topic commits **nothing** — the bar is not React state. The
+  side rail still tracks, and still tracks after switching a code block to its
+  other language tab, which changes the page height under it.
 - Reaching the bottom ticks the topic; the tick shows on its card back on
   `/learn/react`, and the counts and meters follow.
 - Prev/next walks the track in index order, and so do `←` and `→` — but not
   while the cursor is in the filter box.
+- Sweep the pointer down `/learn/node` without stopping: the network panel shows
+  no topic chunks. Rest on one card for a moment and its chunk arrives.
 - Paste a URL with a `#section` anchor: it opens at that heading, not the top.
 - **Ask AI** opens the dock and streams a reply; the buttons are gone when the
   chat module is hidden.
@@ -338,11 +406,48 @@ instead of through `load`.
 ## What is in each track
 
 The catalogue — what exists, in one line each, so you can see the shape of a
-track without opening it. One section per track; SQL gets its own when it is
-written.
+track without opening it. One section per track, in the hub's order; SQL gets
+its own when it is written.
 
 Generated from the track's `index.js`, which is the only place these titles and
 summaries live. If you add a topic, copy its row here too.
+
+### Complexity
+
+6 topics in 3 sections, in reading order. Each file is
+`client/src/learn/complexity/<slug>.js`.
+
+**The idea** — The maths first — one page of it — and then what the notation is actually claiming.
+
+| topic | |
+|---|---|
+| **Logarithms, from scratch** <br> `logarithms` | How many times can you halve n before you hit 1 — and why that is the whole idea. |
+| **Big-O in plain words** <br> `big-o` | Growth, not seconds: dropping constants, O vs Ω vs Θ, best/average/worst, and amortised. |
+
+**Counting it** — Reading a complexity off code you have never seen — the drill, one shape at a time.
+
+| topic | |
+|---|---|
+| **Time complexity, counted off the code** <br> `time-complexity` | Every shape from O(1) to O(n!), each with the code that produces it, plus recursion and the traps. |
+| **Space complexity** <br> `space-complexity` | Auxiliary space, the call stack you forgot to count, and trading memory for time on purpose. |
+
+**Using it** — The two things you do with complexity in a real interview: pick the target before you start, and know the numbers.
+
+| topic | |
+|---|---|
+| **Reading the constraints** <br> `from-constraints` | n ≤ 10⁵ means O(n log n). Turning the input size into a target complexity, and the target into a shortlist of techniques. |
+| **The cheat sheet** <br> `cheatsheet` | Every table: data structures, sorting, Java collections, the C++ STL, JS built-ins, and the graph algorithms. |
+
+The numbers in **The cheat sheet** are [bigocheatsheet.com](https://www.bigocheatsheet.com/)'s, which is
+itself the CLRS and Wikipedia consensus, with the data-structure table split
+into an average-case and a worst-case half — ten columns in one table is a
+horizontal scrollbar, and the split is the more readable shape anyway. The three
+language tables are ours: what a Java collection, an STL container and a JS
+built-in actually cost is the part that decides whether the complexity you
+reasoned about survives contact with the code, and no published cheat sheet
+carries it. The thresholds in **Reading the constraints** are the
+[USACO Guide](https://usaco.guide/bronze/time-comp)'s, which assume ~10⁸
+operations a second.
 
 ### React
 

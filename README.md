@@ -27,7 +27,7 @@ the sign-in page as well as from the sidebar.
 | **Roadmap** | 429 problems in 22 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
-| **Learn** | Reference notes for the things around the algorithms. Two tracks — React, 43 topics from the virtual DOM through the ecosystem a job expects, and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
+| **Learn** | Reference notes for the things around the algorithms. Three tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
 | **Playbook** | The site owner's own 24-week interview-prep plan — four phases over the 429 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
 | **Pro Coder** | A competitive-programming ladder: 800 problems (600 Codeforces, 200 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own glass theme that follows your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
@@ -166,10 +166,18 @@ error; the reader shows the blurb and the key techniques instead.
 
 The roadmap teaches the algorithms. **Learn** is for everything around them —
 the vocabulary you use every day and could not define under pressure. There are
-two tracks: **React**, 43 topics from what happens between a `setState` and the
-pixels through to the ecosystem a React job actually expects; and **Node.js**,
-68 topics that start at closures and `map` and end at a hardened, paginated,
-authenticated API with a cache, a queue and tests behind it.
+three tracks: **Complexity**, 6 topics that start at "how many times can you
+halve a thousand" and end at the Big-O tables; **React**, 43 topics from what
+happens between a `setState` and the pixels through to the ecosystem a React job
+actually expects; and **Node.js**, 68 topics that start at closures and `map`
+and end at a hardened, paginated, authenticated API with a cache, a queue and
+tests behind it.
+
+Complexity is the odd one out and sits first for that reason. The other two are
+notes about somebody's API; this one is the maths the roadmap assumes you have
+already. A pattern guide that opens with "this is `O(n log n)`" is worth nothing
+to a reader for whom the `log` in that is a mystery, and that is a gap worth
+closing on its own page rather than in an aside.
 
 Sidebar → **Learn** → a track → a topic. Each topic is the same shape, so it
 reads as a cheatsheet and holds up as documentation: the definition in the
@@ -186,6 +194,41 @@ joins the same 3/7/21/60 ladder a problem goes on, in the same merged queue,
 scheduled by the same `nextReview()`. That is what finally gave Learn an API —
 it was the one module with none, because prose in the bundle is nobody's data
 and reading progress is.
+
+### Complexity — the 6 topics
+
+| | |
+|---|---|
+| **The idea** (2) | Logarithms, from scratch · Big-O in plain words |
+| **Counting it** (2) | Time complexity, counted off the code · Space complexity |
+| **Using it** (2) | Reading the constraints · The cheat sheet |
+
+It assumes nothing. **Logarithms** starts at doubling and halving and never
+names a rule before the idea behind it is already there, because everything
+after it leans on `log n` and a reader who half-remembers school gets nothing
+from a page that opens with "clearly this is `O(log n)`". **Big-O in plain
+words** is the notation itself — drop the constants, `O` against `Ω` against
+`Θ`, worst against average, and what amortised actually guarantees.
+
+Then the counting: **Time complexity** walks every shape from `O(1)` to `O(n!)`
+with the code that produces it — including the two-pointer loop that looks
+nested and is not, and the `O(n)` library call inside an `O(n)` loop that is
+where most accidental quadratics really come from — and **Space complexity**
+covers the auxiliary/total split and the recursion stack everybody forgets to
+count.
+
+The last two are the ones you use in a real interview. **Reading the
+constraints** turns `n ≤ 10⁵` into "so I am looking for `O(n log n)`" and then
+into a shortlist of techniques that produce that shape, which is a much smaller
+question than "think of something clever". **The cheat sheet** is the tables:
+data structures average and worst, sorting, and — the part the published cheat
+sheets leave out — what a Java collection, a C++ STL container and a JavaScript
+built-in actually cost, because `ArrayList.contains` and `arr.shift()` are where
+the complexity you reasoned about goes wrong in practice.
+
+Examples carry **Java and JavaScript** tabs: Java because it is the roadmap's
+default solution language, JavaScript because it is the one this reader writes
+all day, and the shape being taught is legible in both.
 
 ### React — the 43 topics
 
@@ -233,7 +276,7 @@ it on Postgres, add login, and then attack it. **Production essentials** closes
 it out with the three things a tutorial API never has: a cache, somewhere to put
 slow work, and tests.
 
-A one-line summary of every topic in both tracks is in
+A one-line summary of every topic in all three tracks is in
 [docs/learn.md](docs/learn.md#what-is-in-each-track). **SQL** will get its own
 section there as it is written.
 
@@ -246,7 +289,15 @@ tracks the heading you are on, clicking one puts the anchor in the address bar
 so a section is linkable, and `←` and `→` walk the track. Reaching the bottom
 ticks the topic off; the ticks and counts show up again on the track index and
 as a meter on the hub, so you can see what is left. That progress lives in the
-browser, not the account — Learn has no API to store it in.
+browser, not the account — read is a browsing fact, and only *Revise this* is
+deliberate enough to be worth a row on the server.
+
+None of that costs a frame. The rule is written straight to its own element
+rather than held in state, so scrolling a topic does not re-render the page
+sixty times a second to move a bar; the side rail measures its headings once
+and compares scroll offsets after that, rather than reading the layout of every
+heading on every frame. Both were doing real work per frame on a long topic —
+see [docs/learn.md](docs/learn.md#the-reading-page).
 
 It renders through the **same block renderer** as the pattern guides — Learn
 content is authored as the same typed blocks, so code tabs, copy buttons,

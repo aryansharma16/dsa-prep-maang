@@ -4,7 +4,7 @@ import { recallSchema } from './schemas/recall.js';
 /**
  * One account's standing with one Learn topic.
  *
- * The Learn track is 111 topics of reference prose — the React and Node notes —
+ * Learn is 117 topics of reference prose — the Complexity, React and Node notes —
  * and until now it was the one thing in the app you could read and never see
  * again. The roadmap schedules a problem to come back in three days; a topic you
  * read once in week two was simply gone by week nine, which is the opposite of
@@ -27,7 +27,7 @@ import { recallSchema } from './schemas/recall.js';
  *
  * That makes `{ track, topic }` the natural key, and it has one honest
  * consequence worth stating: renaming a topic's slug orphans its progress rows.
- * The alternative — seeding 111 documents to own an id — would mean a migration
+ * The alternative — seeding 117 documents to own an id — would mean a migration
  * every time a sentence changes, which is the cost this design was chosen to
  * avoid. A renamed slug is rare, and its failure is a topic that quietly leaves
  * the queue rather than one that shows wrong.
@@ -37,7 +37,7 @@ const learnProgressSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
 
-    /** `react`, `node` — the track slug from client/src/learn/tracks.js. */
+    /** `complexity`, `react`, `node` — the track slug from client/src/learn/tracks.js. */
     track: { type: String, required: true, trim: true, maxlength: 64 },
     /** The topic slug within it, from that track's index. */
     topic: { type: String, required: true, trim: true, maxlength: 128 },

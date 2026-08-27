@@ -31,14 +31,22 @@ export const MODULE_NAV = [
     so `moduleVisible` filters it out with no special case needed here.
   */
   { key: 'playbook', to: '/playbook', label: 'Playbook', Icon: IconCalendar },
+  /*
+    Second, under the plan and above the rest, because it is the other
+    curriculum. The roadmap and the ladder are the two lists you actually work
+    through; everything below is something you do *about* them — revise, chart,
+    ask, read, drill, plan. Most sessions never see the playbook, so for them
+    this is the first row under the roadmap, which is the same statement.
+  */
+  { key: 'procoder', to: '/cp', label: 'Pro Coder', Icon: IconCode },
   { key: 'revision', to: '/revision', label: 'Revision', Icon: IconRotate },
   { key: 'stats', to: '/stats', label: 'Stats', Icon: IconChart },
   { key: 'chat', to: '/chat', label: 'AI Chat', Icon: IconChat },
   { key: 'learn', to: '/learn', label: 'Learn', Icon: IconBook },
-  { key: 'procoder', to: '/cp', label: 'Pro Coder', Icon: IconCode },
-  /* Beside Pro Coder rather than beside the roadmap: both are things you do with
-     the curriculum, and the drill draws its questions from the roadmap the way
-     the ladder draws its problems from its own list. */
+  /* Down here with the rest of the after-the-fact work rather than next to
+     either list, because training against the curriculum is not working
+     through it — the drill draws its questions from the roadmap the way the
+     ladder draws its problems from its own list. */
   { key: 'practice', to: '/practice', label: 'Practice', Icon: IconDice },
   { key: 'tasks', to: '/tasks', label: 'Tasks', Icon: IconBoard },
   /*

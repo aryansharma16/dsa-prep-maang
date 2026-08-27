@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AskAi } from '../components/learn/AskAi.jsx';
 import { LearnToc } from '../components/learn/LearnToc.jsx';
@@ -60,7 +60,18 @@ export function LearnTopic() {
   const key = topicKey(trackSlug, topicSlug);
   const isRead = Boolean(read[key]);
 
-  const [progress, setProgress] = useState(0);
+  /*
+    The progress bar is written to by hand rather than rendered from state.
+
+    It moves on every animation frame while you scroll, and a `setState` per
+    frame re-renders this whole component — the crumb, both Ask-AI blocks, the
+    revision panel, the pager and the table of contents — sixty times a second
+    to move one bar two pixels. `GuideBlocks` is memoised and sits it out, but
+    everything else does not, and that render is the single largest cost of
+    scrolling a topic. A ref and one `style.transform` write is the same
+    picture for none of it.
+  */
+  const barRef = useRef(null);
   const blocks = doc?.doc?.blocks;
   const headings = useMemo(() => guideHeadings(blocks), [blocks]);
 
@@ -89,7 +100,9 @@ export function LearnTopic() {
 
   /*
     The progress rule, and the read mark that rides on it. One rAF-throttled
-    listener for both: reading to the end is what "read" means here, and asking
+    listener for both, and neither of them touches state on a normal frame —
+    the bar is a direct style write and `mark` bails out when the topic is
+    already read. Reading to the end is what "read" means here, and asking
     the reader to also press a button to say so is a second job for the same
     fact. The button below stays, for marking something read you skimmed — and
     for taking it back.
@@ -105,7 +118,7 @@ export function LearnTopic() {
     const measure = () => {
       frame = 0;
       const value = scrollProgress(container);
-      setProgress(value);
+      if (barRef.current) barRef.current.style.transform = `scaleX(${value})`;
       if (value >= 0.9) mark(key, true);
     };
 
@@ -176,7 +189,9 @@ export function LearnTopic() {
       {/* Outside .learn-page, which is a flex row — see the CSS. Transform-only,
           so scrolling never lays anything out. */}
       <div className="learn-rule" aria-hidden="true">
-        <span style={{ transform: `scaleX(${progress})` }} />
+        {/* Starts at scaleX(0) from the stylesheet; the effect above writes it
+            from there. Nothing about this bar is React state. */}
+        <span ref={barRef} />
       </div>
 
       <div className="learn-page" ref={pageRef}>

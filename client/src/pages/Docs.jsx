@@ -1059,6 +1059,21 @@ export function Docs() {
                   the vocabulary you use every day and could not define under pressure.
                 </p>
 
+                {/*
+                  Complexity on its own, above the two framework tracks, because
+                  it is a different kind of thing: React and Node are notes for
+                  the day job, and this is the maths the roadmap assumes. The
+                  hub orders them the same way.
+                */}
+                <div className="docs-box" data-hue="amber">
+                  <span className="docs-box-label">Complexity · 6 topics</span>
+                  <p>
+                    Logarithms from scratch — assuming you have not seen one since school — then
+                    Big-O, counting a complexity off your own code, reading the target complexity
+                    out of a problem&rsquo;s constraints, and the tables worth knowing cold.
+                  </p>
+                </div>
+
                 <div className="docs-duo">
                   <div className="docs-box" data-hue="sky">
                     <span className="docs-box-label">React · 43 topics</span>
@@ -1412,8 +1427,8 @@ export function Docs() {
             </Reveal>
 
             <p className="docs-colophon">
-              {BRAND.name} — {BRAND.tagline}. 429 problems across 22 patterns, plus 111 reference
-              topics in React and Node.
+              {BRAND.name} — {BRAND.tagline}. 429 problems across 22 patterns, plus 117 reference
+              topics across Complexity, React and Node.
             </p>
           </main>
         </div>

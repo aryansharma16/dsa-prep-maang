@@ -46,6 +46,21 @@ export const ts = (source, label = 'TS') => ({ lang: 'ts', label, code: source.t
  */
 export const sh = (source, label = 'Terminal') => ({ lang: 'sh', label, code: source.trim() });
 
+/*
+  Java, for the Complexity track.
+
+  `highlight()` keeps two scans and picks between them by name: the JS family
+  for anything in `JS_LANGS`, and the C family — Java and C++ keywords, the
+  container types, no template literals — for everything else. `java` is not in
+  `JS_LANGS`, so it lands on the C scan, which is the one written for it and the
+  one the pattern guides have always used. A `cpp` twin is one line away if a
+  topic ever wants a third tab; it is not written until one does.
+
+  The `lang` string matches `SOLUTION_LANGS` in components/problem/attempts.js,
+  so a snippet here and a stored solution are labelled the same thing.
+*/
+export const java = (source, label = 'Java') => ({ lang: 'java', label, code: source.trim() });
+
 export const table = (columns, rows) => ({ type: 'table', columns, rows });
 
 /**
@@ -99,3 +114,11 @@ export const nodeDoc = (path, label) => link(label, `https://nodejs.org/api/${pa
  */
 export const mdn = (path, label) =>
   link(label, `https://developer.mozilla.org/en-US/docs/${path}`);
+
+/**
+ * Wikipedia, for the Complexity track. The other three tracks close on a vendor
+ * doc because they are about somebody's API; this one is about mathematics that
+ * has no vendor, and the encyclopedia article is the closest thing to a
+ * canonical page a topic like `Big O notation` has.
+ */
+export const wiki = (path, label) => link(label, `https://en.wikipedia.org/wiki/${path}`);
