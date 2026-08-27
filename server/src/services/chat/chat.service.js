@@ -19,6 +19,7 @@ import { classify } from '../ai/errors.js';
 import { cleanTitle, draftTitle, recentTurns } from './history.js';
 import { classifyTask } from './routing.js';
 import { SYSTEM, TITLE_SYSTEM, problemContext } from './prompt.js';
+import { CP_SYSTEM, cpProblemContext } from '../cp/cpChat.prompt.js';
 
 /**
  * One message in, one reply out, over as many providers as it takes.
@@ -209,7 +210,16 @@ async function openStream({ candidates, messages, system, signal, enabled }) {
  * them. Yields an `error` event for anything after, because by then the status
  * line is spent.
  */
-export async function* runChat({ userId, conversationId, content, provider: requestedProvider, model, problemId }) {
+export async function* runChat({
+  userId,
+  conversationId,
+  content,
+  provider: requestedProvider,
+  model,
+  problemId,
+  cpProblemId,
+  mode = 'dsa',
+}) {
   const settings = await chatSettings();
 
   if (!settings.enabled) throw new ApiError(503, 'The assistant is switched off', 'CHAT_DISABLED');
@@ -249,14 +259,28 @@ export async function* runChat({ userId, conversationId, content, provider: requ
   activeStreams.set(key, { controller, userId, reason: null });
 
   try {
-    const attached = await problemContext(problemId, userId);
+    /*
+      Which assistant is answering.
+
+      A thread that already exists keeps its own mode — the request's is only
+      consulted for a new one. Otherwise a client that forgot to send `mode`
+      would silently switch an in-progress CP conversation to the interview
+      assistant halfway through, and the transcript would read as two people.
+    */
+    const activeMode = conversation?.mode || mode;
+    const isCp = activeMode === 'cp';
+
+    const attached = isCp
+      ? await cpProblemContext(cpProblemId, userId)
+      : await problemContext(problemId, userId);
     const history = await recentTurns(conversation?._id, settings.maxHistoryMessages);
     const messages = [...history, { role: 'user', content }];
 
     // The problem goes in the system prompt, never merged into what the user
     // typed — app-supplied context and a person's own words must stay
     // distinguishable to the model.
-    const system = attached ? `${SYSTEM}\n\n${attached.text}` : SYSTEM;
+    const persona = isCp ? CP_SYSTEM : SYSTEM;
+    const system = attached ? `${persona}\n\n${attached.text}` : persona;
 
     const totalTimer = setTimeout(() => controller.abort(), TOTAL_MS);
     let idleTimer = null;
@@ -305,7 +329,10 @@ export async function* runChat({ userId, conversationId, content, provider: requ
       conversation = await Conversation.create({
         user: userId,
         title: draftTitle(content),
-        problem: attached?.id || null,
+        mode: activeMode,
+        // One of the two, never both — see the note on the model.
+        problem: isCp ? null : attached?.id || null,
+        cpProblem: isCp ? attached?.id || null : null,
         problemSlug: attached?.slug || '',
         problemTitle: attached?.title || '',
         expiresAt,
@@ -327,6 +354,7 @@ export async function* runChat({ userId, conversationId, content, provider: requ
       provider: opened.provider.id,
       model: opened.model,
       title: conversation.title,
+      mode: activeMode,
     };
 
     let text = opened.first.text;

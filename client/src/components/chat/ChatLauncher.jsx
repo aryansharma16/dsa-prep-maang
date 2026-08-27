@@ -14,10 +14,18 @@ import { ChatPanel } from './ChatPanel.jsx';
  * already looking at is just clutter.
  */
 export function ChatLauncher() {
-  const { dockOpen, setDockOpen, streaming, unread } = useChat();
+  const { dockOpen, setDockOpen, streaming, unread, mode } = useChat();
   const { modules } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+
+  /*
+    Which assistant the bubble opens, said out loud. The dock follows the route
+    — see ChatContext — and a coach that answers differently without ever saying
+    it is a different coach is a surprise rather than a feature.
+  */
+  const isCp = mode === 'cp';
+  const label = isCp ? 'CP coach' : 'Study assistant';
 
   useEffect(() => {
     if (!dockOpen) return undefined;
@@ -40,11 +48,11 @@ export function ChatLauncher() {
     <>
       <button
         type="button"
-        className={`chat-launcher ${dockOpen ? 'on' : ''}`}
+        className={`chat-launcher ${dockOpen ? 'on' : ''} ${isCp ? 'cp' : ''}`}
         onClick={() => setDockOpen(!dockOpen)}
         aria-expanded={dockOpen}
-        aria-label={streaming ? 'Study assistant — replying' : 'Study assistant'}
-        title="Study assistant"
+        aria-label={streaming ? `${label} — replying` : label}
+        title={label}
       >
         {dockOpen ? <IconClose size={17} /> : <IconChat size={18} />}
         {!dockOpen && (streaming || unread) && (
@@ -58,7 +66,7 @@ export function ChatLauncher() {
         the ✕, and the bubble itself are the three ways out.
       */}
       {dockOpen && (
-        <div className="chat-dock" role="complementary" aria-label="Study assistant">
+        <div className={`chat-dock ${isCp ? 'cp-dock' : ''}`} role="complementary" aria-label={label}>
           <ChatPanel
             variant="dock"
             onExpand={() => {

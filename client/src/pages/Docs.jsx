@@ -184,6 +184,7 @@ const SECTIONS = [
   { id: 'attempts', label: 'Logging an attempt', hue: 'orange', eyebrow: 'The heart of it' },
   { id: 'revision', label: 'Revision', hue: 'violet', eyebrow: 'Not forgetting' },
   { id: 'reading', label: 'Guides & Learn', hue: 'teal', eyebrow: 'The material' },
+  { id: 'procoder', label: 'Pro Coder', hue: 'lime', eyebrow: 'Competitive programming' },
   { id: 'assistant', label: 'Assistant & Tasks', hue: 'fuchsia', eyebrow: 'Help and planning' },
   { id: 'stats', label: 'Stats', hue: 'green', eyebrow: 'The honest view' },
   { id: 'yours', label: 'Making it yours', hue: 'sky', eyebrow: 'Setup' },
@@ -1089,6 +1090,138 @@ export function Docs() {
                 </ul>
               </Reveal>
             </Section>
+
+            {/*
+
+              The second curriculum. It sits after the reading material and before the
+
+              assistant because it is a *choice* rather than a step: most readers of
+
+              this guide want the roadmap, and the ones who want a rating ladder should
+
+              meet it as an alternative rather than as the next thing to do.
+
+            */}
+
+            <Section meta={byId.procoder}>
+
+              <Reveal>
+
+                <p>
+
+                  Everything above is about interviews. <b>Pro Coder</b> is the other thing this app
+
+                  does: a competitive-programming ladder of <b>800 problems</b> from Codeforces and
+
+                  CodeChef, for getting your rating up rather than getting through a loop. It has its
+
+                  own dark contest theme, so you always know which one you are in.
+
+                </p>
+
+
+                <h3>Tiers, not difficulties</h3>
+
+                <p>
+
+                  There is no Easy/Medium/Hard here. Problems carry the judge&rsquo;s own rating and
+
+                  are grouped into seven tiers — Foundations, Pupil, Specialist, Expert, Candidate
+
+                  Master, Master, Advanced — matching Codeforces&rsquo; own rank thresholds. The rail
+
+                  across the top is both your progress through them and the way you jump between them.
+
+                </p>
+
+                <p>
+
+                  Rating is the default spine because it is what actually gates what you can attempt.
+
+                  One toggle (or <kbd className="mono">g</kbd>) regroups the whole ladder by{' '}
+
+                  <b>technique</b> instead — 49 CP patterns, more granular than the roadmap&rsquo;s 22,
+
+                  because &ldquo;dynamic programming&rdquo; is one interview pattern and eight CP ones.
+
+                </p>
+
+              </Reveal>
+
+
+              <Reveal>
+
+                <h3>Link your Codeforces handle</h3>
+
+                <p>
+
+                  The single thing most worth doing on this page. Paste your handle into the arena
+
+                  header and press <b>Sync</b>: it reads your accepted submissions and marks
+
+                  everything on the ladder you have already solved, and it pulls your live rating so
+
+                  the app knows which problems are a stretch for you and which you should be getting.
+
+                </p>
+
+                <p>
+
+                  Sync never takes anything away. It can mark a problem solved; it will never un-mark
+
+                  one, clear a flag, delete a note or reset a review schedule. A problem the judge
+
+                  says you solved but you never logged here shows an <b>AC</b> tag rather than being
+
+                  silently ticked — with a filter on the bar for exactly that list, which is a good
+
+                  first pass after linking.
+
+                </p>
+
+              </Reveal>
+
+
+              <Reveal>
+
+                <h3>Tags are hidden on purpose</h3>
+
+                <p>
+
+                  The judge&rsquo;s own tags are the editorial&rsquo;s answer key — seeing
+
+                  &ldquo;dp, bitmasks&rdquo; on a problem you have not started is most of the solution.
+
+                  So they are their own column and their own filter, both off by default. The topics
+
+                  shown on a row are a coarser set that is safe to read while browsing.
+
+                </p>
+
+                <p>
+
+                  Every pattern opens a brief — the invariant, when it fires, its complexity, what
+
+                  goes wrong, and where to read more. Twelve of them, the ones where most people
+
+                  stall, also carry a full write-up with Java and C++ implementations.
+
+                </p>
+
+                <p>
+
+                  Flags, notes, attempts, the stopwatch, custom columns and the revision queue all
+
+                  work exactly as they do on the roadmap. The revision queue merges both curriculums
+
+                  and lets you work either one on its own.
+
+                </p>
+
+              </Reveal>
+
+            </Section>
+
 
             <Section meta={byId.assistant}>
               <Reveal>

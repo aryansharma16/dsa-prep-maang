@@ -87,6 +87,62 @@ export const statsApi = {
 };
 
 /**
+ * Pro Coder — the competitive-programming ladder.
+ *
+ * A separate namespace from `problemsApi`/`progressApi` rather than a `source`
+ * parameter on them, because it is a separate collection with a separate
+ * visibility rule behind a separate module gate. The shapes rhyme deliberately:
+ * anyone who has read the roadmap's calls can read these.
+ *
+ * `ladder` answers a flat list plus ordered tier and pattern metadata rather
+ * than a pre-grouped tree — the page offers two groupings of the same rows, and
+ * re-fetching on a toggle would make a client-side regroup feel like a page
+ * load.
+ */
+export const cpApi = {
+  ladder: () => http.get('/cp/ladder').then((r) => r.data),
+  patterns: () => http.get('/cp/patterns').then((r) => r.data),
+  /** 404 for a pattern with no long-form guide yet — an ordinary answer here. */
+  guide: (slug) => http.get(`/cp/patterns/${slug}/guide`).then((r) => r.data.guide),
+  stats: () => http.get('/cp/stats').then((r) => r.data),
+  revision: () => http.get('/cp/revision').then((r) => r.data),
+
+  create: (body) => http.post('/cp/problems', body).then((r) => r.data.problem),
+  update: (id, body) => http.patch(`/cp/problems/${id}`, body).then((r) => r.data.problem),
+  remove: (id) => http.delete(`/cp/problems/${id}`).then((r) => r.data),
+
+  patch: (problemId, body) =>
+    http.patch(`/cp/progress/${problemId}`, body).then((r) => r.data.progress),
+  attempt: (problemId, body) =>
+    http.post(`/cp/progress/${problemId}/attempt`, body).then((r) => r.data.progress),
+  attempts: (problemId) => http.get(`/cp/progress/${problemId}/attempts`).then((r) => r.data),
+  editAttempt: (problemId, attemptId, body) =>
+    http.patch(`/cp/progress/${problemId}/attempts/${attemptId}`, body).then((r) => r.data.progress),
+  deleteAttempt: (problemId, attemptId) =>
+    http.delete(`/cp/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
+  review: (problemId, result, confidence) =>
+    http
+      .post(`/cp/progress/${problemId}/review`, { result, ...(confidence ? { confidence } : {}) })
+      .then((r) => r.data.progress),
+
+  /**
+   * The linked Codeforces identity.
+   *
+   * `profile` answers `null` for an account that has never linked a handle,
+   * which is an ordinary first answer rather than a missing resource — the same
+   * contract `viewsApi.get` has.
+   *
+   * `setHandle('')` clears the link. `sync` is the expensive one: it pulls the
+   * whole submission history from Codeforces, so the server holds it to one run
+   * per account per ten minutes and answers 429 with a `retryAt` in between.
+   */
+  profile: () => http.get('/cp/profile').then((r) => r.data),
+  setHandle: (handle) => http.put('/cp/profile/handle', { handle }).then((r) => r.data.profile),
+  sync: () => http.post('/cp/profile/sync').then((r) => r.data),
+  ratingHistory: () => http.get('/cp/profile/rating-history').then((r) => r.data.history),
+};
+
+/**
  * How a screen is set up for you — today, the filters you left on it.
  *
  * Deliberately untyped in both directions: the server bounds the payload and

@@ -25,6 +25,20 @@ const conversationSchema = new mongoose.Schema(
      */
     titleSetByUser: { type: Boolean, default: false },
 
+    /**
+     * Which assistant answered here.
+     *
+     * `dsa` is the interview study assistant; `cp` is the competitive-programming
+     * coach, which has a different persona, a different spoiler rule and a
+     * different problem collection behind it. Stored on the thread rather than
+     * passed per message because a conversation belongs to one of them — a
+     * transcript that switched coach halfway through would read as two people.
+     *
+     * Defaults to `dsa`, which is what every thread written before this existed
+     * was, so the history needs no migration.
+     */
+    mode: { type: String, enum: ['dsa', 'cp'], default: 'dsa', index: true },
+
     /*
       The attached problem, with its identity copied alongside the reference.
       A custom problem can be deleted while a conversation about it is still on
@@ -32,6 +46,16 @@ const conversationSchema = new mongoose.Schema(
       worse than a stale title. Same reasoning as AuditLog's actorEmail.
     */
     problem: { type: mongoose.Schema.Types.ObjectId, ref: 'Problem', default: null },
+    /**
+     * The CP problem, when `mode` is `cp`.
+     *
+     * A separate reference rather than a polymorphic one on `problem`, because
+     * mongoose populates by a fixed `ref` and the two point at different
+     * collections. `problemSlug` and `problemTitle` are shared — they are the
+     * copied identity that keeps a transcript readable after a delete, and that
+     * fact does not depend on which collection it came from.
+     */
+    cpProblem: { type: mongoose.Schema.Types.ObjectId, ref: 'CPProblem', default: null },
     problemSlug: { type: String, default: '' },
     problemTitle: { type: String, default: '' },
 

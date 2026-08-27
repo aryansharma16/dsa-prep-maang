@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
 import { chatApi } from '../api/index.js';
 import { streamChat } from '../api/stream.js';
@@ -130,6 +131,22 @@ export function ChatProvider({ children }) {
     [config],
   );
 
+  /*
+    Which assistant is answering, derived from the route.
+
+    The dock is mounted once in the app shell and floats over every page, so
+    "which assistant" cannot be a thing you pick — it has to follow where you
+    are. On the CP ladder you get the competitive-programming coach, with its own
+    persona, its own spoiler rule and its own problem collection behind it;
+    everywhere else you get the study assistant.
+
+    A thread already keeps its own mode server-side, so a conversation started on
+    /cp and continued from /stats stays the coach rather than switching speaker
+    mid-transcript. This only decides what a *new* thread becomes.
+  */
+  const { pathname } = useLocation();
+  const mode = pathname.startsWith('/cp') ? 'cp' : 'dsa';
+
   const send = useCallback(
     async (raw, { problem } = {}) => {
       const content = String(raw || '').trim();
@@ -155,7 +172,13 @@ export function ChatProvider({ children }) {
             conversationId: conversationRef.current,
             model: model || undefined,
             provider: providerFor(model),
-            problemId: problem?._id,
+            mode,
+            /*
+              The two ids name rows in different collections, so which field an
+              attached problem travels in is decided by the mode rather than by
+              the server guessing.
+            */
+            ...(mode === 'cp' ? { cpProblemId: problem?._id } : { problemId: problem?._id }),
           },
           {
             signal: controller.signal,
@@ -232,7 +255,7 @@ export function ChatProvider({ children }) {
         if (!dockOpenRef.current) setUnread(true);
       }
     },
-    [model, providerFor, refreshList],
+    [model, providerFor, refreshList, mode],
   );
 
   const stop = useCallback(() => {
@@ -302,7 +325,13 @@ export function ChatProvider({ children }) {
       configError,
       enabled: config?.enabled ?? false,
       models: config?.models ?? [],
-      suggestions: config?.suggestions?.length ? config.suggestions : FALLBACK_SUGGESTIONS,
+      mode,
+      suggestions:
+        (mode === 'cp' ? config?.cpSuggestions : config?.suggestions)?.length
+          ? mode === 'cp'
+            ? config.cpSuggestions
+            : config.suggestions
+          : FALLBACK_SUGGESTIONS,
       retentionHours: config?.retentionHours ?? 24,
       maxInputChars: config?.maxInputChars ?? 4000,
       retryAt,
@@ -325,6 +354,7 @@ export function ChatProvider({ children }) {
     [
       config,
       configError,
+      mode,
       retryAt,
       model,
       setModel,

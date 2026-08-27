@@ -1,0 +1,1316 @@
+/* =====================================================================
+   Pro Coder — the competitive-programming training environment.
+
+   The whole theme is one wrapper. `.cp-root` redefines the token set that
+   every component in this app already reads — --surface, --border, --text,
+   --radius, --row-h — so the modals, chips, dropdowns, tables and dialogs
+   the ladder *reuses* re-skin themselves without a line of code or a second
+   copy of app.css. That is the leverage; without it this file would be a
+   fork of a 10,000-line stylesheet.
+
+   What is added on top of the token swap is what makes it a different place
+   rather than a recoloured one: glass panels over an ambient wash, hairline
+   borders instead of hard boxes, monospace-forward numerals, and Codeforces'
+   own rating ramp as the only real colour on the page.
+
+   It follows the appearance setting. An earlier version pinned itself dark in
+   both themes, which meant the one screen a person might spend an hour on was
+   also the one screen that ignored what they picked — and, worse, every
+   portalled dropdown menu (those render on <body>, outside this wrapper) came
+   back in the *app's* theme, so a light-theme user got a white menu falling
+   out of a black page. Following the theme fixes the second bug by deleting
+   the mismatch that caused it.
+   ===================================================================== */
+
+/* -------------------------------------------------- the rating ramp
+
+   Codeforces' own scale, per theme, declared at :root rather than inside the
+   wrapper: the same colours are read by the stats histogram, the merged
+   revision queue and the chat dock, none of which is inside `.cp-root`. One
+   definition, one place to re-step it.
+
+   Not a palette we chose. Everybody who has spent a week on the site reads
+   these colours before they read the number, and inventing a different scale
+   for the same axis would make this app harder to read than the thing it is
+   about. Softened from the site's own values in both directions — the dark
+   set is lightened to clear a near-black canvas, the light set deepened to
+   clear white — because saturation at full strength across nine bands on one
+   page is the thing that reads as noise. */
+:root,
+:root[data-theme='dark'] {
+  --cf-newbie: #98a2b3;
+  --cf-pupil: #4ade80;
+  --cf-specialist: #2dd4bf;
+  --cf-expert: #60a5fa;
+  --cf-cm: #c084fc;
+  --cf-master: #fbbf24;
+  --cf-im: #fb923c;
+  --cf-gm: #f87171;
+  --cf-lgm: #ef4444;
+}
+
+:root[data-theme='light'] {
+  --cf-newbie: #64748b;
+  --cf-pupil: #15803d;
+  --cf-specialist: #0d9488;
+  --cf-expert: #2563eb;
+  --cf-cm: #9333ea;
+  --cf-master: #b45309;
+  --cf-im: #c2410c;
+  --cf-gm: #dc2626;
+  --cf-lgm: #b91c1c;
+}
+
+/* Every tier and every rating band resolves to one colour, in one place. Rules
+   below read `--band` rather than re-listing nine selectors each. */
+[data-band='newbie'] { --band: var(--cf-newbie); }
+[data-band='pupil'] { --band: var(--cf-pupil); }
+[data-band='specialist'] { --band: var(--cf-specialist); }
+[data-band='expert'] { --band: var(--cf-expert); }
+[data-band='cm'] { --band: var(--cf-cm); }
+[data-band='master'] { --band: var(--cf-master); }
+[data-band='im'] { --band: var(--cf-im); }
+[data-band='gm'] { --band: var(--cf-gm); }
+[data-band='lgm'] { --band: var(--cf-lgm); }
+
+[data-tier='newbie'] { --band: var(--cf-newbie); }
+[data-tier='pupil'] { --band: var(--cf-pupil); }
+[data-tier='specialist'] { --band: var(--cf-specialist); }
+[data-tier='expert'] { --band: var(--cf-expert); }
+[data-tier='candidate-master'] { --band: var(--cf-cm); }
+[data-tier='master'] { --band: var(--cf-master); }
+[data-tier='advanced'] { --band: var(--cf-gm); }
+
+/* ------------------------------------------------------ the token wrapper */
+
+/*
+  `.cp-root` carries tokens and nothing else — no background, no padding, no
+  size. That is what lets the guide reader wear it too: the reader is a
+  full-viewport overlay with its own layout, and it wants the palette without
+  inheriting a page's margins. The page adds `.cp-page` for the geometry.
+*/
+.cp-root {
+  --bg: #0d0f13;
+  --surface: #15181e;
+  --surface-2: #1a1e25;
+  --surface-hover: #20252e;
+  --border: rgb(255 255 255 / 0.09);
+  --border-soft: rgb(255 255 255 / 0.055);
+
+  --text: #e9edf3;
+  --text-2: #a3adbb;
+  --text-3: #737f8d;
+
+  /*
+    The glass set.
+
+    A panel here is a translucent fill over a blurred backdrop rather than a
+    solid box on a solid page — one material, layered, which is what stops
+    eight stacked sections from reading as eight separate windows. `--cp-solid`
+    is the same colour with the transparency resolved against `--bg`, and it
+    exists because a frozen table column cannot be translucent: a sticky cell
+    that lets the rows scroll through it is unreadable. Anything that has to
+    be opaque uses the solid twin so the two cannot drift apart.
+  */
+  --cp-panel: rgb(255 255 255 / 0.045);
+  --cp-panel-2: rgb(255 255 255 / 0.03);
+  --cp-solid: #171a20;
+  --cp-solid-2: #1c2028;
+  --cp-hair: rgb(255 255 255 / 0.08);
+  --cp-sheen: rgb(255 255 255 / 0.07);
+  --cp-blur: blur(22px) saturate(140%);
+  /* The second colour in the ambient wash behind the header. Cool, so it reads
+     as depth rather than as a second brand colour beside the accent. */
+  --cp-aurora: rgb(110 150 255 / 0.10);
+
+  --easy: var(--cf-pupil);
+  --medium: #f5b544;
+  --hard: #f4737d;
+  --easy-bg: rgb(74 222 128 / 0.1);
+  --medium-bg: rgb(245 181 68 / 0.1);
+  --hard-bg: rgb(244 115 125 / 0.1);
+  --info-bg: rgb(96 165 250 / 0.12);
+
+  --shadow: rgb(0 0 0 / 0.5);
+
+  /* The two judges, as marks rather than as brands. Close enough to the
+     platform colours to be recognised, far enough down in saturation to sit
+     in a table for an hour. */
+  --cp-cf: #7ea6ff;
+  --cp-cc: #c99a6e;
+
+  /* Rounder and looser than the rest of the app. The ladder is a page you
+     read down, not a spreadsheet you scan across. */
+  --radius: 12px;
+  --row-h: 34px;
+}
+
+:root[data-theme='light'] .cp-root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #fafbfd;
+  --surface-hover: #eef1f6;
+  --border: rgb(15 23 42 / 0.09);
+  --border-soft: rgb(15 23 42 / 0.055);
+
+  --text: #11151c;
+  --text-2: #566172;
+  --text-3: #7c8797;
+
+  /* Inverted material: on a light canvas the glass is white *over* the wash,
+     not white light through it, so the fills go up and the hairlines darken. */
+  --cp-panel: rgb(255 255 255 / 0.72);
+  --cp-panel-2: rgb(255 255 255 / 0.5);
+  --cp-solid: #fcfdfe;
+  --cp-solid-2: #f7f9fb;
+  --cp-hair: rgb(15 23 42 / 0.08);
+  --cp-sheen: rgb(255 255 255 / 0.9);
+  --cp-aurora: rgb(110 150 255 / 0.14);
+
+  --easy: var(--cf-pupil);
+  --medium: #b45309;
+  --hard: #d1293d;
+  --easy-bg: rgb(21 128 61 / 0.09);
+  --medium-bg: rgb(180 83 9 / 0.09);
+  --hard-bg: rgb(209 41 61 / 0.09);
+  --info-bg: rgb(37 99 235 / 0.09);
+
+  --shadow: rgb(15 23 42 / 0.1);
+
+  --cp-cf: #2f5fd0;
+  --cp-cc: #8a5a2b;
+}
+
+/* The accent is deliberately *not* redefined. It is the one colour the reader
+   picked, and the ladder is the screen they will spend the longest on — taking
+   it away here to fly a house colour would make their choice mean less
+   everywhere. What makes this room its own room is the material, not a hue. */
+
+/* ------------------------------------------------------------- the page */
+
+/*
+  Full bleed. The shell holds every other page to 1500px so a dozen columns
+  have somewhere to go before a table scrolls; this one has seven tier cards
+  across the top and up to fourteen columns in the rows, and centring that in
+  a 1500px well on a wide monitor wastes the width the ladder is asking for.
+*/
+.content:has(.cp-page) {
+  padding: 0;
+}
+.content:has(.cp-page) .content-inner {
+  max-width: none;
+  margin: 0;
+}
+
+/*
+  The ambient wash — two soft lights behind the top of the page, one in the
+  reader's own accent and one cool. It is what the glass has to refract; a
+  translucent panel over a flat fill is just a lighter fill.
+
+  Layered into the element's own background rather than drawn by a pseudo-element
+  behind it, and that is not a style preference. A `z-index: -1` pseudo only
+  paints above its parent's background if the parent establishes a stacking
+  context — and a stacking context here would trap everything the page renders,
+  including the filters dialog and the guide reader, underneath the floating
+  chat launcher. Background layers need no stacking context at all.
+*/
+.cp-page {
+  position: relative;
+  color: var(--text);
+  background:
+    radial-gradient(920px 360px at 10% -10%, rgb(var(--accent-rgb) / 0.1), transparent 68%)
+      no-repeat,
+    radial-gradient(760px 320px at 88% -14%, var(--cp-aurora), transparent 70%) no-repeat,
+    var(--bg);
+  background-size: 100% 460px, 100% 460px, auto;
+  padding: 22px 28px 72px;
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+/* ------------------------------------------------------------ arena header */
+
+.cp-arena {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--cp-hair);
+  border-radius: 18px;
+  background: var(--cp-panel);
+  backdrop-filter: var(--cp-blur);
+  -webkit-backdrop-filter: var(--cp-blur);
+  box-shadow: 0 1px 0 var(--cp-sheen) inset, 0 18px 40px -34px var(--shadow);
+  padding: 20px 22px 18px;
+  margin-bottom: 16px;
+}
+
+.cp-arena > * {
+  position: relative;
+}
+
+.cp-arena-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cp-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: auto;
+}
+
+.cp-brand-mark {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+  border-radius: 11px;
+  padding: 0 8px;
+  background: var(--accent-bg);
+}
+
+.cp-brand h1 {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cp-brand p {
+  margin: 3px 0 0;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------- identity */
+
+.cp-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--band, var(--text));
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--band, var(--text-3)) 10%, transparent);
+}
+.cp-handle:hover {
+  background: color-mix(in srgb, var(--band, var(--text-3)) 18%, transparent);
+}
+
+.cp-rating-block {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.cp-rating {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--band, var(--text));
+}
+
+.cp-rank {
+  font-size: 11.5px;
+  color: var(--band, var(--text-2));
+}
+.cp-rank.dim {
+  color: var(--text-3);
+}
+
+.cp-max {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.cp-handle-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-handle-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 7px 11px;
+  font-size: 13px;
+  width: 190px;
+}
+.cp-handle-input:focus {
+  outline: none;
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.cp-sync-line {
+  margin: 12px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--text-3);
+}
+.cp-sync-line.dim {
+  opacity: 0.9;
+}
+.cp-sync-error {
+  color: var(--danger);
+}
+
+/* ------------------------------------------------------------ tier rail */
+
+.cp-rail {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cp-rung {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  align-items: stretch;
+  padding: 11px 12px 12px;
+  background: var(--cp-panel-2);
+  border: 1px solid var(--cp-hair);
+  border-radius: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.cp-rung:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+/*
+  The tier's colour is a 6px dot, not a 2px edge on every card.
+
+  Seven saturated rails side by side is the thing that made this strip read as
+  a warning panel. A dot carries the same mapping — the rail still runs grey to
+  red left to right — at a tenth of the ink.
+*/
+.cp-rung-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.15;
+}
+.cp-rung-label::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--band, var(--text-3));
+}
+
+.cp-rung-band {
+  font-size: 10.5px;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+  margin-top: -3px;
+  padding-left: 13px;
+}
+
+.cp-rung-bar {
+  width: 100%;
+  height: 4px;
+  background: color-mix(in srgb, var(--text-3) 22%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cp-rung-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--band, var(--accent));
+  transition: width 0.25s ease;
+}
+
+.cp-rung-frac {
+  align-self: flex-end;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+/* Where the reader is. A tinted card and a hairline in the tier's own colour —
+   enough to find at a glance, not a lit panel. */
+.cp-rung.here {
+  background: color-mix(in srgb, var(--band, var(--accent)) 9%, var(--cp-panel-2));
+  border-color: color-mix(in srgb, var(--band, var(--accent)) 38%, transparent);
+}
+.cp-rung.here .cp-rung-label {
+  color: var(--text);
+}
+
+/* "YOU" sits on the border rather than inside the box, so it cannot be mistaken
+   for part of the tier's own numbers. */
+.cp-rung-you {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: var(--band, var(--accent));
+  background: color-mix(in srgb, var(--band, var(--accent)) 16%, var(--cp-solid));
+  border: 1px solid color-mix(in srgb, var(--band, var(--accent)) 34%, transparent);
+}
+
+@media (max-width: 1180px) {
+  .cp-rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .cp-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cp-page {
+    padding: 14px 12px 56px;
+  }
+  .cp-arena {
+    padding: 16px 14px 14px;
+    border-radius: 16px;
+  }
+}
+
+/* ---------------------------------------------------------------- the bar */
+
+/*
+  The control bar is a rail of its own rather than a row of chips on the page
+  with a line under it — it groups what were eleven separate boxes into one
+  surface, which is most of what made the old bar feel busy.
+*/
+.cp-bar {
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--cp-hair);
+  border-radius: 14px;
+  background: var(--cp-panel);
+  backdrop-filter: var(--cp-blur);
+  -webkit-backdrop-filter: var(--cp-blur);
+}
+
+.cp-root .toggle-chip,
+.cp-root .chip-clear {
+  border-radius: 999px;
+  background: var(--cp-panel-2);
+  border-color: var(--cp-hair);
+}
+.cp-root .toggle-chip:hover {
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+.cp-root .toggle-chip.on {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* The segmented groups — the spine and the platform picker — as one pill each
+   with the selected half filled, the way a segmented control reads on a phone. */
+.cp-root .size-group.filter-seg {
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--cp-panel-2);
+  border-color: var(--cp-hair);
+  padding: 2px;
+  gap: 2px;
+}
+.cp-root .size-group.filter-seg button {
+  border-radius: 999px;
+  padding: 0 12px;
+  border: none;
+}
+.cp-root .size-group.filter-seg button.on {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px var(--shadow);
+}
+
+/* The spine decides what every section below it means, so its selected half is
+   the accent rather than a neutral raise. */
+.cp-spine {
+  border-color: var(--accent-line);
+}
+.cp-root .cp-spine button.on {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* The keyboard legend was competing with the controls for the same eye. It is
+   a reference, not a control — so it recedes until you look for it. */
+.cp-bar .hint kbd {
+  border-radius: 6px;
+  border-color: var(--cp-hair);
+  background: var(--cp-panel-2);
+}
+
+/* -------------------------------------------------------------- sections */
+
+/*
+  Deliberately *not* blurred, unlike the header and the bar.
+
+  A row opens the attempt dialog and the delete confirmation, and those are
+  `position: fixed` overlays rendered inside the row's own markup. An ancestor
+  carrying `backdrop-filter` becomes the containing block for fixed descendants,
+  which would anchor a full-screen dialog to a section header instead of to the
+  viewport. The translucent fill is the part that matters here anyway — there is
+  nothing behind a section but the page's flat canvas.
+*/
+.cp-section {
+  border: 1px solid var(--cp-hair);
+  border-radius: 16px;
+  background: var(--cp-panel);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.cp-section.open {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--cp-hair));
+  box-shadow: 0 14px 34px -30px var(--shadow);
+}
+
+.cp-heading {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.cp-head {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: stretch;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+}
+.cp-heading:hover .cp-head {
+  background: var(--cp-panel-2);
+}
+
+.cp-head-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cp-head .chev {
+  color: var(--text-3);
+  display: inline-flex;
+  transition: transform 0.16s ease;
+  flex: 0 0 auto;
+}
+.cp-head .chev.open {
+  transform: rotate(90deg);
+  color: var(--accent);
+}
+
+.cp-head-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cp-head-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+
+/* The tier or pattern number, tinted with its band instead of outlined in it.
+   A wash carries the same colour at a fraction of the contrast, which is the
+   difference between a page with nine accents and a page with one. */
+.cp-step {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--band, var(--text-3));
+  background: color-mix(in srgb, var(--band, var(--text-3)) 14%, transparent);
+  border-radius: 6px;
+  padding: 3px 6px;
+  flex: 0 0 auto;
+}
+
+.cp-rank-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--band, var(--text-3)) 75%, var(--text-2));
+  border: 1px solid color-mix(in srgb, var(--band, var(--text-3)) 26%, transparent);
+  border-radius: 999px;
+  padding: 2px 7px;
+  flex: 0 0 auto;
+}
+
+.cp-head-blurb {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cp-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.cp-band {
+  font-size: 10.5px;
+  color: var(--text-3);
+  border: 1px solid var(--cp-hair);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.cp-frac {
+  font-size: 11.5px;
+  color: var(--text-2);
+  min-width: 54px;
+  text-align: right;
+}
+
+.cp-meter .bar {
+  width: 84px;
+  height: 4px;
+  background: color-mix(in srgb, var(--text-3) 22%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cp-meter .bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--band, var(--accent));
+  transition: width 0.25s ease;
+}
+
+.cp-meter .pct {
+  font-size: 11px;
+  color: var(--text-3);
+  min-width: 34px;
+  text-align: right;
+}
+
+.cp-info {
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border-soft);
+  color: var(--text-3);
+  cursor: pointer;
+}
+.cp-info:hover {
+  color: var(--accent);
+  background: var(--cp-panel-2);
+}
+
+/* Marks the twelve patterns that have a full write-up behind the button, so
+   opening one is never a guess about whether there is anything there. */
+.cp-info-dot {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ----------------------------------------------------------- the table */
+
+.cp-root .tablewrap {
+  border-top: 1px solid var(--border-soft);
+}
+
+.cp-table th {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/*
+  Anything frozen has to be opaque, and the panel it sits in is not — see
+  `--cp-solid`. Without this the rows scroll visibly *through* the pinned
+  columns.
+*/
+.cp-root table.problems thead th {
+  background: transparent;
+}
+.cp-root .problems th.pin,
+.cp-root .problems td.pin {
+  background: var(--cp-solid);
+}
+.cp-root .problems thead th.pin {
+  background: var(--cp-solid-2);
+}
+.cp-root .problems tbody tr:hover td.pin,
+.cp-root .problems tbody tr.cursor td.pin {
+  background: var(--surface-hover);
+}
+
+/* The rating, in Codeforces' own colours — the fastest-read cell in the row. */
+.cf-rating {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--band, var(--text-2));
+}
+
+/* CodeChef's scale, marked as CodeChef's. Deliberately never wearing the
+   Codeforces ramp: the two numbers are not comparable, and colouring a CodeChef
+   1600 as "Expert" would be a claim that is simply false. */
+.cc-rating {
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--text-2);
+  border-bottom: 1px dotted var(--text-3);
+}
+
+.cp-root .cf-id {
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  color: var(--text-3);
+  border: 1px solid var(--cp-hair);
+  border-radius: 6px;
+  padding: 1px 5px;
+  flex: 0 0 auto;
+}
+
+.cp-root .judge {
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+}
+.cp-root .judge.codeforces {
+  color: var(--cp-cf);
+}
+.cp-root .judge.codechef {
+  color: var(--cp-cc);
+}
+
+.cp-root .div-tag {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  border: 1px solid var(--cp-hair);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.cp-root .technique,
+.cp-root .topic-chip {
+  border-radius: 999px;
+  border-color: var(--cp-hair);
+}
+
+/* Accepted on the judge, not marked here. A prompt, not a warning — so it is
+   the accent rather than the danger colour. */
+.cp-root .tag-mini.ac {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+
+.cp-root tr.ac-unlogged td:first-child {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* The judge's tag list is the editorial's answer key. It is off by default, and
+   when it is on it is marked so nobody forgets what they switched on. */
+.cp-root .topic-chip.tag-spoiler {
+  border-style: dashed;
+  color: var(--text-3);
+}
+
+.cp-root .soln-row {
+  display: inline-flex;
+  gap: 5px;
+}
+.cp-root .soln-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+  border: 1px solid var(--cp-hair);
+  border-radius: 999px;
+  padding: 1px 7px;
+  text-decoration: none;
+}
+.cp-root .soln-link:hover {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+
+.cp-root .contest-link {
+  color: var(--text-2);
+  text-decoration: none;
+}
+.cp-root .contest-link:hover {
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------- notes drawer */
+
+.cp-curation-note {
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--text-3);
+  border-left: 2px solid var(--accent-line);
+  padding-left: 10px;
+}
+
+.cp-ac-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-bg);
+  border-radius: 12px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.cp-ac-banner > span {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* ---------------------------------------------------------- guide reader */
+
+/*
+  The pattern reference reuses the roadmap's reader wholesale — `.reader-*` in
+  app.css — because it is the same job: two thousand words with code, a rail of
+  headings, one column of prose. What is added here is the room it is read in:
+  the overlay carries `.cp-root`, so the palette above applies, and these rules
+  add the glass the ladder itself is made of.
+*/
+.cp-reader {
+  /* A blurred page behind a reading pane, rather than a black sheet over it. */
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* The same ambient light the page has, so opening a guide does not feel like
+   leaving the module. Layered, for the reason the page's is. */
+.cp-reader .reader {
+  background:
+    radial-gradient(760px 300px at 18% -12%, rgb(var(--accent-rgb) / 0.09), transparent 70%)
+      no-repeat,
+    radial-gradient(620px 260px at 86% -16%, var(--cp-aurora), transparent 72%) no-repeat,
+    var(--bg);
+  background-size: 100% 380px, 100% 380px, auto;
+}
+
+.cp-reader .reader-head {
+  background: var(--cp-panel);
+  backdrop-filter: var(--cp-blur);
+  -webkit-backdrop-filter: var(--cp-blur);
+  border-bottom: 1px solid var(--cp-hair);
+  padding: 0 16px;
+  gap: 14px;
+}
+.cp-reader .reader-back {
+  border-radius: 999px;
+  border-color: var(--cp-hair);
+  background: var(--cp-panel-2);
+}
+/* The roadmap's reader pushes its right-hand group over with the progress
+   meter, which a pattern brief has no equivalent of — a technique is not
+   something you are a fraction of the way through. The Esc key takes the job. */
+.cp-reader .reader-esc {
+  margin-left: auto;
+}
+.cp-reader .reader-toc {
+  border-right: 1px solid var(--border-soft);
+}
+.cp-reader .reader-toc button {
+  border-radius: 9px;
+}
+.cp-reader .reader-toc button.on {
+  background: var(--accent-bg);
+}
+
+/* The tier the pattern belongs to, beside its name in the header bar. The one
+   piece of the ladder's own vocabulary the roadmap's reader has no slot for. */
+.cp-reader-tier {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--band, var(--text-3));
+  background: color-mix(in srgb, var(--band, var(--text-3)) 13%, transparent);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.cp-guide-rule {
+  border: none;
+  border-top: 1px solid var(--border-soft);
+  margin: 30px 0 24px;
+}
+
+/* The brief. Present on every pattern, so this is the page and the long-form
+   guide is what follows it — not the other way round. */
+.cp-brief {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.cp-brief-block {
+  border: 1px solid var(--cp-hair);
+  border-radius: 14px;
+  background: var(--cp-panel);
+  padding: 14px 16px;
+}
+/* The two blocks that are claims rather than description get an edge; the rest
+   stay quiet. */
+.cp-brief-block.invariant {
+  border-left: 2px solid var(--accent);
+}
+.cp-brief-block.traps {
+  border-left: 2px solid var(--medium);
+}
+
+.cp-brief-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.cp-brief-block p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.cp-brief-block ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+.cp-brief-block li + li {
+  margin-top: 5px;
+}
+
+.cp-brief-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 860px) {
+  .cp-brief-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cp-brief-links {
+  list-style: none;
+  padding: 0;
+}
+.cp-brief-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.cp-brief-links a:hover {
+  text-decoration: underline;
+}
+
+.cp-prereqs {
+  font-size: 12px;
+  color: var(--text-3);
+  margin: 0 0 20px;
+}
+/* Inline here, unlike everywhere else it is used: this one labels a sentence
+   rather than a block, and stacked it reads as an empty heading. */
+.cp-prereqs .cp-brief-label {
+  display: inline;
+  margin-right: 4px;
+}
+
+/* --------------------------------------------------------------- filters */
+
+/* The range control, added to the shared filters dialog for the rating axis. */
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-input {
+  width: 100px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 10px;
+  font-size: 13px;
+}
+.range-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.range-dash {
+  color: var(--text-3);
+}
+
+.range-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+/* Inside the dialog the presets are choices in a list, not controls on a bar —
+   they read better as pills than as the bar's squarer chips. */
+.range-presets .toggle-chip {
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------------- loading */
+
+.skeleton-arena {
+  height: 196px;
+  border-radius: 18px;
+  border: 1px solid var(--cp-hair);
+  background: linear-gradient(
+    90deg,
+    var(--cp-panel) 25%,
+    var(--surface-hover) 37%,
+    var(--cp-panel) 63%
+  );
+  background-size: 400% 100%;
+  animation: cp-shimmer 1.4s ease infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes cp-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-arena {
+    animation: none;
+  }
+  .cp-rung:hover {
+    transform: none;
+  }
+}
+
+/* ============================================================ outside /cp
+
+   Three places show CP data on pages that are *not* the ladder: the stats
+   section, the merged revision queue, and the chat dock. They are outside
+   `.cp-root`, so they take the app's own surfaces — deliberately. The arena is
+   a place you go; a rating in a revision row is a fact on somebody else's page,
+   and repainting the whole of Stats to carry it would be the tail wagging the
+   dog.
+
+   What travels is only the rating colour language, which is defined at :root
+   at the top of this file precisely so it can.
+   ===================================================================== */
+
+/* The rating cell in the merged revision queue. */
+.rev-cf-rating {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--band, var(--text-2));
+}
+
+/* ------------------------------------------------------ stats section */
+
+.cp-stat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 26px;
+}
+.cp-stat-head h2 {
+  font-size: 15px;
+  margin: 0;
+}
+
+.cp-stat-h {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-2);
+  margin: 0 0 10px;
+}
+.cp-stat-h .hint {
+  font-weight: 400;
+}
+
+.cp-stat-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px;
+  margin-bottom: 22px;
+}
+@media (max-width: 860px) {
+  .cp-stat-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/*
+  The rating histogram. Total height is the number of problems in the band;
+  the filled portion is how many are solved — so the shape says where the
+  curriculum is dense and the fill says how far through it you are, in one
+  figure rather than two charts.
+*/
+.cp-histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 130px;
+  padding-bottom: 16px;
+  position: relative;
+}
+
+.cp-hist-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.cp-hist-bar {
+  width: 100%;
+  position: relative;
+  background: color-mix(in srgb, var(--band, var(--text-3)) 22%, transparent);
+  border-radius: 2px 2px 0 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+.cp-hist-solved {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--band, var(--accent));
+  border-radius: 2px 2px 0 0;
+}
+
+.cp-hist-label {
+  position: absolute;
+  bottom: 0;
+  font-size: 8.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.cp-platform-split {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+/* ------------------------------------------------------- the CP dock */
+
+/*
+  The chat dock, when it is the CP coach.
+
+  A marked edge rather than the whole panel restyled: the dock floats over
+  whatever page you are on, and a second surface treatment dropped onto the
+  page underneath would read as a rendering fault. The stripe is enough to say
+  which assistant is behind it, which is all it has to say.
+*/
+.chat-dock.cp-dock {
+  border-top: 2px solid var(--cf-specialist);
+}
+.chat-launcher.cp {
+  border-color: var(--cf-specialist);
+}
+.chat-launcher.cp:hover {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cf-specialist) 20%, transparent);
+}

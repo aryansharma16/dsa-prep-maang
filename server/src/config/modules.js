@@ -38,6 +38,19 @@ export const MODULES = Object.freeze([
   { key: 'learn', label: 'Learn', path: '/learn' },
   { key: 'tasks', label: 'Tasks', path: '/tasks' },
   /*
+    Pro Coder — the competitive-programming curriculum.
+
+    A module rather than a second home page, and so hideable, because it is the
+    one part of the app that is not for everyone: someone preparing for an
+    interview loop in six weeks has no business being sent down a Codeforces
+    ladder, and a deployment aimed at them should be able to take it off the
+    menu. The roadmap is not hideable for the mirror-image reason — see above.
+
+    Claimed by `requireModule('procoder')` on the /cp mount in routes/index.js,
+    which covers every route the module has, including the ones added tomorrow.
+  */
+  { key: 'procoder', label: 'Pro Coder', path: '/cp' },
+  /*
     Feedback is a module for the same reason the four above are: it is a side
     menu entry and an API surface, and hiding it has to mean both. It is worth
     knowing what hiding it costs, though — it is the channel people use to say

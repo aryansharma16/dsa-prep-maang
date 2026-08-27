@@ -50,6 +50,7 @@ import { anyProviderConfigured } from '../services/ai/registry.js';
 import { adminRouter } from './admin.routes.js';
 import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
+import { cpRouter } from './cp.routes.js';
 import { feedbackRouter } from './feedback.routes.js';
 import { taskRouter } from './task.routes.js';
 
@@ -129,6 +130,15 @@ router.use(writeLimiter);
   added there at all — see config/modules.js.
 */
 router.use('/chat', requireModule('chat'), chatRouter);
+
+/*
+  Pro Coder — the competitive-programming ladder, with its own collections,
+  its own progress rows and its own Codeforces sync.
+
+  One mount, like chat and tasks, so a route added to cp.routes.js tomorrow is
+  behind the module gate by having been added there at all.
+*/
+router.use('/cp', requireModule('procoder'), cpRouter);
 
 router.get('/patterns', listPatterns);
 router.get('/patterns/:slug/guide', getGuide);

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useChat } from '../../store/ChatContext.jsx';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
+import { readCPLadder } from '../../store/cpLadderCache.js';
 import { IconClose, IconSearch } from '../ui/Icons.jsx';
 
 /**
@@ -16,6 +18,12 @@ import { IconClose, IconSearch } from '../ui/Icons.jsx';
 
 export function ProblemPicker({ onPick, onClose }) {
   const { groups } = useRoadmap();
+  /*
+    Which curriculum to offer, from the same route-derived mode the assistant
+    itself uses. On /cp the coach's context builder reads the CP collection, so
+    handing it a roadmap problem id would attach nothing at all.
+  */
+  const { mode } = useChat();
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
   const sheetRef = useRef(null);
@@ -57,12 +65,30 @@ export function ProblemPicker({ onPick, onClose }) {
     const out = [];
     let total = 0;
 
-    for (const group of groups) {
+    /*
+      The CP ladder, grouped by tier. Read at open time from the module cache
+      rather than from a context, because the dock is mounted in the app shell
+      beside the /cp route and not inside its provider — see cpLadderCache.js.
+    */
+    const source =
+      mode === 'cp'
+        ? Object.values(
+            readCPLadder().reduce((acc, p) => {
+              acc[p.tier] ??= { slug: p.tier, name: p.tier, problems: [] };
+              acc[p.tier].problems.push(p);
+              return acc;
+            }, {}),
+          )
+        : groups;
+
+    for (const group of source) {
       const matches = needle
         ? group.problems.filter((problem) =>
             [
               problem.title,
               group.name,
+              // "1352G" is how a CP problem is actually named in conversation.
+              problem.code || '',
               ...(problem.topicTags || []),
               ...(problem.companies || []).map((c) => c.name),
             ]
@@ -78,7 +104,7 @@ export function ProblemPicker({ onPick, onClose }) {
     }
 
     return { sections: out, count: total };
-  }, [groups, q]);
+  }, [groups, q, mode]);
 
   return (
     <div className="chat-sheet" ref={sheetRef} role="dialog" aria-label="Attach a problem">

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { IconChevronRight, IconGrip, IconPin } from '../ui/Icons.jsx';
 import { Modal } from '../ui/Modal.jsx';
-import { COLUMN_BY_ID, SIZES, widthOf } from './columns.jsx';
+import { COLUMNS, SIZES, widthOf } from './columns.jsx';
 import {
+  DEFAULT_PINNED,
   MAX_PINNED,
   RIGHT_PINNED,
   defaultLayout,
@@ -22,9 +23,24 @@ const move = (list, from, to) => {
  * table would re-render 400-odd rows per keystroke of fiddling, and there would
  * be no way to back out of an experiment.
  */
-export function ColumnsModal({ layout, onSave, onClose }) {
+export function ColumnsModal({
+  layout,
+  onSave,
+  onClose,
+  registry = COLUMNS,
+  defaultPins = DEFAULT_PINNED,
+  title = 'Columns',
+}) {
   const [draft, setDraft] = useState(layout);
   const [dragging, setDragging] = useState(null);
+
+  /*
+    Which table this dialog is editing. It read the roadmap's registry directly
+    until there were two tables — at which point the CP ladder opened a dialog
+    listing the roadmap's columns, crashed on the first one it could not find,
+    and looked like a bug in the dialog rather than in what it was handed.
+  */
+  const byId = Object.fromEntries(registry.map((c) => [c.id, c]));
 
   const shown = draft.filter((entry) => entry.show).length;
   const pins = pinnedCount(draft);
@@ -49,7 +65,7 @@ export function ColumnsModal({ layout, onSave, onClose }) {
   };
 
   return (
-    <Modal title="Columns" size="lg" onClose={onClose}>
+    <Modal title={title} size="lg" onClose={onClose}>
       <div className="modal-body">
         <p className="hint" style={{ marginTop: 0 }}>
           Pick what the problems table shows, drag to reorder, pin up to {MAX_PINNED} columns to the
@@ -80,7 +96,8 @@ export function ColumnsModal({ layout, onSave, onClose }) {
           </div>
 
           {draft.map((entry, index) => {
-            const column = COLUMN_BY_ID[entry.id];
+            const column = byId[entry.id];
+            if (!column) return null;
             return (
               <div
                 key={entry.id}
@@ -180,7 +197,11 @@ export function ColumnsModal({ layout, onSave, onClose }) {
       </div>
 
       <div className="modal-foot">
-        <button type="button" className="link-btn danger" onClick={() => setDraft(defaultLayout())}>
+        <button
+          type="button"
+          className="link-btn danger"
+          onClick={() => setDraft(defaultLayout(registry, defaultPins))}
+        >
           Reset to default
         </button>
         <span className="spacer" />

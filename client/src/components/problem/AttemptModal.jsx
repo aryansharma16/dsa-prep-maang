@@ -34,8 +34,22 @@ const toMinutes = (seconds) => (seconds > 0 ? Math.max(1, Math.round(seconds / 6
  * what makes the number worth logging at all, and none of it fits in a popover
  * anchored to a table cell.
  */
-export function AttemptModal({ problem, onClose }) {
-  const { logAttempt } = useRoadmap();
+/**
+ * @param store  The problem store this dialog writes through — `{ logAttempt,
+ *   editAttempt, deleteAttempt, fetchAttempts }`. Defaults to the roadmap's,
+ *   which is what every caller wanted while there was one problem set. The CP
+ *   ladder passes its own: the dialog is identical, the collection behind it is
+ *   not, and a shared modal that could only ever write to `Progress` would mean
+ *   a second copy of this file rather than a prop.
+ */
+export function AttemptModal({ problem, onClose, store }) {
+  /*
+    Called unconditionally — hooks cannot be conditional, and RoadmapProvider
+    wraps the whole authenticated tree, so this resolves on every route
+    including /cp. `store` then overrides it where one was passed.
+  */
+  const roadmap = useRoadmap();
+  const { logAttempt } = store || roadmap;
   const timer = useAttemptTimer();
   const onThisProblem = timer.isOn(problem._id);
   const seconds = onThisProblem ? timer.elapsed() : 0;
@@ -167,7 +181,7 @@ export function AttemptModal({ problem, onClose }) {
           </section>
         </div>
 
-        <AttemptLog problem={problem} />
+        <AttemptLog problem={problem} store={store} />
       </div>
 
       <div className="modal-foot">
@@ -309,10 +323,11 @@ function ConfidenceRead({ value }) {
  * itself. Falls back to that preview while the request is in flight, so the
  * panel is never empty for a problem you know you have attempted.
  */
-function AttemptLog({ problem }) {
-  // Through the roadmap rather than straight to the API, so the chips in the
-  // row behind this dialog change with the log in front of it.
-  const { editAttempt, deleteAttempt } = useRoadmap();
+function AttemptLog({ problem, store }) {
+  // Through the store rather than straight to the API, so the chips in the row
+  // behind this dialog change with the log in front of it.
+  const roadmap = useRoadmap();
+  const { editAttempt, deleteAttempt, fetchAttempts } = store || roadmap;
   const [attempts, setAttempts] = useState(() => problem.progress?.recentAttempts || []);
   const [state, setState] = useState('loading');
   const [error, setError] = useState(null);
@@ -336,8 +351,7 @@ function AttemptLog({ problem }) {
 
   useEffect(() => {
     let live = true;
-    progressApi
-      .attempts(problem._id)
+    (fetchAttempts ? fetchAttempts(problem._id) : progressApi.attempts(problem._id))
       .then((data) => {
         if (!live) return;
         setAttempts(data.attempts);

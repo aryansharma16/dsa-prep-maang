@@ -8,6 +8,12 @@ import { ToastProvider } from './store/ToastContext.jsx';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
+/*
+  After app.css on purpose. `.cp-root` redefines tokens the shared components
+  read, and several of its rules are `.cp-root .thing` overrides of a plain
+  `.thing` — equal specificity, so source order is what decides them.
+*/
+import './styles/cp.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

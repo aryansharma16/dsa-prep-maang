@@ -1,10 +1,12 @@
 # Ember
 
-A pattern-first interview prep tracker. The first module is the DSA roadmap:
-429 curated problems ordered as a curriculum — arrays → two pointers → prefix
+A pattern-first prep tracker, with two curriculums. The **roadmap** is 429
+curated interview problems ordered as a ramp — arrays → two pointers → prefix
 sum → sliding window → … → DP — with real company tags, one-click progress
-tracking and a spaced-repetition revision queue. System design and the rest
-follow the same shape.
+tracking and a spaced-repetition revision queue. **Pro Coder** is 800 curated
+Codeforces and CodeChef problems arranged as a rating ladder, for getting from
+Newbie to Candidate Master rather than through an interview loop. System design
+and the rest follow the same shape.
 
 React + Vite · Node/Express · MongoDB Atlas · Cloudinary. JavaScript throughout.
 
@@ -26,8 +28,9 @@ the sign-in page as well as from the sidebar.
 | **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Learn** | Reference notes for the things around the algorithms. Two tracks — React, 43 topics from the virtual DOM through the ecosystem a job expects, and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
-| **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder |
-| **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread |
+| **Pro Coder** | A competitive-programming ladder: 800 problems (600 Codeforces, 200 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own glass theme that follows your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
+| **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across both curriculums |
+| **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
@@ -76,6 +79,13 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:db` | upserts problems and patterns into MongoDB |
 | `npm run seed` | all three, in order |
 | `npm run seed:guides` | writes the pattern guides |
+| `npm run seed:cp` | the whole Pro Coder pipeline — see [Seeding it](#seeding-it) |
+| `npm run seed:cp:fetch` | Codeforces problemset + contests → `data/raw/cp/` |
+| `npm run seed:cp:sheets` | the curated CP sheets (CP-31, ladders, A2OJ) |
+| `npm run seed:cp:codechef` | rated CodeChef problems, with tags for the shortlist |
+| `npm run seed:cp:curate` | fills the (pattern × tier) grid → `data/cp/curated-cp.json`. `-- --dry` prints the distribution and writes nothing |
+| `npm run seed:cp:db` | upserts the CP ladder into MongoDB |
+| `npm run seed:cp:guides` | writes the 12 core CP guides |
 | `npm run seed:motivation` | writes the 160 motivational lines |
 | `npm run seed:logos` | pre-warms the company logo cache |
 | `npm run ai:draft` | drafts new motivational lines with Gemini, for you to curate |
@@ -242,6 +252,155 @@ one click rather than a context switch.
 **SQL** is listed as **Soon**. Adding a track is a folder and an entry in
 `client/src/learn/tracks.js` — see [docs/learn.md](docs/learn.md) for the block
 vocabulary and how to add a topic or a track.
+
+## Pro Coder — competitive programming
+
+A second curriculum, for a different goal. The roadmap answers "am I ready for
+an interview loop"; Pro Coder answers "how do I get from 1200 to 1900 on
+Codeforces". Different problems, a different progression signal, and its own
+everything — collections, routes, filters, columns, theme and coach.
+
+**800 problems.** 600 Codeforces and 200 CodeChef, across **49 CP patterns** in
+**7 rating tiers**:
+
+| Tier | Codeforces rating | What it is for |
+|---|---|---|
+| Foundations | 800–1000 | Read the statement, write the loop, print the answer |
+| Pupil | 1100–1300 | One observation stands between you and the answer |
+| Specialist | 1400–1500 | The standard toolkit becomes automatic — where most people stall |
+| Expert | 1600–1800 | Two ideas per problem instead of one |
+| Candidate Master | 1900–2100 | Heavy machinery, used precisely |
+| Master | 2200–2400 | Flows, DP optimisations, polynomials, decompositions |
+| Advanced | 2500+ | Geometry, persistence, randomisation, and what fits no name |
+
+49 patterns rather than the roadmap's 22, because interview prep splits problems
+by what you have to *recognise* and CP splits them by what you have to
+*implement*. "Dynamic programming" is one interview pattern and eight of these —
+someone fluent in knapsack is not thereby able to write a digit DP.
+
+The page is organised on two axes and you pick the spine. **Tier** is the
+default, because rating is what actually gates what you can attempt; **Pattern**
+is one toggle (or `g`) away for when you are drilling a technique across the
+whole range. Both groupings are derived from one payload, so flipping between
+them costs a re-render rather than a request.
+
+### Where the problems come from
+
+| Source | Contribution |
+|---|---|
+| [Codeforces API](https://codeforces.com/apiHelp) | 11,363 problems with ratings, tags and solve counts; 2,143 contests for division and date |
+| [CodeChef practice API](https://www.codechef.com/practice) | 4,086 rated problems, then tags and editorials for the shortlist |
+| [CP-31 Sheet](https://github.com/shobhitraj1/CP-31-Sheet-Solutions) | 31 problems at each rating 800–1500, with a C++ reference solution each |
+| [Codeforces Ladders](https://github.com/karansinghgit/CodeForces-Ladders) | Div. 2 A–E, 100 problems each, with ratings |
+| [A2OJ Ladder](https://github.com/rishabhdeepsingh/A2OJ-Ladder) | ~150 topic lists — the human-assigned pattern labels |
+
+The sweep alone would give you a list, not a curriculum: score correlates with
+solve count, solve count correlates with how common a tag is, and the top 600
+by score is 70% Div. 2 A and B. So selection fills a **(pattern × tier) grid** —
+each pattern gets a quota spread across the tiers it actually appears in — and
+ranks within each cell by solve count, curated-sheet weight and how confident
+the pattern assignment is. A problem named by a curated sheet bypasses every
+filter, because a human who put it on a syllabus has already answered the
+question the filters approximate. 733 of the 800 are named by at least one
+sheet; 160 carry a reference solution.
+
+Pattern assignment is a priority list, not a lookup: a Codeforces problem
+carries several tags and only one is the technique being taught, so
+`dp + trees + dfs` is filed under DP on Trees rather than Linear DP. Where a
+curated sheet has an opinion, it wins over the tags.
+
+### Codeforces handle sync
+
+Link your handle and the ladder stops asking you where you are. It pulls
+`user.info` for your live rating and rank, and `user.status` for every accepted
+submission, then marks the ones that are on the ladder.
+
+The rule is that **sync never downgrades**. It may mark a problem solved; it
+may never un-mark one, clear a flag, drop a note or reset a schedule. A row that
+already exists gets only the three platform fields written to it. A problem
+Codeforces says you solved but you never logged here shows as `AC` on the row
+rather than being silently ticked — that is a prompt worth having, and there is
+a bar filter for exactly that list.
+
+Rating drives the coaching too: the tier rail marks where you actually are, and
+a problem more than ~200 above your rating is called a stretch problem rather
+than something you should be getting.
+
+One sync per account per ten minutes — `user.status` is the largest response
+Codeforces serves, and the whole app shares one IP against a per-IP rate limit.
+
+### Guides
+
+Every one of the 49 patterns carries a **brief**: the invariant, when it fires,
+its complexity, what goes wrong, and a reading list pointing at cp-algorithms
+and the USACO Guide. It ships with the ladder and renders on the first frame.
+
+The **12 core patterns** — the Pupil-to-Specialist backbone, where almost
+everybody stalls — additionally have a full write-up with Java and C++
+implementations, in the same reader the roadmap's guides use:
+
+prefix sums · two pointers · greedy & the exchange argument · binary search on
+the answer · gcd/divisors/sieve · modular arithmetic · BFS & DFS · DSU ·
+shortest paths · linear DP · knapsack · Fenwick & segment trees
+
+### The theme
+
+Pro Coder gets its own look, and it is one CSS wrapper rather than a second
+stylesheet. `.cp-root` redefines the design tokens every component in the app
+already reads, so the modals, chips, dropdowns and tables the ladder *reuses*
+re-skin themselves for free. On top of that: glass panels over an ambient wash,
+hairline borders instead of hard boxes, generous radii, and Codeforces' own
+rating ramp as the only real colour on the page — a tier's band is a 6px dot and
+a progress bar, not a saturated edge on every card.
+
+It follows the appearance setting, in both directions. An earlier version pinned
+itself dark in both themes, which made the one screen you might spend an hour on
+the one screen that ignored what you picked — and portalled dropdown menus
+(those render on `<body>`, outside the wrapper) came back in the *app's* theme,
+so a light-theme reader got a white menu falling out of a black page. Following
+the theme deletes the mismatch that caused it. The accent is not redefined
+either: whichever colour you chose is the one the ladder wears.
+
+The page runs full width rather than inside the shell's 1500px well — seven tier
+cards across the top and up to fourteen table columns are what the width is for.
+
+`.cp-root` carries tokens and nothing else, which is what lets the guide reader
+wear it: the reader is the roadmap's own full-viewport `.reader-*` layout, in the
+ladder's palette.
+
+### Filters and columns
+
+Independently filterable by platform, so Codeforces and CodeChef never blur
+together. Rating is a **range** filter with one-tap bands; tier, division,
+problem letter, pattern, topics, contest and curated sheet are all there, plus
+bar toggles for flagged, needs revision, added-by-me and *solved on judge, not
+logged*.
+
+Judge tags are their own opt-in column and filter, off by default. A Codeforces
+tag list is the editorial's answer key — `dp, bitmasks` on a problem you have
+not started is most of the solution — so seeing them is something you switch on
+rather than something that happens to you. The `topicTags` shown on the row are
+our own, coarser taxonomy.
+
+CodeChef ratings are never mixed into a Codeforces number. The two scales were
+calibrated against different populations — a CodeChef 1600 sits well below a
+Codeforces 1600 — so the rating filter and the stats histogram are Codeforces
+only, and a CodeChef difficulty renders in its own style rather than wearing the
+Codeforces colour ramp.
+
+### Seeding it
+
+```bash
+cd server
+npm run seed:cp            # fetch → sheets → codechef → curate → db → guides
+npm run seed:cp:curate -- --dry   # print the distribution, write nothing
+```
+
+Same contract as the roadmap seed: idempotent, upserts by slug, prunes retired
+problems, and never touches your progress, your own additions, or anything the
+admin panel has edited. `data/raw/cp/` and `data/cp/curated-cp.json` are
+committed, so a curate run is a pure function of files on disk rather than of
+whatever Codeforces was serving that afternoon.
 
 ## Tracking
 
@@ -427,6 +586,13 @@ Everything you marked for revision, plus everything the schedule says is due,
 with `3d overdue` / `Due today` / `Due in 5d` and overdue in red. Clearing a row
 removes it immediately — and puts it back if the write actually failed, because
 a queue that quietly shows fewer items than you have is worse than a slow one.
+
+**Both curriculums, in one list.** The roadmap and the Pro Coder ladder keep
+separate progress collections and come due independently, so the page fetches
+both queues and merges them, marks CP rows with a `CP` badge and a rating rather
+than a difficulty label, and offers a Both / Roadmap / Pro Coder toggle once
+there is anything in the second one. Either request failing leaves the other
+rendering — a hidden Pro Coder module empties nothing.
 
 The ladder is 3 → 7 → 21 → 60 days, multiplied by confidence: 1 shrinks the gap
 to 0.4×, 5 stretches it to 2×. It caps at 60: `LADDER_DAYS[min(stage, 3)]`.
@@ -1503,7 +1669,26 @@ was retired in November 2025, `@google/genai` 2.x ships `models.generateContent`
 and Google's docs already describe a different shape again for the unreleased
 3.x. When it moves, one function in that file changes.
 
-Three places use it, and **none of them lets a learner prompt the model**:
+The chat assistant is separate from all of this and does let a learner prompt a
+model — see [Assistant](#whats-in-it). It has **two personas**, chosen by the
+route rather than by a setting: the study assistant everywhere, and the **CP
+coach** on Pro Coder. They are different jobs. Someone on the roadmap wants to
+know what a monotonic stack is; someone on the ladder knows, is stuck on a 1600,
+and wants the observation. So the coach answers in invariants rather than
+technique names, gives one hint at a time up a five-step ladder, and holds a
+stricter spoiler rule — a full solution to a rated problem you are actively
+working costs you the thing you came for, so it takes being asked outright.
+
+It is told your live Codeforces rating alongside the problem, which is what lets
+it say "this is 250 above you, treat it as a stretch" instead of answering in a
+vacuum. It is never told the judge's tag list: that is the editorial's answer
+key, the interface deliberately hides it behind a toggle, and handing it over
+through the coach would give away what the UI withholds. A thread keeps the
+persona it started with, so a conversation opened on the ladder and continued
+elsewhere does not change speaker mid-transcript.
+
+Three *other* places use Gemini directly, and **none of them lets a learner
+prompt the model**:
 
 - **A personal line, rewritten as your day moves.** Written from your own
   numbers — solved counts, streak, weakest pattern — and cached in `DailyLine`.

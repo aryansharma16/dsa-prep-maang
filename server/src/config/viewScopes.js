@@ -18,7 +18,7 @@
  * than the roadmap has; `fields` at 24 is three times what the roadmap uses. They
  * are here to stop a loop, not to shape a feature.
  */
-export const VIEW_SCOPES = ['roadmap', 'revision', 'problems', 'tasks'];
+export const VIEW_SCOPES = ['roadmap', 'revision', 'problems', 'tasks', 'cp', 'cp-revision'];
 
 export const VIEW_LIMITS = {
   /** Distinct filters in one saved view. */

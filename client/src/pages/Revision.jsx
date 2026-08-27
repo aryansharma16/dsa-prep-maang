@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { progressApi } from '../api/index.js';
+import { cpApi, progressApi } from '../api/index.js';
 import { errorMessage } from '../api/http.js';
 import { CompanyChips } from '../components/problem/CompanyChips.jsx';
 import {
@@ -11,6 +11,9 @@ import {
   IconRotate,
 } from '../components/ui/Icons.jsx';
 import { useLocalState } from '../hooks/useLocalState.js';
+import { ratingKey } from '../theme/cfRating.js';
+import { useAuth } from '../store/AuthContext.jsx';
+import { moduleVisible } from '../store/modules.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
@@ -146,22 +149,67 @@ function LadderPips({ review, marked }) {
 
 export function Revision() {
   const { reviewProblem } = useRoadmap();
+  const { modules } = useAuth();
+  const hasCp = moduleVisible(modules, 'procoder');
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  /*
+    Which curriculum's queue is on screen. There are two collections behind
+    this page now and they are due independently — a CP problem coming back
+    round has nothing to do with an interview problem doing the same — so the
+    default shows both and the toggle is for when you want to work one.
+
+    Remembered, because it is a decision about how you study rather than a
+    thing you re-pick every morning.
+  */
+  const [source, setSource] = useLocalState('revision-source', 'all');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await progressApi.revision();
-      setItems(data.items);
+      /*
+        Both queues, merged here rather than server-side. They read different
+        collections and populate different models, so a single endpoint would
+        have to branch on a query string before it could decide what to join —
+        and the client is where the two lists have to end up interleaved anyway.
+
+        `allSettled`, so a CP module that is switched off (or a route that 404s
+        because it is hidden) leaves the roadmap queue working rather than
+        emptying the page.
+      */
+      const [dsa, cp] = await Promise.allSettled([
+        progressApi.revision(),
+        hasCp ? cpApi.revision() : Promise.resolve({ items: [] }),
+      ]);
+
+      if (dsa.status === 'rejected' && cp.status === 'rejected') throw dsa.reason;
+
+      const merged = [
+        ...(dsa.value?.items || []).map((i) => ({ ...i, source: 'dsa' })),
+        ...(cp.value?.items || []).map((i) => ({ ...i, source: 'cp' })),
+      ];
+
+      /*
+        Overdue first, then by how soon. Marked rows have no schedule at all, so
+        they sort to the front — they are there because you put them there,
+        which is the strongest claim on your attention on this page.
+      */
+      merged.sort((a, b) => {
+        const at = a.progress.nextReviewAt ? new Date(a.progress.nextReviewAt).getTime() : -Infinity;
+        const bt = b.progress.nextReviewAt ? new Date(b.progress.nextReviewAt).getTime() : -Infinity;
+        return at - bt;
+      });
+
+      setItems(merged);
       setError('');
     } catch (err) {
       setError(errorMessage(err, 'Could not load your revision queue'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hasCp]);
 
   useEffect(() => {
     load();
@@ -181,7 +229,20 @@ export function Revision() {
     const index = items.findIndex((i) => i._id === item._id);
     setItems((prev) => prev.filter((i) => i._id !== item._id));
 
-    const ok = await reviewProblem(item._id, result);
+    /*
+      A CP row goes to the CP endpoint. Straight to the api rather than through
+      CPContext, because that provider is mounted on the /cp route and this page
+      is not inside it — and there is no ladder in memory here to keep in step,
+      which is the only thing the context would have bought.
+    */
+    const ok =
+      item.source === 'cp'
+        ? await cpApi
+            .review(item._id, result)
+            .then(() => true)
+            .catch(() => false)
+        : await reviewProblem(item._id, result);
+
     if (!ok) {
       setItems((prev) => {
         const next = [...prev];
@@ -195,6 +256,13 @@ export function Revision() {
   const dismiss = (item) => act(item, 'dismissed');
   /** A review that went well: the ladder moves on a rung. */
   const recall = (item) => act(item, 'recalled');
+
+  const counts = {
+    all: items.length,
+    dsa: items.filter((i) => i.source !== 'cp').length,
+    cp: items.filter((i) => i.source === 'cp').length,
+  };
+  const shown = source === 'all' ? items : items.filter((i) => (i.source || 'dsa') === source);
 
   if (loading) return <div className="loading">Loading revision queue...</div>;
   if (error) {
@@ -220,9 +288,35 @@ export function Revision() {
 
       <HowItWorks />
 
-      {items.length === 0 ? (
+      {/* Only where there is a second queue to switch to. On a deployment with
+          Pro Coder hidden, or an account that has never worked the ladder, a
+          segmented control with one populated option is furniture. */}
+      {hasCp && counts.cp > 0 && (
+        <div className="filterbar">
+          <div className="size-group filter-seg">
+            {[
+              { value: 'all', label: 'Both', n: counts.all },
+              { value: 'dsa', label: 'Roadmap', n: counts.dsa },
+              { value: 'cp', label: 'Pro Coder', n: counts.cp },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={source === option.value ? 'on' : ''}
+                aria-pressed={source === option.value}
+                onClick={() => setSource(option.value)}
+              >
+                {option.label}
+                <span className="mono dim"> {option.n}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {shown.length === 0 ? (
         <div className="empty">
-          <h3>Nothing due</h3>
+          <h3>Nothing due{source !== 'all' ? ` in ${source === 'cp' ? 'Pro Coder' : 'the roadmap'}` : ''}</h3>
           <p>Mark a problem for revision, or come back after your next solve schedules one.</p>
         </div>
       ) : (
@@ -240,7 +334,7 @@ export function Revision() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => {
+                {shown.map((item) => {
                   const overdue =
                     item.dueReason === 'scheduled' && dayDiff(item.progress.nextReviewAt) < 0;
                   return (
@@ -263,10 +357,33 @@ export function Revision() {
                           <span className="ext">
                             <IconExternal size={11} />
                           </span>
+                          {/* Which curriculum this came from. Only on CP rows:
+                              the roadmap is the default and labelling every row
+                              would be noise on the common case. */}
+                          {item.source === 'cp' && (
+                            <span className="tag-mini" title="From the Pro Coder ladder">
+                              CP
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="col-diff">
-                        <span className={`diff ${item.difficulty}`}>{item.difficulty}</span>
+                        {/*
+                          A CP row has a Codeforces rating, not an Easy/Medium/
+                          Hard label — rendering `diff Easy` for it would be a
+                          class that means nothing and a word that is not true.
+                        */}
+                        {item.source === 'cp' ? (
+                          <span
+                            className="cf-rating rev-cf-rating"
+                            data-band={ratingKey(item.codeforces?.rating)}
+                            title={item.codeforces?.division || item.platform}
+                          >
+                            {item.codeforces?.rating || item.difficulty || '—'}
+                          </span>
+                        ) : (
+                          <span className={`diff ${item.difficulty}`}>{item.difficulty}</span>
+                        )}
                       </td>
                       <td className="col-cos">
                         <CompanyChips companies={item.companies} />

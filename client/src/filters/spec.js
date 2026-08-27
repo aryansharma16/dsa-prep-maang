@@ -28,19 +28,37 @@
  * to open with an "if nothing is selected" guard — that check is here, once,
  * rather than once per field.
  *
- * The three kinds are the three shapes a control can produce, not three ideas
- * about data: a flag is a toggle, `one` is a choice, `many` is a set. `many` is
- * OR within the field and AND across fields — "Google or Amazon, and Hard" is
- * what someone means by ticking two companies and picking a difficulty. An AND
- * within a field ("problems tagged both graph and DP") is a different question
- * and not one anybody asks of a prep list.
+ * The four kinds are the four shapes a control can produce, not four ideas
+ * about data: a flag is a toggle, `one` is a choice, `many` is a set, `range` is
+ * an interval. `many` is OR within the field and AND across fields — "Google or
+ * Amazon, and Hard" is what someone means by ticking two companies and picking a
+ * difficulty. An AND within a field ("problems tagged both graph and DP") is a
+ * different question and not one anybody asks of a prep list.
+ *
+ * `range` exists because a numeric axis is not a set of choices. The CP ladder
+ * is organised by Codeforces rating, which runs 800 to 3500 in 28 steps — as a
+ * multi-select that is a scrolling list nobody wants, and as a single choice it
+ * cannot express "everything I should be attempting right now", which is the
+ * only question anyone actually asks of it. Its value is `{ min, max }` with
+ * either side allowed to be null, meaning unbounded on that side.
  */
 
 /** The value a field holds when nothing is chosen. */
-const EMPTY = { one: '', many: [], flag: false };
+const EMPTY = { one: '', many: [], flag: false, range: null };
 
-const isEmptyValue = (kind, value) =>
-  kind === 'many' ? !value?.length : kind === 'flag' ? !value : !value;
+const isEmptyValue = (kind, value) => {
+  if (kind === 'many') return !value?.length;
+  if (kind === 'flag') return !value;
+  /*
+    A range with both ends null is not a filter — it is the whole axis. Treating
+    it as set would leave the Filters badge counting a field that hides nothing,
+    and Clear would have something to clear that was never chosen.
+  */
+  if (kind === 'range') {
+    return !value || (value.min == null && value.max == null);
+  }
+  return !value;
+};
 
 export function defineFilters(fields) {
   const byId = Object.fromEntries(fields.map((f) => [f.id, f]));
@@ -75,6 +93,17 @@ export function normalizeFilters(spec, raw) {
 
       if (field.kind === 'flag') return [field.id, Boolean(value)];
       if (field.kind === 'one') return [field.id, typeof value === 'string' ? value : ''];
+
+      if (field.kind === 'range') {
+        if (!value || typeof value !== 'object') return [field.id, null];
+        const num = (v) => (Number.isFinite(Number(v)) && v !== null && v !== '' ? Number(v) : null);
+        const min = num(value.min);
+        const max = num(value.max);
+        if (min == null && max == null) return [field.id, null];
+        // A stored range from a build where the bounds were the other way round
+        // matches nothing and offers no control that would fix it.
+        return [field.id, min != null && max != null && min > max ? { min: max, max: min } : { min, max }];
+      }
 
       const list = Array.isArray(value) ? value.filter((v) => typeof v === 'string' && v) : [];
       // A duplicate would render two identical chips, and removing one would
@@ -144,7 +173,11 @@ export const filterKey = (spec, filters) =>
   spec.fields
     .map((f) => {
       const value = filters[f.id];
-      return `${f.id}=${Array.isArray(value) ? [...value].sort().join(',') : value}`;
+      if (Array.isArray(value)) return `${f.id}=${[...value].sort().join(',')}`;
+      // An object stringifies to [object Object], so every range would compare
+      // equal to every other and a changed bound would never be saved.
+      if (f.kind === 'range') return `${f.id}=${value ? `${value.min ?? ''}-${value.max ?? ''}` : ''}`;
+      return `${f.id}=${value}`;
     })
     .join('|');
 

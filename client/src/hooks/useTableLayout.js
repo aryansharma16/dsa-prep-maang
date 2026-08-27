@@ -1,9 +1,21 @@
 import { useMemo } from 'react';
-import { COLUMNS, COLUMN_BY_ID, SIZES, widthOf } from '../components/problem/columns.jsx';
+import { COLUMNS, SIZES, widthOf } from '../components/problem/columns.jsx';
 import { useLocalState } from './useLocalState.js';
 import { NARROW, useMediaQuery } from './useMediaQuery.js';
 
-const STORAGE_KEY = 'table-columns';
+/**
+ * The roadmap's own registry and storage key, kept as the defaults so every
+ * existing caller is unchanged.
+ *
+ * The hook takes a registry now because there are two tables: the interview
+ * roadmap and the CP ladder, which share none of their columns — a rating, a
+ * division and a contest mean nothing on one, and a LeetCode number and a
+ * company logo mean nothing on the other. What they *do* share is all of the
+ * hard part: reconciling a layout saved three deploys ago, honouring pins up to
+ * a cap, hoisting frozen columns to the edges, and dropping every pin on a
+ * phone. None of that is worth having twice.
+ */
+const DEFAULT_STORAGE_KEY = 'table-columns';
 
 /**
  * Three is the cap because the pinned block does not scroll: every column you
@@ -15,14 +27,15 @@ export const MAX_PINNED = 3;
 // chrome, not data, and it should stay reachable however far you scroll.
 export const RIGHT_PINNED = 'actions';
 
-const DEFAULT_PINNED = ['status', 'index', 'title'];
+/** Exported so the columns dialog can reset to the right set for its table. */
+export const DEFAULT_PINNED = ['status', 'index', 'title'];
 
-export const defaultLayout = () =>
-  COLUMNS.map((c) => ({
+export const defaultLayout = (registry = COLUMNS, pinned = DEFAULT_PINNED) =>
+  registry.map((c) => ({
     id: c.id,
     show: !c.hidden,
     size: 'M',
-    pin: DEFAULT_PINNED.includes(c.id),
+    pin: pinned.includes(c.id),
   }));
 
 /**
@@ -34,12 +47,12 @@ export const defaultLayout = () =>
  * appended, so a new column shows up where it was meant to sit instead of
  * always landing after the actions column.
  */
-function reconcile(saved) {
-  if (!Array.isArray(saved) || !saved.length) return defaultLayout();
+function reconcile(saved, registry, byId, defaultPins) {
+  if (!Array.isArray(saved) || !saved.length) return defaultLayout(registry, defaultPins);
 
   let pinned = 0;
   const entries = saved
-    .filter((entry) => entry && COLUMN_BY_ID[entry.id])
+    .filter((entry) => entry && byId[entry.id])
     .map((entry) => {
       // A stored layout can carry more pins than the cap allows if the cap ever
       // drops. Honour them left to right and ignore the rest.
@@ -49,14 +62,14 @@ function reconcile(saved) {
         id: entry.id,
         // A required column stored hidden would leave the table unreadable with
         // no obvious way back.
-        show: COLUMN_BY_ID[entry.id].required ? true : Boolean(entry.show),
+        show: byId[entry.id].required ? true : Boolean(entry.show),
         size: SIZES.includes(entry.size) ? entry.size : 'M',
         pin,
       };
     });
 
   const present = new Set(entries.map((e) => e.id));
-  COLUMNS.forEach((column, defaultIndex) => {
+  registry.forEach((column, defaultIndex) => {
     if (present.has(column.id)) return;
     entries.splice(Math.min(defaultIndex, entries.length), 0, {
       id: column.id,
@@ -88,7 +101,7 @@ export const pinnedCount = (layout) => layout.filter((e) => e.pin).length;
  * The order still honours the pins, so whatever you chose to freeze is what you
  * see first without scrolling.
  */
-function resolve(layout, narrow) {
+function resolve(layout, narrow, byId) {
   const visible = layout.filter((entry) => entry.show);
   const rightPinned = visible.filter((e) => e.id === RIGHT_PINNED);
   const rest = visible.filter((e) => e.id !== RIGHT_PINNED);
@@ -105,7 +118,7 @@ function resolve(layout, narrow) {
   const lastPinnedIndex = rest.filter((e) => e.pin).length - 1;
 
   return ordered.map((entry, index) => {
-    const column = COLUMN_BY_ID[entry.id];
+    const column = byId[entry.id];
     const px = column.fixed ? column.width : widthOf(column, entry.size);
     const pin = narrow ? null : entry.pin ? 'left' : entry.id === RIGHT_PINNED ? 'right' : null;
     const resolved = {
@@ -133,15 +146,29 @@ function resolve(layout, narrow) {
  * laptop — and reading it synchronously means the table paints in its real
  * shape instead of flashing the default set while a request lands.
  */
-export function useTableLayout() {
-  const [stored, setStored] = useLocalState(STORAGE_KEY, null);
+export function useTableLayout({
+  registry = COLUMNS,
+  storageKey = DEFAULT_STORAGE_KEY,
+  defaultPins = DEFAULT_PINNED,
+} = {}) {
+  const [stored, setStored] = useLocalState(storageKey, null);
   // Only the resolved list changes on a phone. What is *stored* stays exactly
   // as chosen, so the dialog keeps showing the real layout and rotating a
   // tablet back to landscape restores the pins rather than having lost them.
   const narrow = useMediaQuery(NARROW);
 
-  const layout = useMemo(() => reconcile(stored), [stored]);
-  const columns = useMemo(() => resolve(layout, narrow), [layout, narrow]);
+  const byId = useMemo(() => Object.fromEntries(registry.map((c) => [c.id, c])), [registry]);
 
-  return { layout, setLayout: setStored, columns };
+  const layout = useMemo(
+    () => reconcile(stored, registry, byId, defaultPins),
+    [stored, registry, byId, defaultPins],
+  );
+  const columns = useMemo(() => resolve(layout, narrow, byId), [layout, narrow, byId]);
+
+  /*
+    `registry` rides along so the columns dialog can render the right list of
+    switches. It used to import COLUMNS directly, which was fine while there was
+    one table and silently wrong the moment there were two.
+  */
+  return { layout, setLayout: setStored, columns, registry };
 }

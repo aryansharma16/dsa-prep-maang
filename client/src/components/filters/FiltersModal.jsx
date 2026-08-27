@@ -51,6 +51,91 @@ function Segmented({ label, options, value, onChange }) {
   );
 }
 
+/**
+ * A numeric interval, as two bounded number inputs plus optional presets.
+ *
+ * Two inputs rather than a slider, deliberately. A rating range is a number
+ * somebody knows — "1400 to 1600" is a thought they already had — and a slider
+ * makes them approach it by dragging. It is also the only control here that has
+ * to work on a phone, where a two-handled slider inside a scrolling dialog is a
+ * fight between the two gestures.
+ *
+ * Either end may be left empty, meaning unbounded on that side; the field is
+ * only "set" once at least one has a value.
+ */
+function Range({ field, value, onChange }) {
+  const current = value || { min: null, max: null };
+  const set = (part) => {
+    const next = { ...current, ...part };
+    onChange({ [field.id]: next.min == null && next.max == null ? null : next });
+  };
+  const parse = (raw) => (raw === '' ? null : Number(raw));
+
+  return (
+    <div className="field field-wide">
+      <span>{field.label}</span>
+      <div className="range-row">
+        <input
+          type="number"
+          className="range-input mono"
+          inputMode="numeric"
+          placeholder={field.minPlaceholder ?? 'Min'}
+          aria-label={`${field.label} minimum`}
+          value={current.min ?? ''}
+          min={field.min}
+          max={field.max}
+          step={field.step ?? 1}
+          onChange={(e) => set({ min: parse(e.target.value) })}
+        />
+        <span className="range-dash">–</span>
+        <input
+          type="number"
+          className="range-input mono"
+          inputMode="numeric"
+          placeholder={field.maxPlaceholder ?? 'Max'}
+          aria-label={`${field.label} maximum`}
+          value={current.max ?? ''}
+          min={field.min}
+          max={field.max}
+          step={field.step ?? 1}
+          onChange={(e) => set({ max: parse(e.target.value) })}
+        />
+        {(current.min != null || current.max != null) && (
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => onChange({ [field.id]: null })}
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* The bands somebody actually works in, so the common case is one tap
+          rather than two numbers typed. */}
+      {field.presets?.length > 0 && (
+        <div className="range-presets">
+          {field.presets.map((preset) => {
+            const on = current.min === preset.min && current.max === preset.max;
+            return (
+              <button
+                key={preset.label}
+                type="button"
+                className={`toggle-chip ${on ? 'on' : ''}`}
+                onClick={() =>
+                  onChange({ [field.id]: on ? null : { min: preset.min, max: preset.max } })
+                }
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Callers pass plain strings for data-driven lists — a company is its own label. */
 const asOptions = (list = []) =>
   list.map((item) => (typeof item === 'string' ? { value: item, label: item } : item));
@@ -67,6 +152,10 @@ function Field({ field, value, options, onChange }) {
         onChange={set}
       />
     );
+  }
+
+  if (field.kind === 'range') {
+    return <Range field={field} value={value} onChange={onChange} />;
   }
 
   if (field.kind === 'many') {
@@ -114,11 +203,35 @@ export function FiltersModal({
   onClose,
   title = 'Filters',
 }) {
-  const fields = spec.fields.filter((f) => (f.place ?? 'dialog') === 'dialog');
+  const fields = spec.fields
+    .filter((f) => (f.place ?? 'dialog') === 'dialog')
+    /*
+      A data-driven list with nothing in it is dropped rather than rendered
+      empty. Those fields take their options from the loaded rows — companies,
+      topics, contests — and on a curriculum that carries none of one of them
+      (Codeforces publishes nothing about who asks what) the control is a
+      dropdown that can only ever return nothing, sitting there implying the
+      data exists.
+
+      Only when the value is *also* empty. A field still holding a selection has
+      to stay visible, or a saved filter from another curriculum would narrow the
+      list with no control able to clear it.
+    */
+    .filter((f) => {
+      if (f.options || !['one', 'many'].includes(f.kind)) return true;
+      const list = options[f.id];
+      if (list?.length) return true;
+      return f.kind === 'many' ? value[f.id]?.length > 0 : Boolean(value[f.id]);
+    });
 
   return (
-    <Modal title={title} onClose={onClose}>
-      <div className="modal-body">
+    /*
+      Wider than the app's other dialogs, and laid out in columns — see
+      `.modal.filters` in app.css for why a filter panel is the one dialog that
+      must not need scrolling to see what is already on.
+    */
+    <Modal title={title} onClose={onClose} size="filters">
+      <div className="modal-body filters-body">
         {fields.map((field) => (
           <Field
             key={field.id}

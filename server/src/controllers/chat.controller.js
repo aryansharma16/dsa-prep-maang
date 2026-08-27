@@ -9,6 +9,8 @@ import { objectId, paged, pageQuery } from '../utils/query.js';
 import { catalogue, nextRetryAt, PROVIDER_IDS } from '../services/ai/registry.js';
 import { chatSettings } from '../services/settings.service.js';
 import { SUGGESTIONS } from '../services/chat/prompt.js';
+import { CP_SUGGESTIONS } from '../services/cp/cpChat.prompt.js';
+import { CPProblem } from '../models/CPProblem.js';
 import {
   deleteAllConversations,
   deleteConversation,
@@ -33,6 +35,17 @@ export const sendSchema = z.object({
   provider: z.enum(PROVIDER_IDS).optional(),
   model: z.string().max(80).optional(),
   problemId: objectId.nullish(),
+  /*
+    Which assistant to answer as. Absent means `dsa`, so every client written
+    before the CP coach existed keeps working unchanged.
+
+    `cpProblemId` is separate from `problemId` rather than reusing it, because
+    the two name rows in different collections and a single field would make
+    "which collection is this id in" depend on a second field — which is exactly
+    the ambiguity that produces a lookup against the wrong model.
+  */
+  mode: z.enum(['dsa', 'cp']).optional(),
+  cpProblemId: objectId.nullish(),
 });
 
 export const stopSchema = z.object({ conversationId: objectId });
@@ -41,6 +54,7 @@ export const updateSchema = z
   .object({
     title: z.string().trim().min(1).max(120).optional(),
     problemId: objectId.nullable().optional(),
+    cpProblemId: objectId.nullable().optional(),
   })
   .refine((body) => Object.keys(body).length > 0, 'Nothing to update');
 
@@ -89,7 +103,16 @@ export const getConfig = asyncHandler(async (req, res) => {
     defaultModel: preferred?.id || null,
     // Only meaningful when nothing is available; null the rest of the time.
     retryAt: preferred ? null : nextRetryAt(settings.providers),
+    /*
+      Both sets, rather than one chosen from a query parameter.
+
+      The dock is mounted once in the app shell and follows the route — it is
+      the CP coach on /cp and the study assistant everywhere else — so a
+      mode-specific config would need re-fetching on every navigation to change
+      four strings. Sending both is a few hundred bytes, once.
+    */
     suggestions: SUGGESTIONS,
+    cpSuggestions: CP_SUGGESTIONS,
     retentionHours: settings.retentionHours,
     dailyMessageCap: settings.dailyMessageCap,
     maxInputChars: settings.maxInputChars,
@@ -105,7 +128,7 @@ export const listConversations = asyncHandler(async (req, res) => {
       .sort({ lastMessageAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .select('title problemSlug problemTitle provider model messageCount lastMessageAt expiresAt createdAt')
+      .select('title mode problemSlug problemTitle provider model messageCount lastMessageAt expiresAt createdAt')
       .lean(),
     Conversation.countDocuments(filter),
   ]);
@@ -135,6 +158,31 @@ export const updateConversation = asyncHandler(async (req, res) => {
     conversation.titleSetByUser = true;
   }
 
+  /*
+    Attaching a CP problem detaches any roadmap problem and vice versa — a
+    thread is about one problem, and leaving both set would give the context
+    builder two answers to a question with one.
+  */
+  if (req.body.cpProblemId !== undefined) {
+    if (req.body.cpProblemId === null) {
+      conversation.set({ cpProblem: null, problemSlug: '', problemTitle: '' });
+    } else {
+      const problem = await CPProblem.findOne({
+        _id: req.body.cpProblemId,
+        $or: [{ owner: null }, { owner: req.userId }],
+      })
+        .select('slug title')
+        .lean();
+      if (!problem) throw ApiError.notFound('That problem no longer exists', 'NO_PROBLEM');
+      conversation.set({
+        cpProblem: problem._id,
+        problem: null,
+        problemSlug: problem.slug,
+        problemTitle: problem.title,
+      });
+    }
+  }
+
   if (req.body.problemId !== undefined) {
     if (req.body.problemId === null) {
       conversation.set({ problem: null, problemSlug: '', problemTitle: '' });
@@ -146,7 +194,12 @@ export const updateConversation = asyncHandler(async (req, res) => {
         .select('slug title')
         .lean();
       if (!problem) throw ApiError.notFound('That problem no longer exists', 'NO_PROBLEM');
-      conversation.set({ problem: problem._id, problemSlug: problem.slug, problemTitle: problem.title });
+      conversation.set({
+        problem: problem._id,
+        cpProblem: null,
+        problemSlug: problem.slug,
+        problemTitle: problem.title,
+      });
     }
   }
 

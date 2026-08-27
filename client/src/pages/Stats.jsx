@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { errorMessage } from '../api/http.js';
 import { statsApi } from '../api/index.js';
 import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
+import { CPStats } from '../components/stats/CPStats.jsx';
 import { SolvedRing } from '../components/stats/SolvedRing.jsx';
 import { MeterRow } from '../components/ui/MeterRow.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
@@ -168,6 +169,13 @@ export function Stats() {
           )}
         </div>
       </div>
+
+      {/*
+        Last, and self-effacing: it fetches its own endpoint and renders nothing
+        at all when the module is hidden or the ladder is untouched, so this page
+        is unchanged for anyone not using Pro Coder.
+      */}
+      <CPStats />
     </>
   );
 }

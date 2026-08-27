@@ -9,6 +9,7 @@ import { LearnTopic } from './pages/LearnTopic.jsx';
 import { LearnTrack } from './pages/LearnTrack.jsx';
 import { Login } from './pages/Login.jsx';
 import { Profile } from './pages/Profile.jsx';
+import { ProCoder } from './pages/ProCoder.jsx';
 import { Register } from './pages/Register.jsx';
 import { Revision } from './pages/Revision.jsx';
 import { Roadmap } from './pages/Roadmap.jsx';
@@ -19,6 +20,7 @@ import { moduleVisible } from './store/modules.js';
 import { Docs } from './pages/Docs.jsx';
 import { AttemptTimerProvider } from './store/AttemptTimerContext.jsx';
 import { RoadmapProvider } from './store/RoadmapContext.jsx';
+import { CPProvider } from './store/CPContext.jsx';
 import { TasksProvider } from './store/TasksContext.jsx';
 
 export function App() {
@@ -96,6 +98,24 @@ export function App() {
                 {has('learn') && <Route path="/learn/:track" element={<LearnTrack />} />}
                 {has('learn') && <Route path="/learn/:track/:topic" element={<LearnTopic />} />}
                 {has('tasks') && <Route path="/tasks" element={<Tasks />} />}
+                {/*
+                  Pro Coder mounts its own provider on the route rather than
+                  around the tree, unlike the roadmap's. The ladder is 800 rows
+                  and two requests, and nothing outside this page reads it — the
+                  sidebar shows roadmap patterns, not CP tiers — so fetching it
+                  for someone who never opens /cp would be a megabyte spent on
+                  nothing.
+                */}
+                {has('procoder') && (
+                  <Route
+                    path="/cp"
+                    element={
+                      <CPProvider>
+                        <ProCoder />
+                      </CPProvider>
+                    }
+                  />
+                )}
                 {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
                 <Route path="/docs" element={<Docs />} />
                 <Route path="/profile" element={<Profile />} />
