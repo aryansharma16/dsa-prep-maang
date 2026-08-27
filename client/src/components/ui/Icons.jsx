@@ -206,6 +206,14 @@ export const IconShield = (p) => (
   </Svg>
 );
 
+/* The singular of IconUsers, for the one account rather than the roll of them. */
+export const IconUser = (p) => (
+  <Svg {...p}>
+    <circle cx="8" cy="5.4" r="2.6" />
+    <path d="M2.9 13.6c0-2.6 2.3-4.2 5.1-4.2s5.1 1.6 5.1 4.2" />
+  </Svg>
+);
+
 export const IconUsers = (p) => (
   <Svg {...p}>
     <circle cx="6.2" cy="5.6" r="2.4" />

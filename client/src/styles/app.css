@@ -2395,7 +2395,14 @@ tr.cursor .act {
   background: rgb(15 23 42 / 0.38);
 }
 .modal {
-  width: 100%;
+  /*
+    The margin has to come out of the width, not sit beside it. As a centred
+    grid item `width: 100%` resolves against the whole overlay, so `margin` had
+    nothing left to occupy and the dialog met the window edges the moment the
+    viewport dropped below its max-width — invisible while the widest dialog was
+    900px, and a full-bleed sheet on a laptop once one of them was 1220.
+  */
+  width: calc(100% - 40px);
   max-width: 460px;
   margin: 20px;
   background: var(--surface);
@@ -2901,8 +2908,98 @@ img.avatar {
 .avatar-btn:hover {
   border-color: var(--border);
 }
+/* Marked both while you are on your profile and while the menu is open — the
+   trigger should not look inert with its own menu hanging off it. */
 .avatar-btn.active {
   border-color: var(--accent);
+}
+
+/* ---- account menu */
+
+.acct-wrap {
+  position: relative;
+  display: flex;
+}
+
+/* Same anchoring as .appearance-menu two controls to its left, and for the same
+   reason: this trigger is the last thing in the bar, so a menu aligned to its
+   left edge would hang off the window. */
+.acct-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  width: 236px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px var(--shadow);
+}
+
+.acct-who {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 7px 9px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 5px;
+}
+/* min-width:0 or the email refuses to ellipsis and widens the menu instead. */
+.acct-id {
+  display: grid;
+  min-width: 0;
+}
+.acct-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.acct-name,
+.acct-mail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.acct-mail {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.acct-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  text-align: left;
+}
+.acct-item:hover,
+.acct-item:focus-visible {
+  background: var(--surface-hover);
+  color: var(--text);
+  outline: none;
+}
+/* The one item you cannot take back by clicking the next thing, coloured like
+   every other irreversible button in the app rather than only on hover. */
+.acct-item.danger {
+  color: var(--hard);
+}
+.acct-item.danger:hover,
+.acct-item.danger:focus-visible {
+  background: var(--hard-bg);
+  color: var(--hard);
+}
+
+.acct-sep {
+  height: 1px;
+  margin: 5px 7px;
+  background: var(--border);
 }
 
 /* ---------------------------------------------------------------- profile */
@@ -4987,13 +5084,12 @@ a.tile.attention:hover {
   message you were typing. Vertical only — sliding sideways reads as a bug.
 */
 /*
-  Both bubbles are named, and the second one matters more than it looks. They sit
-  side by side, so either one alone still occupies the strip the toasts have to
-  clear — and the case that breaks is chat hidden with feedback visible, which is
-  a real deployment and the one nobody opens a toast in while testing.
+  One bubble now — feedback's went into the account menu. The `:has` stays,
+  because chat's bubble still disappears for two unrelated reasons (the module
+  is hidden, or you are already on /chat) and the toasts should take the corner
+  back in both.
 */
-:root:has(.chat-launcher) .toasts,
-:root:has(.fb-launcher) .toasts {
+:root:has(.chat-launcher) .toasts {
   bottom: calc(var(--chat-gap) * 2 + var(--chat-bubble));
 }
 :root:has(.chat-dock) .toasts {
@@ -5900,15 +5996,8 @@ a.tile.attention:hover {
   /* The dock is already clamped to the viewport width; this keeps the bubble
      it hangs off out of the way of the composer underneath it. */
   .chat-launcher,
-  .fb-launcher,
   .chat-dock {
     --chat-gap: 12px;
-  }
-
-  /* Two doors to the same dialog is one too many on a phone, and the bubble is
-     twelve pixels away. The search field wants this width more. */
-  .fb-topbar-btn {
-    display: none;
   }
 
   /*
@@ -6343,52 +6432,12 @@ a.tile.attention:hover {
 /* ========================================================================== */
 
 /*
-  The bubble, beside the chat one rather than under it.
-
-  The box is copied from .chat-launcher instead of joining its selector list,
-  and that is deliberate: joining would make every existing
-  `:root:has(.chat-launcher)` rule in this file fire for this element too, and
-  those rules are about where the chat widget is, not about there being a bubble.
+  There is no bubble here any more. It used to sit beside the chat one, shoved
+  sideways by a `:has` rule when that one was present — two floating circles in
+  one corner, for two features with nothing to do with each other. Feedback is
+  the one you go looking for rather than the one you keep open while you work,
+  so it moved into the account menu and chat kept the corner.
 */
-.fb-launcher {
-  position: fixed;
-  right: var(--chat-gap);
-  bottom: var(--chat-gap);
-  width: var(--chat-bubble);
-  height: var(--chat-bubble);
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--accent);
-  box-shadow: 0 6px 20px var(--shadow);
-  cursor: pointer;
-  z-index: 40;
-  transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
-}
-.fb-launcher:hover {
-  transform: translateY(-2px);
-  background: var(--surface-hover);
-  border-color: var(--accent-line);
-}
-.fb-launcher.on { color: var(--text-2); }
-
-/*
-  Sideways when chat is there, into the corner when it is not.
-
-  `:has` rather than a class either component sets, because the chat bubble
-  disappears for two unrelated reasons — the module is hidden, or you are already
-  on /chat — and both of them are "the element is not in the document", which is
-  the one condition a selector can read without either component being told about
-  the other.
-
-  Sideways rather than stacked: the chat dock opens upward from 84px, and a
-  bubble stacked above this one would sit inside it.
-*/
-:root:has(.chat-launcher) .fb-launcher {
-  right: calc(var(--chat-gap) * 2 + var(--chat-bubble));
-}
 
 /* The two tabs in the dialog. The underline shape rather than a segmented pill —
    a pill reads as a filter you could have both of, and these are two screens. */
@@ -9120,12 +9169,18 @@ a.tile.attention:hover {
 /* ========================================================================== */
 
 /*
-  Wider than `lg`, because the dialog is two columns: what you are logging on
-  the left, what you logged before on the right. One column would put the log
-  below the fold of the thing it is context for.
+  Wider than `lg`, because the dialog is three columns: the sitting you are
+  logging, the code and note you are writing, and every sitting before this one.
+  One column would put the log below the fold of the thing it is context for,
+  and two made a form you scrolled twice to reach the button on.
+
+  Wide, and deliberately not full-bleed. `width: 100%` on .modal means this is a
+  ceiling rather than a size — it gives way on a laptop and keeps a margin of
+  page visible on a monitor, which is what tells you it is a dialog over the
+  roadmap rather than a route you navigated to.
 */
 .modal.xl {
-  max-width: 900px;
+  max-width: 1220px;
 }
 
 /* The small button. Only the timer row uses it — three controls that must not
@@ -9137,14 +9192,54 @@ a.tile.attention:hover {
   gap: 5px;
 }
 
+/*
+  Chips | keyboard | history.
+
+  Weighted rather than even: the middle column holds the code box, which is the
+  one control here that is worth real width — everything in the first is a chip
+  or a dot and wraps happily at any size. The log is a fixed rail because it is
+  reference, and a reference column that grows with the window is a column of
+  short lines and long gaps.
+*/
 .att-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 16px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 296px;
+  gap: 16px 18px;
+  /* Stretch, not start: it is what lets the code box below absorb whatever
+     height the form column happens to be, and it runs the log's rule the full
+     depth of the dialog rather than stopping under its last entry. */
+  align-items: stretch;
 }
-.att-form {
+.att-form,
+.att-write {
   min-width: 0;
+}
+
+/*
+  The solution column, filled to the floor.
+
+  Its natural height is a ten-row box, which is shorter than the form beside it
+  — so the section, the editor inside it and the textarea inside that are each
+  told to take the slack, and the whole chain has to be flex for the last one to
+  see it. The result is a code box as tall as the dialog is, with no magic
+  number anywhere that would need revisiting when a chip row is added.
+*/
+.att-write {
+  display: flex;
+  flex-direction: column;
+}
+.att-write > .att-block:last-child {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-bottom: 0;
+}
+.att-write .sol-editor {
+  flex: 1;
+}
+.att-write .sol-code {
+  flex: 1;
+  min-height: 150px;
 }
 .att-block {
   margin-bottom: 14px;
@@ -10008,11 +10103,41 @@ a.tile.attention:hover {
 
 /* ---------------------------------------------------------------- narrow */
 
+/*
+  Below this the dialog has stopped being 1220px — `width: 100%` has taken over
+  — and three columns would be three cramped ones. The two form columns stack
+  and the log keeps its rail, which is the shape this dialog had before.
+*/
+@media (max-width: 1120px) {
+  .att-body {
+    grid-template-columns: minmax(0, 1fr) 288px;
+  }
+  .att-form,
+  .att-write {
+    grid-column: 1;
+  }
+  /* Stacked there is nothing beside it to match, so the box goes back to being
+     the ten rows it asked for. */
+  .att-write .sol-code {
+    flex: 0 0 auto;
+  }
+  .att-log {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
 @media (max-width: 860px) {
   /* The log goes under the form rather than beside it, and stops being a
      column with its own scrollbar inside a dialog that already scrolls. */
   .att-body {
     grid-template-columns: 1fr;
+  }
+  .att-form,
+  .att-write,
+  .att-log {
+    grid-column: 1;
+    grid-row: auto;
   }
   .att-log {
     border-left: none;

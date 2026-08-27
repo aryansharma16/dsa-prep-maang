@@ -1,19 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import { HOVERS, NARROW, useMediaQuery } from '../../hooks/useMediaQuery.js';
-import { useAuth } from '../../store/AuthContext.jsx';
-import { feedbackModal } from '../../store/feedbackModal.js';
-import { moduleVisible } from '../../store/modules.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
-import { FeedbackLauncher } from '../feedback/FeedbackLauncher.jsx';
+import { FeedbackHost } from '../feedback/FeedbackHost.jsx';
 import { TimerPill } from '../tasks/TimerPill.jsx';
 import { AttemptTimerPill } from '../problem/AttemptTimerPill.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
-import { Avatar } from '../ui/Avatar.jsx';
-import { IconLogout, IconMegaphone, IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
+import { IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
 import { isAnyModalOpen } from '../ui/Modal.jsx';
+import { AccountMenu } from './AccountMenu.jsx';
 import { AppearancePicker } from './AppearancePicker.jsx';
 import { Sidebar } from './Sidebar.jsx';
 import { SignOutDialog } from './SignOutDialog.jsx';
@@ -30,7 +27,6 @@ export function AppShell() {
   */
   const [hoverOpen, setHoverOpen] = useLocalState('sidebar-hover-open', true);
   const [peeking, setPeeking] = useState(false);
-  const { user, modules } = useAuth();
   const { totals } = useRoadmap();
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
@@ -246,41 +242,16 @@ export function AppShell() {
             Add
           </button>
 
-          {/*
-            A third door to a dialog whose bubble is eighteen pixels away, and it
-            is here because it was asked for. Icon-only, because a labelled
-            button beside Add would be the second labelled button in a bar with
-            room for one — and the phone block hides it outright, where the
-            search field needs the width more than this needs the reminder.
-          */}
-          {moduleVisible(modules, 'feedback') && (
-            <button
-              className="icon-btn fb-topbar-btn"
-              onClick={() => feedbackModal.open('send')}
-              title="Send feedback"
-            >
-              <IconMegaphone size={15} />
-            </button>
-          )}
-
           <AppearancePicker />
 
-          <button
-            className="icon-btn"
-            onClick={() => setSigningOut(true)}
-            title={`Sign out (${user?.email})`}
-          >
-            <IconLogout size={15} />
-          </button>
-
-          <NavLink
-            to="/profile"
-            className={({ isActive }) => `avatar-btn ${isActive ? 'active' : ''}`}
-            title={`${user?.name} — view profile`}
-          >
-            <Avatar name={user?.name} email={user?.email} src={user?.avatar?.url} size={28} />
-            <span className="sr-only">Profile</span>
-          </NavLink>
+          {/*
+            Profile, feedback and sign out, behind the one control at this end
+            of the bar that people already read as "me". They were three
+            icon-only buttons in a row, which is three tooltips to discover and
+            three chances to press the wrong one — the megaphone and the
+            sign-out arrow sat eighteen pixels apart.
+          */}
+          <AccountMenu onSignOut={() => setSigningOut(true)} />
         </header>
 
         <main className="content">
@@ -295,7 +266,9 @@ export function AppShell() {
       {/* Every signed-in page, and no signed-out one — this shell is only
           mounted behind the auth branch in App.jsx. */}
       <ChatLauncher />
-      <FeedbackLauncher />
+      {/* No bubble beside it any more — feedback is in the account menu. This
+          is only the dialog's mount point, which all three doors still need. */}
+      <FeedbackHost />
 
       {signingOut && <SignOutDialog onCancel={() => setSigningOut(false)} />}
     </div>

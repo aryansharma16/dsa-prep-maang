@@ -256,6 +256,21 @@ export function AttemptModal({ problem, onClose, store }) {
             />
             <HuePicker value={color} onChange={setColor} label="Colour this attempt" />
           </section>
+        </div>
+
+        {/*
+          The code gets a column to itself.
+
+          Everything in the first one is a chip, a dot or four lines of prose —
+          things that are done with a tap and read at a glance. This is the one
+          field you paste a screenful into, and the one that is worth width: it
+          is stored `white-space: pre`, so a narrow box does not rewrap the
+          code, it hides it behind a horizontal scrollbar.
+
+          Stacked underneath instead, as it was, it also put the button you came
+          here to press two screens down from the chips you came here to tap.
+        */}
+        <div className="att-write">
 
           {/*
             What you actually wrote.
@@ -272,6 +287,9 @@ export function AttemptModal({ problem, onClose, store }) {
           */}
           <section className="att-block">
             <h4>Your solution</h4>
+            {/* `rows` is only the floor here — in its own column the box
+                stretches to whatever the form beside it is tall, which is the
+                difference between reading the code back and scrolling it. */}
             <CodeEditor
               value={code}
               lang={lang}

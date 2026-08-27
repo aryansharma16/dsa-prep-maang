@@ -39,7 +39,7 @@ the sign-in page as well as from the sidebar.
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
 | **Rate limits** | Per-address and per-account ceilings on every route, tight on sign-in, registration, chat and uploads |
 | **Motivation** | A line under every page heading, chosen from what you have actually solved |
-| **Feedback** | Anyone can send a suggestion, a bug or a complaint — from a bubble, the topbar or its own page — and watch the status change. Staff triage the queue and leave one reply. Signing out asks for a rating out of five, which shows against the account in the panel |
+| **Feedback** | Anyone can send a suggestion, a bug or a complaint — from the account menu, the sign-out dialog or its own page — and watch the status change. Staff triage the queue and leave one reply. Signing out asks for a rating out of five, which shows against the account in the panel |
 | **Admin** | Four roles, a dashboard, user management, content editing, a guide block editor and an audit log |
 | **Modules** | The super admin can hide a side-menu module while it is being built — gone from the menu, the routes and the API, for everyone but them |
 
@@ -553,6 +553,24 @@ the numbers and the shape of the conversation.
 A sitting with a problem, written down: how long it took, how it went, and what
 you want to remember about it. The clock icon on any row opens the log.
 
+**Three columns, and none of them scrolls.** The dialog is the app's widest at
+1220px, and the width buys a shape rather than more room for the same ribbon:
+the sitting you are logging on the left — clock, minutes, outcome, confidence,
+note — the code you wrote in the middle, and every sitting before this one on
+the right. Stacked in one column, as it was, the button you came to press was
+two screens below the chips you came to tap, and the log you keep beside you
+while writing the note was under it.
+
+The columns are stretched to each other, so the code box takes whatever height
+the form beside it happens to be — a chip row added later changes it with no
+number to update. Only the log scrolls, capped at 62vh, which is what keeps a
+problem with twenty sittings the same height as one with two. Below 1120px the
+form's two columns stack and the log keeps its rail; below 860px everything
+stacks and the log goes under the form. Wide, but never full-bleed: `.modal`
+takes its 20px gutter out of its own width rather than expecting a margin to
+find room beside it, which is a thing no dialog here did correctly and none of
+them was wide enough to show.
+
 **The stopwatch.** Start it, close the dialog, go and solve the thing — it keeps
 running in a pill in the top bar next to the task timer, and the row's clock
 icon pulses so the table says which problem is being counted. Open the log again
@@ -1007,8 +1025,8 @@ solved. Recent solves are derived from the roadmap already in memory, so the pag
 costs one request.
 
 **Your feedback** sits at the foot of the page — the last three things you sent
-and what happened to them, so a reply does not go unread behind a bubble you have
-stopped noticing.
+and what happened to them, so a reply does not go unread inside a dialog you have
+no reason to open twice.
 
 **About** holds the optional details — bio, college, graduation year, location,
 target role, GitHub, LinkedIn, LeetCode, website and target companies. Edit them
@@ -1134,10 +1152,9 @@ column every time a pattern was added. Pinned to the floor they are in the same
 place every time, and the patterns start at the top.
 
 **Feedback is not in the menu at all**, and it is the one module that isn't.
-It had three doors to the same dialog and only one of them cost a row here; the
-bubble and the topbar megaphone are both still there, and the page is a click
-away from your profile. It is still a module — the server still gates
-`/feedback` on it, and hiding it still hides the megaphone.
+It lives in the account menu instead, with the other two things that are about
+you rather than about the page. It is still a module — the server still gates
+`/feedback` on it, and hiding it still takes the menu item with it.
 
 ### Hover to open
 
@@ -1170,6 +1187,29 @@ whatever was tapped — `HOVERS` in `hooks/useMediaQuery.js` is how the shell
 tells a pointer from a finger. And it never fires below 760px, where `collapsed`
 means "closed drawer" rather than "rail" and a hover would fling the whole
 drawer over the page.
+
+## The account menu
+
+Your own face, top right, and behind it: **View profile**, **Send feedback**,
+**Sign out**.
+
+That end of the bar had collected three separate icon-only controls — a
+megaphone, a sign-out arrow, and the avatar — sitting eighteen pixels apart.
+None of them said what it was without being hovered, all three were about *you*
+rather than about the page, and one of them signed you out. One trigger
+everybody already reads as "me", and the three verbs get their names back.
+
+It is built on `AppearancePicker`'s shape rather than on `Dropdown`, and the
+difference is not cosmetic: `Dropdown` is a listbox, where the options are
+values you are choosing between and one of them is current. These are verbs.
+Nothing here is "selected", and a tick column would be lying about that.
+
+The header carries your name and email. That used to be the sign-out button's
+tooltip, which is a thing you find by accident on the way out — it is now the
+only place the app says which account you are signed in as. Sign out is ruled
+off and last, coloured like every other irreversible button here: it is the one
+item you cannot take back by clicking the next thing, and it is not what most
+people opened the menu for.
 
 ## Keyboard
 
@@ -1442,13 +1482,22 @@ verifying and fixing it.
 
 ## Feedback
 
-Three doors to one dialog — a bubble beside the chat one, an icon in the topbar,
-and a link on your profile — because the thing that kills a feedback channel is
-not being where someone was when they had the thought. All three open the same
-`Send` / `Yours` popup; the page carries the same form and list with more room.
+Three doors — **Send feedback** in the account menu, the button on the sign-out
+dialog, and `/feedback` itself, linked from the foot of your profile — because
+the thing that kills a feedback channel is not being where someone was when they
+had the thought. The first two open the same `Send` / `Yours` popup; the page
+carries the same form and list with more room.
 
-It is the one module with **no row in the side menu**: three doors already, and
-only this one cost a line in a list you read on the way somewhere else.
+It had a fourth, a floating bubble beside the chat one, and losing it is the
+point rather than a cost. Two circles in one corner for two features with
+nothing to do with each other is one too many, and of the two, chat is the one
+you keep open while you work and feedback is the one you go looking for. It is
+also why this is **the one module with no row in the side menu**: it was the only
+door that cost a line in a list you read on the way somewhere else.
+
+`FeedbackHost` in the shell is what remains of that bubble — the dialog's one
+mount point, kept out of `AppShell` so that opening and closing it does not
+redraw the sidebar, the topbar and the whole routed tree underneath.
 
 A submission is a **kind** (suggestion, bug, complaint, other), a one-line title,
 the detail, and the route you were on when you opened the form — "the stats page"
@@ -2167,7 +2216,7 @@ client/
   src/
     api/         axios client + endpoints
     components/
-      layout/    AppShell, Sidebar, AuthLayout, ParticleWeb
+      layout/    AppShell, Sidebar, AccountMenu, AuthLayout, ParticleWeb
       problem/   table, guide reader, notes, statement, modals
       filters/   the spec-driven filters dialog and its chips
       tasks/     the board, its four views, the drawer and the timer

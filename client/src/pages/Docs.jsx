@@ -1314,8 +1314,8 @@ export function Docs() {
                 <p>
                   <b>Profile</b> holds your picture, your numbers, and an About panel for bio,
                   college, graduation year, target role and links. Anything you sent through{' '}
-                  <b>Feedback</b> sits at the foot of that page with its status, so a reply does not
-                  go unread behind a bubble you stopped noticing.
+                  <b>Feedback</b> sits at the foot of that page with its status, so a reply does
+                  not go unread inside a dialog you have no reason to open twice.
                 </p>
               </Reveal>
             </Section>
