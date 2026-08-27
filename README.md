@@ -30,7 +30,7 @@ the sign-in page as well as from the sidebar.
 | **Learn** | Reference notes for the things around the algorithms. Three tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
 | **Playbook** | The site owner's own 24-week interview-prep plan — four phases over the 429 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
-| **Pro Coder** | A competitive-programming ladder: 800 problems (600 Codeforces, 200 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own glass theme that follows your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
+| **Pro Coder** | A competitive-programming ladder: 800 problems (600 Codeforces, 200 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own palette — the app's glass material, re-stepped darker and carrying Codeforces' rating ramp — following your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across both curriculums |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
@@ -280,6 +280,17 @@ A one-line summary of every topic in all three tracks is in
 [docs/learn.md](docs/learn.md#what-is-in-each-track). **SQL** will get its own
 section there as it is written.
 
+**Each track has its own light.** Learn wears the app's glass material like
+every other page — see [The material](#the-material) — and adds one thing to it:
+a colour. `.shell` lights the whole app in whichever accent you picked; a track
+page relights its own region in the track's hue over the top of that, so
+Complexity is violet, React is sky and Node is green, and the icon tile, the
+meter, the section rules, the side rail's marker and the progress bar down a
+topic all follow. The hue is one word in the registry, resolved from the same
+palette the accent picker draws from, which is also what re-steps it for the
+light theme. Colour never sits *under* text — it is on edges, icons and marks
+only, because this is a surface you read for twenty minutes at a time.
+
 The reading page is built for reference rather than for essays. Prose is held
 to about 74 characters, but **code blocks and tables get the full column**,
 which is a third wider than the pattern-guide reader — a code sample is a
@@ -298,6 +309,15 @@ sixty times a second to move a bar; the side rail measures its headings once
 and compares scroll offsets after that, rather than reading the layout of every
 heading on every frame. Both were doing real work per frame on a long topic —
 see [docs/learn.md](docs/learn.md#the-reading-page).
+
+**Nothing waits on a blank page.** Every Learn page now draws its own frame from
+the URL and fills it in as the chunks land, rather than holding the route on the
+word `Loading...` until they do. A track index paints its title, its filter and
+a grid of correctly-sized cards straight away; a topic paints its crumb, its
+column and its progress rule. The hub is the same idea from the other end — its
+cards come from the registry and are on screen immediately, and the three track
+indexes it needs for the "12 of 43" meters are fetched at `requestIdleCallback`
+rather than in front of the paint they contribute nothing to.
 
 It renders through the **same block renderer** as the pattern guides — Learn
 content is authored as the same typed blocks, so code tabs, copy buttons,
@@ -411,13 +431,14 @@ shortest paths · linear DP · knapsack · Fenwick & segment trees
 Pro Coder gets its own look, and it is one CSS wrapper rather than a second
 stylesheet. `.cp-root` redefines the design tokens every component in the app
 already reads, so the modals, chips, dropdowns and tables the ladder *reuses*
-re-skin themselves for free. On top of that: glass panels over an ambient wash,
-hairline borders instead of hard boxes, generous radii, and Codeforces' own
-rating ramp as the only real colour on the page — a tier's band is a 6px dot and
-a progress bar, not a saturated edge on every card.
+re-skin themselves for free. The glass panels and the ambient wash it introduced
+are the app's own material now — see [The material](#the-material) — so what
+still makes this its own room is the palette on top of them: a deeper canvas, and
+Codeforces' rating ramp as the only real colour on the page, where a tier's band
+is a 6px dot and a progress bar rather than a saturated edge on every card.
 
 The glass is translucency over that wash and nothing else. There is no
-`backdrop-filter` in the module, or on the app's dialog scrim, and that is
+`backdrop-filter` in the module, or anywhere else in the app, and that is
 measured rather than assumed: a blurred backdrop is re-rasterized whenever
 anything behind it paints, and on the expanded 805-row ladder it took scrolling
 from a 16.7ms median frame to 56.5ms — 87 of 88 frames past the 32ms line. The
@@ -2042,6 +2063,49 @@ never flashes on reload.
 Light is a straight token swap in `styles/tokens.css`, not a filter. The syntax
 highlighting palette is re-picked rather than lightened, because the dark theme's
 pastels wash out completely on white.
+
+### The material
+
+The app is **one canvas with glass on it**. `.shell` paints an ambient wash —
+three soft radial lights that never move, the first of them in whichever accent
+you picked — and every panel above it is a translucent fill rather than a solid
+box, so the wash shows through and the whole app reads as one lit surface
+instead of forty grey rectangles. Hairline borders instead of hard ones, a
+single inset line of light along the top edge of each panel where a real pane
+would catch it, a long soft drop underneath, and 10px corners instead of 4.
+
+That is done in the **tokens**, which is the only place it can be done once.
+`--surface`, `--surface-2`, `--surface-hover`, `--border` and `--border-soft`
+are read by every component in the 10,000-line stylesheet, so making them
+translucent re-skinned the sidebar, the top bar, the roadmap, Stats, Revision,
+Practice, Tasks, Profile, every dialog and every chip in one edit — the same
+leverage `.cp-root` has always used for the ladder.
+
+**No `backdrop-filter`, anywhere in the app.** Translucency only, and that is
+measured rather than assumed — the number is in the Pro Coder section above: a
+blurred backdrop took scrolling the expanded ladder from a 16.7ms median frame
+to 56.5ms. The two that were left, both on the public `/docs` page, are gone
+now. There is a second reason beyond cost: an element with a backdrop filter
+becomes the containing block for `position: fixed` descendants, which is how a
+full-screen dialog ends up anchored to a panel.
+
+**The solid twins.** Glass is wrong wherever content can pass *behind* it — the
+rows would scroll visibly through. So each glass token has an opaque twin, and
+anything sticky, fixed or portalled uses that instead: `--solid`, `--solid-2`,
+`--solid-hover`. That is the roadmap's frozen columns, every sticky table
+header, the dialogs and their sticky head and foot, every portalled menu, the
+toasts, the chat dock, and the sidebar in the two states where it leaves the
+row and draws over the page. The rule is one line long and it is in
+`tokens.css`: if you add a sticky or fixed element with a background, it takes a
+twin.
+
+**It costs nothing to scroll.** The wash lives on `.shell`, which is
+`height: 100%` and does not scroll — `.content` inside it owns the scrollbar —
+so it paints once at mount and again only on resize. Nothing in the material
+animates, nothing is on a scroll handler, and no part of it is a filter. On the
+roadmap with all 22 patterns expanded (429 rows in one scroll container),
+scrolling measures 32 fps against a 33 fps baseline before any of this landed —
+the same number, inside the noise.
 
 ## Adding your own problems
 

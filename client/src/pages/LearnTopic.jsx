@@ -5,8 +5,8 @@ import { LearnToc } from '../components/learn/LearnToc.jsx';
 import { GuideBlocks, guideHeadings } from '../components/problem/GuideBlocks.jsx';
 import {
   IconArrowLeft,
+  IconArrowRight,
   IconCheck,
-  IconChevronRight,
   IconRotate,
 } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
@@ -22,6 +22,11 @@ import { findTrack, flatTopics } from '../learn/tracks.js';
  * neighbours for prev/next, and the topic's own module gives the blocks. Both go
  * through the same cache, so arriving from the track page costs only the second
  * one — and the topic card has usually already fetched that on hover.
+ *
+ * The page is built from whichever has arrived rather than gated on both, which
+ * is what replaced the bare `Loading...` that used to own the route until the
+ * index resolved. That also means `.learn-page` exists on the first render, so
+ * the scroll container has a node to be found from — see `useScrollContainer`.
  *
  * The body is `GuideBlocks`, unchanged and unwrapped. That is the point of
  * authoring Learn content in the guide block shapes: code tabs, copy buttons,
@@ -162,30 +167,48 @@ export function LearnTopic() {
 
   if (!track || track.status !== 'live') {
     return (
-      <div className="empty">
-        <h3>No such track</h3>
-        <p>
-          <Link to="/learn">Back to Learn</Link>
-        </p>
+      <div className="learn-shell">
+        <div className="empty">
+          <h3>No such track</h3>
+          <p>
+            <Link to="/learn">Back to Learn</Link>
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (indexLoading) return <div className="loading">Loading...</div>;
-
-  if (!topic) {
+  /*
+    Only once the index has actually answered. Asking before it lands would call
+    every topic missing for as long as the fetch takes, and the page would flash
+    "No such topic" on its way to rendering the topic.
+  */
+  if (!indexLoading && !topic) {
     return (
-      <div className="empty">
-        <h3>No such topic</h3>
-        <p>
-          It may have been renamed. <Link to={`/learn/${trackSlug}`}>See every {track.name} topic</Link>.
-        </p>
+      <div className="learn-shell" data-hue={track.hue}>
+        <div className="empty">
+          <h3>No such topic</h3>
+          <p>
+            It may have been renamed. <Link to={`/learn/${trackSlug}`}>See every {track.name} topic</Link>.
+          </p>
+        </div>
       </div>
     );
   }
 
+  /*
+    The frame is drawn from the URL, not waited for.
+
+    The crumb, the column, the progress rule and the rail are the same shape for
+    every topic in the track and none of them needs the index to say so. What
+    used to sit here instead was the word `Loading...` owning the whole route
+    until the index resolved — a blank page where a document was about to be,
+    and, less visibly, no `.learn-page` for `useScrollContainer` to walk up from
+    on first mount. Drawing the frame immediately fixes both, and the title, the
+    pager and the words fill into it as the two chunks land.
+  */
   return (
-    <>
+    <div className="learn-shell" data-hue={track.hue}>
       {/* Outside .learn-page, which is a flex row — see the CSS. Transform-only,
           so scrolling never lays anything out. */}
       <div className="learn-rule" aria-hidden="true">
@@ -201,19 +224,29 @@ export function LearnTopic() {
               <IconArrowLeft size={13} />
               {track.name}
             </Link>
-            <span className="learn-crumb-pos mono">
-              {String(position + 1).padStart(2, '0')} / {topics.length}
-            </span>
+            {topic && (
+              <span className="learn-crumb-pos mono">
+                {String(position + 1).padStart(2, '0')} / {topics.length}
+              </span>
+            )}
           </div>
 
           <div className="page-head">
-            <h1>{topic.title}</h1>
-            <p>{topic.summary}</p>
+            {/* The slug, spelled out, until the index says what the title
+                really is. It is right about nine times in ten and it is the
+                right height every time, which is what stops the words below
+                from jumping when the index lands. */}
+            <h1>{topic ? topic.title : slugToTitle(topicSlug)}</h1>
+            <p>{topic ? topic.summary : '\u00a0'}</p>
           </div>
 
-          <AskAi questions={topic.ask} compact />
+          <AskAi questions={topic?.ask} compact />
 
-          {loading && (
+          {/* `indexLoading` as well as `loading`: the body import cannot start
+              until the index has named the topic, so without this the document
+              area is blank for one fetch and then a skeleton for the next.
+              Something is coming either way, and the skeleton is what says so. */}
+          {(loading || indexLoading) && (
             <div className="guide-loading">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div className="skeleton" key={i} />
@@ -225,7 +258,9 @@ export function LearnTopic() {
 
           {!loading && !error && blocks && <GuideBlocks blocks={blocks} />}
 
-          {!loading && !error && (
+          {/* `topic` as well as the body, because "Revise this" sends the
+              title and the hint below it talks about the pager. */}
+          {!loading && !error && topic && (
             <>
               <AskAi questions={topic.ask} />
 
@@ -318,32 +353,45 @@ export function LearnTopic() {
             </>
           )}
 
-          <nav className="learn-nav" aria-label="Nearby topics">
-            {previous ? (
-              <Link className="learn-nav-link prev" to={`/learn/${trackSlug}/${previous.slug}`}>
-                <span className="learn-nav-dir">
-                  <IconArrowLeft size={12} />
-                  Previous
-                </span>
-                <span className="learn-nav-title">{previous.title}</span>
-              </Link>
-            ) : (
-              <span />
-            )}
-            {next && (
-              <Link className="learn-nav-link next" to={`/learn/${trackSlug}/${next.slug}`}>
-                <span className="learn-nav-dir">
-                  Next
-                  <IconChevronRight size={12} />
-                </span>
-                <span className="learn-nav-title">{next.title}</span>
-              </Link>
-            )}
-          </nav>
+          {topic && (
+            <nav className="learn-nav" aria-label="Nearby topics">
+              {previous ? (
+                <Link className="learn-nav-link prev" to={`/learn/${trackSlug}/${previous.slug}`}>
+                  <span className="learn-nav-dir">
+                    <IconArrowLeft size={12} />
+                    Previous
+                  </span>
+                  <span className="learn-nav-title">{previous.title}</span>
+                </Link>
+              ) : (
+                <span />
+              )}
+              {next && (
+                <Link className="learn-nav-link next" to={`/learn/${trackSlug}/${next.slug}`}>
+                  <span className="learn-nav-dir">
+                    Next
+                    <IconArrowRight size={12} />
+                  </span>
+                  <span className="learn-nav-title">{next.title}</span>
+                </Link>
+              )}
+            </nav>
+          )}
         </article>
 
         <LearnToc headings={headings} />
       </div>
-    </>
+    </div>
   );
+}
+
+/*
+  `use-effect` -> `Use effect`. A placeholder for the one render before the
+  index answers, and nothing else reads it — the real title is authored, and
+  this only has to be the right *shape* so the paragraph under it does not move
+  when the real one arrives.
+*/
+function slugToTitle(slug) {
+  const words = String(slug).replace(/-/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }

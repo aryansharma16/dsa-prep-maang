@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { IconCheck } from '../ui/Icons.jsx';
 
@@ -22,8 +22,16 @@ const REST = 120;
  * the time the route changes the import has usually already resolved and the
  * topic renders without a skeleton. Failure is ignored on purpose — this is a
  * guess about what you are about to do, and a wrong guess must cost nothing.
+ *
+ * Memoised, and the reason is the filter box above it. Typing into that
+ * re-renders the track page on every keystroke, and the Node track is 68 of
+ * these — none of which has changed, because the topics come off a frozen
+ * module and `read` only moves when a topic is actually marked. The props are
+ * three primitives and one stable object, so the comparison is nearly free and
+ * it takes 68 re-renders per keystroke down to however many actually appeared
+ * or disappeared.
  */
-export function TopicCard({ trackSlug, topic, read = false }) {
+export const TopicCard = memo(function TopicCard({ trackSlug, topic, read = false }) {
   const timer = useRef(0);
 
   const prefetch = useCallback(() => {
@@ -66,4 +74,4 @@ export function TopicCard({ trackSlug, topic, read = false }) {
       )}
     </Link>
   );
-}
+});

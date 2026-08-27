@@ -18,11 +18,17 @@ import './styles/cp.css';
    stopwatch on, not a different room the way the ladder is. */
 import './styles/practice.css';
 /*
-  After cp.css, and last, for the same reason cp.css is after app.css: the
-  playbook borrows the ladder's panel language and overrides a handful of shared
-  classes at equal specificity, so source order is what decides them.
+  After cp.css, for the same reason cp.css is after app.css: the playbook
+  borrows the ladder's panel language and overrides a handful of shared classes
+  at equal specificity, so source order is what decides them.
 */
 import './styles/playbook.css';
+/*
+  Last. Learn is its own room like the ladder is — `.learn-shell` redefines the
+  same tokens the shared components read, and several of its rules override a
+  plain `.thing` at equal specificity, so source order is what decides them.
+*/
+import './styles/learn.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

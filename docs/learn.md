@@ -43,6 +43,7 @@ client/src/
   pages/LearnTopic.jsx        /learn/:track/:topic
   components/learn/
     TrackCard.jsx  TopicCard.jsx  LearnToc.jsx  AskAi.jsx
+  styles/learn.css            the whole look — tokens, ambient wash, glass, per-track hue
   components/problem/
     GuideBlocks.jsx           the renderer, shared with the pattern guides
     inline.jsx                `code`, **bold**, *italic* inside a sentence
@@ -213,10 +214,79 @@ a FAQ.
    `status: 'live'` and give it a `load`.
 
 Nothing else. The hub, the breadcrumb, the router and the "is this a real
-track" check all read the registry.
+track" check all read the registry — and so does the colour: the `hue` on the
+entry is a name from the palette in `tokens.css`, and it is the only line that
+decides the track's ambient wash, its icon tile, its meters, its section rules
+and its topics' side rail. See [The look](#the-look).
 
 A `soon` track is listed on purpose rather than hidden — a hub showing what is
 coming reads as a plan, one showing a single item reads as abandoned.
+
+## The look
+
+Learn wears the app's own glass material — the ambient wash on `.shell`, the
+translucent panels, the hairlines, the sheen and the lift, all out of
+`tokens.css`. None of it is restated in `learn.css`. An earlier version of this
+file carried a private copy of the whole set, written when Learn was the only
+room built this way; the rest of the app reads the same tokens now, and two
+copies of one material is exactly the drift this repo warns about everywhere
+else.
+
+What `learn.css` adds is a **light** and a layout. `styles/learn.css` is
+imported last in `main.jsx`, after `playbook.css`, because several of its rules
+override a plain `.thing` at equal specificity and source order is what decides
+those.
+
+The full-bleed is `.content:has(.learn-shell)`, the same trick and for the same
+reason as `.content:has(.cp-page)`: `.content` belongs to the app shell several
+levels above any page, and a page cannot reach up to it. The light goes edge to
+edge; the column inside stays bounded at 1340px and centred.
+
+### The two rules
+
+**Colour is a light, never a fill behind text.** Learn's own wash is three soft
+radial lights at the top of the shell, laid into the element's own `background`
+rather than drawn by a pseudo-element — a `z-index: -1` pseudo would need a
+stacking context on the parent, and a stacking context here would trap the chat
+dock under the floating launcher. The last layer is `transparent`, not a colour,
+so the app's wash shows straight through and these three are an extra helping of
+light over it rather than a replacement for it. Hues then appear on edges,
+icons, meters and marks only. Nothing tinted ever sits under a paragraph.
+
+(The app-wide rule about `backdrop-filter` — that there is none, anywhere —
+lives in `tokens.css` and in the README. It bites twice here: `.learn-toc` is
+`position: sticky` and the chat launcher is `position: fixed`, and an ancestor
+carrying a backdrop filter becomes the containing block for fixed descendants.)
+
+**One hue per track, named not valued.** `learn/tracks.js` gives each track a
+name out of the palette in `tokens.css` — Complexity `violet`, React `sky`,
+Node `green`, SQL `amber`. The pages hand it to `data-hue` on `.learn-shell`
+(and `TrackCard` puts it on each card), the `[data-hue='x']` block in
+`tokens.css` resolves `--hue` and `--hue-rgb`, and `.learn-shell[data-hue]`
+takes the lead light off the accent:
+
+```css
+.learn-shell        { --lx-1: var(--accent-rgb); }   /* the hub, which has no one track */
+.learn-shell[data-hue] { --lx-1: var(--hue-rgb); }   /* a track page and its topics */
+```
+
+`--lx-2` and `--lx-3` are fixed at blue and fuchsia. A lead colour plus those
+two spreads into a prism from any starting hue, where three neighbours on the
+wheel would read as one smudged light. Because the hue names are the palette's
+own, the light theme re-steps a track's colour through the same block that
+re-steps every other hue in the app — no second set of values to keep in sync.
+
+The accent is deliberately **not** redefined. It is the one colour the reader
+picked, and taking it away here to fly a house colour would make that choice
+mean less everywhere else.
+
+### Motion
+
+Only two things move, and both say "this is a link", which the cursor has
+already said — so both are off under `prefers-reduced-motion`. A track card's
+hue glow is a separate absolutely-positioned `.track-card-lume` element
+transitioned on **opacity**, which the compositor can do without repainting the
+card or the text on it; the 1px lift is a `transform`. Neither touches layout.
 
 ## The reading page
 
@@ -248,11 +318,16 @@ CSS bug rather than a missing listener.
 
 `useScrollContainer()` walks up from a node until it finds an ancestor whose
 `overflow-y` is `auto` or `scroll`. It returns `[ref, container]` where `ref` is
-a **callback** ref, and that detail is load-bearing: `LearnTopic` renders a
-`Loading...` early return before its real markup, so on first mount there is no
-node to walk up from. An effect keyed on a ref *object* would run once against
-nothing and settle on the document scroller forever. A callback ref fires again
-when the real node attaches.
+a **callback** ref, and that detail was load-bearing: `LearnTopic` used to
+render a `Loading...` early return before its real markup, so on first mount
+there was no node to walk up from. An effect keyed on a ref *object* would run
+once against nothing and settle on the document scroller forever.
+
+That early return is gone — the page draws its frame immediately now, so
+`.learn-page` is there on the first render either way. The callback ref stays,
+because it is still the correct shape: the two `empty` states below it (no such
+track, no such topic) render no `.learn-page` at all, and a callback ref simply
+fires again if one of them is ever replaced by real markup.
 
 ### What the page does
 
@@ -263,6 +338,7 @@ when the real node attaches.
 | Deep links | A rail click writes `#heading-id` with `replaceState`, so a section is copyable from the address bar without piling up history entries. On load, a hash suppresses the scroll-to-top and scrolls to the anchor once the topic's chunk has landed. |
 | Arrow keys | `←` / `→` walk the track. Ignored while typing (input, textarea, select, contenteditable), while a modifier is held, and while a modal is open. |
 | Read tracking | `learn/progress.js` — `useLocalState` over one map keyed `track/slug`. Auto-marked at 90% scrolled, plus a button to set or unset it. Drives the ticks on topic cards, the per-section counts, and the meters on the track and hub pages. |
+| Loading | No page holds the route on a blank `Loading...`. The frame comes from the URL and the chunks fill it in: `LearnTrack` draws its title, filter and a grid of correctly-sized `.skeleton` cards; `LearnTopic` draws its crumb, column and progress rule, with the slug spelled out as a placeholder title so the paragraph under it does not jump when the index lands. |
 
 ### What scrolling costs
 
@@ -294,6 +370,45 @@ rectangles, and beats a `ResizeObserver` on content this component does not own.
 Neither change is visible. Both were found by asking what the page does on a
 frame where nothing has happened, which for a reading page is nearly all of
 them.
+
+### What the other two pages cost
+
+**The hub fetched three chunks in front of its own paint.** Everything on
+`/learn` is already in `TRACKS`, so the cards can be on screen in the first
+frame; the three track indexes it also pulls exist only to put "12 of 43" under
+them. Fetching those from a plain mount effect put the largest download Learn
+makes — and its parse — ahead of a paint it contributes nothing to. It is behind
+`requestIdleCallback` now (with a `setTimeout` fallback, for Safari), so the
+meters arrive a beat late and the page does not.
+
+**`TopicCard` is memoised.** The filter box re-renders the track page on every
+keystroke, and the Node track is 68 cards — none of which has changed, because
+the topics come off a frozen module and `read` only moves when a topic is
+actually marked. Its props are three primitives and one stable object, so the
+comparison is nearly free and it takes 68 re-renders per keystroke down to
+however many cards actually appeared or disappeared.
+
+`LearnTrack`'s `allSections` falls back to one frozen `EMPTY` rather than a
+fresh `[]`. A new literal per render is a new dependency per render, which is
+the one shape of `useMemo` that costs more than it saves.
+
+### What was measured and rejected
+
+The index → body waterfall. A topic's body is reachable only through its entry
+in the track index, so a *cold* arrival at `/learn/react/use-effect` is two
+requests in a row: fetch the index, read `load` off it, fetch the words.
+Deriving the loader from the slug instead — `import.meta.glob` in `tracks.js`,
+keyed `./<track>/<slug>.js` — lets both start on the same frame and removes one
+round trip.
+
+It was built, measured and reverted. `tracks.js` is imported eagerly by the
+Learn pages, which are imported eagerly by `App.jsx`, so the generated map of
+117 import thunks lands in the **main bundle**: **+16.6 KB raw, +5.1 KB gzipped**
+on every first load of the whole app, including for people who never open Learn.
+(Every other change on this page came to +0.5 KB gzipped combined.) That buys one
+round trip on cold direct entry to a topic — a path `TopicCard`'s hover prefetch
+already covers for the normal one. Not a good trade. If the Learn routes are
+ever made lazy, it becomes one.
 
 `TopicCard`'s hover prefetch is the same kind of fix one page up: it fired on
 `mouseenter`, so reaching a card at the bottom of the 68-card Node grid dragged

@@ -31,6 +31,14 @@ export const IconArrowLeft = (p) => (
   </Svg>
 );
 
+/* The mirror of the above. A chevron points; an arrow says "go", which is what
+   a track card and the pager on a topic are actually offering. */
+export const IconArrowRight = (p) => (
+  <Svg {...p}>
+    <path d="M3 8h10M9.4 4.4L13 8l-3.6 3.6" />
+  </Svg>
+);
+
 export const IconCheck = (p) => (
   <Svg {...p} strokeWidth={2.2}>
     <path d="M3.5 8.5l3 3 6-7" />

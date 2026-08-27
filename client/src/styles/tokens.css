@@ -1,4 +1,48 @@
-/* Design tokens. Dark is the default; light is a straight token swap. */
+/*
+  Design tokens. Dark is the default; light is a straight token swap.
+
+  ---------------------------------------------------------------------------
+  THE MATERIAL
+
+  The app is one canvas with glass on it. `.shell` paints an ambient wash — a
+  few soft radial lights that never move — and every panel above it is a
+  translucent fill rather than a solid box, so the wash shows through and the
+  page reads as one lit surface instead of forty grey rectangles.
+
+  That is done here, in the tokens, because it is the only place it can be done
+  once. `--surface`, `--surface-2`, `--surface-hover`, `--border` and
+  `--border-soft` are read by every component in app.css, so making them
+  translucent re-skins the sidebar, the roadmap, Stats, Tasks, Revision,
+  Practice, Profile, the dialogs and the chips in a single edit — the same
+  leverage `.cp-root` uses for the ladder and `.learn-shell` for Learn.
+
+  **No `backdrop-filter`, anywhere in this app.** Translucency only. A blurred
+  backdrop has to be re-rasterized whenever anything behind it paints, so a
+  blurred panel on a page you scroll costs a full-region blur every frame —
+  which is what a 429-row roadmap does for a living. Every blurred element is
+  also a containing block for `position: fixed` descendants, which would anchor
+  the chat dock and the modals to whatever panel they were declared inside. The
+  wash is what the glass has to refract, and a translucent fill over a gradient
+  is very nearly the same picture for none of the cost. This was tried once with
+  `blur(8px)` on the modal scrim and reverted the same afternoon; see `.overlay`
+  in app.css.
+
+  THE SOLID TWINS
+
+  A translucent surface is wrong wherever content can pass *behind* it — the
+  rows would scroll visibly through it. So every glass token has an opaque twin,
+  and anything sticky, fixed or portalled uses that instead:
+
+      --solid         opaque --surface        frozen table columns, modal
+      --solid-2       opaque --surface-2      sticky headers, portalled menus
+      --solid-hover   opaque --surface-hover  a frozen cell in a hovered row
+
+  The twins are the glass resolved against `--bg` and then lifted a step,
+  because a menu over a table has to read as *above* the page rather than as a
+  hole in it. If you add a `position: sticky` or `position: fixed` element with
+  a background, it takes a twin. That is the whole rule.
+  ---------------------------------------------------------------------------
+*/
 :root,
 :root[data-theme='dark'] {
   /*
@@ -11,16 +55,43 @@
   */
   color-scheme: dark;
 
-  --bg: #1a1a1a;
-  --surface: #282828;
-  --surface-2: #303030;
-  --surface-hover: #333333;
-  --border: #3e3e3e;
-  --border-soft: #2f2f2f;
+  /* The canvas. Cooler and deeper than the flat #1a1a1a it replaces — a wash
+     needs somewhere to be a wash *on*, and coloured light over a warm near-grey
+     reads as a smudge rather than as light. */
+  --bg: #0e1013;
 
-  --text: #eff2f6;
-  --text-2: #b3b3b3;
-  --text-3: #808080;
+  /* The glass. White light through the panel, so it layers: a card on the page,
+     a chip inside the card, each one step brighter than what it sits on. */
+  --surface: rgb(255 255 255 / 0.045);
+  --surface-2: rgb(255 255 255 / 0.062);
+  /* A tint that goes *on top of* whatever it lands on, not a colour of its own —
+     that is what lets one hover value work on a table row, a menu item and a
+     sidebar link, all of which sit on different fills. */
+  --surface-hover: rgb(255 255 255 / 0.06);
+  --border: rgb(255 255 255 / 0.1);
+  --border-soft: rgb(255 255 255 / 0.055);
+
+  /* The opaque twins — see THE MATERIAL above. Hand-picked rather than
+     `color-mix`ed: these are read by sticky cells inside a scrolling table, and
+     a colour the browser has to resolve per paint is the wrong thing to put
+     there. */
+  --solid: #1b1d22;
+  --solid-2: #212429;
+  --solid-hover: #292b2f;
+
+  /* The specular top edge. One inset hairline of light is what makes a
+     translucent box read as a lit surface rather than as a lighter rectangle,
+     and it is the single cheapest part of this whole material. */
+  --sheen: rgb(255 255 255 / 0.07);
+  /* The lift under a panel. Long, soft and very dark, so it reads as depth
+     rather than as a drawn border. `--lift-hover` is the same shadow thrown a
+     little further, for the handful of panels that rise under the pointer. */
+  --lift: 0 14px 34px -26px rgb(0 0 0 / 0.9);
+  --lift-hover: 0 20px 46px -26px rgb(0 0 0 / 0.95);
+
+  --text: #eef1f6;
+  --text-2: #aab3c0;
+  --text-3: #79828f;
 
   --easy: #00b8a3;
   --medium: #ffb800;
@@ -57,7 +128,7 @@
 
   --danger: #ff375f;
   --focus: #4c9aff;
-  --shadow: rgba(0, 0, 0, 0.45);
+  --shadow: rgb(0 0 0 / 0.55);
 
   /* Syntax highlighting for the guide code blocks. The bracket trio is VS
      Code's own palette — gold, orchid, sky — so nested pairs read the way they
@@ -72,9 +143,17 @@
   --syn-br2: #da70d6;
   --syn-br3: #179fff;
 
-  /* Activity ramp: single hue, monotone lightness, faintest step clears the
-     panel surface at 2.38:1. Validated — do not hand-tweak these. */
-  --heat-0: #3a3a3a;
+  /* Activity ramp: single hue, monotone lightness. Validated — do not hand-tweak
+     the four data steps.
+
+     `--heat-0` is the empty cell and is not one of them: it is a *relationship*
+     with the panel it sits on, and the panel moved when the glass came in — it
+     is a translucent fill over a deeper canvas now, not #282828. Left where it
+     was, the same grey read as a heavier grid against the darker ground than it
+     ever did before. Re-stepped to hold the contrast it originally had against
+     the panel (1.27:1 now, 1.30:1 then) and tinted the same way the canvas is,
+     so a year of blank days recedes instead of drawing the eye. */
+  --heat-0: #2c2e33;
   --heat-1: #15756a;
   --heat-2: #1aa694;
   --heat-3: #2fd3ba;
@@ -84,16 +163,34 @@
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --bg: #ffffff;
-  --surface: #f7f8fa;
-  --surface-2: #ffffff;
-  --surface-hover: #eef0f3;
-  --border: #dfe1e6;
-  --border-soft: #ebedf0;
+  /*
+    Inverted material, not lightened values: on a light canvas the glass is
+    white *over* the wash rather than white light through it, so the fills go up
+    and the hairlines darken. The canvas itself is tinted rather than pure white
+    — the wash has nothing to be seen against on #ffffff.
+  */
+  --bg: #eef1f6;
 
-  --text: #1f2328;
-  --text-2: #55606e;
-  --text-3: #8a94a6;
+  --surface: rgb(255 255 255 / 0.74);
+  --surface-2: rgb(255 255 255 / 0.92);
+  /* Ink, not more white: the panels are already near-white here, so a whiter
+     hover is invisible. Same "tint on top of what is there" contract as the
+     dark theme's, with the sign flipped. */
+  --surface-hover: rgb(15 23 42 / 0.045);
+  --border: rgb(15 23 42 / 0.1);
+  --border-soft: rgb(15 23 42 / 0.06);
+
+  --solid: #ffffff;
+  --solid-2: #ffffff;
+  --solid-hover: #f0f2f6;
+
+  --sheen: rgb(255 255 255 / 0.85);
+  --lift: 0 12px 30px -22px rgb(15 23 42 / 0.35);
+  --lift-hover: 0 18px 40px -22px rgb(15 23 42 / 0.45);
+
+  --text: #12161d;
+  --text-2: #545f6e;
+  --text-3: #7b8695;
 
   --easy: #00875a;
   --medium: #b25e00;
@@ -117,7 +214,7 @@
 
   --danger: #d1293d;
   --focus: #0b66e4;
-  --shadow: rgba(16, 22, 26, 0.15);
+  --shadow: rgb(15 23 42 / 0.14);
 
   /* Re-picked for a light background rather than lightened — the dark theme's
      pastels wash out completely on white. Brackets stay recognisably gold /
@@ -195,7 +292,15 @@
   --sidebar-w-collapsed: 56px;
   --topbar-h: 52px;
   --row-h: 36px;
-  --radius: 4px;
+  /*
+    10px, not 4. The old value came from a spreadsheet; this app is a spreadsheet
+    in one place and a set of cards everywhere else, and a soft corner is most of
+    what separates the two. Everything that reads this rounds with it — buttons,
+    inputs, panels, code blocks, the dialogs — so the shape stays one decision.
+    Anything that wants a capsule states `999px` for itself, and the handful of
+    2–4px details (meters, rules) state their own too.
+  */
+  --radius: 10px;
 
   /* Chat widget geometry. Here rather than in app.css because the toast-stack
      override has to offset itself by exactly the bubble's size, and a magic

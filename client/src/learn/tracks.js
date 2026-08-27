@@ -12,6 +12,13 @@ import { IconClock, IconGlobe, IconLayers, IconTable } from '../components/ui/Ic
  * `load` is a dynamic import of the track's index — its topic list, not its
  * prose. Every topic body is a further import behind that, so opening the hub
  * costs one small chunk and opening a topic costs one more.
+ *
+ * `hue` is the track's colour, and the only per-track decoration in the system.
+ * It is a name out of the palette in tokens.css rather than a value, so the
+ * track page and the topic page can hand it to `data-hue` and have the ambient
+ * wash, the icon tile and the card edges all resolve from one word — and so a
+ * track's colour is re-stepped for the light theme by the same block that
+ * re-steps every other hue in the app.
  */
 export const TRACKS = [
   /*
@@ -23,6 +30,7 @@ export const TRACKS = [
   */
   {
     slug: 'complexity',
+    hue: 'violet',
     name: 'Complexity',
     status: 'live',
     Icon: IconClock,
@@ -32,6 +40,7 @@ export const TRACKS = [
   },
   {
     slug: 'react',
+    hue: 'sky',
     name: 'React',
     status: 'live',
     Icon: IconLayers,
@@ -41,6 +50,7 @@ export const TRACKS = [
   },
   {
     slug: 'node',
+    hue: 'green',
     name: 'Node.js',
     status: 'live',
     Icon: IconGlobe,
@@ -50,6 +60,7 @@ export const TRACKS = [
   },
   {
     slug: 'sql',
+    hue: 'amber',
     name: 'SQL',
     status: 'soon',
     Icon: IconTable,

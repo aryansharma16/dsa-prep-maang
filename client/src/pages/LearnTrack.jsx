@@ -6,6 +6,15 @@ import { useLearnDoc } from '../hooks/useLearnDoc.js';
 import { topicKey, useReadTopics } from '../learn/progress.js';
 import { findTrack, flatTopics } from '../learn/tracks.js';
 
+/* Sections are never empty and never one card, so a grid of eight under two
+   headings is close enough to any track to hold the page still while the index
+   lands. Frozen at module scope: a fresh array per render would re-key the
+   skeletons and restart their shimmer on every keystroke. */
+const SKELETON = [8, 6];
+
+/* The one empty list, shared. See `allSections` below for why it is not `[]`. */
+const EMPTY = [];
+
 /**
  * A track's table of contents.
  *
@@ -29,7 +38,12 @@ export function LearnTrack() {
   const [query, setQuery] = useState('');
   const { read, countRead, clearTrack } = useReadTopics();
 
-  const allSections = data?.sections || [];
+  /*
+    One frozen empty array rather than a fresh `[]` per render. The two memos
+    below key off this, and a new literal every time is a new dependency every
+    time — which is the one shape of `useMemo` that costs more than it saves.
+  */
+  const allSections = data?.sections || EMPTY;
   const allTopics = useMemo(() => flatTopics(allSections), [allSections]);
   const readCount = countRead(trackSlug, allTopics);
 
@@ -56,27 +70,39 @@ export function LearnTrack() {
 
   if (!track || track.status !== 'live') {
     return (
-      <div className="empty">
-        <h3>{track ? `${track.name} is not written yet` : 'No such track'}</h3>
-        <p>
-          <Link to="/learn">Back to Learn</Link>
-        </p>
+      <div className="learn-shell">
+        <div className="empty">
+          <h3>{track ? `${track.name} is not written yet` : 'No such track'}</h3>
+          <p>
+            <Link to="/learn">Back to Learn</Link>
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (loading) return <div className="loading">Loading {track.name}...</div>;
   if (error) {
     return (
-      <div className="empty">
-        <h3>Could not load</h3>
-        <p>{error}</p>
+      <div className="learn-shell" data-hue={track.hue}>
+        <div className="empty">
+          <h3>Could not load</h3>
+          <p>{error}</p>
+        </div>
       </div>
     );
   }
 
+  /*
+    The index is one small chunk, but "one small chunk" is still a network
+    round trip on a cold visit, and what used to sit in it was the word
+    `Loading React...` on an otherwise blank page — no title, no toolbar,
+    nothing where the cards were about to be. Everything except the section
+    titles is known before the fetch resolves, so the page draws itself and
+    only the parts that genuinely need the index come in as cards of the right
+    size. The layout never moves; it fills in.
+  */
   return (
-    <>
+    <div className="learn-shell" data-hue={track.hue}>
       <div className="learn-crumb">
         <Link to="/learn">
           <IconArrowLeft size={13} />
@@ -84,10 +110,11 @@ export function LearnTrack() {
         </Link>
       </div>
 
-      <div className="page-head">
-        <h1>{data.title}</h1>
-        <p>{data.summary}</p>
-      </div>
+      <header className="learn-hero">
+        <span className="learn-hero-eyebrow">{track.name}</span>
+        <h1>{loading ? track.name : data.title}</h1>
+        <p>{loading ? track.blurb : data.summary}</p>
+      </header>
 
       <div className="learn-toolbar">
         <label className="learn-search">
@@ -98,6 +125,7 @@ export function LearnTrack() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter topics — try 'hook', 'performance', 'ref'"
             aria-label={`Filter ${track.name} topics`}
+            disabled={loading}
           />
           {query && <span className="learn-search-count mono">{matches}</span>}
         </label>
@@ -117,7 +145,22 @@ export function LearnTrack() {
         )}
       </div>
 
-      {sections.length === 0 ? (
+      {loading ? (
+        <div className="learn-skeleton" aria-busy="true" aria-label={`Loading ${track.name}`}>
+          {SKELETON.map((count, section) => (
+            <section className="learn-section" key={section}>
+              <div className="learn-section-head">
+                <span className="skeleton sk-title" />
+              </div>
+              <div className="learn-topics">
+                {Array.from({ length: count }).map((_, i) => (
+                  <span className="skeleton sk-card" key={i} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : sections.length === 0 ? (
         <div className="empty">
           <h3>Nothing matches "{query}"</h3>
           <p>Try a broader word, or clear the filter to see every topic.</p>
@@ -147,6 +190,6 @@ export function LearnTrack() {
           </section>
         ))
       )}
-    </>
+    </div>
   );
 }

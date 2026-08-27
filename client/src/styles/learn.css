@@ -1,0 +1,1182 @@
+/* =====================================================================
+   LEARN — the reference notes: the hub, a track's index, and one topic read.
+
+   Its own room, the way the Pro Coder ladder is, and built the same way:
+   `.learn-shell` redefines the token set every shared component already reads
+   — --surface, --border, --radius, --text — so `GuideBlocks`, the buttons, the
+   confidence dots and the meters re-skin themselves without a second copy of
+   anything. What is added on top of that swap is the material: an ambient wash
+   the page is lit by, translucent panels over it, hairline edges instead of
+   hard boxes, and one colour per track.
+
+   Three rules the whole file obeys.
+
+   **No `backdrop-filter`, anywhere.** Not an aesthetic call — a blurred
+   backdrop is re-rasterized whenever anything behind it paints, so a blurred
+   panel on a page you *scroll* costs a full-region blur every frame. This page
+   is nothing but scrolling. The blur would be softening a set of radial
+   gradients, and a translucent fill over those gradients is very nearly the
+   same picture for none of the cost. Same conclusion cp.css reached, for the
+   same reason, and there is a second one here: `.learn-toc` is `position:
+   sticky` and the chat launcher is `position: fixed` — an ancestor carrying a
+   backdrop filter becomes the containing block for fixed descendants.
+
+   **Colour is a light, never a fill behind text.** The wash is three soft
+   lights at the top of the page and the hues appear on edges, icons, meters
+   and marks. Nothing tinted ever sits under a paragraph: this is a surface
+   people read for twenty minutes at a time, and a body of text on a coloured
+   panel is what makes that tiring.
+
+   **One hue per track, named not valued.** The registry gives each track a
+   name out of the palette in tokens.css — Complexity violet, React sky, Node
+   green — the pages hand it to `data-hue`, and every tint on the page resolves
+   from that one word. So a track's colour is one line in `learn/tracks.js`,
+   and it is re-stepped for the light theme by the same block that re-steps
+   every other hue in the app.
+
+   The document body is not styled here from scratch. A topic renders through
+   `GuideBlocks`, so `.guide-body`, `.guide-h`, `.guide-code`, `.guide-callout`
+   and `.guide-table` up in app.css are doing that work and a fix to any of them
+   lands on the pattern guides too. What follows is the furniture around it,
+   plus overrides scoped to `.learn-col` — never to `.guide-body` itself, so the
+   guide reader keeps the measure and scale it was designed at.
+
+   "A Learn topic, into revision" stayed in app.css, beside the attempt controls
+   whose confidence dots it borrows. Its glass twin is at the foot of this file.
+   ===================================================================== */
+
+/* ------------------------------------------------------------ the canvas */
+
+/*
+  Full bleed, so the wash reaches the window edge instead of stopping at a
+  1500px well with flat page either side of it. The column inside is still
+  bounded and centred — it is the *light* that goes edge to edge, not the
+  prose.
+
+  `:has()` for the same reason the ladder uses it: `.content` is the app
+  shell's, several levels above any page, and a page cannot reach up to it.
+*/
+.content:has(.learn-shell) {
+  padding: 0;
+}
+.content:has(.learn-shell) .content-inner {
+  max-width: none;
+  margin: 0;
+}
+
+/*
+  Learn adds a light; it does not add a material.
+
+  Everything that made this page glass — the translucent fills, the hairlines,
+  the sheen, the lift, the text ramp — is the app's, out of tokens.css, and it
+  is not restated here. What used to sit in this block was a private copy of
+  all of it, written when Learn was the only room built this way; the rest of
+  the app now reads the same tokens, and two copies of one material is exactly
+  the drift this file's header warns about everywhere else.
+
+  What is left is the one thing that is genuinely Learn's: the lead colour.
+  `.shell` lights the whole app in the reader's accent, and a track page relights
+  its own region in the track's hue over the top of that.
+*/
+.learn-shell {
+  /*
+    The three lights. `--lx-1` leads and is the track's own colour where there
+    is one; the hub has no single track, so it leads with the reader's accent —
+    which is what `.shell` is already lit in, so the hub simply reads as a
+    brighter helping of the same light. The other two are fixed, and fixed on
+    purpose: a lead colour plus blue plus fuchsia spreads into a prism from any
+    starting hue, where three neighbours on the wheel would just look like one
+    smudged light.
+  */
+  --lx-1: var(--accent-rgb);
+  --lx-2: var(--h-blue-rgb);
+  --lx-3: var(--h-fuchsia-rgb);
+
+  /* Rounder still than the app's 10px. Learn is a document; the rest of the app
+     is a document in some places and a spreadsheet in others. */
+  --radius: 12px;
+
+  position: relative;
+  padding: 20px 26px 84px;
+  min-height: calc(100vh - var(--topbar-h));
+
+  /*
+    Layered into the element's own background rather than drawn by a
+    pseudo-element behind it, and that is not a style preference. A `z-index:
+    -1` pseudo only paints above its parent's background if the parent
+    establishes a stacking context — and a stacking context here would trap
+    everything the page renders, the chat dock included, underneath the
+    floating launcher. Background layers need no stacking context at all.
+
+    The last layer is `transparent`, not `--bg`, and that is the whole of what
+    makes this sit *on* the app rather than instead of it: `.shell`'s wash shows
+    straight through, and these three are an extra helping of light over it.
+    Sized rather than repeated, so they are a band at the top of the document
+    that you scroll out of, the way light through a window is a band on a floor.
+
+    Alphas are lower than a standalone wash would need, for the same reason.
+  */
+  background:
+    radial-gradient(1180px 520px at 6% -14%, rgb(var(--lx-1) / 0.15), transparent 66%) no-repeat,
+    radial-gradient(1000px 470px at 74% -18%, rgb(var(--lx-2) / 0.1), transparent 68%) no-repeat,
+    radial-gradient(720px 400px at 40% -8%, rgb(var(--lx-3) / 0.075), transparent 70%) no-repeat,
+    transparent;
+  background-size: 100% 620px, 100% 620px, 100% 620px, auto;
+}
+
+/* The track's colour takes the lead light off the accent. `--hue-rgb` is
+   resolved by the `[data-hue]` block in tokens.css, so this is the only line
+   that has to know the two systems meet. */
+.learn-shell[data-hue] {
+  --lx-1: var(--hue-rgb);
+}
+
+/* The same three lights carry further against a light canvas, so all three come
+   down again. At the dark theme's alphas this reads as a tie-dyed page. */
+:root[data-theme='light'] .learn-shell {
+  background:
+    radial-gradient(1180px 520px at 6% -14%, rgb(var(--lx-1) / 0.12), transparent 66%) no-repeat,
+    radial-gradient(1000px 470px at 74% -18%, rgb(var(--lx-2) / 0.085), transparent 68%) no-repeat,
+    radial-gradient(720px 400px at 40% -8%, rgb(var(--lx-3) / 0.065), transparent 70%) no-repeat,
+    transparent;
+  background-size: 100% 620px, 100% 620px, 100% 620px, auto;
+}
+
+/* ---------------------------------------------------------------- the hero */
+
+/*
+  The page's masthead, and the only place any of this shouts. It replaces the
+  shared `.page-head` on the hub and the track index — same words, more room —
+  and it closes on a prism hairline, which is the one mark that says the three
+  lights above are deliberate rather than a gradient someone left on.
+*/
+.learn-hero {
+  position: relative;
+  max-width: 1340px;
+  margin: 0 auto 26px;
+  padding: 26px 0 26px;
+}
+.learn-hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--lx-1) / 0.55),
+    rgb(var(--lx-2) / 0.42) 34%,
+    rgb(var(--lx-3) / 0.3) 62%,
+    transparent 92%
+  );
+}
+
+.learn-hero-eyebrow {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--lx-1));
+}
+
+.learn-hero h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 640;
+  letter-spacing: -0.032em;
+  line-height: 1.12;
+  color: var(--text);
+}
+
+/*
+  The title, lit by the same lead colour as the page.
+
+  Behind `@supports` and with the plain `color` above as the resting state, so
+  a browser without `background-clip: text` gets readable white rather than the
+  transparent fill this needs to work. The gradient starts at the text colour
+  and only turns at the end — a title that is coloured all the way through
+  reads as a logo, and this is a heading.
+*/
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .learn-hero h1 {
+    /* Shrink-wrapped, and that is what makes the gradient visible at all. A
+       block-level h1 is as wide as the column, so a five-letter word samples
+       the first two percent of the ramp and comes out flat white. */
+    display: inline-block;
+    max-width: 100%;
+    background: linear-gradient(
+      104deg,
+      var(--text) 6%,
+      rgb(var(--lx-1)) 62%,
+      rgb(var(--lx-3)) 98%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.learn-hero p {
+  margin: 11px 0 0;
+  max-width: 74ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+/* Three numbers, and only once they are true — see `totals` in Learn.jsx. */
+.learn-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 16px !important;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.learn-hero-stats b {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------- hub */
+
+.learn-hub {
+  display: grid;
+  gap: 12px;
+  /*
+    A track card is a sentence wide, not a tile. 340px is the narrowest a
+    three-line blurb reads at without wrapping into ribbons, and `auto-fill`
+    then gives one column on a pane, two on a laptop and three on a monitor.
+  */
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  max-width: 1340px;
+  margin: 0 auto;
+}
+
+.track-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 18px 18px 17px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 1px 0 var(--sheen) inset, var(--lift);
+  /* Border and shadow only. The lume below is what actually changes colour,
+     and it does it on opacity, which the compositor can do without repainting
+     the card or the text on it. */
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+/* Everything except the lume sits above it. Positioned rather than z-indexed,
+   so DOM order decides and no stacking context is created. */
+.track-card > * {
+  position: relative;
+}
+
+/*
+  The hue, and the only thing on the card that moves. A radial light from the
+  top-left corner, painted at zero opacity and faded up under the pointer.
+*/
+.track-card-lume {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background:
+    radial-gradient(460px 220px at 0% 0%, rgb(var(--hue-rgb) / 0.16), transparent 62%),
+    radial-gradient(320px 180px at 100% 100%, rgb(var(--lx-3) / 0.08), transparent 64%);
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+
+.track-card:hover {
+  border-color: rgb(var(--hue-rgb) / 0.4);
+  box-shadow:
+    0 1px 0 var(--sheen) inset,
+    var(--lift-hover),
+    0 0 0 1px rgb(var(--hue-rgb) / 0.1);
+  transform: translateY(-1px);
+}
+.track-card:hover .track-card-lume {
+  opacity: 1;
+}
+.track-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Not a link, and must not read as one — no lume, no lift, no arrow, no
+   pointer. The dashed edge is the whole signal. */
+.track-card.soon {
+  background: none;
+  border-style: dashed;
+  box-shadow: none;
+  cursor: default;
+}
+.track-card.soon:hover {
+  border-color: var(--border);
+  box-shadow: none;
+  transform: none;
+}
+.track-card.soon .track-card-lume {
+  display: none;
+}
+.track-card.soon .track-card-name,
+.track-card.soon .track-card-blurb {
+  color: var(--text-3);
+}
+
+.track-card-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: rgb(var(--hue-rgb));
+  background: linear-gradient(
+    155deg,
+    rgb(var(--hue-rgb) / 0.26),
+    rgb(var(--hue-rgb) / 0.07)
+  );
+  border: 1px solid rgb(var(--hue-rgb) / 0.26);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.14) inset;
+}
+.track-card.soon .track-card-icon {
+  color: var(--text-3);
+  background: var(--surface);
+  border-color: var(--border-soft);
+  box-shadow: none;
+}
+
+.track-card-text {
+  flex: 1;
+  min-width: 0;
+}
+.track-card-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15.5px;
+  font-weight: 620;
+  letter-spacing: -0.012em;
+  color: var(--text);
+}
+.track-card-pill {
+  padding: 1.5px 7px;
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+}
+.track-card-blurb {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.62;
+  color: var(--text-2);
+}
+.track-card-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.track-card-meter .minibar {
+  flex: 0 0 140px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--border);
+}
+/* The track's own colour, rather than the shared teal. A meter is the one
+   place a hue is genuinely carrying information here. */
+.track-card-meter .minibar span {
+  background: rgb(var(--hue-rgb));
+}
+.track-card-go {
+  align-self: center;
+  color: var(--text-3);
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+.track-card:hover .track-card-go {
+  color: rgb(var(--hue-rgb));
+  transform: translateX(3px);
+}
+
+/* ----------------------------------------------------------------- crumb */
+.learn-crumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 1340px;
+  margin: 0 auto 2px;
+}
+.learn-crumb a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px 4px 8px;
+  margin-left: -8px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--text-3);
+  transition: color 0.14s, background 0.14s;
+}
+.learn-crumb a:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+/* Where you are in the track. Small, and on the right, so it reads as a page
+   number rather than as part of the breadcrumb. */
+.learn-crumb-pos {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+/* --------------------------------------------------------------- toolbar */
+.learn-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  max-width: 1340px;
+  margin: 0 auto 28px;
+}
+.learn-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1 1 320px;
+  max-width: 440px;
+  padding: 0 13px;
+  height: 38px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 1px 0 var(--sheen) inset;
+  color: var(--text-3);
+  transition: border-color 0.16s, box-shadow 0.16s;
+}
+.learn-search:focus-within {
+  border-color: rgb(var(--lx-1) / 0.45);
+  box-shadow: 0 1px 0 var(--sheen) inset, 0 0 0 3px rgb(var(--lx-1) / 0.1);
+}
+.learn-search input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text);
+}
+.learn-search input:focus {
+  outline: none;
+}
+.learn-search input:disabled {
+  cursor: default;
+}
+.learn-search-count {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.learn-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.learn-progress .minibar {
+  flex: 0 0 100px;
+  height: 3px;
+  border-radius: 999px;
+}
+.learn-progress .minibar span {
+  background: rgb(var(--lx-1));
+}
+.learn-progress-clear {
+  font-size: 11px;
+  color: var(--text-3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.learn-progress-clear:hover {
+  color: var(--danger);
+}
+
+/* -------------------------------------------------------------- sections */
+.learn-section {
+  max-width: 1340px;
+  margin: 0 auto;
+}
+.learn-section + .learn-section {
+  margin-top: 38px;
+}
+.learn-section-head h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+/* A short rule in the track's colour, so the eye finds the section breaks
+   scrolling a 68-topic index without a second heading weight. */
+.learn-section-head h2::before {
+  content: '';
+  flex: 0 0 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgb(var(--lx-1) / 0.7);
+}
+.learn-section-count {
+  font-size: 10.5px;
+  letter-spacing: 0;
+  color: var(--text-3);
+}
+.learn-section-head p {
+  margin: 7px 0 14px 24px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.learn-topics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.topic-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 15px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 15px;
+  box-shadow: 0 1px 0 var(--sheen) inset;
+  transition: border-color 0.16s, background 0.16s, box-shadow 0.16s, transform 0.16s;
+}
+.topic-card:hover {
+  border-color: rgb(var(--lx-1) / 0.4);
+  background: var(--surface-hover);
+  box-shadow: 0 1px 0 var(--sheen) inset, var(--lift);
+  transform: translateY(-1px);
+}
+.topic-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.topic-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.topic-card-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  color: var(--text);
+}
+/*
+  Always laid out, only ever faded in — a tick that appears from nothing would
+  reflow the title beside it the moment a topic is marked read.
+*/
+.topic-card-tick {
+  display: grid;
+  place-items: center;
+  flex: 0 0 17px;
+  height: 17px;
+  border-radius: 999px;
+  background: rgb(var(--lx-1) / 0.16);
+  color: rgb(var(--lx-1));
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.topic-card.read .topic-card-tick {
+  opacity: 1;
+}
+.topic-card.read .topic-card-title {
+  color: var(--text-2);
+}
+.topic-card-summary {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.topic-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  /* Pushed to the bottom so tags line up across a row of uneven summaries. */
+  margin-top: auto;
+  padding-top: 11px;
+}
+.topic-tag {
+  padding: 1.5px 8px;
+  font-size: 10px;
+  color: var(--text-3);
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+}
+:root[data-theme='light'] .topic-tag {
+  background: rgb(15 23 42 / 0.035);
+}
+
+/* ------------------------------------------------------------- skeletons */
+
+/*
+  The track index, drawn at the size it is about to be.
+
+  It borrows `.skeleton` from app.css — the same box and the same shimmer — and
+  only says how big. The point is that the grid, the headings and the card
+  sizes are all known before the index lands, so what arrives fills the shapes
+  in rather than pushing the page around.
+*/
+.learn-skeleton {
+  max-width: 1340px;
+  margin: 0 auto;
+}
+.learn-skeleton .skeleton {
+  margin-bottom: 0;
+  border-radius: 15px;
+}
+.learn-skeleton .sk-title {
+  display: block;
+  width: 190px;
+  height: 13px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+}
+.learn-skeleton .sk-card {
+  display: block;
+  height: 104px;
+}
+
+/* ------------------------------------------------------------ topic page */
+.learn-page {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  /*
+    Bounded and centred rather than left-aligned. On a wide monitor the
+    alternative is a column of prose hard against the sidebar with a third of
+    the screen empty beside it.
+  */
+  max-width: 1340px;
+  margin: 0 auto;
+}
+.learn-col {
+  flex: 1;
+  min-width: 0;
+  /*
+    Wider than the guide reader's 720px on purpose. The measure that matters is
+    the one prose is set at, and that is held separately below — this width is
+    what code blocks and tables get, and they are the blocks that were cramped.
+  */
+  max-width: 1000px;
+  padding-bottom: 60px;
+}
+
+/*
+  How far through the topic you are.
+
+  A sibling of `.learn-page` rather than a child of it: `.learn-page` is a flex
+  row, and a full-width bar inside one is a flex item competing with the column
+  and the rail for the same horizontal space. Out here it is an ordinary block
+  that sticks to the top of `.content`, which is the element that scrolls.
+*/
+.learn-rule {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 2px;
+  max-width: 1340px;
+  margin: 0 auto 12px;
+  background: var(--border-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.learn-rule span {
+  display: block;
+  height: 100%;
+  /* The three lights again, this time as a line. It is the one element on the
+     page that is coloured end to end, and it is two pixels tall. */
+  background: linear-gradient(
+    90deg,
+    rgb(var(--lx-1)),
+    rgb(var(--lx-2)) 55%,
+    rgb(var(--lx-3))
+  );
+  transform-origin: left;
+  /* Transform only: the bar never triggers layout while you scroll. */
+  transform: scaleX(0);
+}
+
+.learn-toc {
+  position: sticky;
+  /* Clears the top bar, which is what is above this on every page. */
+  top: 18px;
+  flex: 0 0 232px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  padding: 4px 0 20px;
+}
+.learn-toc-label {
+  margin: 0 0 11px 13px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.learn-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* One continuous hairline the active marker rides on, so the rail reads as a
+     spine rather than as ten unrelated buttons. */
+  border-left: 1px solid var(--border-soft);
+}
+.learn-toc button {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  text-align: left;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-3);
+  /* The active marker is drawn as a border that is always there, so becoming
+     current moves no text sideways. */
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+  transition: color 0.14s, border-color 0.14s;
+}
+.learn-toc button:hover {
+  color: var(--text);
+}
+.learn-toc button.on {
+  color: rgb(var(--lx-1));
+  border-left-color: rgb(var(--lx-1));
+  font-weight: 500;
+}
+
+/* ----------------------------------------------------- the document body */
+/*
+  Everything below is scoped to `.learn-col`. The pattern-guide reader shares
+  this renderer and these class names, and it is a different surface — a modal
+  at a fixed 720px — so widening the type there would be a regression, not an
+  improvement.
+*/
+.learn-col .page-head {
+  margin-bottom: 20px;
+}
+.learn-col .page-head h1 {
+  font-size: 32px;
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  line-height: 1.14;
+}
+.learn-col .page-head p {
+  font-size: 15.5px;
+  max-width: 70ch;
+  color: var(--text-2);
+}
+
+.learn-col .guide-body {
+  font-size: 16px;
+  line-height: 1.8;
+}
+.learn-col .guide-body > * + * {
+  margin-top: 20px;
+}
+/*
+  The measure lives on the prose blocks, not on the column. Long-form text is
+  unreadable past about 75 characters, but a code block or a comparison table
+  is not text — it is a figure, and cramping one into a text measure is what
+  makes reference pages feel claustrophobic. So paragraphs and lists hold the
+  line and everything else gets the full width.
+*/
+.learn-col .guide-body > p,
+.learn-col .guide-body > ul,
+.learn-col .guide-body > .guide-callout {
+  max-width: 74ch;
+}
+
+/* A section break, and the one place the page uses the lead colour as a
+   structural mark rather than as light. */
+.learn-col .guide-h {
+  position: relative;
+  margin-top: 54px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 20px;
+  font-weight: 620;
+  letter-spacing: -0.018em;
+  /* Clears the sticky progress rule when the rail jumps here. */
+  scroll-margin-top: 16px;
+}
+.learn-col .guide-h::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 46px;
+  height: 1px;
+  background: rgb(var(--lx-1) / 0.75);
+}
+.learn-col .guide-body > .guide-h:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.learn-col .guide-body > .guide-h:first-child::before {
+  display: none;
+}
+.learn-col .guide-body > .guide-h + * {
+  margin-top: 14px;
+}
+
+/* The opening definition, which is doing the same job as a lede. */
+.learn-col .guide-body > p:first-child {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.learn-col .guide-body ul {
+  padding-left: 20px;
+}
+.learn-col .guide-body li {
+  padding-left: 3px;
+}
+.learn-col .guide-body li + li {
+  margin-top: 10px;
+}
+.learn-col .guide-body p code,
+.learn-col .guide-body li code {
+  font-size: 13.5px;
+  padding: 1.5px 6px;
+  border-radius: 6px;
+  color: var(--text);
+}
+
+/* Tables read as reference material, so they get room and a striped body. */
+.learn-col .guide-tablewrap {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow: hidden auto;
+  background: var(--surface);
+}
+.learn-col .guide-table {
+  font-size: 14px;
+}
+.learn-col .guide-table th {
+  padding: 11px 15px;
+}
+.learn-col .guide-table td {
+  padding: 11px 15px;
+}
+.learn-col .guide-table tbody tr:nth-child(even) {
+  background: rgb(255 255 255 / 0.022);
+}
+:root[data-theme='light'] .learn-col .guide-table tbody tr:nth-child(even) {
+  background: rgb(15 23 42 / 0.022);
+}
+/*
+  The first column is a parameter name in most of these tables, and `nowrap` on
+  it is right for a short identifier and wrong for the prose that appears there
+  in the cheatsheets. Cap it instead: it still resists wrapping in the common
+  case and stops eating the row in the uncommon one.
+*/
+.learn-col .guide-table td:first-child {
+  font-size: 13px;
+  white-space: normal;
+  max-width: 260px;
+}
+
+/* A tinted box with a tag reads as an aside; a rule down its edge reads as a
+   margin note, which is what these are. */
+.learn-col .guide-callout {
+  border-left-width: 3px;
+  border-radius: 4px var(--radius) var(--radius) 4px;
+}
+
+.learn-col .guide-code {
+  /* Slightly more separation than a paragraph gets — a code block is a figure,
+     and figures want air. */
+  margin-top: 22px;
+  box-shadow: 0 1px 0 var(--sheen) inset;
+}
+.learn-col .guide-body > .guide-code + p {
+  margin-top: 22px;
+}
+
+/* --------------------------------------------------------------- ask ai */
+.learn-ask {
+  margin: 36px 0 0;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 0 var(--sheen) inset;
+  max-width: 74ch;
+}
+/* The copy under the lede, before the reader has a question yet — quieter, and
+   no box, so it does not compete with the first paragraph. */
+.learn-ask.compact {
+  margin: 0 0 30px;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+.learn-ask-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgb(var(--lx-1) / 0.9);
+}
+.learn-ask-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.learn-ask-btn {
+  padding: 7px 14px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: border-color 0.16s, color 0.16s, background 0.16s;
+}
+.learn-ask-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: rgb(var(--lx-1) / 0.45);
+  background: rgb(var(--lx-1) / 0.1);
+}
+.learn-ask-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---------------------------------------------------------- read + pager */
+.learn-done {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 34px;
+}
+.learn-done-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 1px 0 var(--sheen) inset;
+  transition: color 0.16s, border-color 0.16s, background 0.16s;
+}
+.learn-done-btn:hover {
+  border-color: rgb(var(--lx-1) / 0.45);
+  color: var(--text);
+}
+.learn-done-btn.on {
+  color: rgb(var(--lx-1));
+  background: rgb(var(--lx-1) / 0.12);
+  border-color: rgb(var(--lx-1) / 0.4);
+}
+.learn-done-hint {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.learn-done-hint kbd {
+  padding: 1.5px 6px;
+  font-size: 10.5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+/* The glass twin of the revision row, whose layout lives in app.css beside the
+   attempt controls it borrows its confidence dots from. */
+.learn-col .learn-revise {
+  border-top-color: var(--border-soft);
+}
+.learn-col .learn-revise-on {
+  color: rgb(var(--lx-1));
+}
+
+.learn-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 44px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-soft);
+}
+.learn-nav-link {
+  flex: 0 1 auto;
+  max-width: 48%;
+  padding: 13px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 15px;
+  box-shadow: 0 1px 0 var(--sheen) inset;
+  transition: border-color 0.16s, background 0.16s, box-shadow 0.16s;
+}
+.learn-nav-link.next {
+  text-align: right;
+  /* Wins over `justify-content` when there is no previous link to push it
+     across — the last-topic case, where `next` is the only child. */
+  margin-left: auto;
+}
+.learn-nav-link:hover {
+  border-color: rgb(var(--lx-1) / 0.4);
+  background: var(--surface-hover);
+  box-shadow: 0 1px 0 var(--sheen) inset, var(--lift);
+}
+.learn-nav-dir {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.learn-nav-link.next .learn-nav-dir {
+  justify-content: flex-end;
+}
+.learn-nav-link:hover .learn-nav-dir {
+  color: rgb(var(--lx-1));
+}
+.learn-nav-title {
+  display: block;
+  margin-top: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------- narrow */
+@media (max-width: 1240px) {
+  /*
+    The rail is the first thing to go. It is a convenience on a page whose
+    headings are all reachable by scrolling, and below this width it is taking
+    a fifth of the measure away from the prose it exists to serve.
+  */
+  .learn-toc {
+    display: none;
+  }
+  .learn-col {
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .learn-shell {
+    padding: 16px 14px 72px;
+  }
+  .learn-hero {
+    padding: 18px 0 20px;
+  }
+  .learn-hero h1 {
+    font-size: 26px;
+  }
+  .learn-hero p {
+    font-size: 14px;
+  }
+  .learn-hub {
+    grid-template-columns: 1fr;
+  }
+  .learn-col .page-head h1 {
+    font-size: 24px;
+  }
+  .learn-col .guide-body {
+    font-size: 15.5px;
+    line-height: 1.75;
+  }
+  .learn-col .guide-h {
+    font-size: 18px;
+    margin-top: 40px;
+    padding-top: 20px;
+  }
+  .learn-topics {
+    grid-template-columns: 1fr;
+  }
+  /* Stacked, because two half-width pager cards at this size are two truncated
+     titles. */
+  .learn-nav {
+    flex-direction: column;
+  }
+  .learn-nav-link {
+    max-width: none;
+  }
+  .learn-nav-link.next {
+    text-align: left;
+    margin-left: 0;
+  }
+  .learn-nav-link.next .learn-nav-dir {
+    justify-content: flex-start;
+  }
+  /* The arrow-key hint is desktop-only advice. */
+  .learn-done-hint {
+    display: none;
+  }
+}
+
+/*
+  Nothing here is load-bearing motion — the lume, the lift and the arrow are
+  all saying "this is a link", which the cursor has already said.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .track-card,
+  .track-card-lume,
+  .track-card-go,
+  .topic-card,
+  .learn-nav-link,
+  .learn-search {
+    transition: none;
+  }
+  .track-card:hover,
+  .topic-card:hover {
+    transform: none;
+  }
+  .track-card:hover .track-card-go {
+    transform: none;
+  }
+}
