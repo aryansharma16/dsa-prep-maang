@@ -1,5 +1,6 @@
 import { IconCheck, IconClock, IconCode, IconExternal, IconNote, IconPlay } from '../ui/Icons.jsx';
 import { attemptTitle, minutesLabel, outcomeOf } from '../problem/attempts.js';
+import { EditorialLink } from '../problem/EditorialLink.jsx';
 import { ratingKey } from '../../theme/cfRating.js';
 
 /**
@@ -468,17 +469,19 @@ export const CP_COLUMNS = [
     label: 'Editorial',
     width: 74,
     hidden: true,
-    cell: ({ problem }) =>
+    /* Behind the same twenty-five-minute gate as the roadmap's — see
+       components/problem/EditorialLink.jsx. A Codeforces editorial is the most
+       tempting thing on this page and the fastest way to learn nothing. */
+    cell: ({ problem, progress }) =>
       problem.editorialUrl ? (
-        <a
-          className="cell-link"
+        <EditorialLink
+          problem={problem}
+          progress={progress}
           href={problem.editorialUrl}
-          target="_blank"
-          rel="noreferrer"
           title="Official editorial"
         >
           <IconExternal size={12} />
-        </a>
+        </EditorialLink>
       ) : (
         <Empty />
       ),
@@ -493,21 +496,21 @@ export const CP_COLUMNS = [
       their licence — and a solution that appears on the row is a solution
       someone reads by accident.
     */
-    cell: ({ problem }) =>
+    cell: ({ problem, progress }) =>
       problem.solutions?.length ? (
         <span className="soln-row">
           {problem.solutions.map((s) => (
-            <a
+            <EditorialLink
               key={`${s.lang}-${s.url}`}
+              problem={problem}
+              progress={progress}
               className="soln-link"
               href={s.url}
-              target="_blank"
-              rel="noreferrer"
               title={`Reference solution (${s.lang}) — ${s.source}`}
             >
               <IconCode size={11} />
               {s.lang === 'cpp' ? 'C++' : s.lang === 'java' ? 'Java' : s.lang}
-            </a>
+            </EditorialLink>
           ))}
         </span>
       ) : (

@@ -11,6 +11,15 @@ import { useEffect, useState } from 'react';
 export const NARROW = '(max-width: 760px)';
 
 /**
+ * A pointer that can hover, i.e. a mouse or a trackpad rather than a finger.
+ *
+ * Touchscreens synthesise `mouseenter` from a tap, so a hover-to-open sidebar
+ * on a phone opens on the way to whatever was tapped and then has to be got rid
+ * of. This is how the shell tells the two apart before trusting the event.
+ */
+export const HOVERS = '(hover: hover) and (pointer: fine)';
+
+/**
  * Subscribes to a media query and re-renders when it flips.
  *
  * For the responsive decisions CSS cannot make on its own — the ones where the

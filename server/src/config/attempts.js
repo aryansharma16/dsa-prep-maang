@@ -31,6 +31,83 @@ export const OUTCOME_VALUES = Object.keys(ATTEMPT_OUTCOMES);
 export const outcomeEffect = (outcome) => ATTEMPT_OUTCOMES[outcome] ?? ATTEMPT_OUTCOMES.solved;
 
 /**
+ * Why a sitting did not end in a solve.
+ *
+ * The outcome above says *whether* it went well and what that does to the row.
+ * It does not say what went wrong, and these five are not shades of one problem
+ * — they are four different problems with four different fixes, plus running out
+ * of clock:
+ *
+ *   approach        never found the idea            → more patterns
+ *   complexity      found one, too slow             → more optimising
+ *   edge-case       right idea, off-by-one or a case you missed
+ *   syntax-api      the idea was there, the language got in the way
+ *   ran-out-of-time would have got there with longer
+ *
+ * A table rather than a bare array, for the same reason the outcomes are one:
+ * `appliesWhen` is the rule that keeps this off a solve, and a rule stated here
+ * cannot be forgotten by the second caller. Today every entry is `unsolved` —
+ * that is the current policy and not a property of the shape.
+ *
+ * Kebab-case values, matching the outcome spellings, because these go into
+ * everybody's history the moment the first one is written.
+ */
+export const FAILURE_REASONS = {
+  approach: { appliesWhen: 'unsolved' },
+  complexity: { appliesWhen: 'unsolved' },
+  'edge-case': { appliesWhen: 'unsolved' },
+  'syntax-api': { appliesWhen: 'unsolved' },
+  'ran-out-of-time': { appliesWhen: 'unsolved' },
+};
+
+/**
+ * The enum, plus `''` for "not said".
+ *
+ * Empty is a real answer and not a missing field, exactly as it is for an
+ * attempt's colour: a failed sitting whose reason you did not record is a
+ * different fact from one you have not looked at yet, and the schema has to be
+ * able to hold the first.
+ */
+export const REASON_VALUES = Object.keys(FAILURE_REASONS);
+
+/** Whether a reason may be recorded against this outcome at all. */
+export const reasonAllowed = (outcome) => !outcomeEffect(outcome).solves;
+
+/**
+ * The languages a stored solution may be written in.
+ *
+ * Three, and the list is deliberately short. Java and C++ are what the twelve CP
+ * guides are written in, so a solution here sits beside a reference in the same
+ * language; JavaScript is the one this account actually works in daily. A fourth
+ * would need a keyword set adding to client/src/components/problem/highlight.js
+ * first — that file knows a JS family and a C family and nothing else, so an
+ * unlisted language does not fail, it renders subtly wrong, which is worse.
+ *
+ * `cpp` and `js` rather than `c++` and `javascript`: these are stored on every
+ * attempt forever and read straight into a CSS class and a highlighter switch.
+ */
+export const SOLUTION_LANGS = ['java', 'cpp', 'js'];
+
+/** What a solution is written in when nothing said otherwise. */
+export const DEFAULT_LANG = 'java';
+
+/**
+ * How long you have to spend on a problem before its editorial unlocks.
+ *
+ * Twenty-five minutes, and it is a hard gate rather than a warning — that was a
+ * deliberate choice, because a warning you can click through at minute four is
+ * a warning you click through at minute four.
+ *
+ * Here rather than in the client, even though the client is what draws the
+ * locked link, because it is a rule about how this app is meant to be used and
+ * belongs next to the other one. See the note on the gate in
+ * client/src/components/problem/EditorialLink.jsx for what counts as time
+ * spent — logged minutes as well as the running clock, so the gate survives a
+ * closed browser.
+ */
+export const EDITORIAL_GATE_MINUTES = 25;
+
+/**
  * How long after logging an attempt you may still edit or delete it.
  *
  * The log is a record, not a draft. Left open forever it stops being evidence

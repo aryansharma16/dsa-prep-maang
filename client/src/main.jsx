@@ -14,6 +14,15 @@ import './styles/app.css';
   `.thing` — equal specificity, so source order is what decides them.
 */
 import './styles/cp.css';
+/* Its own sheet, and it redefines no tokens — Practice is the same app with a
+   stopwatch on, not a different room the way the ladder is. */
+import './styles/practice.css';
+/*
+  After cp.css, and last, for the same reason cp.css is after app.css: the
+  playbook borrows the ladder's panel language and overrides a handful of shared
+  classes at equal specificity, so source order is what decides them.
+*/
+import './styles/playbook.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

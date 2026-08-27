@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLocalState } from '../../hooks/useLocalState.js';
-import { NARROW, useMediaQuery } from '../../hooks/useMediaQuery.js';
+import { HOVERS, NARROW, useMediaQuery } from '../../hooks/useMediaQuery.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { feedbackModal } from '../../store/feedbackModal.js';
 import { moduleVisible } from '../../store/modules.js';
@@ -20,6 +20,16 @@ import { SignOutDialog } from './SignOutDialog.jsx';
 
 export function AppShell() {
   const [collapsed, setCollapsed] = useLocalState('sidebar-collapsed', false);
+  /*
+    Whether the rail is allowed to open itself under the pointer. On by default
+    — it is the behaviour that makes a collapsed sidebar worth collapsing — but
+    a setting rather than a law, because a menu that unfurls every time you
+    cross it on the way to the table is the exact thing some people collapse a
+    sidebar to be rid of. The switch is at the foot of the menu itself, which is
+    the only place you are guaranteed to be looking when it annoys you.
+  */
+  const [hoverOpen, setHoverOpen] = useLocalState('sidebar-hover-open', true);
+  const [peeking, setPeeking] = useState(false);
   const { user, modules } = useAuth();
   const { totals } = useRoadmap();
   const [query, setQuery] = useState('');
@@ -54,6 +64,49 @@ export function AppShell() {
   */
   const narrow = useMediaQuery(NARROW);
   const navOpen = narrow && !collapsed;
+
+  /*
+    A peek is a *view* of the sidebar, never a change to it — `collapsed` is
+    untouched throughout, so nothing about it survives the pointer leaving and
+    nothing about it is written to storage.
+
+    Four conditions, and each rules out a way this goes wrong: only when it is
+    actually collapsed (there is nothing to reveal otherwise), only when asked
+    for, never in drawer mode (down there `collapsed` means "closed drawer" and
+    a hover would fling it over the page), and only on a device with a real
+    pointer — on a touchscreen `mouseenter` fires on tap and would open the menu
+    on the way to whatever was tapped.
+  */
+  const hovers = useMediaQuery(HOVERS);
+  const peek = peeking && collapsed && hoverOpen && !narrow && hovers;
+
+  /*
+    Closing the menu with the pointer still inside it would re-open it on the
+    spot — the peek's condition is satisfied the instant `collapsed` flips, and
+    `mouseenter` is not going to fire again to tell us otherwise. So the toggle
+    arms `held`, and only the pointer physically leaving disarms it.
+
+    `pointer` is what keeps that honest. Arming unconditionally would swallow
+    the next hover after a Ctrl+B pressed from the far side of the page, where
+    there is no pointer in here to fight with and nothing to suppress.
+  */
+  const pointer = useRef(false);
+  const held = useRef(false);
+
+  const onPeek = useCallback((want, viaPointer) => {
+    if (viaPointer) {
+      pointer.current = want;
+      if (!want) held.current = false;
+    }
+    if (want && held.current) return;
+    setPeeking(want);
+  }, []);
+
+  const toggleNav = useCallback(() => {
+    held.current = pointer.current;
+    setPeeking(false);
+    setCollapsed((c) => !c);
+  }, [setCollapsed]);
 
   // Below 1024px the sidebar would eat the table, so collapse it automatically.
   useEffect(() => {
@@ -91,7 +144,7 @@ export function AppShell() {
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
         e.preventDefault();
-        setCollapsed((c) => !c);
+        toggleNav();
         return;
       }
       if (e.key === '/' && !typing) {
@@ -104,7 +157,7 @@ export function AppShell() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [setCollapsed]);
+  }, [toggleNav]);
 
   const pct = totals.total ? Math.round((totals.solved / totals.total) * 100) : 0;
 
@@ -112,9 +165,21 @@ export function AppShell() {
     <div className={`shell ${navOpen ? 'nav-open' : ''}`}>
       <Sidebar
         collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
+        peek={peek}
+        hoverOpen={hoverOpen}
+        onToggle={toggleNav}
         onNavigate={closeNav}
+        onPeek={onPeek}
+        onHoverOpen={setHoverOpen}
       />
+
+      {/*
+        A peeking sidebar is lifted out of the flex row and drawn over the page,
+        because a hover that reflowed a four-hundred-row table would be a hover
+        nobody wants. This holds the rail-width slot it left, so `.main` is the
+        same width open or shut and the page underneath never moves.
+      */}
+      {peek && <div className="sidebar-peek-space" aria-hidden="true" />}
 
       {/* Tapping the page you can still see is the fastest way out of a drawer,
           and it is the gesture people try first. */}
@@ -131,7 +196,7 @@ export function AppShell() {
           */}
           <button
             className="nav-toggle"
-            onClick={() => setCollapsed((c) => !c)}
+            onClick={toggleNav}
             aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
             aria-expanded={navOpen}
           >

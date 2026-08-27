@@ -209,10 +209,10 @@ export function RoadmapProvider({ children }) {
    * a recall moves the next-review date, and that is a column on the table.
    */
   const reviewProblem = useCallback(
-    async (problemId, result, confidence) => {
+    async (problemId, result, confidence, recall) => {
       const before = snapshot(problemId);
       try {
-        const saved = await progressApi.review(problemId, result, confidence);
+        const saved = await progressApi.review(problemId, result, confidence, recall);
         applyLocal(problemId, {
           status: saved.status,
           needsRevision: saved.needsRevision,

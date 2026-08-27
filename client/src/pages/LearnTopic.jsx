@@ -3,11 +3,16 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AskAi } from '../components/learn/AskAi.jsx';
 import { LearnToc } from '../components/learn/LearnToc.jsx';
 import { GuideBlocks, guideHeadings } from '../components/problem/GuideBlocks.jsx';
-import { IconArrowLeft, IconCheck, IconChevronRight } from '../components/ui/Icons.jsx';
+import {
+  IconArrowLeft,
+  IconCheck,
+  IconChevronRight,
+  IconRotate,
+} from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
 import { useLearnDoc } from '../hooks/useLearnDoc.js';
 import { scrollProgress, useScrollContainer } from '../hooks/useScrollContainer.js';
-import { topicKey, useReadTopics } from '../learn/progress.js';
+import { topicKey, useReadTopics, useTopicRevision } from '../learn/progress.js';
 import { findTrack, flatTopics } from '../learn/tracks.js';
 
 /**
@@ -48,6 +53,10 @@ export function LearnTopic() {
   const next = position < topics.length - 1 ? topics[position + 1] : null;
 
   const { read, mark } = useReadTopics();
+  const revision = useTopicRevision(trackSlug, topicSlug);
+  /* Defaults to 3 like every other confidence in the app. The number is what
+     stretches or shrinks the gap before this comes back. */
+  const [confidence, setConfidence] = useState(3);
   const key = topicKey(trackSlug, topicSlug);
   const isRead = Boolean(read[key]);
 
@@ -222,6 +231,75 @@ export function LearnTopic() {
                   </span>
                 )}
               </div>
+
+              {/*
+                Putting a topic on the revision ladder.
+
+                Separate from "Mark as read" above, and deliberately so: read is
+                set by scrolling to the bottom as well as by that button, so it
+                means "my eyes have been over this". This is the deliberate act —
+                it schedules the topic to come back on the same 3/7/21/60 ladder a
+                problem goes on, and a page you skimmed on the train has no
+                business turning up in Tuesday's queue.
+
+                `scheduled === null` is "still loading", which draws nothing
+                rather than flashing the wrong state and correcting itself.
+              */}
+              {revision.scheduled !== null && (
+                <div className="learn-revise">
+                  {revision.scheduled ? (
+                    <>
+                      <span className="learn-revise-on">
+                        <IconRotate size={12} />
+                        In your revision queue
+                        {revision.scheduled.nextReviewAt && (
+                          <b>
+                            {' '}
+                            · back on{' '}
+                            {new Date(revision.scheduled.nextReviewAt).toLocaleDateString(undefined, {
+                              day: 'numeric',
+                              month: 'short',
+                            })}
+                          </b>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        className="link-btn"
+                        disabled={revision.busy}
+                        onClick={revision.unschedule}
+                      >
+                        Take it off
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="learn-revise-label">How solid does this feel?</span>
+                      <span className="confidence">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            className={`dot ${n <= confidence ? 'on' : ''}`}
+                            aria-label={`${n} of 5`}
+                            aria-pressed={n === confidence}
+                            onClick={() => setConfidence(n)}
+                          />
+                        ))}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn sm"
+                        disabled={revision.busy}
+                        onClick={() => revision.schedule(confidence, topic.title)}
+                      >
+                        <IconRotate size={12} />
+                        {revision.busy ? 'Saving…' : 'Revise this'}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </>
           )}
 

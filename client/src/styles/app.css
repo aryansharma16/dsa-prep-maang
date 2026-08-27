@@ -2,6 +2,9 @@
 .shell {
   display: flex;
   height: 100%;
+  /* The anchor for a peeking sidebar, which leaves the row to draw over the
+     page rather than push it. */
+  position: relative;
 }
 
 .sidebar {
@@ -17,6 +20,31 @@
 .sidebar.collapsed {
   width: var(--sidebar-w-collapsed);
   flex-basis: var(--sidebar-w-collapsed);
+}
+
+/*
+  Peek — the rail opened under the pointer, without being opened.
+
+  Out of the flex row and over the page, with .sidebar-peek-space holding the
+  56px it vacated, so `.main` is the same width throughout and nothing behind
+  this moves. It also has to be above the topbar, which the menu now overlaps.
+
+  `flex-basis` is deliberately left alone at the collapsed rail width. Only
+  `width` changes here, and only `width` animates — so on the way *out*, the
+  moment this class drops the element is back in the row at its rail size with
+  no transition to sit through. The 140ms of width the browser then animates is
+  a property that no longer decides anything, which is exactly the point: it
+  opens smoothly and it closes instantly, and the table never feels either.
+*/
+.sidebar.collapsed.peek {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  width: var(--sidebar-w);
+  box-shadow: 8px 0 32px var(--shadow);
+}
+.sidebar-peek-space {
+  flex: 0 0 var(--sidebar-w-collapsed);
 }
 
 .sidebar-head {
@@ -72,6 +100,17 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px 0 16px;
+}
+
+/*
+  The floor of the menu: guide, admin, and the hover switch. Outside
+  .sidebar-scroll on purpose — these are not stops on the way anywhere, and
+  above the pattern list they moved every time a section was added.
+*/
+.sidebar-foot {
+  flex: 0 0 auto;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-label {
@@ -180,6 +219,53 @@
   height: 100%;
   background: var(--easy);
   transition: width 0.2s ease;
+}
+
+/*
+  A setting wearing a nav item's clothes, because it belongs to this menu and
+  nowhere else — putting it in the appearance popover would mean opening a
+  menu about colours to fix the menu you were annoyed by.
+*/
+.hover-switch {
+  width: 100%;
+  text-align: left;
+  color: var(--text-3);
+}
+.hover-switch.on {
+  color: var(--text-2);
+}
+.hover-switch .switch {
+  margin-left: auto;
+  width: 24px;
+  height: 14px;
+  flex: 0 0 24px;
+  border-radius: 7px;
+  background: var(--border);
+  transition: background 0.14s ease;
+}
+/* The knob. Slides rather than appears, so the two states read as one control
+   in two positions instead of two different controls. */
+.hover-switch .switch::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin: 2px;
+  border-radius: 50%;
+  background: var(--text-3);
+  transition: transform 0.14s ease, background 0.14s ease;
+}
+.hover-switch.on .switch {
+  background: var(--accent-bg);
+}
+.hover-switch.on .switch::after {
+  transform: translateX(10px);
+  background: var(--accent);
+}
+
+/* In the rail there is no room for a switch, so the icon carries the state. */
+.rail-item.hover-switch.on {
+  color: var(--accent);
 }
 
 /* collapsed rail */
@@ -2281,30 +2367,32 @@ tr.cursor .act {
 
 /* modal */
 /*
-  The scrim blurs what is behind it rather than only darkening it, so a dialog
-  reads as a pane held above the page instead of a box cut into a dimmed copy
-  of it.
+  A plain scrim, deliberately.
 
-  The inset that keeps a dialog off the window edge is a margin on the panel,
-  not padding here, and that is load-bearing: `backdrop-filter` makes this
-  element the containing block for any `position: fixed` descendant, and two of
-  our dialogs open a second overlay from inside the first (the delete
-  confirmation, the avatar preview). With no padding, this box is exactly the
-  viewport and the nested overlay lands where it would have anyway. Put the
-  padding back and every nested scrim comes up 20px short on all four sides.
+  This carried `backdrop-filter: blur(8px)` for exactly one afternoon. A blurred
+  backdrop covering the whole viewport has to be re-rasterized whenever anything
+  in it paints, and the browser is not careful about how much of it — every
+  dialog in the app went visibly choppy the moment you scrolled inside it. A
+  dialog reads as held above the page from its shadow and its scrim; the blur
+  was buying almost nothing for the worst frame times in the app.
+
+  The inset that keeps a dialog off the window edge is a margin on the panel
+  rather than padding here. That started as a workaround for the blur (which
+  made this the containing block for the nested overlays two dialogs open — the
+  delete confirmation, the avatar preview) and stayed because it is the simpler
+  arrangement: this box is exactly the viewport, and a nested scrim lands on it
+  exactly.
 */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgb(0 0 0 / 0.45);
-  backdrop-filter: blur(8px) saturate(120%);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  background: rgb(0 0 0 / 0.55);
   display: grid;
   place-items: center;
   z-index: 50;
 }
 :root[data-theme='light'] .overlay {
-  background: rgb(15 23 42 / 0.28);
+  background: rgb(15 23 42 / 0.38);
 }
 .modal {
   width: 100%;
@@ -2341,18 +2429,6 @@ tr.cursor .act {
 */
 .modal.filters {
   max-width: 960px;
-  /* The head and foot stay put and the fields scroll between them — with the
-     panel itself scrolling, "Done" and the live count scrolled away exactly
-     when a long topic list was open. */
-  max-height: 86vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.modal.filters .modal-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .filters-body {
@@ -2384,10 +2460,26 @@ tr.cursor .act {
   margin: 0;
   line-height: 1.55;
 }
+/*
+  The title and the buttons stay put while the fields scroll between them.
+
+  Sticky rather than a flex column with a scrolling body, because `Modal` hands
+  its children through raw so that a form can span the body and the footer —
+  which it does in several dialogs. A flex rule keyed on `.modal > .modal-body`
+  would silently do nothing for exactly those. Sticky works at any depth, since
+  the scroll container is `.modal` itself either way.
+
+  Both need an opaque background: without one the content scrolls visibly
+  through them.
+*/
 .modal-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   padding: 12px 14px;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 .modal-head h3 {
@@ -2399,11 +2491,15 @@ tr.cursor .act {
   padding: 14px;
 }
 .modal-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
+  background: var(--surface);
   border-top: 1px solid var(--border);
 }
 
@@ -5787,10 +5883,6 @@ a.tile.attention:hover {
     max-height: calc(100vh - 24px);
     /* The unit that follows the URL bar, so a tall dialog is not cut off by
        chrome that `vh` pretends is not there. */
-    max-height: calc(100dvh - 24px);
-  }
-  /* One column, and the same height rule as every other dialog. */
-  .modal.filters {
     max-height: calc(100dvh - 24px);
   }
   .filters-body {
@@ -9192,6 +9284,415 @@ a.tile.attention:hover {
 .att-hues {
   margin-top: 9px;
 }
+
+/* --------------------------------------------- a Learn topic, into revision */
+
+/*
+  Under "Mark as read", and visibly a different act.
+
+  Read is a browsing fact set by scrolling; this schedules the topic to come back
+  on the revision ladder. Two controls rather than one because conflating them
+  would put every page you skimmed into Tuesday's queue.
+*/
+.learn-revise {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.learn-revise-label {
+  color: var(--text-3);
+}
+.learn-revise-on {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+}
+.learn-revise-on b {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------- the leak report */
+
+/*
+  Not a meter, deliberately.
+
+  Every other pattern list in this app is a progress bar, because every other one
+  is measuring how far through something you are. This one is measuring a rate,
+  and a rate has no total to fill — a bar would invite reading 2.4× as "most of
+  the way there".
+*/
+.leak-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.leak-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 46px;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.leak-list li:last-child {
+  border-bottom: none;
+}
+
+.leak-name {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The number the list is sorted by, so it is the one thing aligned in a column. */
+.leak-rate {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  color: var(--medium);
+}
+
+.leak-detail {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.leak-reason {
+  color: var(--text-2);
+  border-bottom: 1px dotted var(--text-3);
+}
+
+.leak-foot {
+  margin-bottom: 0;
+  padding-top: 10px;
+}
+
+/* ------------------------------------------------ revision, in test mode */
+
+/*
+  The queue as a stack of cards rather than a table.
+
+  A table row is a thing you scan; the whole point here is that you cannot scan
+  it — you are meant to stop on one title and try to remember. Cards enforce that
+  shape, and they have somewhere to put the reveal.
+*/
+.rev-mode {
+  margin-bottom: 12px;
+}
+
+.rev-test {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rev-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 16px 18px 14px;
+}
+
+.rev-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* The title, and deliberately nothing else — no difficulty, no companies, no
+   tags. Every one of those is a hint at the question being asked. */
+.rev-card-head h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.rev-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+
+.rev-say {
+  display: block;
+  margin-top: 14px;
+}
+.rev-say textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+.rev-say textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.rev-card-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.rev-card-acts .spacer {
+  flex: 1;
+}
+
+.rev-said,
+.rev-note {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+/* What you just typed, marked as yours so the reveal reads as a comparison
+   rather than as two paragraphs of prose. */
+.rev-said {
+  padding: 10px 12px;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-bg);
+  border-radius: 0 8px 8px 0;
+}
+.rev-note.empty-note {
+  color: var(--text-3);
+}
+
+.rev-code {
+  margin-top: 14px;
+}
+
+.rev-history {
+  margin-top: 14px;
+}
+.rev-history ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rev-history li {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+.rev-history li .mono {
+  color: var(--text-2);
+  margin-right: 4px;
+}
+
+/*
+  A link to somebody else's answer, before you have earned it.
+
+  Drawn as a control rather than hidden, deliberately. A missing link reads as a
+  problem with no editorial; a padlock reads as a rule, and the tooltip says how
+  many minutes are left. Dimmed rather than greyed to `--border` so the shape
+  stays legible enough to hover.
+*/
+.editorial-locked {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-3);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.editorial-locked:hover {
+  opacity: 0.8;
+  color: var(--medium);
+}
+/* Inside the ladder's bordered solution pills, where the lock replaces a label
+   and the border would otherwise sit around empty space. */
+.soln-link.editorial-locked {
+  border-color: var(--border-soft);
+  padding: 1px 7px;
+}
+
+/* ---------------------------------------------- why it failed, and the code */
+
+/*
+  The reason chips, under the outcome they belong to.
+
+  Indented and rendered only on a non-solving outcome, so the block reads as a
+  follow-up question rather than a sixth thing to fill in — the common path
+  through this dialog is still two taps and a button.
+*/
+.att-reason {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+.att-reason h5 {
+  margin: 0 0 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.att-reasons {
+  gap: 5px;
+}
+/* Not toned like the outcome chips. Those carry a verdict — good, mixed, bad —
+   and none of these five is worse than the others; they are different missing
+   skills, and colouring one red would be a judgement the data does not support. */
+.att-reason-chip.on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+/* The solution editor, in the log form and again inside an edit. */
+.sol-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.sol-langs {
+  align-self: flex-start;
+  align-items: center;
+}
+.sol-count {
+  padding: 0 8px;
+  font-size: 10.5px;
+  color: var(--text-3);
+  border-left: 1px solid var(--border);
+}
+.sol-code {
+  width: 100%;
+  resize: vertical;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+  /* 1.5 is the guides' code line-height. A solution and the reference
+     implementation beside it should have the same rhythm. */
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+.sol-code:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.att-peek {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* Two small facts about a logged sitting, under its note. */
+.att-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.att-reason-tag,
+.att-peek-tag {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-3);
+}
+.att-peek-tag {
+  color: var(--medium);
+  border-color: color-mix(in srgb, var(--medium) 34%, transparent);
+  background: var(--medium-bg);
+}
+
+/* The stored solution, collapsed. See the note at the render site for why it is
+   not open by default. */
+.att-item-code {
+  margin-top: 7px;
+}
+.att-item-code > summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-3);
+  list-style: none;
+}
+.att-item-code > summary::-webkit-details-marker {
+  display: none;
+}
+.att-item-code > summary::before {
+  content: '▸';
+  display: inline-block;
+  width: 12px;
+  color: var(--text-3);
+  transition: transform 0.14s ease;
+}
+.att-item-code[open] > summary::before {
+  transform: rotate(90deg);
+}
+.att-item-code > summary:hover {
+  color: var(--text);
+}
+.att-item-code > summary .mono {
+  color: var(--text-3);
+  opacity: 0.8;
+}
+
+.sol-block {
+  position: relative;
+  margin-top: 6px;
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.sol-block-lang {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  pointer-events: none;
+}
+.sol-pre {
+  margin: 0;
+  padding: 9px 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  overflow-x: auto;
+  /* The tokeniser emits one span per line — see highlight.js — so each needs to
+     be its own row. */
+  white-space: pre;
+}
+.sol-pre .cl {
+  display: block;
+  min-height: 1.5em;
+}
+
 /* "No colour" cannot be drawn in a colour. A hollow swatch with a slash reads
    as the absence rather than as a fourteenth hue. */
 .att-hue-none {

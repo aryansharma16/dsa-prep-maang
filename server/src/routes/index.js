@@ -32,6 +32,27 @@ import {
   reviewSchema,
   revisionQueue,
 } from '../controllers/progress.controller.js';
+import {
+  learnRevisionQueue,
+  listLearnProgress,
+  markSchema as learnMarkSchema,
+  markTopic,
+  reviewSchema as learnReviewSchema,
+  reviewTopic,
+  topicParams,
+} from '../controllers/learn.controller.js';
+import {
+  getPlaybook,
+  patchPlaybook,
+  patchSchema as playbookPatchSchema,
+} from '../controllers/playbook.controller.js';
+import {
+  drillRunSchema,
+  getPracticeStats,
+  mockRunSchema,
+  saveDrillRun,
+  saveMockRun,
+} from '../controllers/practice.controller.js';
 import { getStats } from '../controllers/stats.controller.js';
 import {
   clearView,
@@ -173,6 +194,72 @@ router.delete(
 );
 
 router.get('/stats', requireModule('stats'), getStats);
+
+/*
+  Learn — reading progress, and the topics that are due.
+
+  This module had no API surface at all until now: its prose is authored in the
+  client bundle, so there was nothing per-account to store. Marking a topic read
+  is the one fact it has, and it is what puts a topic on the same 3/7/21/60
+  ladder a problem goes on — see controllers/learn.controller.js.
+
+  Behind the same `learn` gate as the pages, so hiding the module now takes a
+  real API with it rather than only the nav item.
+*/
+router.get('/learn/progress', requireModule('learn'), listLearnProgress);
+router.get('/learn/revision', requireModule('learn'), learnRevisionQueue);
+router.put(
+  '/learn/progress/:track/:topic',
+  requireModule('learn'),
+  validate(topicParams, 'params'),
+  validate(learnMarkSchema),
+  markTopic,
+);
+router.post(
+  '/learn/progress/:track/:topic/review',
+  requireModule('learn'),
+  validate(topicParams, 'params'),
+  validate(learnReviewSchema),
+  reviewTopic,
+);
+
+/*
+  Practice — the pattern drill and the mock harness.
+
+  Nothing here reads or writes a progress row. A drill answer is a recognition
+  and a mock is a session with a shared clock; neither is an attempt, and the one
+  record that means "I sat down with this problem" must not fill up with them.
+*/
+router.post(
+  '/practice/drill-runs',
+  requireModule('practice'),
+  validate(drillRunSchema),
+  saveDrillRun,
+);
+router.post(
+  '/practice/mock-runs',
+  requireModule('practice'),
+  validate(mockRunSchema),
+  saveMockRun,
+);
+router.get('/practice/stats', requireModule('practice'), getPracticeStats);
+
+/*
+  The owner's prep plan. Behind the same middleware as every other module, which
+  for an owner module means the `playbook` capability and a 404 for everyone
+  else — see middleware/requireModule.js.
+
+  Two routes rather than a mounted router: there are two of them, they will stay
+  two, and a sub-router for that is a file to open on the way to reading four
+  lines.
+*/
+router.get('/playbook', requireModule('playbook'), getPlaybook);
+router.patch(
+  '/playbook',
+  requireModule('playbook'),
+  validate(playbookPatchSchema),
+  patchPlaybook,
+);
 
 /*
   How a screen is set up for the caller — today, the filters they left on.

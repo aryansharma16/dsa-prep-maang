@@ -28,6 +28,8 @@ the sign-in page as well as from the sidebar.
 | **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Learn** | Reference notes for the things around the algorithms. Two tracks — React, 43 topics from the virtual DOM through the ecosystem a job expects, and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
+| **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
+| **Playbook** | The site owner's own 24-week interview-prep plan — four phases over the 429 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
 | **Pro Coder** | A competitive-programming ladder: 800 problems (600 Codeforces, 200 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own glass theme that follows your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across both curriculums |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
@@ -174,6 +176,16 @@ reads as a cheatsheet and holds up as documentation: the definition in the
 official docs' terms, why the API exists, its signature as a table, the smallest
 example that shows the point, how it actually works, the mistakes people make,
 a one-line "when do I reach for this" table, and a link back to the official page.
+
+**Read, and revised.** These are two different facts and they are stored in two
+different places. *Read* is local, set by scrolling to the bottom as well as by
+the button, and means "my eyes have been over this" — syncing it would be wrong,
+because a topic you skimmed on a train has no business in Tuesday's queue.
+*Revise this* is the deliberate act: you say how solid it felt and the topic
+joins the same 3/7/21/60 ladder a problem goes on, in the same merged queue,
+scheduled by the same `nextReview()`. That is what finally gave Learn an API —
+it was the one module with none, because prose in the bundle is nobody's data
+and reading progress is.
 
 ### React — the 43 topics
 
@@ -353,6 +365,13 @@ hairline borders instead of hard boxes, generous radii, and Codeforces' own
 rating ramp as the only real colour on the page — a tier's band is a 6px dot and
 a progress bar, not a saturated edge on every card.
 
+The glass is translucency over that wash and nothing else. There is no
+`backdrop-filter` in the module, or on the app's dialog scrim, and that is
+measured rather than assumed: a blurred backdrop is re-rasterized whenever
+anything behind it paints, and on the expanded 805-row ladder it took scrolling
+from a 16.7ms median frame to 56.5ms — 87 of 88 frames past the 32ms line. The
+same page with a plain translucent fill drops no frames at all.
+
 It follows the appearance setting, in both directions. An earlier version pinned
 itself dark in both themes, which made the one screen you might spend an hour on
 the one screen that ignored what you picked — and portalled dropdown menus
@@ -402,6 +421,112 @@ admin panel has edited. `data/raw/cp/` and `data/cp/curated-cp.json` are
 committed, so a curate run is a pure function of files on disk rather than of
 whatever Codeforces was serving that afternoon.
 
+## Practice — drill and mock
+
+Two exercises *over* the curriculum. Neither writes to a problem row: a drill
+answer is a recognition and a mock is a session with a shared clock, and the
+attempt log is supposed to mean "I sat down with this problem". They get their
+own collections, `DrillRun` and `MockRun`.
+
+**The pattern drill** shows a problem's title and difficulty — and deliberately
+not its topic tags, which would answer the question — plus six techniques, one of
+which is right. Number keys answer, Enter moves on. It needed no new content:
+every one of the 429 problems already carries a `patternSlug`.
+
+The case for it is arithmetic. An interview is decided in the first ninety
+seconds, on recognising what shape the statement is; everything after that is
+implementation you can already do. Re-solving trains the implementation at
+twenty-five minutes a repetition. This trains the recognition at about three
+seconds, so a minute is twenty repetitions of the part that was failing. Misses
+are stored per run, and the **most missed** panel is the one weakness the rest of
+the app cannot see — a pattern you never recognise is a pattern you never
+attempt, so it is not a low number anywhere else.
+
+**The mock harness** draws two unsolved problems, runs one clock across both,
+keeps the editorial and the walkthrough off the page entirely, and holds the code
+box locked until the approach is written down — because saying it before you type
+is the half of the round most people skip. It ends in four questions you answer
+honestly: did I clarify, did I state complexity, did I test an example, did I
+narrate. No model marks it. Those four are what candidates actually lose on, and
+each is something you can answer about yourself; what was missing was never the
+judgement, it was being made to sit the exam.
+
+## The editorial gate
+
+The walkthrough and the article are behind twenty-five minutes on the problem,
+and it is a hard block rather than a warning — a warning gets clicked through at
+minute four, which is exactly where the learning would have been.
+
+What counts as time spent is two numbers added together: `progress.attemptMinutes`,
+which is the sum of every sitting already logged and is computed server-side on
+every row, plus the running clock if it is on this problem. The durable half is
+what makes a hard block survivable — gating on the live timer alone would mean
+closing a tab locks an editorial you had genuinely earned. A solved problem is
+never gated: you have earned the answer, and comparing yours against a better one
+is the most useful thing you can do next.
+
+Opening one is remembered locally for a day so the next attempt logged against
+that problem arrives with `peeked` already ticked — not once the problem is
+solved, though, because reading an editorial to compare answers is reading, not
+peeking.
+
+## Where you actually struggle
+
+Stats used to call its pattern panel "Weakest patterns" and rank by *least
+complete*, which is a fact about the plan rather than about you — a pattern at
+0/27 is untouched, not hard.
+
+The leak report ranks by **relearn rate**: attempts per problem solved, read out
+of the attempt log. 1.0 means it went in first time; above 2 is a pattern you are
+re-learning rather than learning. Beside it: how many solves needed a hint or a
+video, how many sittings ended without one, and the most common failure reason.
+It only appears once there are four attempts across two problems in a pattern —
+two attempts on one problem is a bad afternoon, not a weakness — and until then
+the coverage view stands alone, which is the honest order. The Playbook shows the
+top two on its Today tab, as the one signal allowed to argue with the schedule.
+
+## Playbook — the owner's prep plan
+
+A dated, phased schedule that turns the 429 roadmap problems and the 800-problem
+ladder into a week-by-week timetable, and reads your actual progress back out of
+them. It is the one module in the app that is not for the people using it:
+`playbook` is marked `owner: true` in `server/src/config/modules.js`, which keeps
+it out of `visible` for every role but `super_admin` and 404s the API behind it.
+A second account never learns it exists.
+
+**Twenty-four weeks, four phases.** Rebuild the base (weeks 1–5, the patterns you
+half-know, re-done for the optimal solution), the core machine (6–13, binary
+search through greedy — the eight patterns that decide most loops), hard mode
+(14–18, DP and hard graphs, one a week, no stacking), and interview mode (19–24,
+no new patterns — recall, speed, company sets and talking while you code). Weeks
+13 and 18 carry no new problems at all; they are what stops the middle of a plan
+like this from falling apart.
+
+**Targets are weighted, not divided.** An Easy counts 0.6, a Medium 1.0, a Hard
+1.6, and the 429 problems come to 448 weighted units. Spread across the eighteen
+weeks that carry new work, that is ~25 units a week, which is what each week is
+actually built to — so the DP weeks ask for fewer problems than the arrays weeks
+and cost the same evening.
+
+**The plan is authored, the state is stored.** Phases, weeks, rules, the
+timetable and the system-design track live in `client/src/playbook/plan.js`, like
+the Learn track's prose and for the same reason: a document, identical for every
+render, where editing a sentence should be a commit and not a migration. The
+`Playbook` collection holds only the three things that file cannot know — the
+start date, the ticked ids, and the weekly retro lines. Everything else is
+derived at render: a phase's bar is the real solved count of the patterns it
+owns, read out of the roadmap, so the only way to move it is to solve something.
+
+**The one number that governs the week** is the drift line under the header:
+problems solved against problems the schedule expected by now, stated as a count
+and not softened. Ahead, on track, or *n* behind with what to cut.
+
+**System design** starts in week 13, four hours a week rising to eight — 25
+topics in six blocks, ending in six full 45-minute designs run to the clock. It
+is deliberately shorter than a from-scratch syllabus: a working Node/React
+developer already has the objects, and what is missing is the scale vocabulary,
+the numbers and the shape of the conversation.
+
 ## Tracking
 
 - **Status** — click the circle to cycle not started → attempted → solved
@@ -412,6 +537,14 @@ whatever Codeforces was serving that afternoon.
 - **Log attempt** — a stopwatch, five outcomes, and a note, a colour and a
   confidence per sitting, correctable for half an hour after logging — see
   [Attempts](#attempts)
+- **Your solution** — the code you actually wrote, in Java, C++ or JavaScript,
+  stored per sitting and rendered back highlighted. Nothing runs it; it is there
+  so you can read attempt 2 against attempt 1 and see whether you fixed the bug
+  or repeated it
+- **Why it failed** — on a sitting that did not solve it, one tap: *no approach ·
+  too slow · edge case · language · ran out of time*. Five different missing
+  skills that used to be one word, and after two hundred problems the histogram
+  of them is the most actionable thing in the app
 - **Revision queue** — solving schedules a review on a 3/7/21/60-day ladder,
   stretched or compressed by your confidence
 
@@ -587,12 +720,21 @@ with `3d overdue` / `Due today` / `Due in 5d` and overdue in red. Clearing a row
 removes it immediately — and puts it back if the write actually failed, because
 a queue that quietly shows fewer items than you have is worse than a slow one.
 
-**Both curriculums, in one list.** The roadmap and the Pro Coder ladder keep
-separate progress collections and come due independently, so the page fetches
-both queues and merges them, marks CP rows with a `CP` badge and a rating rather
-than a difficulty label, and offers a Both / Roadmap / Pro Coder toggle once
-there is anything in the second one. Either request failing leaves the other
-rendering — a hidden Pro Coder module empties nothing.
+**Three sources, one list.** The roadmap, the Pro Coder ladder and the Learn
+tracks keep separate collections and come due independently, so the page fetches
+all three queues and merges them, badges the non-roadmap rows, and offers a
+toggle once there is anything in a second one. Any request failing leaves the
+others rendering — a hidden module empties nothing.
+
+**Test mode.** The default queue is a list you look at and press *I got it* on,
+which tests nothing: the problem is in front of you while you decide whether you
+remember it. Test mode collapses each row to its **title alone** — no difficulty,
+no companies, no tags, all of which are hints — and asks for the trigger and the
+approach before anything is revealed. The reveal then shows your note, the last
+solution you wrote, and *what you said this problem was the last three times*.
+Reading "I said prefix sums" from two months ago next to what you just typed is
+the clearest signal in the app that something has or has not stuck. The line is
+kept whichever way the review went, and especially when it went badly.
 
 The ladder is 3 → 7 → 21 → 60 days, multiplied by confidence: 1 shrinks the gap
 to 0.4×, 5 stretches it to 2×. It caps at 60: `LADDER_DAYS[min(stage, 3)]`.
@@ -977,6 +1119,58 @@ for someone working on the code; this is the one written for someone using it,
 and two versions of the same guide is the drift this codebase avoids everywhere
 else.
 
+## The side menu
+
+Three regions, and the split is the whole design: a **head** with the toggle and
+the brand, a **scroller** holding the roadmap, the modules and the twenty-two
+patterns, and a **floor** pinned below it with **Guide**, **Admin** and one
+switch.
+
+The floor is not a leftover. Nothing on it is a stop on the way through the app
+— the guide is what you open when you are stuck, admin is a different job
+entirely, and the switch is a setting. Above the pattern list they sat between
+you and the twenty-two sections you actually came for, and they moved down the
+column every time a pattern was added. Pinned to the floor they are in the same
+place every time, and the patterns start at the top.
+
+**Feedback is not in the menu at all**, and it is the one module that isn't.
+It had three doors to the same dialog and only one of them cost a row here; the
+bubble and the topbar megaphone are both still there, and the page is a click
+away from your profile. It is still a module — the server still gates
+`/feedback` on it, and hiding it still hides the megaphone.
+
+### Hover to open
+
+Collapsed, the menu is a 56px rail of icons. Hovering it opens the full menu
+**for as long as the pointer is on it**, then lets go. Tabbing into the rail
+does the same thing, since a keyboard user reading a column of icons has the
+same problem.
+
+A peek is a *view*, never a change: `collapsed` is untouched throughout, so
+nothing about it is written to storage and nothing survives the pointer leaving.
+Clicking the toggle mid-peek is therefore not really a toggle — the menu is
+already on screen, and `collapsed` is what makes it stay there.
+
+It is lifted out of the flex row and drawn **over** the page, with a spacer
+holding the 56px it vacated, because a hover that reflowed a four-hundred-row
+table would be a hover nobody wants. Only `width` changes — `flex-basis` stays
+at the rail — so it opens on a 140ms animation and closes the instant the class
+drops, and the table behind it never moves either way.
+
+**And it is a switch, not a law.** A menu that unfurls every time you cross it
+on the way to the table is the exact thing some people collapse a sidebar to be
+rid of, so *Hover to open* at the foot of the menu turns it off, and the rail
+then only opens when you open it. On by default, remembered per browser
+(`sidebar-hover-open`), and the switch is at the foot of the menu itself —
+which is the one place you are guaranteed to be looking when it annoys you.
+
+Two things it deliberately does not do. It never fires on a touchscreen, where
+`mouseenter` is synthesised from a tap and the menu would open on the way to
+whatever was tapped — `HOVERS` in `hooks/useMediaQuery.js` is how the shell
+tells a pointer from a finger. And it never fires below 760px, where `collapsed`
+means "closed drawer" rather than "rail" and a hover would fling the whole
+drawer over the page.
+
 ## Keyboard
 
 | key | |
@@ -989,7 +1183,7 @@ else.
 | `o` | open the problem in a new tab |
 | `/` | search |
 | `Esc` | leave the search box, or close a dialog, the guide reader or the task drawer |
-| `Ctrl` `B` | collapse the sidebar |
+| `Ctrl` `B` | collapse the sidebar, or — mid-peek — pin it open |
 
 Single-key shortcuts are suppressed while you're typing in a field and while any
 dialog or the guide reader is open.
@@ -1249,9 +1443,12 @@ verifying and fixing it.
 ## Feedback
 
 Three doors to one dialog — a bubble beside the chat one, an icon in the topbar,
-and `/feedback` in the side menu — because the thing that kills a feedback channel
-is not being where someone was when they had the thought. All three open the same
+and a link on your profile — because the thing that kills a feedback channel is
+not being where someone was when they had the thought. All three open the same
 `Send` / `Yours` popup; the page carries the same form and list with more room.
+
+It is the one module with **no row in the side menu**: three doors already, and
+only this one cost a line in a list you read on the way somewhere else.
 
 A submission is a **kind** (suggestion, bug, complaint, other), a one-line title,
 the detail, and the route you were on when you opened the form — "the stats page"
@@ -1484,7 +1681,9 @@ in it.
 **Hidden means three things at once**, and the third is the one that matters:
 
 1. the nav item is not drawn — in the rail *and* in the expanded menu, both fed
-   from one list in `client/src/store/modules.js` so neither can be forgotten;
+   from one list in `client/src/store/modules.js` so neither can be forgotten.
+   Feedback is the exception: it has no row to withdraw, so hiding it takes the
+   topbar megaphone instead, off the same `moduleVisible` call;
 2. the client route is not declared, so the URL falls through to the catch-all
    and lands on the roadmap — indistinguishable from a route that was never
    built, the same line `/admin` takes;

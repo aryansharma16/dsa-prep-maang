@@ -8,6 +8,8 @@ import { Learn } from './pages/Learn.jsx';
 import { LearnTopic } from './pages/LearnTopic.jsx';
 import { LearnTrack } from './pages/LearnTrack.jsx';
 import { Login } from './pages/Login.jsx';
+import { Playbook } from './pages/Playbook.jsx';
+import { Practice } from './pages/Practice.jsx';
 import { Profile } from './pages/Profile.jsx';
 import { ProCoder } from './pages/ProCoder.jsx';
 import { Register } from './pages/Register.jsx';
@@ -21,6 +23,7 @@ import { Docs } from './pages/Docs.jsx';
 import { AttemptTimerProvider } from './store/AttemptTimerContext.jsx';
 import { RoadmapProvider } from './store/RoadmapContext.jsx';
 import { CPProvider } from './store/CPContext.jsx';
+import { PlaybookProvider } from './store/PlaybookContext.jsx';
 import { TasksProvider } from './store/TasksContext.jsx';
 
 export function App() {
@@ -84,6 +87,26 @@ export function App() {
                   same line /admin takes below. Cosmetic, like every guard in this
                   file: `requireModule` locks the API behind each of these.
                 */}
+                {/*
+                  Playbook mounts its own provider on the route, like Pro Coder
+                  below and for the same reason: one account can see this page at
+                  all, and a fetch on every session for a module the server does
+                  not even list for anybody else would be a request spent on
+                  nothing. `has('playbook')` is false for everyone but the owner
+                  — the server leaves the key out of `visible` — so this route is
+                  not declared, and the URL falls through to the roadmap exactly
+                  as a hidden module's does.
+                */}
+                {has('playbook') && (
+                  <Route
+                    path="/playbook"
+                    element={
+                      <PlaybookProvider>
+                        <Playbook />
+                      </PlaybookProvider>
+                    }
+                  />
+                )}
                 {has('revision') && <Route path="/revision" element={<Revision />} />}
                 {has('stats') && <Route path="/stats" element={<Stats />} />}
                 {has('chat') && <Route path="/chat" element={<Chat />} />}
@@ -116,6 +139,9 @@ export function App() {
                     }
                   />
                 )}
+                {/* No provider of its own: the drill reads the roadmap that is
+                    already in memory, and a run is one POST when you stop. */}
+                {has('practice') && <Route path="/practice" element={<Practice />} />}
                 {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
                 <Route path="/docs" element={<Docs />} />
                 <Route path="/profile" element={<Profile />} />

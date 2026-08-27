@@ -1,0 +1,930 @@
+/* =====================================================================
+   Playbook — the owner's prep plan.
+
+   Wears the same material as Pro Coder: glass panels over an ambient wash,
+   hairline borders, the reader's own accent. That is deliberate rather than
+   lazy — the two pages are the same kind of surface (a curriculum you work
+   through), and giving the plan a third visual language would make the app
+   read as three apps.
+
+   What it does *not* borrow is the token swap. `.pb-root` sets no palette at
+   all: this page follows the app's theme through the ordinary tokens, and the
+   handful of tokens below are its own additions.
+
+   No `backdrop-filter` anywhere, for the reason spelled out at the top of
+   cp.css — it cost 40ms a frame there and would cost the same here.
+   ===================================================================== */
+
+.pb-root {
+  --pb-panel: rgb(255 255 255 / 0.04);
+  --pb-panel-2: rgb(255 255 255 / 0.025);
+  --pb-hair: rgb(255 255 255 / 0.08);
+  --pb-sheen: rgb(255 255 255 / 0.06);
+  --pb-aurora: rgb(110 150 255 / 0.09);
+}
+
+:root[data-theme='light'] .pb-root {
+  --pb-panel: rgb(255 255 255 / 0.75);
+  --pb-panel-2: rgb(255 255 255 / 0.5);
+  --pb-hair: rgb(15 23 42 / 0.08);
+  --pb-sheen: rgb(255 255 255 / 0.9);
+  --pb-aurora: rgb(110 150 255 / 0.12);
+}
+
+/* Full width, like the ladder: the week grid is four columns of numbers across
+   twenty-four rows, and a 1500px well wastes the half of the screen it needs. */
+.content:has(.pb-page) {
+  padding: 0;
+}
+.content:has(.pb-page) .content-inner {
+  max-width: none;
+  margin: 0;
+}
+
+.pb-page {
+  position: relative;
+  padding: 22px 28px 72px;
+  min-height: calc(100vh - var(--topbar-h));
+  background:
+    radial-gradient(900px 340px at 12% -10%, rgb(var(--accent-rgb) / 0.09), transparent 68%)
+      no-repeat,
+    radial-gradient(740px 300px at 86% -14%, var(--pb-aurora), transparent 70%) no-repeat,
+    var(--bg);
+  background-size: 100% 440px, 100% 440px, auto;
+}
+
+/* ------------------------------------------------------------ the cockpit */
+
+.pb-arena {
+  border: 1px solid var(--pb-hair);
+  border-radius: 18px;
+  background: var(--pb-panel);
+  box-shadow: 0 1px 0 var(--pb-sheen) inset, 0 18px 40px -34px var(--shadow);
+  padding: 20px 22px 18px;
+  margin-bottom: 16px;
+}
+
+.pb-arena-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pb-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: auto;
+}
+
+.pb-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+  border-radius: 11px;
+  background: var(--accent-bg);
+}
+
+.pb-brand h1 {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pb-brand p {
+  margin: 3px 0 0;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  color: var(--text-3);
+}
+
+.pb-countdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pb-days {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.pb-days b {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-right: 4px;
+}
+
+.pb-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--pb-hair);
+  border-radius: 999px;
+  background: var(--pb-panel-2);
+  color: var(--text-3);
+}
+.pb-date input {
+  border: none;
+  background: none;
+  color: var(--text-2);
+  font-size: 12px;
+  font-family: var(--mono);
+  padding: 0;
+  width: 108px;
+}
+.pb-date input:focus {
+  outline: none;
+  color: var(--text);
+}
+
+/*
+  The one sentence on the page that changes behaviour. Coloured by state and
+  nothing else is — a page where six things are amber says nothing.
+*/
+.pb-drift {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+.pb-drift.ontrack {
+  color: var(--text-3);
+  background: var(--pb-panel-2);
+  border-color: var(--pb-hair);
+}
+.pb-drift.behind {
+  color: var(--medium);
+  background: var(--medium-bg);
+  border-color: color-mix(in srgb, var(--medium) 26%, transparent);
+}
+.pb-drift.ahead {
+  color: var(--easy);
+  background: var(--easy-bg);
+  border-color: color-mix(in srgb, var(--easy) 26%, transparent);
+}
+
+.pb-meters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pb-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 13px;
+  border: 1px solid var(--pb-hair);
+  border-radius: 13px;
+  background: var(--pb-panel-2);
+}
+
+.pb-meter-label {
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pb-meter-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hue, var(--accent));
+  flex: 0 0 auto;
+}
+
+.pb-meter-value {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text);
+}
+.pb-meter-total {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.pb-meter-note {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+/* One bar, used by the meters, the phase headers and the week's patterns. */
+.pb-bar {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-3) 22%, transparent);
+  overflow: hidden;
+}
+.pb-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--hue, var(--accent));
+  transition: width 0.3s ease;
+}
+
+/* ------------------------------------------------------------ before day one */
+
+.pb-start {
+  max-width: 720px;
+}
+.pb-start-copy {
+  margin: 16px 0 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+.pb-start-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+.pb-start-row .field {
+  margin: 0;
+  width: 200px;
+}
+
+/* ---------------------------------------------------------------- the tabs */
+
+.pb-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 14px;
+  border: 1px solid var(--pb-hair);
+  border-radius: 999px;
+  background: var(--pb-panel);
+}
+.pb-tabs button {
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--text-3);
+  background: none;
+  border: none;
+}
+.pb-tabs button:hover {
+  color: var(--text);
+}
+.pb-tabs button.on {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------- panels */
+
+.pb-panel {
+  border: 1px solid var(--pb-hair);
+  border-radius: 16px;
+  background: var(--pb-panel);
+  padding: 16px 18px 18px;
+  margin-bottom: 12px;
+}
+
+.pb-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.pb-panel-head h2 {
+  margin: 3px 0 0;
+  font-size: 16px;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+}
+
+.pb-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+}
+
+.pb-lead {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-2);
+  max-width: 82ch;
+}
+
+/* -------------------------------------------------------------- today */
+
+.pb-today-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+@media (max-width: 1040px) {
+  .pb-today-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pb-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pb-slot {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--pb-hair);
+  border-radius: 13px;
+  background: var(--pb-panel-2);
+  /* The kind of work, as an edge rather than a fill — three of these stacked
+     with tinted backgrounds is the noise this whole design avoids. */
+  border-left: 2px solid var(--pb-kind, var(--border));
+}
+.pb-slot[data-kind='dsa'] {
+  --pb-kind: var(--h-blue);
+}
+.pb-slot[data-kind='revision'] {
+  --pb-kind: var(--h-teal);
+}
+.pb-slot[data-kind='design'] {
+  --pb-kind: var(--h-violet);
+}
+
+/* The slot the clock is actually inside. */
+.pb-slot.live {
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+
+.pb-slot-time {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.pb-slot-days {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.pb-live {
+  align-self: flex-start;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+}
+
+.pb-slot-body h3 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.pb-slot-body p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* The one thing on this page allowed to argue with the schedule. Amber rather
+   than the accent: it is a warning about the plan, not a part of it. */
+.pb-leak {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--medium) 26%, transparent);
+  border-radius: 11px;
+  background: var(--medium-bg);
+}
+.pb-leak p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.pb-leak b {
+  color: var(--text);
+  font-weight: 600;
+}
+.pb-leak .mono {
+  color: var(--medium);
+  font-weight: 700;
+}
+.pb-leak a {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--medium);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+/* Where the week sits in the whole thing, and the links the evening and weekend
+   slots actually send you to. Sits under Today so that column carries its own
+   weight beside the taller week card. */
+.pb-orient {
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+.pb-orient p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.pb-orient p b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+.pb-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-line);
+}
+.pb-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.pb-jump a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--pb-hair);
+  border-radius: 999px;
+  background: var(--pb-panel-2);
+  font-size: 12px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.pb-jump a:hover {
+  color: var(--text);
+  border-color: var(--accent-line);
+}
+
+/* ------------------------------------------------------ this week's card */
+
+.pb-week-target {
+  font-size: 11.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.pb-patterns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.pb-pattern {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 54px 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border: 1px solid var(--pb-hair);
+  border-radius: 10px;
+  background: var(--pb-panel-2);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+}
+.pb-pattern:hover {
+  border-color: var(--accent-line);
+}
+.pb-pattern-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pb-pattern-frac {
+  font-size: 11.5px;
+  color: var(--text-3);
+  text-align: right;
+}
+.pb-pattern svg {
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------ checklists */
+
+.pb-tasks,
+.pb-sd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pb-task,
+.pb-sd-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.pb-task:hover,
+.pb-sd-item:hover {
+  background: var(--pb-panel-2);
+}
+.pb-task.on,
+.pb-sd-item.on {
+  color: var(--text-3);
+}
+.pb-task.on > span:last-child,
+.pb-sd-item.on .pb-sd-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-3);
+}
+
+.pb-box {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--accent-text);
+}
+.pb-task.on .pb-box,
+.pb-sd-item.on .pb-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.pb-note {
+  display: block;
+  margin-top: 14px;
+}
+.pb-note textarea {
+  width: 100%;
+  margin-top: 6px;
+  padding: 9px 11px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--pb-panel-2);
+  border: 1px solid var(--pb-hair);
+  border-radius: 10px;
+  resize: vertical;
+}
+.pb-note textarea:focus {
+  outline: none;
+  border-color: var(--accent-line);
+}
+
+/* --------------------------------------------------------------- phases */
+
+.pb-phases {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pb-phase {
+  border: 1px solid var(--pb-hair);
+  border-radius: 16px;
+  background: var(--pb-panel);
+  padding: 16px 18px 8px;
+}
+/* `--hue` itself is resolved by the `[data-hue='…']` rules at the foot of
+   tokens.css, which every hue-carrying component in the app already reads.
+   Repeating them here would be a second copy to keep in step. */
+
+/* The phase you are in, marked by its own hue rather than by the accent — the
+   accent is already spoken for by "this week" inside it. */
+.pb-phase.now {
+  border-color: color-mix(in srgb, var(--hue) 40%, transparent);
+}
+.pb-phase.past {
+  opacity: 0.72;
+}
+
+.pb-phase-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.pb-phase-n {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hue);
+  background: color-mix(in srgb, var(--hue) 13%, transparent);
+}
+
+.pb-phase-title {
+  flex: 1;
+  min-width: 0;
+}
+.pb-phase-title h2 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+}
+
+.pb-phase-weeks {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.pb-here {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--hue);
+  border: 1px solid color-mix(in srgb, var(--hue) 34%, transparent);
+  background: color-mix(in srgb, var(--hue) 12%, transparent);
+}
+
+.pb-phase-aim {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.pb-phase-meter {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.pb-phase-meter .pb-bar {
+  width: 92px;
+}
+
+.pb-phase-detail {
+  margin: 12px 0 4px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-3);
+  max-width: 92ch;
+}
+
+.pb-weeks {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.pb-week-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 92px 44px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 4px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+.pb-week-row.past {
+  color: var(--text-3);
+}
+.pb-week-row.now {
+  background: color-mix(in srgb, var(--hue) 8%, transparent);
+  border-radius: 8px;
+  border-top-color: transparent;
+}
+
+.pb-week-n {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.pb-week-row.now .pb-week-n {
+  color: var(--hue);
+  font-weight: 700;
+}
+
+.pb-week-focus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* A milestone is the only thing in the week grid allowed to shout. */
+.pb-milestone {
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-line);
+  white-space: nowrap;
+}
+
+.pb-week-nums {
+  font-size: 11.5px;
+  color: var(--text-2);
+  text-align: right;
+}
+
+.pb-week-ticks {
+  font-size: 10.5px;
+  color: var(--text-3);
+  text-align: right;
+}
+.pb-week-ticks.all {
+  color: var(--easy);
+}
+
+.pb-foot-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-3);
+  max-width: 92ch;
+}
+
+/* -------------------------------------------------------- system design */
+
+.pb-block {
+  border: 1px solid var(--pb-hair);
+  border-radius: 16px;
+  background: var(--pb-panel);
+  padding: 14px 16px 12px;
+  margin-bottom: 10px;
+}
+.pb-block.ahead {
+  opacity: 0.7;
+}
+.pb-block.now {
+  border-color: var(--accent-line);
+}
+
+.pb-block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.pb-block-head h2 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 620;
+}
+.pb-block-weeks {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.pb-block-count {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.pb-sd-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pb-sd-title {
+  font-weight: 550;
+  color: var(--text);
+}
+.pb-sd-item.on .pb-sd-title {
+  color: var(--text-3);
+}
+.pb-sd-detail {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+
+/* --------------------------------------------------------------- method */
+
+.pb-rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+.pb-rules li {
+  display: flex;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1px solid var(--pb-hair);
+  border-radius: 13px;
+  background: var(--pb-panel-2);
+}
+.pb-rule-n {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.pb-rules h3 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.pb-rules p {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* -------------------------------------------------------------- loading */
+
+.skeleton-plan {
+  height: 210px;
+  border-radius: 18px;
+  border: 1px solid var(--pb-hair);
+  background: linear-gradient(
+    90deg,
+    var(--pb-panel) 25%,
+    var(--surface-hover) 37%,
+    var(--pb-panel) 63%
+  );
+  background-size: 400% 100%;
+  animation: cp-shimmer 1.4s ease infinite;
+}
+
+@media (max-width: 760px) {
+  .pb-page {
+    padding: 14px 12px 56px;
+  }
+  .pb-slot {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .pb-week-row {
+    grid-template-columns: 38px minmax(0, 1fr) 44px;
+  }
+  .pb-week-nums {
+    display: none;
+  }
+}

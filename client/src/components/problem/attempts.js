@@ -80,6 +80,97 @@ export const outcomeOf = (value) =>
     flagsRevision: false,
   };
 
+/**
+ * Why a sitting did not end in a solve.
+ *
+ * A mirror of `FAILURE_REASONS` in server/src/config/attempts.js, kept here for
+ * the reason the outcome table above is: the server owns which values are legal
+ * and when they may be recorded, this owns what they are called.
+ *
+ * The five are not degrees of one failure. Each names a different missing
+ * skill, and after two hundred problems the histogram of them is the most
+ * actionable thing in the app — "I keep failing on edge cases" and "I keep
+ * failing to find the idea" are the same row on a stats page today and want
+ * opposite weeks of practice.
+ *
+ * Offered only on an outcome that did not solve. The server drops one sent
+ * against a solving outcome rather than rejecting the log — see the transform
+ * on `attemptSchema` there.
+ */
+export const FAILURE_REASONS = [
+  {
+    value: 'approach',
+    label: 'No approach',
+    short: 'Approach',
+    hint: 'Never found the idea. The fix is more patterns, not more effort',
+  },
+  {
+    value: 'complexity',
+    label: 'Too slow',
+    short: 'Slow',
+    hint: 'Found something that worked and it was not fast enough',
+  },
+  {
+    value: 'edge-case',
+    label: 'Edge case',
+    short: 'Edge',
+    hint: 'Right idea, wrong details — off-by-one, empty input, overflow',
+  },
+  {
+    value: 'syntax-api',
+    label: 'Language',
+    short: 'Syntax',
+    hint: 'The idea was there and the language got in the way. This is what the ladder fixes',
+  },
+  {
+    value: 'ran-out-of-time',
+    label: 'Ran out of time',
+    short: 'Time',
+    hint: 'On the way there when the clock went',
+  },
+];
+
+const REASON_BY_VALUE = Object.fromEntries(FAILURE_REASONS.map((r) => [r.value, r]));
+
+/** Null for `''` — "not said" draws nothing, rather than a chip saying nothing. */
+export const reasonOf = (value) =>
+  value ? REASON_BY_VALUE[value] || { value, label: value, short: value, hint: '' } : null;
+
+/**
+ * The languages a solution may be stored in.
+ *
+ * Mirrors `SOLUTION_LANGS` on the server. `id` is what is stored and what
+ * `highlight()` is handed; `label` is what the picker shows. Adding a fourth
+ * means adding a keyword set to highlight.js first — it knows a JS family and a
+ * C family, and an unlisted language renders subtly wrong rather than failing.
+ */
+export const SOLUTION_LANGS = [
+  { id: 'java', label: 'Java' },
+  { id: 'cpp', label: 'C++' },
+  { id: 'js', label: 'JavaScript' },
+];
+
+export const DEFAULT_LANG = 'java';
+
+export const langLabel = (id) => SOLUTION_LANGS.find((l) => l.id === id)?.label || id || '';
+
+/**
+ * How long you have to spend on a problem before its editorial unlocks.
+ *
+ * A mirror of `EDITORIAL_GATE_MINUTES` in server/src/config/attempts.js. Unlike
+ * the outcome and reason tables above, the server does not enforce this one —
+ * it cannot, because the editorial is a link to leetcode.com and takeuforward
+ * that never touches this API. That makes it the one rule here that is honestly
+ * a rule you are keeping rather than a rule you are held to, which is why the
+ * gate is a hard block in the UI rather than a warning: a rule with no enforcer
+ * needs the friction to be real.
+ *
+ * It still lives on the server because it is a statement about how the app is
+ * meant to be used, and belongs beside the outcome table rather than only in a
+ * component.
+ */
+export const EDITORIAL_GATE_MINUTES = 25;
+
 /** The presets, in the order the row draws them. */
 export const TIME_PRESETS = [5, 15, 30, 45, 60, 90];
 

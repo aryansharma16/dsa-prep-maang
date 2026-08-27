@@ -104,21 +104,29 @@
   /*
     The glass set.
 
-    A panel here is a translucent fill over a blurred backdrop rather than a
-    solid box on a solid page — one material, layered, which is what stops
-    eight stacked sections from reading as eight separate windows. `--cp-solid`
-    is the same colour with the transparency resolved against `--bg`, and it
-    exists because a frozen table column cannot be translucent: a sticky cell
-    that lets the rows scroll through it is unreadable. Anything that has to
-    be opaque uses the solid twin so the two cannot drift apart.
+    A panel here is a translucent fill over the page's ambient wash rather than
+    a solid box on a solid page — one material, layered, which is what stops
+    eight stacked sections from reading as eight separate windows.
+
+    Translucency only: no `backdrop-filter` anywhere in this file, and that is a
+    performance decision rather than an aesthetic one. A blurred backdrop is
+    re-rasterized whenever anything behind it paints, so a blurred panel on a
+    page you scroll costs a full-region blur every frame — which is exactly what
+    it felt like. What the blur was doing here was softening a two-stop radial
+    gradient, and a translucent fill over that gradient is very nearly the same
+    picture for none of the cost.
+
+    `--cp-solid` is the panel colour with the transparency resolved against
+    `--bg`, and it exists because a frozen table column cannot be translucent: a
+    sticky cell that lets the rows scroll through it is unreadable. Anything
+    that has to be opaque uses the solid twin so the two cannot drift apart.
   */
-  --cp-panel: rgb(255 255 255 / 0.045);
-  --cp-panel-2: rgb(255 255 255 / 0.03);
+  --cp-panel: rgb(255 255 255 / 0.05);
+  --cp-panel-2: rgb(255 255 255 / 0.032);
   --cp-solid: #171a20;
   --cp-solid-2: #1c2028;
   --cp-hair: rgb(255 255 255 / 0.08);
   --cp-sheen: rgb(255 255 255 / 0.07);
-  --cp-blur: blur(22px) saturate(140%);
   /* The second colour in the ambient wash behind the header. Cool, so it reads
      as depth rather than as a second brand colour beside the accent. */
   --cp-aurora: rgb(110 150 255 / 0.10);
@@ -159,8 +167,8 @@
 
   /* Inverted material: on a light canvas the glass is white *over* the wash,
      not white light through it, so the fills go up and the hairlines darken. */
-  --cp-panel: rgb(255 255 255 / 0.72);
-  --cp-panel-2: rgb(255 255 255 / 0.5);
+  --cp-panel: rgb(255 255 255 / 0.78);
+  --cp-panel-2: rgb(255 255 255 / 0.55);
   --cp-solid: #fcfdfe;
   --cp-solid-2: #f7f9fb;
   --cp-hair: rgb(15 23 42 / 0.08);
@@ -235,8 +243,6 @@
   border: 1px solid var(--cp-hair);
   border-radius: 18px;
   background: var(--cp-panel);
-  backdrop-filter: var(--cp-blur);
-  -webkit-backdrop-filter: var(--cp-blur);
   box-shadow: 0 1px 0 var(--cp-sheen) inset, 0 18px 40px -34px var(--shadow);
   padding: 20px 22px 18px;
   margin-bottom: 16px;
@@ -518,8 +524,6 @@
   border: 1px solid var(--cp-hair);
   border-radius: 14px;
   background: var(--cp-panel);
-  backdrop-filter: var(--cp-blur);
-  -webkit-backdrop-filter: var(--cp-blur);
 }
 
 .cp-root .toggle-chip,
@@ -579,14 +583,12 @@
 /* -------------------------------------------------------------- sections */
 
 /*
-  Deliberately *not* blurred, unlike the header and the bar.
-
-  A row opens the attempt dialog and the delete confirmation, and those are
+  A second reason never to put `backdrop-filter` on this one, beyond the cost:
+  a row opens the attempt dialog and the delete confirmation, and those are
   `position: fixed` overlays rendered inside the row's own markup. An ancestor
-  carrying `backdrop-filter` becomes the containing block for fixed descendants,
+  carrying a backdrop filter becomes the containing block for fixed descendants,
   which would anchor a full-screen dialog to a section header instead of to the
-  viewport. The translucent fill is the part that matters here anyway — there is
-  nothing behind a section but the page's flat canvas.
+  viewport.
 */
 .cp-section {
   border: 1px solid var(--cp-hair);
@@ -947,11 +949,10 @@
   the overlay carries `.cp-root`, so the palette above applies, and these rules
   add the glass the ladder itself is made of.
 */
+/* The pane fills the viewport, so this is only ever seen for the frame before
+   it paints — no reason for it to cost a blur. */
 .cp-reader {
-  /* A blurred page behind a reading pane, rather than a black sheet over it. */
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: var(--bg);
 }
 
 /* The same ambient light the page has, so opening a guide does not feel like
@@ -965,10 +966,13 @@
   background-size: 100% 380px, 100% 380px, auto;
 }
 
+/*
+  Opaque, not translucent — this is the one bar in the module that scrolling
+  content runs behind, and see-through here means repainting the header on every
+  frame of a scroll.
+*/
 .cp-reader .reader-head {
-  background: var(--cp-panel);
-  backdrop-filter: var(--cp-blur);
-  -webkit-backdrop-filter: var(--cp-blur);
+  background: var(--cp-solid);
   border-bottom: 1px solid var(--cp-hair);
   padding: 0 16px;
   gap: 14px;

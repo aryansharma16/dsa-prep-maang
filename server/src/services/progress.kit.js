@@ -2,9 +2,13 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import {
   ATTEMPT_EDIT_WINDOW_MS,
+  DEFAULT_LANG,
   OUTCOME_VALUES,
+  REASON_VALUES,
+  SOLUTION_LANGS,
   attemptEditableUntil,
   outcomeEffect,
+  reasonAllowed,
 } from '../config/attempts.js';
 import { HUES } from '../config/hues.js';
 import { nextReview } from './review.service.js';
@@ -49,14 +53,40 @@ export const patchSchema = z
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'Nothing to update' });
 
-export const attemptSchema = z.object({
-  minutes: z.number().int().min(0).max(600).default(0),
-  outcome: z.enum(OUTCOME_VALUES).default('solved'),
-  confidence: z.number().int().min(1).max(5).optional(),
-  note: z.string().max(2000).default(''),
-  color: hue.default(''),
-  timed: z.boolean().default(false),
-});
+/** A failure reason is optional — '' is "not said", like the colour above. */
+const reason = z.enum([...REASON_VALUES, '']);
+
+/**
+ * The solution, as written.
+ *
+ * The cap matches the model's. Trailing whitespace is stripped but the body is
+ * otherwise stored exactly as typed — this is code, and reformatting somebody's
+ * indentation on the way into the database would be a surprise.
+ */
+const solutionCode = z.string().max(20000).transform((s) => s.trimEnd());
+
+export const attemptSchema = z
+  .object({
+    minutes: z.number().int().min(0).max(600).default(0),
+    outcome: z.enum(OUTCOME_VALUES).default('solved'),
+    confidence: z.number().int().min(1).max(5).optional(),
+    note: z.string().max(2000).default(''),
+    color: hue.default(''),
+    timed: z.boolean().default(false),
+    code: solutionCode.default(''),
+    lang: z.enum(SOLUTION_LANGS).default(DEFAULT_LANG),
+    reason: reason.default(''),
+    peeked: z.boolean().default(false),
+  })
+  /*
+    A reason belongs to a sitting that did not solve the problem, and the outcome
+    table is what says which those are. Dropped rather than rejected: the chips
+    are hidden the moment you pick a solving outcome, so a reason arriving beside
+    one is a client that changed the outcome after the fact, not a caller doing
+    something wrong. Answering 400 to that would fail a log somebody spent
+    twenty-five minutes earning.
+  */
+  .transform((v) => (reasonAllowed(v.outcome) ? v : { ...v, reason: '' }));
 
 export const attemptEditSchema = z
   .object({
@@ -65,6 +95,15 @@ export const attemptEditSchema = z
     // `null` clears it — "I no longer think that was a 4" is a different edit
     // from "leave it alone", and the field has to be able to say both.
     confidence: z.number().int().min(1).max(5).nullable().optional(),
+    /*
+      The code is editable inside the same half-hour window as the note, and for
+      the same reason: the fix you thought of on the way to the kitchen belongs
+      on the sitting it belongs to. After that the log is a record — see
+      config/attempts.js.
+    */
+    code: solutionCode.optional(),
+    lang: z.enum(SOLUTION_LANGS).optional(),
+    reason: reason.optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'Nothing to update' });
 
@@ -78,7 +117,16 @@ export const reviewSchema = z.object({
   */
   result: z.enum(['recalled', 'dismissed']),
   confidence: z.number().int().min(1).max(5).optional(),
+  /*
+    What you said the problem was before anything was revealed — test mode's
+    whole output. Optional, because the queue's plain mode does not ask for one
+    and a review without it is still a review.
+  */
+  recall: z.string().max(500).optional(),
 });
+
+/** How many recall lines one problem keeps. See models/schemas/recall.js. */
+const RECALL_KEEP = 10;
 
 /**
  * The clause that keeps the edit window honest across two round trips.
@@ -221,7 +269,8 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
   const logAttempt = asyncHandler(async (req, res) => {
     const problem = await visibleProblem(req.params.problemId, req.userId);
 
-    const { minutes, outcome, confidence, note, color, timed } = req.body;
+    const { minutes, outcome, confidence, note, color, timed, code, lang, reason, peeked } =
+      req.body;
     const existing = await Progress.findOne({ user: oid(req.userId), problem: problem._id });
     const effect = outcomeEffect(outcome);
 
@@ -264,6 +313,17 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
               log a series rather than a list of the same number.
             */
             confidence: confidence ?? null,
+            /*
+              What you wrote, why it did not work, and whether you had opened
+              the editorial. All three belong to the sitting and none to the
+              row: the second attempt's code is not a correction of the first
+              one's, it is a different piece of evidence, and reading them in
+              order is the whole point of keeping them.
+            */
+            code,
+            lang,
+            reason,
+            peeked,
           },
         },
         $setOnInsert: { user: oid(req.userId), problem: problem._id },
@@ -314,6 +374,16 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
     if (req.body.note !== undefined) set['attempts.$.note'] = req.body.note;
     if (req.body.color !== undefined) set['attempts.$.color'] = req.body.color;
     if (req.body.confidence !== undefined) set['attempts.$.confidence'] = req.body.confidence;
+    if (req.body.code !== undefined) set['attempts.$.code'] = req.body.code;
+    if (req.body.lang !== undefined) set['attempts.$.lang'] = req.body.lang;
+    /*
+      Not re-checked against the outcome here, unlike on the way in. This
+      endpoint cannot change the outcome, so the sitting's solving-ness is
+      whatever it already was — and the client only offers the chips on a
+      sitting that has them. Re-deriving it would need a second read of the
+      attempt purely to reject an edit nobody can make.
+    */
+    if (req.body.reason !== undefined) set['attempts.$.reason'] = req.body.reason;
 
     const progress = await Progress.findOneAndUpdate(
       { user: oid(req.userId), problem: problem._id, attempts: stillOpen(attemptId) },
@@ -369,9 +439,22 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
     const existing = await Progress.findOne({ user: oid(req.userId), problem: problem._id });
     if (!existing) throw ApiError.notFound('Nothing to review here', 'NO_PROGRESS');
 
-    const { result, confidence } = req.body;
+    const { result, confidence, recall } = req.body;
     const set = { needsRevision: false };
     if (confidence) set.confidence = confidence;
+
+    /*
+      The recall line, kept whichever way the review went — and *especially* when
+      it went badly. "I said prefix sums and it was a monotonic stack" is the
+      most useful sentence this feature produces, and storing it only on a
+      success would throw away exactly the half worth reading back.
+
+      `$slice: -10` keeps the last ten and is what stops a problem reviewed
+      thirty times from growing without bound.
+    */
+    const push = recall?.trim()
+      ? { recalls: { $each: [{ at: new Date(), text: recall.trim() }], $slice: -RECALL_KEEP } }
+      : null;
 
     if (result === 'recalled') {
       // A successful review is exactly what the ladder is counting, so it moves
@@ -398,7 +481,7 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
 
     const progress = await Progress.findOneAndUpdate(
       { _id: existing._id },
-      { $set: set },
+      push ? { $set: set, $push: push } : { $set: set },
       { new: true },
     );
 
@@ -441,6 +524,13 @@ export function toQueueItem(row, { rungs, problem }) {
       // deciding what to work on next, and "three sittings, still stuck" is the
       // part of that decision a count cannot make.
       recentAttempts: (row.attempts || []).slice(-4),
+      /*
+        The last three things you said this problem was, for test mode's reveal.
+        Three rather than all ten: the panel is showing you what you thought last
+        time, not a diary, and the older ones are only interesting next to the
+        newer ones anyway.
+      */
+      recentRecalls: (row.recalls || []).slice(-3),
     },
     dueReason: row.needsRevision ? 'marked' : 'scheduled',
     /*

@@ -1,0 +1,439 @@
+/* =====================================================================
+   Practice — the pattern drill, and the mock beside it.
+
+   Follows the app's own tokens rather than redefining any, unlike Pro Coder.
+   This is not a different room; it is the same app with a stopwatch on. No
+   `backdrop-filter` anywhere, for the reason at the top of cp.css.
+   ===================================================================== */
+
+.pr-root {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.pr-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+.pr-head h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.pr-head p {
+  margin: 6px 0 0;
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.pr-stat {
+  flex: 0 0 auto;
+  text-align: right;
+}
+.pr-stat-value {
+  display: block;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--accent);
+}
+.pr-stat-label {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.pr-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .pr-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pr-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 18px 20px 16px;
+}
+
+.pr-eyebrow {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+}
+
+.pr-lead {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------- the drill */
+
+.pr-drill-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pr-score {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/*
+  The question. Big, because it is the only thing on screen you are meant to be
+  reading, and the whole exercise is "look at this and know what it is".
+*/
+.pr-question {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0 18px;
+  min-height: 58px;
+}
+.pr-question h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.pr-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.pr-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13.5px;
+  text-align: left;
+}
+.pr-option:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+.pr-option:disabled {
+  cursor: default;
+}
+
+/* The number that answers it from the keyboard. The drill is a rhythm and the
+   mouse is what breaks it. */
+.pr-key {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.pr-option-name {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+  After an answer: the right one is always marked, the one you picked is marked
+  if it was wrong, and everything else recedes. Being told "wrong" without being
+  told what it was is the one way to make a drill actively useless.
+*/
+.pr-option.right {
+  border-color: var(--easy);
+  background: var(--easy-bg);
+  color: var(--easy);
+}
+.pr-option.wrong {
+  border-color: var(--hard);
+  background: var(--hard-bg);
+  color: var(--hard);
+}
+.pr-option.dim {
+  opacity: 0.45;
+}
+.pr-option.right .pr-key,
+.pr-option.wrong .pr-key {
+  border-color: currentColor;
+  color: currentColor;
+}
+
+.pr-acts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+.pr-acts .spacer {
+  flex: 1;
+}
+.pr-acts kbd {
+  font-size: 10px;
+  padding: 0 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------- the mock */
+
+.pr-tabs {
+  margin-bottom: 14px;
+}
+
+.pr-mock-title {
+  margin: 8px 0 0;
+  font-size: 19px;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+
+.pr-mock-setup {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 16px;
+}
+.pr-mock-setup .field {
+  margin: 0;
+}
+
+/*
+  The clock, and the one moment it changes colour.
+
+  Running out of time is the outcome the exercise is about, so the header says
+  so plainly rather than letting the number quietly go negative — a real round
+  would have ended, and the point is to feel that.
+*/
+.pr-mock-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.pr-mock-head .spacer {
+  flex: 1;
+}
+.pr-mock-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.pr-mock-head.over .pr-mock-clock {
+  color: var(--hard);
+}
+
+.pr-mock-q {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.pr-mock-q:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.pr-mock-q > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.pr-mock-q > header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.pr-mock-n {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+}
+
+.pr-mock-approach {
+  display: block;
+  margin-bottom: 12px;
+}
+.pr-mock-approach textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+.pr-mock-approach textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* What sits where the editor will be. Says why, because a missing control with
+   no explanation reads as something broken. */
+.pr-mock-locked {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.pr-rubric {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pr-rubric .check-row {
+  align-items: flex-start;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------------- the score */
+
+.pr-result h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 8px 0 0;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.pr-pct {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.pr-misses {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pr-misses li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+}
+.pr-miss-title {
+  flex: 1;
+  min-width: 160px;
+  font-weight: 550;
+  color: var(--text);
+}
+.pr-miss-said {
+  color: var(--hard);
+}
+.pr-miss-was {
+  color: var(--easy);
+}
+.pr-miss-said b,
+.pr-miss-was b {
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------- most missed */
+
+.pr-leaks .hint {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.pr-leak-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.pr-leak-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+.pr-leak-list li:last-child {
+  border-bottom: none;
+}
+.pr-leak-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pr-leak-count {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  color: var(--hard);
+}
+
+@media (max-width: 760px) {
+  .pr-question h2 {
+    font-size: 19px;
+  }
+  .pr-options {
+    grid-template-columns: 1fr;
+  }
+}

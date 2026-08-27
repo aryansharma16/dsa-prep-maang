@@ -1,10 +1,11 @@
 import {
   IconBoard,
   IconBook,
+  IconCalendar,
   IconChart,
   IconChat,
   IconCode,
-  IconMegaphone,
+  IconDice,
   IconRotate,
 } from '../components/ui/Icons.jsx';
 
@@ -23,13 +24,31 @@ import {
  */
 
 export const MODULE_NAV = [
+  /*
+    First, above every other module, because it is the one that says what to do
+    with them. It is also the only entry here that most sessions never see — the
+    server leaves `playbook` out of `visible` for everyone but the site owner,
+    so `moduleVisible` filters it out with no special case needed here.
+  */
+  { key: 'playbook', to: '/playbook', label: 'Playbook', Icon: IconCalendar },
   { key: 'revision', to: '/revision', label: 'Revision', Icon: IconRotate },
   { key: 'stats', to: '/stats', label: 'Stats', Icon: IconChart },
   { key: 'chat', to: '/chat', label: 'AI Chat', Icon: IconChat },
   { key: 'learn', to: '/learn', label: 'Learn', Icon: IconBook },
   { key: 'procoder', to: '/cp', label: 'Pro Coder', Icon: IconCode },
+  /* Beside Pro Coder rather than beside the roadmap: both are things you do with
+     the curriculum, and the drill draws its questions from the roadmap the way
+     the ladder draws its problems from its own list. */
+  { key: 'practice', to: '/practice', label: 'Practice', Icon: IconDice },
   { key: 'tasks', to: '/tasks', label: 'Tasks', Icon: IconBoard },
-  { key: 'feedback', to: '/feedback', label: 'Feedback', Icon: IconMegaphone },
+  /*
+    Feedback is deliberately absent. It is a module like the rest — the server
+    still gates /feedback on it, and `moduleVisible(modules, 'feedback')` still
+    decides whether the topbar's megaphone is drawn — but it had three doors
+    into the same dialog and only one of them cost a row in a menu you read on
+    the way to somewhere else. The bubble and the topbar button remain, and the
+    page itself is a click away from your profile.
+  */
 ];
 
 /**

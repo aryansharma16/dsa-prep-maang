@@ -76,9 +76,15 @@ export const progressApi = {
     posted rather than patched because "I reviewed this" is an event, not a
     field — see the server for what the patch route could not do here.
   */
-  review: (problemId, result, confidence) =>
+  review: (problemId, result, confidence, recall) =>
     http
-      .post(`/progress/${problemId}/review`, { result, ...(confidence ? { confidence } : {}) })
+      .post(`/progress/${problemId}/review`, {
+        result,
+        ...(confidence ? { confidence } : {}),
+        // Test mode's line. Omitted entirely when there is none, so the plain
+        // queue's request is byte-for-byte the one it always sent.
+        ...(recall ? { recall } : {}),
+      })
       .then((r) => r.data.progress),
 };
 
@@ -120,9 +126,13 @@ export const cpApi = {
     http.patch(`/cp/progress/${problemId}/attempts/${attemptId}`, body).then((r) => r.data.progress),
   deleteAttempt: (problemId, attemptId) =>
     http.delete(`/cp/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
-  review: (problemId, result, confidence) =>
+  review: (problemId, result, confidence, recall) =>
     http
-      .post(`/cp/progress/${problemId}/review`, { result, ...(confidence ? { confidence } : {}) })
+      .post(`/cp/progress/${problemId}/review`, {
+        result,
+        ...(confidence ? { confidence } : {}),
+        ...(recall ? { recall } : {}),
+      })
       .then((r) => r.data.progress),
 
   /**
@@ -158,6 +168,62 @@ export const viewsApi = {
   get: (scope) => http.get(`/views/${scope}`).then((r) => r.data.view),
   save: (scope, filters) => http.put(`/views/${scope}`, { filters }).then((r) => r.data.view),
   clear: (scope) => http.delete(`/views/${scope}`).then((r) => r.data.view),
+};
+
+/**
+ * Learn — which topics you have read, and which are due to come back.
+ *
+ * The prose itself never comes through here: it is authored in the bundle and
+ * imported per topic. These four calls carry the only per-account fact Learn
+ * has, which is enough to put a topic on the same revision ladder a problem
+ * goes on.
+ *
+ * `mark` sends the title because only the client can see it — the server has no
+ * collection of topics to look one up in. See models/LearnProgress.js.
+ */
+export const learnApi = {
+  progress: () => http.get('/learn/progress').then((r) => r.data.topics),
+  revision: () => http.get('/learn/revision').then((r) => r.data),
+  mark: (track, topic, body) =>
+    http.put(`/learn/progress/${track}/${topic}`, body).then((r) => r.data.topic),
+  review: (track, topic, result, confidence, recall) =>
+    http
+      .post(`/learn/progress/${track}/${topic}/review`, {
+        result,
+        ...(confidence ? { confidence } : {}),
+        ...(recall ? { recall } : {}),
+      })
+      .then((r) => r.data.topic),
+};
+
+/**
+ * Practice — the pattern drill, and the mock beside it.
+ *
+ * A run is posted once, when you stop. There is deliberately no per-answer
+ * endpoint: the drill answers at about three seconds each, and a request per
+ * answer would be a write storm for a signal that only means anything summed up.
+ */
+export const practiceApi = {
+  saveDrillRun: (body) => http.post('/practice/drill-runs', body).then((r) => r.data.run),
+  saveMockRun: (body) => http.post('/practice/mock-runs', body).then((r) => r.data.run),
+  stats: () => http.get('/practice/stats').then((r) => r.data),
+};
+
+/**
+ * The owner's prep plan — the state half of it.
+ *
+ * The plan itself is authored in `playbook/plan.js` and never leaves the
+ * bundle, so this endpoint carries only what the document cannot know about
+ * itself: the start date, the ticks, and the retro notes. Every write is a
+ * PATCH of one thing — one date, one tick, one note — and answers with the
+ * whole plan, so a caller never reassembles what the server decided.
+ *
+ * 404s for every account but the owner's. That is the module gate, not an
+ * error: see server/src/middleware/requireModule.js.
+ */
+export const playbookApi = {
+  get: () => http.get('/playbook').then((r) => r.data.plan),
+  patch: (body) => http.patch('/playbook', body).then((r) => r.data.plan),
 };
 
 /**

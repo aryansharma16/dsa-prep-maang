@@ -1,6 +1,7 @@
 import { IconCheck, IconClock, IconExternal, IconNote, IconPlay } from '../ui/Icons.jsx';
 import { attemptTitle, minutesLabel, outcomeOf } from './attempts.js';
 import { CompanyChips } from './CompanyChips.jsx';
+import { EditorialLink } from './EditorialLink.jsx';
 
 /**
  * Every column the problems table can show, in default order.
@@ -340,17 +341,18 @@ export const COLUMNS = [
     label: 'Video',
     width: 62,
     hidden: true,
-    cell: ({ problem }) =>
+    /* Gated. A walkthrough is somebody else's answer just as much as the
+       editorial is — see EditorialLink. */
+    cell: ({ problem, progress }) =>
       problem.videoId ? (
-        <a
-          className="cell-link"
+        <EditorialLink
+          problem={problem}
+          progress={progress}
           href={`https://www.youtube.com/watch?v=${problem.videoId}`}
-          target="_blank"
-          rel="noreferrer"
           title="Watch the walkthrough"
         >
           <IconPlay size={12} />
-        </a>
+        </EditorialLink>
       ) : (
         <Empty />
       ),
@@ -360,17 +362,16 @@ export const COLUMNS = [
     label: 'Article',
     width: 66,
     hidden: true,
-    cell: ({ problem }) =>
+    cell: ({ problem, progress }) =>
       problem.articleUrl ? (
-        <a
-          className="cell-link"
+        <EditorialLink
+          problem={problem}
+          progress={progress}
           href={problem.articleUrl}
-          target="_blank"
-          rel="noreferrer"
           title={problem.articleUrl}
         >
           <IconExternal size={12} />
-        </a>
+        </EditorialLink>
       ) : (
         <Empty />
       ),

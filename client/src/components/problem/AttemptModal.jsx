@@ -8,15 +8,22 @@ import { clock } from '../tasks/time.js';
 import { IconClock, IconPause, IconPlay, IconRotate, IconTrash } from '../ui/Icons.jsx';
 import { Modal } from '../ui/Modal.jsx';
 import {
+  DEFAULT_LANG,
+  FAILURE_REASONS,
   OUTCOMES,
+  SOLUTION_LANGS,
   TIME_PRESETS,
   attemptStamp,
   editWindowLeft,
   isEditable,
+  langLabel,
   minutesLabel,
   outcomeOf,
+  reasonOf,
   windowLabel,
 } from './attempts.js';
+import { CodeEditor, SolutionBlock } from './SolutionEditor.jsx';
+import { peekedOn } from './peeks.js';
 
 /** Whole minutes, and never zero once the clock has actually run. */
 const toMinutes = (seconds) => (seconds > 0 ? Math.max(1, Math.round(seconds / 60)) : 0);
@@ -75,18 +82,59 @@ export function AttemptModal({ problem, onClose, store }) {
   const [confidence, setConfidence] = useState(progress.confidence ?? 3);
   const [note, setNote] = useState('');
   const [color, setColor] = useState('');
+  const [code, setCode] = useState('');
+  /*
+    The language is sticky across problems: you are preparing in one language,
+    and re-picking it on every log is a tax on the common case. Read once on
+    open rather than subscribed to, so changing it here does not re-render
+    anything until the next dialog.
+  */
+  const [lang, setLang] = useState(() => localStorage.getItem('solution-lang') || DEFAULT_LANG);
+  const [reason, setReason] = useState('');
+  /*
+    Pre-ticked when the editorial was opened for this problem today — see
+    peeks.js. Still a control rather than a fact, because the record is local
+    and a peek on another device is one this box cannot know about.
+  */
+  const [peeked, setPeeked] = useState(() => peekedOn(problem._id));
   const [saving, setSaving] = useState(false);
+
+  const selected = outcomeOf(outcome);
+  // The chips only make sense on a sitting that did not solve it, and the
+  // server drops a reason sent against one that did.
+  const canGiveReason = !selected.solves;
+
+  const pickLang = (id) => {
+    setLang(id);
+    try {
+      localStorage.setItem('solution-lang', id);
+    } catch {
+      // Blocked storage costs the stickiness and nothing else.
+    }
+  };
 
   const submit = async () => {
     setSaving(true);
-    await logAttempt(problem._id, { minutes, outcome, confidence, note: note.trim(), color, timed });
+    await logAttempt(problem._id, {
+      minutes,
+      outcome,
+      confidence,
+      note: note.trim(),
+      color,
+      timed,
+      code,
+      lang,
+      reason: canGiveReason ? reason : '',
+      peeked,
+    });
     // The measurement has become an attempt, so the clock's job is done. Left
     // running it would be counted twice into the next one.
     if (onThisProblem) timer.reset();
+    // The peek has been written onto the attempt, so the local note has done
+    // its job — a second sitting today must not inherit it.
+    clearPeek(problem._id);
     onClose();
   };
-
-  const selected = outcomeOf(outcome);
 
   return (
     <Modal title={`Log an attempt — ${problem.title}`} size="xl" onClose={onClose}>
@@ -152,6 +200,35 @@ export function AttemptModal({ problem, onClose, store }) {
                 five raise the revision flag, and that is not guessable from
                 the label. */}
             <p className="att-hint">{selected.hint}</p>
+
+            {/*
+              Why it did not go in, on the sittings where that is a question.
+
+              Deliberately not offered on a solve: "how did the one that worked
+              fail" is a question with no answer, and a sixth chip row on the
+              common path would slow down the log this dialog exists to keep
+              fast. Optional even here — a reason you cannot name is better left
+              blank than filed under the wrong one.
+            */}
+            {canGiveReason && (
+              <div className="att-reason">
+                <h5>What went wrong?</h5>
+                <div className="chips att-reasons">
+                  {FAILURE_REASONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`chip att-reason-chip ${reason === option.value ? 'on' : ''}`}
+                      onClick={() => setReason(reason === option.value ? '' : option.value)}
+                      title={option.hint}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                {reason && <p className="att-hint">{reasonOf(reason)?.hint}</p>}
+              </div>
+            )}
           </section>
 
           <section className="att-block">
@@ -178,6 +255,48 @@ export function AttemptModal({ problem, onClose, store }) {
               spellCheck="false"
             />
             <HuePicker value={color} onChange={setColor} label="Colour this attempt" />
+          </section>
+
+          {/*
+            What you actually wrote.
+
+            Last in the form because it is the longest field and the one you
+            paste into rather than think about — everything above is two taps
+            and this is a scroll. Optional: a sitting where you never got to code
+            is still worth logging, and an empty box stores an empty string
+            rather than blocking the log.
+
+            Offered on every outcome, not just solves. The code from a sitting
+            that failed is the more instructive artefact — it is where the
+            off-by-one is.
+          */}
+          <section className="att-block">
+            <h4>Your solution</h4>
+            <CodeEditor
+              value={code}
+              lang={lang}
+              onChange={setCode}
+              onLang={pickLang}
+              placeholder={
+                'Paste what you wrote — including the version that did not work.\n' +
+                'Tab indents. Nothing here is run; it is here so you can read it back.'
+              }
+            />
+
+            {/*
+              The one control that is not about this sitting's content. It is
+              pre-ticked from the local peek record, and it is a checkbox rather
+              than an automatic fact because a peek on your phone is one this
+              browser cannot know about.
+            */}
+            <label className="att-peek check-row">
+              <input
+                type="checkbox"
+                checked={peeked}
+                onChange={(e) => setPeeked(e.target.checked)}
+              />
+              I read the editorial or watched the video before this
+            </label>
           </section>
         </div>
 
@@ -512,7 +631,48 @@ function AttemptLog({ problem, store }) {
                   onDelete={() => remove(attempt._id)}
                 />
               ) : (
-                attempt.note && <p className="att-item-note">{attempt.note}</p>
+                <>
+                  {attempt.note && <p className="att-item-note">{attempt.note}</p>}
+
+                  {/*
+                    Everything below renders only when it is there, which is what
+                    keeps every attempt logged before these fields existed
+                    looking exactly as it did — a stamp, an outcome pill and a
+                    note, with no empty boxes underneath.
+                  */}
+                  {(reasonOf(attempt.reason) || attempt.peeked) && (
+                    <div className="att-item-tags">
+                      {reasonOf(attempt.reason) && (
+                        <span
+                          className="att-reason-tag"
+                          title={reasonOf(attempt.reason).hint}
+                        >
+                          {reasonOf(attempt.reason).label}
+                        </span>
+                      )}
+                      {attempt.peeked && (
+                        <span className="att-peek-tag" title="The editorial was open before this sitting">
+                          peeked
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/*
+                    The solution, behind a summary rather than always open. A log
+                    of six attempts each showing forty lines is a page you scroll
+                    past — the point of keeping the code is being able to reach
+                    for one, not to read them all every time.
+                  */}
+                  {attempt.code && (
+                    <details className="att-item-code">
+                      <summary>
+                        Solution <span className="mono">{langLabel(attempt.lang)}</span>
+                      </summary>
+                      <SolutionBlock code={attempt.code} lang={attempt.lang} />
+                    </details>
+                  )}
+                </>
               )}
             </li>
           );
@@ -534,6 +694,8 @@ function AttemptLog({ problem, store }) {
  */
 function AttemptEditor({ attempt, onSave, confirming, onAskDelete, onCancelDelete, onDelete }) {
   const [note, setNote] = useState(attempt.note || '');
+  const [code, setCode] = useState(attempt.code || '');
+  const [lang, setLang] = useState(attempt.lang || DEFAULT_LANG);
   const area = useRef(null);
 
   useEffect(() => {
@@ -560,6 +722,40 @@ function AttemptEditor({ attempt, onSave, confirming, onAskDelete, onCancelDelet
           clearable
         />
       </div>
+
+      {/*
+        The solution, editable for the same half hour as the note.
+
+        The fix you thought of on the way to the kitchen belongs on the sitting
+        it belongs to. Saved on blur like the note above rather than per
+        keystroke — this is code, and a PATCH per character would be hundreds of
+        requests for one paste.
+      */}
+      <CodeEditor
+        value={code}
+        lang={lang}
+        rows={6}
+        onChange={setCode}
+        onLang={(next) => {
+          setLang(next);
+          onSave({ lang: next });
+        }}
+        placeholder="Paste or fix the solution for this sitting…"
+      />
+      {code !== (attempt.code || '') && (
+        <div className="att-edit-row">
+          <button type="button" className="link-btn" onClick={() => onSave({ code })}>
+            Save solution
+          </button>
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => setCode(attempt.code || '')}
+          >
+            Discard
+          </button>
+        </div>
+      )}
 
       {/* Saves on the click rather than waiting for a Save button: a colour is
           one tap and the result is visible on the row behind it. */}

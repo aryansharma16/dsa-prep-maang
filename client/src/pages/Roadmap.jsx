@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { Link, useOutletContext, useSearchParams } from 'react-router-dom';
 import { FiltersModal } from '../components/filters/FiltersModal.jsx';
 import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
 import { GuideReader } from '../components/problem/GuideReader.jsx';
@@ -8,6 +8,7 @@ import {
   IconChevronsDown,
   IconChevronsUp,
   IconClose,
+  IconCheckSquare,
   IconColumns,
   IconDice,
   IconFilter,
@@ -18,6 +19,8 @@ import { activeCount, clearPatch, matchesFilters } from '../filters/spec.js';
 import { useLocalState } from '../hooks/useLocalState.js';
 import { useSavedFilters } from '../hooks/useSavedFilters.js';
 import { useTableLayout } from '../hooks/useTableLayout.js';
+import { useAuth } from '../store/AuthContext.jsx';
+import { moduleVisible } from '../store/modules.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 import { useToast } from '../store/ToastContext.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
@@ -28,6 +31,10 @@ import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 export function Roadmap() {
   const { groups, loading, loadError, setProgress, reload } = useRoadmap();
   const { toast } = useToast();
+  const { modules } = useAuth();
+  // Cosmetic, like every module check in the client — the route is not declared
+  // and the API 404s when the module is off.
+  const hasPractice = moduleVisible(modules, 'practice');
   const { query, setQuery } = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -395,6 +402,23 @@ export function Roadmap() {
           <IconDice size={13} />
           Pick one
         </button>
+
+        {/*
+          The drill, from the page its questions come from. Two clicks from here
+          rather than a trip through the side menu, because the moment you want
+          it is the moment you are looking at this list and cannot remember what
+          half of it is. Hidden with its module, like every other nav route.
+        */}
+        {hasPractice && (
+          <Link
+            to="/practice"
+            className="toggle-chip"
+            title="Drill pattern recognition — title only, six choices"
+          >
+            <IconCheckSquare size={13} />
+            Drill
+          </Link>
+        )}
 
         {isFiltering && (
           <>

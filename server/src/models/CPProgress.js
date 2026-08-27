@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { OUTCOME_VALUES } from '../config/attempts.js';
-import { HUES } from '../config/hues.js';
+import { attemptSchema } from './schemas/attempt.js';
+import { recallSchema } from './schemas/recall.js';
 
 /**
  * One person's record against one CP problem.
@@ -12,21 +12,14 @@ import { HUES } from '../config/hues.js';
  * both sides of the app, and the revision ladder in services/review.service.js
  * is shared rather than reimplemented.
  *
- * What it adds is the platform's own verdict, which the roadmap has no
+ * The attempt sub-document is now literally shared rather than mirrored — see
+ * schemas/attempt.js. It was copied here, identically, until there was a field
+ * to add to it.
+ *
+ * What this adds is the platform's own verdict, which the roadmap has no
  * equivalent of: LeetCode will not tell us what you have solved, and Codeforces
  * will.
  */
-
-const attemptSchema = new mongoose.Schema({
-  at: { type: Date, default: Date.now },
-  loggedAt: { type: Date, default: Date.now, immutable: true },
-  minutes: { type: Number, default: 0 },
-  outcome: { type: String, enum: OUTCOME_VALUES, default: 'solved' },
-  note: { type: String, default: '' },
-  color: { type: String, enum: [...HUES, ''], default: '' },
-  timed: { type: Boolean, default: false },
-  confidence: { type: Number, min: 1, max: 5, default: null },
-});
 
 const cpProgressSchema = new mongoose.Schema(
   {
@@ -40,6 +33,8 @@ const cpProgressSchema = new mongoose.Schema(
     notes: { type: String, default: '' },
 
     attempts: { type: [attemptSchema], default: [] },
+    /** What you said this was, from the title alone. See schemas/recall.js. */
+    recalls: { type: [recallSchema], default: [] },
     solvedAt: { type: Date, default: null },
     lastReviewedAt: { type: Date, default: null },
     nextReviewAt: { type: Date, default: null },
