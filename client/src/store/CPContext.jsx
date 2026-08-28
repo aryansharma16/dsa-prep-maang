@@ -94,8 +94,8 @@ export function CPProvider({ children }) {
     problems from a page that is no longer open.
   */
   useEffect(() => {
-    publishCPLadder(problems);
-  }, [problems]);
+    publishCPLadder(problems, tiers);
+  }, [problems, tiers]);
 
   useEffect(() => clearCPLadder, []);
 

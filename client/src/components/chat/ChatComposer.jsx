@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '../../store/ChatContext.jsx';
+import { ratingColour } from '../../theme/cfRating.js';
 import { IconClock, IconClose, IconGrid, IconPlus, IconSend, IconStop } from '../ui/Icons.jsx';
 import { ModelPicker } from './ModelPicker.jsx';
 import { untilLabel } from './time.js';
@@ -61,7 +62,21 @@ export function ChatComposer({ attached, onAttach, onDetach, onSend }) {
           {attached && (
             <span className="chat-attach">
               <IconGrid size={10} />
-              <span className={`diff ${attached.difficulty}`}>{attached.difficulty}</span>
+              {/*
+                A ladder problem is identified by its contest code and rating, a
+                roadmap problem by its difficulty word. Which one this is comes
+                from the object rather than from the route, so a chip that
+                outlives a navigation still describes what it actually holds.
+              */}
+              {attached.rating || attached.code ? (
+                <span className="chat-attach-rating mono" style={{ color: ratingColour(attached.rating) }}>
+                  {attached.code || attached.rating}
+                </span>
+              ) : (
+                attached.difficulty && (
+                  <span className={`diff ${attached.difficulty}`}>{attached.difficulty}</span>
+                )
+              )}
               <span className="nm">{attached.title}</span>
               <button
                 type="button"

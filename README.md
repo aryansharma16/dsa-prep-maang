@@ -1999,9 +1999,13 @@ technique names, gives one hint at a time up a five-step ladder, and holds a
 stricter spoiler rule — a full solution to a rated problem you are actively
 working costs you the thing you came for, so it takes being asked outright.
 
-It is told your live Codeforces rating alongside the problem, which is what lets
-it say "this is 250 above you, treat it as a stretch" instead of answering in a
-vacuum. It is never told the judge's tag list: that is the editorial's answer
+Attaching a ladder problem sends its *identity*, not its text: title, contest
+code and index, rating and division, ladder tier, our own topic tags, and where
+your progress stands. We do not mirror statements from either judge, and about
+eighty tokens of identity is enough for a model to know which problem you mean —
+`1670C, rated 1400` is a name, not a description. It is told your live Codeforces
+rating alongside all that, which is what lets it say "this is 250 above you,
+treat it as a stretch" instead of answering in a vacuum. It is never told the judge's tag list: that is the editorial's answer
 key, the interface deliberately hides it behind a toggle, and handing it over
 through the coach would give away what the UI withholds. A thread keeps the
 persona it started with, so a conversation opened on the ladder and continued

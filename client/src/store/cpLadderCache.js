@@ -22,15 +22,38 @@
 
 let problems = [];
 
-/** A minimal projection — the picker needs a label and an id, nothing else. */
-export function publishCPLadder(list) {
+/**
+ * A minimal projection — enough to label a row, sort it, and tell two problems
+ * with the same title apart.
+ *
+ * Every field the picker renders has to be published here, and the ones that
+ * can be absent have to be published as their empty value rather than left off.
+ * That is not a style point: `difficulty` used to be missing from this list
+ * while the picker indexed straight into it, so opening the attach sheet on /cp
+ * threw during render and took the whole panel down with it. A row that renders
+ * blank is a bug; a row that cannot render at all is a broken feature.
+ *
+ * `tierLabel` is resolved here rather than in the picker because the tier
+ * metadata is the provider's, and shipping the slug alone would make the
+ * picker's group headings read `newbie` where the ladder behind it says
+ * `Foundations`.
+ */
+export function publishCPLadder(list, tiers) {
+  const labels = new Map((tiers || []).map((t) => [t.slug, t.label]));
+
   problems = (list || []).map((p) => ({
     _id: p._id,
     title: p.title,
     slug: p.slug,
     tier: p.tier,
+    tierLabel: labels.get(p.tier) || p.tier,
     patternSlug: p.patternSlug,
     platform: p.platform,
+    /**
+     * The platform's own label — '1400' on Codeforces, 'Easy' on CodeChef, and
+     * an empty string on plenty of rows. Always a string, never undefined.
+     */
+    difficulty: p.difficulty || '',
     rating: p.codeforces?.rating || p.codechef?.difficultyRating || 0,
     code: p.codeforces
       ? `${p.codeforces.contestId}${p.codeforces.index}`

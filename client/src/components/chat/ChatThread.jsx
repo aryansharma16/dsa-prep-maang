@@ -8,7 +8,7 @@ import { ChatMessage } from './ChatMessage.jsx';
 const STICK_PX = 48;
 
 export function ChatThread({ onPick }) {
-  const { messages, suggestions, loadingThread, streaming } = useChat();
+  const { messages, suggestions, loadingThread, streaming, mode } = useChat();
   const scrollRef = useRef(null);
   const stuckRef = useRef(true);
 
@@ -58,8 +58,23 @@ export function ChatThread({ onPick }) {
             <span className="chat-greet-mark">
               <IconSparkle size={17} />
             </span>
-            <h4>Hi! I&apos;m your study assistant.</h4>
-            <p>Ask about syntax, a pattern, complexity, or a problem you&apos;re stuck on.</p>
+            {/* Who is actually answering. The suggestions below already switch
+                with the route, and a greeting that did not would be the coach
+                introducing itself as somebody else. */}
+            {mode === 'cp' ? (
+              <>
+                <h4>Hi! I&apos;m your CP coach.</h4>
+                <p>
+                  Ask for a nudge on a ladder problem, or attach one with + so I know the rating and
+                  contest you mean.
+                </p>
+              </>
+            ) : (
+              <>
+                <h4>Hi! I&apos;m your study assistant.</h4>
+                <p>Ask about syntax, a pattern, complexity, or a problem you&apos;re stuck on.</p>
+              </>
+            )}
 
             {suggestions.length > 0 && (
               <>

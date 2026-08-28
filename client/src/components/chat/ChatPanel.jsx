@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useChat } from '../../store/ChatContext.jsx';
 import { IconClock, IconClose, IconExpand, IconPlus, IconSparkle } from '../ui/Icons.jsx';
 import { ChatComposer } from './ChatComposer.jsx';
@@ -41,13 +41,26 @@ export function ChatPanel({ variant, onExpand, onClose }) {
   const [attached, setAttached] = useState(null);
   const [sheet, setSheet] = useState(null);
 
+  /*
+    Drop the attachment when the assistant changes under it.
+
+    The two ids name rows in different collections, so a ladder problem still
+    chipped to the composer after a walk from /cp to /roadmap would be sent as a
+    `problemId` — where it matches nothing, and the send quietly goes out with
+    no context at all. Silently wrong is worse than visibly empty.
+  */
+  useEffect(() => {
+    setAttached(null);
+    setSheet((current) => (current === 'problems' ? null : current));
+  }, [chat.mode]);
+
   return (
     <div className={`chat-panel ${variant}`} onKeyDown={scopeKeys}>
       <header className="chat-head">
         <span className="chat-head-mark" aria-hidden="true">
           <IconSparkle size={12} />
         </span>
-        <span className="chat-head-id">Study assistant</span>
+        <span className="chat-head-id">{chat.mode === 'cp' ? 'CP coach' : 'Study assistant'}</span>
         <span className="spacer" />
 
         {variant === 'dock' ? (

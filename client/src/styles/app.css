@@ -5733,6 +5733,11 @@ a.tile.attention:hover {
 .chat-pick-item .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-pick-group { font-size: 10.5px; color: var(--text-3); flex: 0 0 auto; }
 .chat-pick-done { font-size: 10px; color: var(--easy); flex: 0 0 auto; }
+/* The ladder's rating, in its Codeforces band colour — the colour is inline
+   because the band is per row. Fixed width so the titles line up in a column
+   the way they do behind the E/M/H letter on the roadmap. */
+.chat-pick-rating { font-size: 11px; flex: 0 0 30px; text-align: right; }
+.chat-attach-rating { font-size: 10.5px; font-weight: 500; }
 .chat-pick-count { font-size: 10.5px; color: var(--text-3); flex: 0 0 auto; }
 
 /* Sticky, so you always know which pattern you are scrolling through — the

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useChat } from '../../store/ChatContext.jsx';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { readCPLadder } from '../../store/cpLadderCache.js';
+import { ratingColour } from '../../theme/cfRating.js';
 import { IconClose, IconSearch } from '../ui/Icons.jsx';
 
 /**
@@ -24,6 +25,7 @@ export function ProblemPicker({ onPick, onClose }) {
     handing it a roadmap problem id would attach nothing at all.
   */
   const { mode } = useChat();
+  const isCp = mode === 'cp';
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
   const sheetRef = useRef(null);
@@ -70,16 +72,15 @@ export function ProblemPicker({ onPick, onClose }) {
       rather than from a context, because the dock is mounted in the app shell
       beside the /cp route and not inside its provider — see cpLadderCache.js.
     */
-    const source =
-      mode === 'cp'
-        ? Object.values(
-            readCPLadder().reduce((acc, p) => {
-              acc[p.tier] ??= { slug: p.tier, name: p.tier, problems: [] };
-              acc[p.tier].problems.push(p);
-              return acc;
-            }, {}),
-          )
-        : groups;
+    const source = isCp
+      ? Object.values(
+          readCPLadder().reduce((acc, p) => {
+            acc[p.tier] ??= { slug: p.tier, name: p.tierLabel || p.tier, problems: [] };
+            acc[p.tier].problems.push(p);
+            return acc;
+          }, {}),
+        )
+      : groups;
 
     for (const group of source) {
       const matches = needle
@@ -87,8 +88,10 @@ export function ProblemPicker({ onPick, onClose }) {
             [
               problem.title,
               group.name,
-              // "1352G" is how a CP problem is actually named in conversation.
+              // "1352G" is how a CP problem is actually named in conversation,
+              // and "1400" is how its difficulty is.
               problem.code || '',
+              problem.rating ? String(problem.rating) : '',
               ...(problem.topicTags || []),
               ...(problem.companies || []).map((c) => c.name),
             ]
@@ -104,7 +107,7 @@ export function ProblemPicker({ onPick, onClose }) {
     }
 
     return { sections: out, count: total };
-  }, [groups, q, mode]);
+  }, [groups, q, isCp]);
 
   return (
     <div className="chat-sheet" ref={sheetRef} role="dialog" aria-label="Attach a problem">
@@ -126,7 +129,13 @@ export function ProblemPicker({ onPick, onClose }) {
       </div>
 
       <div className="chat-pick">
-        {count === 0 && <div className="empty">No problem matches that.</div>}
+        {count === 0 && (
+          <div className="empty">
+            {isCp && !q.trim()
+              ? 'The ladder is not loaded yet. Open Pro Coder, then try again.'
+              : 'No problem matches that.'}
+          </div>
+        )}
 
         {sections.map((section) => (
           <div key={section.slug}>
@@ -141,9 +150,30 @@ export function ProblemPicker({ onPick, onClose }) {
                 className="chat-pick-item"
                 onClick={() => onPick({ ...problem, patternName: section.name })}
               >
-                <span className={`diff ${problem.difficulty}`}>{problem.difficulty[0]}</span>
+                {/*
+                  Two curricula, two ways of saying "how hard".
+
+                  A roadmap problem wears its E/M/H letter. A ladder problem
+                  wears its rating in its Codeforces band colour, because that
+                  is the number the person is actually navigating by — and
+                  because `difficulty` on a CP row is a free-text platform label
+                  that is very often empty. Both branches cope with a missing
+                  value rather than indexing into it.
+                */}
+                {isCp ? (
+                  <span className="chat-pick-rating mono" style={{ color: ratingColour(problem.rating) }}>
+                    {problem.rating || problem.difficulty || '—'}
+                  </span>
+                ) : (
+                  <span className={`diff ${problem.difficulty || ''}`}>
+                    {problem.difficulty?.[0] || '?'}
+                  </span>
+                )}
                 <span className="nm">{problem.title}</span>
-                {problem.progress?.status === 'solved' && <span className="chat-pick-done">solved</span>}
+                {isCp && problem.code && <span className="chat-pick-group mono">{problem.code}</span>}
+                {(problem.progress?.status || problem.status) === 'solved' && (
+                  <span className="chat-pick-done">solved</span>
+                )}
               </button>
             ))}
           </div>

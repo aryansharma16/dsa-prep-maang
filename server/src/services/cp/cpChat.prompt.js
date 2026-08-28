@@ -126,6 +126,15 @@ export async function cpProblemContext(problemId, userId) {
         (cc.difficultyRating ? `, difficulty ${cc.difficultyRating}` : '') +
         (cc.division ? `, ${cc.division}` : ''),
     );
+    if (cc.contestName) lines.push(`Contest: ${cc.contestName}`);
+  } else if (problem.difficulty) {
+    /*
+      A custom addition, or a row whose platform block never got filled in.
+      `difficulty` is free text there — '1400', 'Easy', whatever was typed — and
+      it is the only difficulty signal such a problem has. Without this branch
+      the coach was told a title and nothing else, and answered accordingly.
+    */
+    lines.push(`Difficulty: ${problem.difficulty}`);
   }
 
   lines.push(`Pattern: ${problem.patternSlug}`);
