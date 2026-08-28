@@ -43,7 +43,7 @@ const SAMPLE = [
   reading.
 */
 const POINTS = [
-  '22 patterns, 429 problems, ordered so each one builds on the last',
+  '23 patterns, 517 problems, ordered so each one builds on the last',
   'Revision that schedules itself — the ones you nearly missed come back',
   'Ask about the problem you are on — your pick of model, every thread kept',
   'Company tags, difficulty and sheet filters on every problem',

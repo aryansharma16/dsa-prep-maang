@@ -17,6 +17,7 @@ const SHEETS = [
   { value: 'striver-sde', label: "Striver's SDE Sheet", note: '191 problems, day by day' },
   { value: 'neetcode-150', label: 'NeetCode 150', note: 'The pattern-first 150' },
   { value: 'blind-75', label: 'Blind 75', note: 'The original short list' },
+  { value: 'faang-2026', label: 'FAANG 2025-26', note: 'Reported in recent interviews' },
 ];
 
 export const ROADMAP_FILTERS = defineFilters([
@@ -77,6 +78,26 @@ export const ROADMAP_FILTERS = defineFilters([
     label: 'Companies',
     placeholder: 'Any company',
     match: (p, values) => (p.companies || []).some((c) => values.includes(c.name)),
+  },
+  {
+    /*
+      Recency, as its own filter rather than an option on the one above.
+
+      'Companies' answers "who has historically asked this", from a frequency
+      dataset with no date on it. This answers "who was reported asking it in
+      2025-26". Someone with four months and a target company wants the second
+      question, and folding it into the first would make one filter mean two
+      things depending on which name you picked — including for the names that
+      only exist on this side, since OpenAI and Anthropic have no frequency data
+      at all.
+
+      Options come from the loaded roadmap, like Topics and Companies.
+    */
+    id: 'askedRecently',
+    kind: 'many',
+    label: 'Asked in 2025-26',
+    placeholder: 'Any company',
+    match: (p, values) => (p.askedRecently || []).some((name) => values.includes(name)),
   },
 
   /*

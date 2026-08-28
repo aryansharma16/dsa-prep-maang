@@ -1,9 +1,9 @@
 # Ember
 
-A pattern-first prep tracker, with two curriculums. The **roadmap** is 429
+A pattern-first prep tracker, with two curriculums. The **roadmap** is 517
 curated interview problems ordered as a ramp — arrays → two pointers → prefix
 sum → sliding window → … → DP — with real company tags, one-click progress
-tracking and a spaced-repetition revision queue. **Pro Coder** is 800 curated
+tracking and a spaced-repetition revision queue. **Pro Coder** is 1,100 curated
 Codeforces and CodeChef problems arranged as a rating ladder, for getting from
 Newbie to Candidate Master rather than through an interview loop. System design
 and the rest follow the same shape.
@@ -24,13 +24,13 @@ the sign-in page as well as from the sidebar.
 
 | | |
 |---|---|
-| **Roadmap** | 429 problems in 22 patterns, filters that follow your account, a configurable table, inline statements and notes |
+| **Roadmap** | 517 problems in 23 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Learn** | Reference notes for the things around the algorithms. Three tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
-| **Playbook** | The site owner's own 24-week interview-prep plan — four phases over the 429 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
-| **Pro Coder** | A competitive-programming ladder: 800 problems (600 Codeforces, 200 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own palette — the app's glass material, re-stepped darker and carrying Codeforces' rating ramp — following your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
+| **Playbook** | The site owner's own 24-week interview-prep plan — four phases targeting 396 of the 517 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
+| **Pro Coder** | A competitive-programming ladder: 1,100 problems (800 Codeforces, 300 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own palette — the app's glass material, re-stepped darker and carrying Codeforces' rating ramp — following your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across both curriculums |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
@@ -86,6 +86,7 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:cp:sheets` | the curated CP sheets (CP-31, ladders, A2OJ) |
 | `npm run seed:cp:codechef` | rated CodeChef problems, with tags for the shortlist |
 | `npm run seed:cp:curate` | fills the (pattern × tier) grid → `data/cp/curated-cp.json`. `-- --dry` prints the distribution and writes nothing |
+| `npm run seed:cp:solutions` | attaches reference solutions from four public repos — additive and idempotent |
 | `npm run seed:cp:db` | upserts the CP ladder into MongoDB |
 | `npm run seed:cp:guides` | writes the 12 core CP guides |
 | `npm run seed:motivation` | writes the 160 motivational lines |
@@ -96,7 +97,7 @@ them everything works except uploading a profile picture, which answers
 
 ## The curriculum
 
-22 patterns in learning order. Inside each, problems run easy → hard; that
+23 patterns in learning order. Inside each, problems run easy → hard; that
 ordering *is* the ramp.
 
 | | | |
@@ -108,7 +109,7 @@ ordering *is* the ramp.
 | Backtracking | Graphs (BFS/DFS) | Advanced Graphs |
 | Greedy | Intervals | 1-D DP |
 | 2-D DP | Bit Manipulation | Math & Geometry |
-| Design | | |
+| Design | Concurrency | |
 
 ### Where the problems come from
 
@@ -117,19 +118,39 @@ ordering *is* the ramp.
 | [Striver's SDE Sheet](https://takeuforward.org/interviews/strivers-sde-sheet-top-coding-interview-problems) | 180 of 191 (the rest are LeetCode-premium or duplicate listings) |
 | [NeetCode 150 / Blind 75](https://github.com/neetcode-gh/leetcode) | 143 of 150 (7 are premium-only) · 69 Blind 75 |
 | [Company tags](https://github.com/liquidslr/leetcode-company-wise-problems) | 20 companies, ask-frequency per problem |
+| [FAANG interview questions](https://github.com/ombharatiya/FAANG-Coding-Interview-Questions) | 271 problems reported asked at 22 companies in 2025-26 |
 | [LeetCode API](https://github.com/noworneverev/leetcode-api) | difficulty, topic tags, likes, statements on demand |
 
 A problem's rank is `Σ(company weight × ask frequency)` plus a bonus for
-appearing on a curated sheet. Every problem on Striver's SDE Sheet or NeetCode
-150 is kept regardless of rank, so those sheets stay complete. Premium problems
-are dropped — you can't open them.
+appearing on a curated sheet. Every problem on Striver's SDE Sheet, NeetCode 150
+or the FAANG list is kept regardless of rank, so those sheets stay complete.
+Premium problems are dropped — you can't open them.
+
+**The two company fields are not the same claim, which is why they are two
+fields.** `companies` is a measured ask-frequency from a dataset carrying no
+date, so a problem Google stopped asking in 2019 scores the same as one they
+asked last month. `askedRecently` is a list of names with no frequency at all,
+from interviews reported in 2025-26. Merging them would have meant inventing a
+frequency for the second and putting it in the same array as real ones, where
+nothing downstream could tell which was which — so the roadmap carries two
+filters and an extra column instead. 256 of the 517 problems carry a recency
+signal, and eleven of the names in it (OpenAI, Anthropic, Databricks, Stripe and
+the other AI labs) exist only there, with no frequency data and no logo.
+
+A fourth source whose problems are kept regardless of rank does not add to a
+list built this way — it *displaces*, because a pattern's filler allowance is
+whatever its quota has left once core is seated. The first run with the FAANG
+list seated 271 problems and silently dropped 67 already-curated ones. The
+per-pattern quotas in `patterns.js` were re-derived as `core + existing filler`
+to make it additive, and the curation report now prints `+n over quota` per
+pattern so the next drift is visible rather than silent.
 
 Re-running the seed is safe: it upserts by slug, prunes retired problems, and
 never touches your progress or the problems you added yourself.
 
 ## Pattern guides
 
-Every one of the 22 patterns has a written guide behind the ⓘ on its heading —
+Every one of the 23 patterns has a written guide behind the ⓘ on its heading —
 roughly two thousand words on when to reach for the pattern, what the core idea
 is, the variations, a language toolkit table, complexity, and the mistakes
 people actually make. Java and C++ sit in tabs on the same code block.
@@ -343,7 +364,7 @@ an interview loop"; Pro Coder answers "how do I get from 1200 to 1900 on
 Codeforces". Different problems, a different progression signal, and its own
 everything — collections, routes, filters, columns, theme and coach.
 
-**800 problems.** 600 Codeforces and 200 CodeChef, across **49 CP patterns** in
+**1,100 problems.** 800 Codeforces and 300 CodeChef, across **49 CP patterns** in
 **7 rating tiers**:
 
 | Tier | Codeforces rating | What it is for |
@@ -384,13 +405,42 @@ each pattern gets a quota spread across the tiers it actually appears in — and
 ranks within each cell by solve count, curated-sheet weight and how confident
 the pattern assignment is. A problem named by a curated sheet bypasses every
 filter, because a human who put it on a syllabus has already answered the
-question the filters approximate. 733 of the 800 are named by at least one
-sheet; 160 carry a reference solution.
+question the filters approximate. 986 of the 1,100 are named by at least one
+sheet; 312 carry a reference solution.
+
+The ladder grew from 800 to 1,100 by raising `TARGET_CF` and `TARGET_CC`, not by
+lowering a bar: 11,363 Codeforces problems and 4,086 CodeChef ones are on disk,
+3,872 of the latter clear the submission and solver floors, and `minSolvers()`
+is unchanged — so the extra 300 come off the top of a deeper selection. Note that
+a target only binds if the quotas can reach it. The top-up pass refuses to take
+any pattern past 1.5× its quota, so the CP pattern quotas had to be scaled by
+four thirds in the same change; without that the run would have stopped at 795
+and the shortfall would have looked like a thin pool rather than arithmetic.
 
 Pattern assignment is a priority list, not a lookup: a Codeforces problem
 carries several tags and only one is the technique being taught, so
 `dp + trees + dfs` is filed under DP on Trees rather than Linear DP. Where a
 curated sheet has an opinion, it wins over the tags.
+
+### Reference solutions
+
+`npm run seed:cp:solutions` attaches links to accepted submissions from four
+public repos — abeaumont, Erfaniaa, hhhrrrttt222111 and mhdnazrul — taking
+coverage from 195 problems to 312 of 1,100. It is additive and idempotent: it
+never removes a link, never overwrites the CP-31 solutions the curator already
+attached, and de-duplicates by URL, so re-running it does not stack duplicates.
+
+**These are other people's submissions, not editorials.** They are unreviewed,
+and the editorial link already on 294 problems is the better source and stays
+first; this fills the gap where there is no editorial at all.
+
+Every source is included because its paths or its index table name a problem
+*identifier* — a Codeforces contest id and index, or a CodeChef problem code.
+Repos that name problems only by title were looked at and rejected: Codeforces
+titles repeat across contests, so a title match produces confident links to the
+wrong problem, and a wrong link is worse than no link because you only discover
+it after clicking. All 195 attached links were verified to resolve, and to carry
+the problem's own identity somewhere in the URL.
 
 ### Codeforces handle sync
 
@@ -503,7 +553,7 @@ own collections, `DrillRun` and `MockRun`.
 **The pattern drill** shows a problem's title and difficulty — and deliberately
 not its topic tags, which would answer the question — plus six techniques, one of
 which is right. Number keys answer, Enter moves on. It needed no new content:
-every one of the 429 problems already carries a `patternSlug`.
+every one of the 517 problems already carries a `patternSlug`.
 
 The case for it is arithmetic. An interview is decided in the first ninety
 seconds, on recognising what shape the statement is; everything after that is
@@ -559,9 +609,9 @@ top two on its Today tab, as the one signal allowed to argue with the schedule.
 
 ## Playbook — the owner's prep plan
 
-A dated, phased schedule that turns the 429 roadmap problems and the 800-problem
-ladder into a week-by-week timetable, and reads your actual progress back out of
-them. It is the one module in the app that is not for the people using it:
+A dated, phased schedule that turns 396 of the 517 roadmap problems and the
+≤Specialist half of the 1,100-problem ladder into a week-by-week timetable, and
+reads your actual progress back out of them. It is the one module in the app that is not for the people using it:
 `playbook` is marked `owner: true` in `server/src/config/modules.js`, which keeps
 it out of `visible` for every role but `super_admin` and 404s the API behind it.
 A second account never learns it exists.
@@ -575,10 +625,38 @@ no new patterns — recall, speed, company sets and talking while you code). Wee
 like this from falling apart.
 
 **Targets are weighted, not divided.** An Easy counts 0.6, a Medium 1.0, a Hard
-1.6, and the 429 problems come to 448 weighted units. Spread across the eighteen
-weeks that carry new work, that is ~25 units a week, which is what each week is
-actually built to — so the DP weeks ask for fewer problems than the arrays weeks
-and cost the same evening.
+1.6. The sixteen weeks that carry new work come to 429 weighted units, ~27 a
+week, which is what each week is actually built to — so the DP weeks ask for
+fewer problems than the arrays weeks and cost the same evening.
+
+**The plan targets 396 of the roadmap's 517, and the gap is the point.** It used
+to target all 429, back when 429 was the whole roadmap. When the roadmap grew to
+517 the arithmetic stopped working: covering everything in the same twenty-four
+weeks means 34 units a week against a 33h/week budget that was already full,
+which does not produce a better-prepared candidate — it produces a plan you are
+behind on by week six and a drift line you learn to ignore.
+
+So the schedule targets a subset and the roadmap keeps the rest: everything on
+Striver's SDE Sheet or NeetCode 150, plus everything reported asked at a named
+company in 2025-26. That is 401 problems and exactly 429 weighted units, very
+slightly *lighter* per week than the plan already was — so the twenty-four weeks
+and the target date hold without being renegotiated. This is what the recency
+signal is actually for: at 33h/week the binding question was never which problems
+exist, it was which 400 of them to do.
+
+Two consequences, both of which look like bugs if you don't know:
+
+- **The phase bars still divide by every problem in the pattern**, not by the
+  targeted subset. They answer "how much of this pattern have I done", which is a
+  question about you; the weekly target answers "what does this week ask for",
+  which is a question about the schedule. Restricting the bars would mean solving
+  an untargeted problem moved nothing, and a bar that ignores real work is worse
+  than one that never reaches 100%.
+- **`concurrency` is targeted by no week.** Six problems asked in a dedicated
+  round at Databricks and Netflix, neither on the target list, and not an
+  algorithm pattern — putting it in the ramp would spend a week of the ramp to
+  buy nothing. It stays on the roadmap. Five of the subset's 401 are concurrency
+  problems, which is why the week targets sum to 396 rather than 401.
 
 **The plan is authored, the state is stored.** Phases, weeks, rules, the
 timetable and the system-design track live in `client/src/playbook/plan.js`, like
@@ -726,7 +804,7 @@ in green is a different problem from three ending in red, and the count column
 beside it cannot tell them apart. It ships with the roadmap — the last four
 attempts with their notes cut to 120 characters, which is what the tooltip
 shows. The dialog fetches the whole log with whole notes, because that is worth
-a request once you have opened it and is not worth shipping 430 times over.
+a request once you have opened it and is not worth shipping 517 times over.
 
 **Attempts carry ids**, and did not always. While the array was append-only an
 index was a stable address and the sub-documents were stored with `_id: false`.
@@ -753,7 +831,7 @@ history a fresh half-hour of editability.
 
 ### Filtering
 
-The whole curated list — ~430 problems — ships in one response and the client
+The whole curated list — ~520 problems — ships in one response and the client
 filters locally. Search and filters are instant, and the server keeps a single
 query shape.
 
@@ -962,7 +1040,7 @@ where it breaks.
 ### Questions from the roadmap
 
 A task can name any problem you can see. The picker makes **no request**:
-`RoadmapContext` is mounted for every signed-in route, so all 429 problems are
+`RoadmapContext` is mounted for every signed-in route, so all 517 problems are
 already a local array — the same trick the chat composer uses, and the reason
 `RoadmapProvider` sits above everything in `App.jsx`.
 
@@ -2115,7 +2193,7 @@ had exactly that — the row lit up brighter than the guide button beside it.
 `height: 100%` and does not scroll — `.content` inside it owns the scrollbar —
 so it paints once at mount and again only on resize. Nothing in the material
 animates, nothing is on a scroll handler, and no part of it is a filter. On the
-roadmap with all 22 patterns expanded (429 rows in one scroll container),
+roadmap with all 23 patterns expanded (517 rows in one scroll container),
 scrolling measures 32 fps against a 33 fps baseline before any of this landed —
 the same number, inside the noise.
 
@@ -2255,7 +2333,7 @@ const [filters, setFilters] = useSavedFilters('roadmap', ROADMAP_FILTERS)
 Two stores, for the reason `AppearanceContext` keeps two. The account is where
 the choice lives — that's what makes it survive a reload on another machine — but
 the account arrives a request after the first paint, and restoring from the
-server alone would render all 429 problems and then collapse to eleven a beat
+server alone would render all 517 problems and then collapse to eleven a beat
 later. So localStorage answers synchronously and the server reconciles behind it.
 Where the two disagree, the account wins; nothing is pushed until the fetch has
 been heard from, so a save can't overtake it and leave the two out of step while

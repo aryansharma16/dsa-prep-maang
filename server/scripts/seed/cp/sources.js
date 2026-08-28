@@ -17,9 +17,21 @@ export const CURATED_CP_PATH = path.join(CP_DATA_DIR, 'curated-cp.json');
  * these are what those quotas are scaled to hit. Undershooting is normal — some
  * pattern/tier cells genuinely have few good problems, and padding them with
  * whatever scored highest is how a curated list turns back into a dump.
+ *
+ * Raised from 600/200 to 800/300. The pools are nowhere near exhausted at this
+ * size — 11,363 Codeforces problems and 4,086 CodeChef ones are on disk, and
+ * 3,872 of the latter clear the quality floors — so the extra 300 come off the
+ * top of a deeper selection rather than by lowering a bar. `minSolvers()` below
+ * is unchanged, deliberately: growing a ladder by admitting problems with no
+ * readable statement makes it longer and worse.
+ *
+ * A target only binds if the per-pattern quotas can reach it. The top-up pass in
+ * curate.js refuses to take a pattern past 1.5x its quota, so the real ceiling
+ * is 1.5 x the sum of CP_PATTERNS quotas — raise this without raising those and
+ * the run quietly stops short of the number written here.
  */
-export const TARGET_CF = 600;
-export const TARGET_CC = 200;
+export const TARGET_CF = 800;
+export const TARGET_CC = 300;
 
 /**
  * The accessibility floor.

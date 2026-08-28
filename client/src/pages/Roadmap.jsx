@@ -84,13 +84,23 @@ export function Roadmap() {
   const options = useMemo(() => {
     const companies = new Set();
     const topics = new Set();
+    // Its own set, not merged into `companies`: the recency filter offers names
+    // that have no frequency data at all, and the frequency filter offers names
+    // nobody reported this year. Sharing one list would give each filter options
+    // that can only ever return nothing.
+    const askedRecently = new Set();
     for (const g of groups) {
       for (const p of g.problems) {
         for (const c of p.companies || []) companies.add(c.name);
         for (const t of p.topicTags || []) topics.add(t);
+        for (const name of p.askedRecently || []) askedRecently.add(name);
       }
     }
-    return { companies: [...companies].sort(), topics: [...topics].sort() };
+    return {
+      companies: [...companies].sort(),
+      topics: [...topics].sort(),
+      askedRecently: [...askedRecently].sort(),
+    };
   }, [groups]);
 
   const narrowingCount = activeCount(ROADMAP_FILTERS, filters, 'dialog');
@@ -109,6 +119,10 @@ export function Roadmap() {
             p.title,
             ...(p.topicTags || []),
             ...(p.companies || []).map((c) => c.name),
+            // Typing "Anthropic" has to find something. Those names exist only
+            // here, so without this line the search box is blind to eleven of
+            // the companies the roadmap now knows about.
+            ...(p.askedRecently || []),
           ]
             .join(' ')
             .toLowerCase();
@@ -339,7 +353,7 @@ export function Roadmap() {
         <button
           className={`toggle-chip ${narrowingCount ? 'on' : ''}`}
           onClick={() => setFiltersOpen(true)}
-          title="Difficulty, status, sheet, topics and companies"
+          title="Difficulty, status, sheet, topics and companies, and who asked recently"
         >
           <IconFilter size={12} />
           Filters

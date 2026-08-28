@@ -13,8 +13,17 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { classify, classifyByTitle } from './classify.js';
 import { cleanTitle } from './normalize.js';
+import { faangGroup, parseFaang } from './parse-faang.js';
 import { PATTERNS } from './patterns.js';
-import { CURATED_PATH, DATA_DIR, RAW_DIR, companyWeight, slugFromUrl } from './sources.js';
+import {
+  CURATED_PATH,
+  DATA_DIR,
+  FAANG_FILES,
+  FAANG_SHEET,
+  RAW_DIR,
+  companyWeight,
+  slugFromUrl,
+} from './sources.js';
 
 const readJson = (file) => JSON.parse(fs.readFileSync(path.join(RAW_DIR, file), 'utf8'));
 
@@ -75,6 +84,33 @@ function loadCompanies() {
   return bySlug;
 }
 
+/**
+ * The 2025-26 company signal, or an empty map.
+ *
+ * Optional on purpose, matching how the company CSVs are treated: this source
+ * is a recency layer over a curriculum that was complete without it, so a
+ * missing directory degrades the list rather than failing the build. It is the
+ * newest and least stable of the four sources — one upstream rename and the
+ * fetch 404s — and a seed that cannot run without it would be a seed that
+ * cannot run.
+ */
+function loadFaang() {
+  const dir = path.join(RAW_DIR, 'faang');
+  const files = FAANG_FILES.filter((f) => fs.existsSync(path.join(dir, f))).map((f) => ({
+    name: f,
+    text: fs.readFileSync(path.join(dir, f), 'utf8'),
+  }));
+
+  if (!files.length) {
+    console.warn('[seed:curate] no FAANG data found — no recency signal this run');
+    return new Map();
+  }
+
+  const parsed = parseFaang(files);
+  console.log(`  faang: ${files.length} files, ${parsed.size} problems mentioned`);
+  return parsed;
+}
+
 function main() {
   requireRaw();
 
@@ -82,6 +118,7 @@ function main() {
   const neetcode = readJson('neetcode.json');
   const striverDays = readJson('striver-sde.json');
   const companies = loadCompanies();
+  const faang = loadFaang();
 
   const lcBySlug = new Map(leetcode.map((p) => [p.title_slug, p]));
   const ncBySlug = new Map(neetcode.map((n) => [n.link.replace(/\/$/, ''), n]));
@@ -110,7 +147,12 @@ function main() {
 
   // ---- build candidates ----
   const candidates = [];
-  const consider = new Set([...companies.keys(), ...ncBySlug.keys(), ...striverBySlug.keys()]);
+  const consider = new Set([
+    ...companies.keys(),
+    ...ncBySlug.keys(),
+    ...striverBySlug.keys(),
+    ...faang.keys(),
+  ]);
 
   for (const slug of consider) {
     const lc = lcBySlug.get(slug);
@@ -120,6 +162,7 @@ function main() {
     const cos = companies.get(slug) || [];
     const nc = ncBySlug.get(slug);
     const sde = striverBySlug.get(slug);
+    const recent = faang.get(slug);
 
     const companyScore = cos.reduce((sum, c) => sum + companyWeight(c.name) * (c.freq / 100), 0);
     let sheetScore = 0;
@@ -128,10 +171,26 @@ function main() {
     if (nc?.blind75) sheetScore += 1.5;
     else if (nc) sheetScore += 0.5;
 
+    /*
+      The recency bonus, capped so it can add at most as much as NeetCode 150.
+
+      Breadth is the signal worth paying for — a problem four companies asked
+      last year is a better use of an evening than one that appears in a single
+      company's list — but it is a weaker claim than a hand-curated sheet, and
+      the cap is what stops a problem mentioned by ten companies from outranking
+      the whole of Striver's on this axis alone. `mustDo` is the repo's own
+      cross-company list, which is a curation act rather than a count.
+    */
+    if (recent) {
+      sheetScore += Math.min(recent.companies.length * 0.4, 2);
+      if (recent.mustDo) sheetScore += 1;
+    }
+
     const sheets = [];
     if (sde) sheets.push({ sheet: 'striver-sde', group: sde.day, order: sde.order });
     if (nc?.neetcode150) sheets.push({ sheet: 'neetcode-150', group: nc.pattern, order: 0 });
     if (nc?.blind75) sheets.push({ sheet: 'blind-75', group: nc.pattern, order: 0 });
+    if (recent) sheets.push({ sheet: FAANG_SHEET, group: faangGroup(recent), order: 0 });
 
     candidates.push({
       slug,
@@ -148,6 +207,17 @@ function main() {
       dislikes: lc.dislikes || 0,
       likeRatio: Number(lc.like_ratio) || 0,
       videoId: nc?.video || '',
+      /*
+        Deliberately not merged into `companies[]`.
+
+        That field holds a measured ask-frequency per company, and this holds a
+        set of companies with no frequency at all — a mention in a 2025-26
+        report. Writing these in as `freq: 100` would put an invented number
+        beside real ones in the same array, and every consumer that sorts or
+        filters on frequency would be silently reading a guess. Two fields, two
+        claims: `companies` is how often, `askedRecently` is lately.
+      */
+      askedRecently: recent?.companies || [],
       patternSlug: classify({ slug, topicTags: lc.topic_tags, neetcodePattern: nc?.pattern }),
       score: Math.round((companyScore + sheetScore) * 100) / 100,
     });
@@ -158,11 +228,21 @@ function main() {
   const selected = [];
   const report = [];
 
-  // A problem on Striver's SDE Sheet or NeetCode 150 is always kept, even if it
-  // ranks below its pattern's quota cut — otherwise the app would show those
-  // sheets partially complete, which defeats the point of tracking them.
-  const isCore = (c) =>
-    c.sheets.some((s) => s.sheet === 'striver-sde' || s.sheet === 'neetcode-150');
+  /*
+    A problem on Striver's SDE Sheet or NeetCode 150 is always kept, even if it
+    ranks below its pattern's quota cut — otherwise the app would show those
+    sheets partially complete, which defeats the point of tracking them.
+
+    The FAANG list joins them on the same argument turned around. Those two
+    sheets are kept whole because a half-tracked sheet is worse than none; this
+    one is kept whole because dropping an entry means dropping a problem a named
+    company was reported to ask this year, and "we had it and ranked it out" is
+    not a defensible answer for a list whose whole purpose is interview prep.
+    It does push several patterns past their quota, which is the intended trade
+    and is why the report below prints the overflow.
+  */
+  const CORE_SHEETS = new Set(['striver-sde', 'neetcode-150', FAANG_SHEET]);
+  const isCore = (c) => c.sheets.some((s) => CORE_SHEETS.has(s.sheet));
 
   for (const pattern of PATTERNS) {
     const pool = candidates
@@ -208,6 +288,10 @@ function main() {
         topicTags: [],
         companies: [],
         sheets: [{ sheet: 'striver-sde', group: p.day, order: p.order }],
+        // Not on LeetCode at all, so no company ever named it in a report that
+        // links to one. Written as an empty array rather than left off, so every
+        // curated record has the same shape.
+        askedRecently: [],
         // Not on LeetCode, so there is no number or vote count to carry over.
         lcId: 0,
         likes: 0,
@@ -231,7 +315,21 @@ function main() {
   // ---- report ----
   console.log('\n  pattern            pool  core  taken');
   for (const r of report) {
-    const flag = r.taken < r.quota ? `  << thin pool (quota ${r.quota})` : '';
+    /*
+      Two things worth saying, and they are not the same thing.
+
+      Under quota means the pool genuinely had nothing more worth keeping — a
+      standing fact about the source data. Over quota means core problems
+      outnumbered the allotment, which is the FAANG list doing its job and is
+      information about this run. Printing only the first would make a pattern
+      that quietly doubled look identical to one that did not move.
+    */
+    const flag =
+      r.taken < r.quota
+        ? `  << thin pool (quota ${r.quota})`
+        : r.taken > r.quota
+          ? `  +${r.taken - r.quota} over quota ${r.quota}`
+          : '';
     console.log(
       `  ${r.pattern.padEnd(18)} ${String(r.pool).padStart(4)} ${String(r.core).padStart(5)} ${String(r.taken).padStart(6)}${flag}`,
     );
@@ -248,9 +346,12 @@ function main() {
   console.log(`  TOTAL:                  ${problems.length}`);
   console.log(`  difficulty:             ${JSON.stringify(byDifficulty)}`);
   console.log(
-    `  striver-sde ${inSheet('striver-sde')} · neetcode-150 ${inSheet('neetcode-150')} · blind-75 ${inSheet('blind-75')}`,
+    `  striver-sde ${inSheet('striver-sde')} · neetcode-150 ${inSheet('neetcode-150')} · blind-75 ${inSheet('blind-75')} · ${FAANG_SHEET} ${inSheet(FAANG_SHEET)}`,
   );
   console.log(`  with company tags:      ${problems.filter((p) => p.companies.length).length}`);
+  console.log(
+    `  asked in 2025-26:       ${problems.filter((p) => p.askedRecently?.length).length}`,
+  );
 
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(CURATED_PATH, JSON.stringify(problems, null, 2));

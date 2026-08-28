@@ -11,7 +11,7 @@ const companySchema = new mongoose.Schema(
 
 const sheetSchema = new mongoose.Schema(
   {
-    // 'striver-sde' | 'neetcode-150' | 'blind-75'
+    // 'striver-sde' | 'neetcode-150' | 'blind-75' | 'faang-2026'
     sheet: { type: String, required: true },
     // e.g. 'Day 5: Linked List' or 'Arrays & Hashing'
     group: { type: String, default: '' },
@@ -43,6 +43,22 @@ const problemSchema = new mongoose.Schema(
 
     topicTags: { type: [String], default: [] },
     companies: { type: [companySchema], default: [] },
+    /**
+     * Companies reported to have asked this in 2025-26, from the FAANG
+     * interview-questions repo.
+     *
+     * Names only, and deliberately separate from `companies` above. That field
+     * is a measured ask-frequency per company from a dataset with no date on
+     * it — a problem Google stopped asking in 2019 carries the same freq as one
+     * they asked last month. This one carries no frequency at all and is a
+     * recency claim instead. Merging them would put an invented number beside
+     * measured ones in a single array, and nothing downstream could tell which
+     * was which. Two fields: `companies` is how often, this is lately.
+     *
+     * Not every name here has a company logo or a CSV — OpenAI, Anthropic,
+     * Databricks and Stripe appear only in this field.
+     */
+    askedRecently: { type: [String], default: [] },
     sheets: { type: [sheetSchema], default: [] },
 
     // LeetCode's own problem number — the one everyone quotes ("LC 42").
@@ -123,5 +139,7 @@ problemSchema.index({ slug: 1, owner: 1 }, { unique: true });
 problemSchema.index({ patternSlug: 1, patternOrder: 1 });
 // Company filter
 problemSchema.index({ 'companies.name': 1 });
+// The recency filter, which is a separate axis from the one above.
+problemSchema.index({ askedRecently: 1 });
 
 export const Problem = mongoose.model('Problem', problemSchema);

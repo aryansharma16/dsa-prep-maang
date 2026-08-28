@@ -30,6 +30,7 @@ import dp2d from './dp-2d.js';
 import bitManipulation from './bit-manipulation.js';
 import mathGeometry from './math-geometry.js';
 import design from './design.js';
+import concurrency from './concurrency.js';
 
 export const guideDocs = [
   arraysHashing,
@@ -54,4 +55,5 @@ export const guideDocs = [
   bitManipulation,
   mathGeometry,
   design,
+  concurrency,
 ];

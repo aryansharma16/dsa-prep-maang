@@ -21,6 +21,18 @@
  * otherwise is what makes a ladder stall at Specialist.
  */
 
+/*
+  The quotas below were scaled by four thirds when the ladder target went from
+  600 Codeforces problems to 800, because the top-up pass will not take any
+  pattern past 1.5x its quota — leaving them at the old numbers would have
+  capped the run at 795 no matter what TARGET_CF said, and the shortfall would
+  have looked like a thin pool rather than an arithmetic ceiling.
+
+  Scaled uniformly on purpose. Each of these numbers is a judgement about how
+  much of that technique is worth practising relative to the others, and that
+  judgement did not change just because the ladder got longer.
+*/
+
 const cp = (label, url) => ({ label, url, source: 'cp-algorithms.com' });
 const usaco = (label, url) => ({ label, url, source: 'usaco.guide' });
 const cf = (label, url) => ({ label, url, source: 'codeforces.com' });
@@ -31,7 +43,7 @@ export const CP_PATTERNS = [
     slug: 'io-and-complexity',
     name: 'I/O, Limits & the Complexity Budget',
     tier: 'newbie',
-    quota: 8,
+    quota: 11,
     blurb:
       'Read the constraints first. n ≤ 10^5 and a 2-second limit is a sentence about which algorithms are allowed, before you have read the problem.',
     keyTechniques: ['fast I/O', 'reading constraints', 'operations budget', 'multi-testcase loops'],
@@ -59,7 +71,7 @@ export const CP_PATTERNS = [
     slug: 'implementation-simulation',
     name: 'Implementation & Simulation',
     tier: 'newbie',
-    quota: 12,
+    quota: 16,
     blurb:
       'No trick — just do exactly what the statement says, carefully, in the fewest lines that can still be debugged.',
     keyTechniques: ['direct simulation', 'careful indexing', 'edge-case enumeration', 'clean loops'],
@@ -82,7 +94,7 @@ export const CP_PATTERNS = [
     slug: 'arithmetic-and-parity',
     name: 'Arithmetic, Parity & Overflow',
     tier: 'newbie',
-    quota: 10,
+    quota: 13,
     blurb:
       'Odd/even, sign, and whether the answer fits in 64 bits. Three questions that decide an entire class of A and B problems.',
     keyTechniques: ['parity arguments', 'integer overflow', 'floor/ceil division', 'sign handling'],
@@ -106,7 +118,7 @@ export const CP_PATTERNS = [
     slug: 'sorting-and-comparators',
     name: 'Sorting & Comparators',
     tier: 'newbie',
-    quota: 10,
+    quota: 13,
     blurb:
       'Half of all greedy problems are "sort by the right key". Choosing that key is the problem; the sort is one line.',
     keyTechniques: ['custom comparators', 'sort by pair', 'stable sort', 'coordinate compression'],
@@ -129,7 +141,7 @@ export const CP_PATTERNS = [
     slug: 'prefix-sums-difference',
     name: 'Prefix Sums & Difference Arrays',
     tier: 'newbie',
-    quota: 14,
+    quota: 19,
     blurb:
       'Precompute running totals so any range query is one subtraction — and run it backwards so any range update is two writes.',
     keyTechniques: ['1D prefix sums', '2D prefix grid', 'difference array', 'prefix + hash map'],
@@ -156,7 +168,7 @@ export const CP_PATTERNS = [
     slug: 'two-pointers-sliding',
     name: 'Two Pointers & Sliding Window',
     tier: 'newbie',
-    quota: 14,
+    quota: 19,
     blurb:
       'When the right end moving forward can never force the left end backwards, both walk the array once and the whole thing is O(n).',
     keyTechniques: ['opposite ends', 'expanding window', 'at most K trick', 'monotone shrink'],
@@ -184,7 +196,7 @@ export const CP_PATTERNS = [
     slug: 'greedy-exchange',
     name: 'Greedy & the Exchange Argument',
     tier: 'pupil',
-    quota: 20,
+    quota: 27,
     blurb:
       'Take the locally best option and prove that swapping it into any optimal solution does not make things worse. The proof is the technique.',
     keyTechniques: ['exchange argument', 'sort then take', 'earliest deadline', 'regret / heap greedy'],
@@ -210,7 +222,7 @@ export const CP_PATTERNS = [
     slug: 'binary-search-answer',
     name: 'Binary Search on the Answer',
     tier: 'pupil',
-    quota: 18,
+    quota: 24,
     blurb:
       'Stop searching for the answer and start testing it. If "is X achievable?" is monotone in X, the answer is a binary search over a check function.',
     keyTechniques: ['predicate monotonicity', 'check function', 'first true / last true', 'real-valued search'],
@@ -237,7 +249,7 @@ export const CP_PATTERNS = [
     slug: 'hashing-frequency',
     name: 'Maps, Sets & Frequency Counting',
     tier: 'pupil',
-    quota: 12,
+    quota: 16,
     blurb:
       'Trade memory for time. A frequency map turns a nested scan into a single pass, and a set turns "have I seen this" into O(1).',
     keyTechniques: ['frequency map', 'set membership', 'index map', 'counting complements'],
@@ -263,7 +275,7 @@ export const CP_PATTERNS = [
     slug: 'stacks-monotonic',
     name: 'Stacks & Monotonic Structures',
     tier: 'pupil',
-    quota: 12,
+    quota: 16,
     blurb:
       'When the answer depends on the nearest unresolved element, a stack that never breaks its own ordering answers every query in amortised O(1).',
     keyTechniques: ['bracket matching', 'next greater element', 'monotonic stack', 'monotonic deque'],
@@ -286,7 +298,7 @@ export const CP_PATTERNS = [
     slug: 'number-theory-basics',
     name: 'GCD, Divisors & the Sieve',
     tier: 'pupil',
-    quota: 14,
+    quota: 19,
     blurb:
       'Factorisation, divisor counting and gcd. The three primitives that most 1200–1600 maths problems are assembled from.',
     keyTechniques: ['Euclidean gcd', 'trial division to sqrt(n)', 'sieve of Eratosthenes', 'smallest prime factor'],
@@ -314,7 +326,7 @@ export const CP_PATTERNS = [
     slug: 'modular-arithmetic',
     name: 'Modular Arithmetic & Fast Power',
     tier: 'pupil',
-    quota: 12,
+    quota: 16,
     blurb:
       'Everything counted modulo 10^9+7, plus the two operations that are not obvious: exponentiation in O(log n) and division by inverse.',
     keyTechniques: ['binary exponentiation', 'modular inverse', 'Fermat little theorem', 'safe mod addition'],
@@ -342,7 +354,7 @@ export const CP_PATTERNS = [
     slug: 'constructive-basics',
     name: 'Constructive Algorithms I',
     tier: 'pupil',
-    quota: 14,
+    quota: 19,
     blurb:
       'Build any valid answer rather than the best one. The work is finding a pattern simple enough to state, then proving it always applies.',
     keyTechniques: ['small-case enumeration', 'invariant spotting', 'symmetric construction', 'parity-based impossibility'],
@@ -370,7 +382,7 @@ export const CP_PATTERNS = [
     slug: 'graph-traversal',
     name: 'BFS & DFS on Graphs and Grids',
     tier: 'specialist',
-    quota: 18,
+    quota: 24,
     blurb:
       'Connected components, reachability, shortest paths on unweighted edges, cycle detection, bipartite checks — all one traversal with different bookkeeping.',
     keyTechniques: ['adjacency list', 'BFS layers', 'DFS recursion & colouring', 'grid as implicit graph', 'multi-source BFS'],
@@ -397,7 +409,7 @@ export const CP_PATTERNS = [
     slug: 'dsu',
     name: 'Disjoint Set Union',
     tier: 'specialist',
-    quota: 12,
+    quota: 16,
     blurb:
       'Merge sets and ask whether two things are in the same one, both in near-constant time. The right answer to a surprising number of problems that look nothing like sets.',
     keyTechniques: ['path compression', 'union by size/rank', 'component aggregates', 'offline / reverse-time DSU'],
@@ -423,7 +435,7 @@ export const CP_PATTERNS = [
     slug: 'shortest-paths',
     name: 'Shortest Paths',
     tier: 'specialist',
-    quota: 14,
+    quota: 19,
     blurb:
       'Dijkstra for non-negative weights, 0-1 BFS for weights in {0,1}, Bellman–Ford for negatives, Floyd–Warshall for all pairs. Picking correctly is most of the work.',
     keyTechniques: ['Dijkstra with a heap', '0-1 BFS with a deque', 'Bellman–Ford & negative cycles', 'Floyd–Warshall', 'state-augmented graphs'],
@@ -451,7 +463,7 @@ export const CP_PATTERNS = [
     slug: 'topological-sort',
     name: 'Topological Sort & DAG DP',
     tier: 'specialist',
-    quota: 10,
+    quota: 13,
     blurb:
       'Order a DAG so every edge points forwards, then any DP over it becomes a single left-to-right pass.',
     keyTechniques: ["Kahn's algorithm", 'DFS post-order', 'cycle detection', 'longest path on a DAG'],
@@ -477,7 +489,7 @@ export const CP_PATTERNS = [
     slug: 'dp-linear',
     name: 'Linear DP',
     tier: 'specialist',
-    quota: 18,
+    quota: 24,
     blurb:
       'One dimension, one pass. Define what dp[i] means in a sentence, and the transition usually writes itself.',
     keyTechniques: ['state definition', 'transition from previous states', 'prefix optimisation', 'rolling array'],
@@ -503,7 +515,7 @@ export const CP_PATTERNS = [
     slug: 'dp-knapsack',
     name: 'Knapsack & Subset Sums',
     tier: 'specialist',
-    quota: 14,
+    quota: 19,
     blurb:
       'Items with weights and values, and a capacity. The template every "choose a subset with a budget" problem reduces to.',
     keyTechniques: ['0/1 knapsack', 'unbounded knapsack', 'subset sum reachability', 'bitset speedup'],
@@ -526,7 +538,7 @@ export const CP_PATTERNS = [
     slug: 'combinatorics-basics',
     name: 'Combinatorics & Inclusion–Exclusion',
     tier: 'specialist',
-    quota: 12,
+    quota: 16,
     blurb:
       'nCr with precomputed factorials, stars and bars, and the alternating-sign fix for overcounting.',
     keyTechniques: ['factorial precompute', 'nCr mod p', 'stars and bars', 'inclusion–exclusion', 'complementary counting'],
@@ -553,7 +565,7 @@ export const CP_PATTERNS = [
     slug: 'bit-manipulation',
     name: 'Bit Manipulation',
     tier: 'specialist',
-    quota: 12,
+    quota: 16,
     blurb:
       'Treat an integer as a set. Subset enumeration, XOR properties, and per-bit independence — three ideas that solve most bit problems.',
     keyTechniques: ['popcount & lowbit', 'subset enumeration', 'XOR basis intuition', 'bit-by-bit greedy'],
@@ -580,7 +592,7 @@ export const CP_PATTERNS = [
     slug: 'strings-basics',
     name: 'String Processing, Z-function & KMP',
     tier: 'specialist',
-    quota: 12,
+    quota: 16,
     blurb:
       'Pattern matching in linear time, and the prefix-function table that also answers periodicity and border questions.',
     keyTechniques: ['prefix function (KMP)', 'Z-function', 'border & period', 'character counting'],
@@ -608,7 +620,7 @@ export const CP_PATTERNS = [
     slug: 'dp-grid-interval',
     name: 'Grid & Interval DP',
     tier: 'expert',
-    quota: 12,
+    quota: 16,
     blurb:
       'Two-dimensional states. Grids go corner to corner; intervals grow outwards from every substring of length one.',
     keyTechniques: ['grid path DP', 'interval DP by length', 'split-point transition', 'palindrome DP'],
@@ -631,7 +643,7 @@ export const CP_PATTERNS = [
     slug: 'dp-on-trees',
     name: 'DP on Trees & Rerooting',
     tier: 'expert',
-    quota: 12,
+    quota: 16,
     blurb:
       'Compute an answer for every subtree in one DFS — then, if the answer is needed for every root, get all n of them in a second pass rather than n DFS runs.',
     keyTechniques: ['subtree DP', 'merging children', 'rerooting technique', 'tree diameter'],
@@ -657,7 +669,7 @@ export const CP_PATTERNS = [
     slug: 'sparse-table-rmq',
     name: 'Sparse Table & RMQ',
     tier: 'expert',
-    quota: 8,
+    quota: 11,
     blurb:
       'Static array, no updates, many range-minimum queries: precompute once and answer each in O(1).',
     keyTechniques: ['binary lifting table', 'idempotent operations', 'O(1) overlapping query', 'log precompute'],
@@ -680,7 +692,7 @@ export const CP_PATTERNS = [
     slug: 'fenwick-segment',
     name: 'Fenwick & Segment Trees',
     tier: 'expert',
-    quota: 16,
+    quota: 21,
     blurb:
       'Point update, range query, both in O(log n). The workhorse structure of everything above 1600.',
     keyTechniques: ['Fenwick tree (BIT)', 'iterative segment tree', 'merge function design', 'descend on the tree'],
@@ -708,7 +720,7 @@ export const CP_PATTERNS = [
     slug: 'mst',
     name: 'Minimum Spanning Trees',
     tier: 'expert',
-    quota: 8,
+    quota: 11,
     blurb:
       'Kruskal with DSU, Prim with a heap — and the cut property that makes both of them obviously correct.',
     keyTechniques: ['Kruskal + DSU', 'Prim with a priority queue', 'cut property', 'second-best MST'],
@@ -734,7 +746,7 @@ export const CP_PATTERNS = [
     slug: 'game-theory',
     name: 'Game Theory & Sprague–Grundy',
     tier: 'expert',
-    quota: 8,
+    quota: 11,
     blurb:
       'Two players, perfect information, and a winner determined before the first move. Work backwards from the losing positions.',
     keyTechniques: ['win/lose states', 'Nim and xor', 'Grundy numbers', 'mex'],
@@ -760,7 +772,7 @@ export const CP_PATTERNS = [
     slug: 'probability-expectation',
     name: 'Probability & Expected Value',
     tier: 'expert',
-    quota: 8,
+    quota: 11,
     blurb:
       'Linearity of expectation turns most of these from hard into one line — the expectation of a sum is the sum of expectations, whether or not the parts are independent.',
     keyTechniques: ['linearity of expectation', 'expected value DP', 'indicator variables', 'probability under a modulus'],
@@ -786,7 +798,7 @@ export const CP_PATTERNS = [
     slug: 'constructive-advanced',
     name: 'Constructive Algorithms II',
     tier: 'expert',
-    quota: 10,
+    quota: 13,
     blurb:
       'Constructions that need a real idea: recursive halving, explicit bijections, and answers built to hit a bound exactly.',
     keyTechniques: ['divide-and-conquer construction', 'bijection with a known object', 'bound-tight answers', 'randomised construction'],
@@ -812,7 +824,7 @@ export const CP_PATTERNS = [
     slug: 'interactive-problems',
     name: 'Interactive Problems',
     tier: 'expert',
-    quota: 8,
+    quota: 11,
     blurb:
       'Ask the judge questions within a query budget. The budget is the hint: log2(n) queries means binary search, and 2n means something linear and clever.',
     keyTechniques: ['query budget reasoning', 'flush after every write', 'adaptive judges', 'binary search by query'],
@@ -838,7 +850,7 @@ export const CP_PATTERNS = [
     slug: 'divide-conquer',
     name: 'Divide & Conquer, Meet in the Middle',
     tier: 'expert',
-    quota: 10,
+    quota: 13,
     blurb:
       'Split the input in half, solve both, and do the work that spans the boundary. When n ≤ 40, splitting turns 2^40 into two 2^20s.',
     keyTechniques: ['merge-sort counting', 'cross-boundary work', 'meet in the middle', 'binary search on the halves'],
@@ -863,7 +875,7 @@ export const CP_PATTERNS = [
     slug: 'dp-bitmask',
     name: 'Bitmask DP',
     tier: 'candidate-master',
-    quota: 10,
+    quota: 13,
     blurb:
       'The state is a subset. n ≤ 20 in the constraints is this pattern announcing itself.',
     keyTechniques: ['subset as state', 'submask enumeration', 'SOS DP', 'assignment problems'],
@@ -889,7 +901,7 @@ export const CP_PATTERNS = [
     slug: 'dp-digit',
     name: 'Digit DP',
     tier: 'candidate-master',
-    quota: 8,
+    quota: 11,
     blurb:
       'Count numbers in [L, R] with a property by building them digit by digit, carrying a "still equal to the bound" flag.',
     keyTechniques: ['tight flag', 'leading zeros flag', 'count to N then subtract', 'memo on free states'],
@@ -915,7 +927,7 @@ export const CP_PATTERNS = [
     slug: 'lazy-segment-tree',
     name: 'Lazy Propagation & Segment Tree Beats',
     tier: 'candidate-master',
-    quota: 12,
+    quota: 16,
     blurb:
       'Range update as well as range query. The lazy tag is a promise to push work down only when someone looks.',
     keyTechniques: ['lazy tags', 'tag composition', 'push down / pull up', 'segment tree beats'],
@@ -941,7 +953,7 @@ export const CP_PATTERNS = [
     slug: 'lca-binary-lifting',
     name: 'LCA & Binary Lifting',
     tier: 'candidate-master',
-    quota: 10,
+    quota: 13,
     blurb:
       'Precompute the 2^k-th ancestor of every vertex and any ancestor query, any path query, becomes O(log n).',
     keyTechniques: ['up[k][v] table', 'depth-first Euler tour', 'k-th ancestor', 'path aggregates'],
@@ -967,7 +979,7 @@ export const CP_PATTERNS = [
     slug: 'scc-bridges',
     name: 'SCC, Bridges & 2-SAT',
     tier: 'candidate-master',
-    quota: 10,
+    quota: 13,
     blurb:
       'Condense a directed graph into a DAG of strongly connected components — then implication graphs, and 2-SAT, become reachability.',
     keyTechniques: ['Tarjan / Kosaraju', 'condensation DAG', 'bridges & articulation points', '2-SAT via implications'],
@@ -994,7 +1006,7 @@ export const CP_PATTERNS = [
     slug: 'string-hashing-suffix',
     name: 'String Hashing, Suffix Arrays & Automata',
     tier: 'candidate-master',
-    quota: 10,
+    quota: 13,
     blurb:
       'Compare any two substrings in O(1) with a rolling hash, or get every substring relationship at once from a suffix structure.',
     keyTechniques: ['polynomial rolling hash', 'double hashing', 'suffix array + LCP', 'suffix automaton'],
@@ -1022,7 +1034,7 @@ export const CP_PATTERNS = [
     slug: 'offline-queries-mo',
     name: "Mo's Algorithm & Offline Queries",
     tier: 'candidate-master',
-    quota: 8,
+    quota: 11,
     blurb:
       'Nothing says the queries must be answered in the order they were asked. Sort them so consecutive queries are cheap to get between.',
     keyTechniques: ["Mo's ordering", 'add/remove pointers', 'offline sorting by answer', 'small-to-large merging'],
@@ -1048,7 +1060,7 @@ export const CP_PATTERNS = [
     slug: 'sqrt-decomposition',
     name: 'Sqrt Decomposition',
     tier: 'candidate-master',
-    quota: 8,
+    quota: 11,
     blurb:
       'Split into sqrt(n) blocks and accept O(sqrt(n)) per operation in exchange for being able to handle updates a segment tree cannot express.',
     keyTechniques: ['block aggregates', 'block-level lazy', 'rebuild threshold', 'sqrt on queries'],
@@ -1073,7 +1085,7 @@ export const CP_PATTERNS = [
     slug: 'flows-matching',
     name: 'Max Flow & Bipartite Matching',
     tier: 'master',
-    quota: 8,
+    quota: 11,
     blurb:
       'Dinic, min-cut, and the modelling skill that actually matters — recognising that a problem about assignments is a problem about flow.',
     keyTechniques: ['Dinic', 'max-flow min-cut', 'bipartite matching (Hopcroft–Karp / Kuhn)', 'min-cost max-flow'],
@@ -1100,7 +1112,7 @@ export const CP_PATTERNS = [
     slug: 'dp-optimizations',
     name: 'DP Optimisations',
     tier: 'master',
-    quota: 8,
+    quota: 11,
     blurb:
       'An O(n^2) DP with n = 10^5. Convex hull trick, divide-and-conquer, Knuth, or Aliens — the transition has structure and the structure is the speedup.',
     keyTechniques: ['convex hull trick', 'divide & conquer optimisation', 'Knuth optimisation', 'Lagrangian / Aliens trick'],
@@ -1127,7 +1139,7 @@ export const CP_PATTERNS = [
     slug: 'advanced-number-theory',
     name: 'CRT, Möbius & Multiplicative Functions',
     tier: 'master',
-    quota: 8,
+    quota: 11,
     blurb:
       'Counting with divisibility constraints: Euler phi, Möbius inversion, the Chinese remainder theorem, and linear sieves for any multiplicative function.',
     keyTechniques: ['Euler phi', 'Möbius function & inversion', 'Chinese remainder theorem', 'linear sieve'],
@@ -1155,7 +1167,7 @@ export const CP_PATTERNS = [
     slug: 'fft-ntt',
     name: 'FFT, NTT & Polynomials',
     tier: 'master',
-    quota: 6,
+    quota: 8,
     blurb:
       'Convolution in O(n log n). Once you see that "count pairs summing to k, for every k" is a polynomial product, a whole class of problems opens up.',
     keyTechniques: ['FFT', 'NTT mod 998244353', 'convolution as counting', 'polynomial inverse'],
@@ -1178,7 +1190,7 @@ export const CP_PATTERNS = [
     slug: 'heavy-light',
     name: 'HLD & Tree Decompositions',
     tier: 'master',
-    quota: 6,
+    quota: 8,
     blurb:
       'Cut a tree into chains so any root-to-node path crosses O(log n) of them — then a segment tree over the chains answers path queries.',
     keyTechniques: ['heavy-light decomposition', 'Euler tour flattening', 'centroid decomposition', 'small-to-large on trees'],
@@ -1204,7 +1216,7 @@ export const CP_PATTERNS = [
     slug: 'matrix-exponentiation',
     name: 'Matrix Exponentiation & Linear Recurrences',
     tier: 'master',
-    quota: 6,
+    quota: 8,
     blurb:
       'A linear recurrence evaluated at n = 10^18. Write the transition as a matrix and binary-exponentiate it.',
     keyTechniques: ['transition matrix', 'matrix power in O(k^3 log n)', 'path counting', 'Kitamasa / Berlekamp–Massey'],
@@ -1229,7 +1241,7 @@ export const CP_PATTERNS = [
     slug: 'geometry',
     name: 'Computational Geometry',
     tier: 'advanced',
-    quota: 8,
+    quota: 11,
     blurb:
       'Cross products, orientation, convex hulls and sweeps — with every calculation kept in integers for as long as it possibly can be.',
     keyTechniques: ['cross product & orientation', 'convex hull (Andrew monotone chain)', 'line intersection', 'rotating calipers', 'angular sweep'],
@@ -1257,7 +1269,7 @@ export const CP_PATTERNS = [
     slug: 'advanced-structures',
     name: 'Persistent & Advanced Structures',
     tier: 'advanced',
-    quota: 6,
+    quota: 8,
     blurb:
       'Persistent segment trees, treaps, Li Chao trees, DSU on tree. The structures you reach for when the standard ones cannot express the query.',
     keyTechniques: ['persistent segment tree', 'implicit treap', 'Li Chao tree', 'DSU on tree (small to large)'],
@@ -1283,7 +1295,7 @@ export const CP_PATTERNS = [
     slug: 'randomization',
     name: 'Randomisation & Probabilistic Tricks',
     tier: 'advanced',
-    quota: 6,
+    quota: 8,
     blurb:
       'Random shuffles, random sampling and Zobrist hashing. When a deterministic solution is hard, a random one that fails with probability 10^-9 is a solution.',
     keyTechniques: ['random shuffle before a greedy', 'random sampling for majority elements', 'Zobrist hashing', 'Miller–Rabin'],

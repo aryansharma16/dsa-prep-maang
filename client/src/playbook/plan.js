@@ -38,9 +38,41 @@
  *                        33h /week  ·  ~790h across the plan
  *
  * The problem targets below are weighted, not divided: an Easy counts 0.6, a
- * Medium 1.0, a Hard 1.6, and the 429 roadmap problems come to 448 weighted
- * units. Spread over the eighteen weeks that carry new work, that is ~25 units
- * a week, which is what each week is actually built to.
+ * Medium 1.0, a Hard 1.6. The sixteen weeks that carry new work come to 429
+ * weighted units, ~27 a week, which is what each week is actually built to.
+ *
+ * ---------------------------------------------------------------------------
+ * The plan targets 396 of the roadmap's 517 problems, and that gap is the point.
+ *
+ * It used to target all 429, back when 429 was the whole roadmap. Then the
+ * roadmap grew to 517 and the arithmetic stopped working: covering everything in
+ * the same twenty-four weeks means 34 units a week against a 33h/week budget
+ * that was already full, which does not produce a better-prepared candidate — it
+ * produces a plan you are behind on by week six and a drift line you learn to
+ * ignore.
+ *
+ * So the schedule targets a subset and the roadmap keeps the rest. The subset is
+ * every problem on Striver's SDE Sheet or NeetCode 150, plus every problem
+ * reported asked at a named company in 2025-26 (`askedRecently`). That is 401
+ * problems and exactly 429 weighted units — very slightly *lighter* per week
+ * than the plan already was, so the twenty-four weeks and the target date hold
+ * without being renegotiated.
+ *
+ * Two consequences worth stating, because both look like bugs otherwise:
+ *
+ *  - The phase bars still measure against every problem in the pattern, not
+ *    against the targeted subset. They answer "how much of this pattern have I
+ *    done", which is a question about you; the weekly target answers "what does
+ *    this week ask for", which is a question about the schedule. Restricting the
+ *    bars to the subset would mean solving an untargeted problem moved nothing,
+ *    and a bar that ignores real work is worse than one that never reaches 100%.
+ *  - `concurrency` is targeted by no week at all. It is 6 problems asked in a
+ *    dedicated round at Databricks and Netflix, neither of which is on the
+ *    target list, and it is not an algorithm pattern — putting it in the ramp
+ *    would cost a week of the ramp to buy nothing. It stays on the roadmap.
+ *
+ * 5 of the subset's 401 are concurrency problems, which is why the sixteen week
+ * targets sum to 396 rather than 401.
  * ---------------------------------------------------------------------------
  */
 
@@ -159,7 +191,7 @@ export const WEEKS = [
     phase: 'p1',
     focus: 'Arrays & hashing',
     patterns: ['arrays-hashing'],
-    target: 32,
+    target: 38,
     cp: 6,
     extras: [
       'Write the brute force out loud before every optimal one — every problem, no exceptions this week',
@@ -171,7 +203,7 @@ export const WEEKS = [
     phase: 'p1',
     focus: 'Two pointers & prefix sums',
     patterns: ['two-pointers', 'prefix-sum'],
-    target: 30,
+    target: 22,
     cp: 8,
     extras: ['Note the trigger for each: sorted input → two pointers, "subarray sum" → prefix'],
   },
@@ -180,7 +212,7 @@ export const WEEKS = [
     phase: 'p1',
     focus: 'Sliding window & bits',
     patterns: ['sliding-window', 'bit-manipulation'],
-    target: 30,
+    target: 21,
     cp: 8,
     extras: ['Write the fixed-window and variable-window templates from memory once, Sunday'],
   },
@@ -198,7 +230,7 @@ export const WEEKS = [
     phase: 'p1',
     focus: 'Linked lists, then consolidate',
     patterns: ['linked-list'],
-    target: 19,
+    target: 22,
     cp: 10,
     milestone: 'Phase 1 done — 136 problems',
     extras: [
@@ -225,7 +257,7 @@ export const WEEKS = [
     phase: 'p2',
     focus: 'Trees — traversals, construction, paths',
     patterns: ['trees'],
-    target: 36,
+    target: 42,
     cp: 8,
     extras: ['The heaviest week in the plan. Sunday is the buffer — use it, do not skip revision'],
   },
@@ -234,7 +266,7 @@ export const WEEKS = [
     phase: 'p2',
     focus: 'BSTs & heaps',
     patterns: ['bst', 'heap'],
-    target: 33,
+    target: 29,
     cp: 8,
     extras: ['"Top K", "median", "merge k" → heap. Make that reflex automatic'],
   },
@@ -243,7 +275,7 @@ export const WEEKS = [
     phase: 'p2',
     focus: 'Backtracking & intervals',
     patterns: ['backtracking', 'intervals'],
-    target: 29,
+    target: 28,
     cp: 8,
     extras: ['One backtracking skeleton: choose → recurse → un-choose. Everything else is the pruning'],
   },
@@ -252,7 +284,7 @@ export const WEEKS = [
     phase: 'p2',
     focus: 'Graphs — BFS, DFS, union-find',
     patterns: ['graphs'],
-    target: 27,
+    target: 20,
     cp: 8,
     extras: ['Grid problems are graph problems. Write BFS and DFS from memory before you start'],
   },
@@ -261,7 +293,7 @@ export const WEEKS = [
     phase: 'p2',
     focus: 'Greedy & tries',
     patterns: ['greedy', 'tries'],
-    target: 32,
+    target: 30,
     cp: 8,
     extras: ['Greedy needs a proof. If you cannot say why the exchange works, it is not solved'],
   },
@@ -270,7 +302,7 @@ export const WEEKS = [
     phase: 'p2',
     focus: 'Strings & math',
     patterns: ['strings', 'math-geometry'],
-    target: 27,
+    target: 30,
     cp: 8,
     extras: ['Lighter week by design — the next one has no new problems at all'],
   },
@@ -295,7 +327,7 @@ export const WEEKS = [
     phase: 'p3',
     focus: '1-D dynamic programming',
     patterns: ['dp-1d'],
-    target: 27,
+    target: 25,
     cp: 8,
     extras: [
       'Every DP problem gets the same four lines written down: state, transition, base case, order',
@@ -307,7 +339,7 @@ export const WEEKS = [
     phase: 'p3',
     focus: '2-D dynamic programming',
     patterns: ['dp-2d'],
-    target: 26,
+    target: 17,
     cp: 8,
     extras: ['Grids, two strings, intervals. Nine Hards in here — expect a slow week and plan for it'],
   },
@@ -316,7 +348,7 @@ export const WEEKS = [
     phase: 'p3',
     focus: 'Advanced graphs',
     patterns: ['advanced-graphs'],
-    target: 21,
+    target: 17,
     cp: 8,
     milestone: 'Start applying — referrals out, loops take 4–8 weeks to schedule',
     extras: [
@@ -329,7 +361,7 @@ export const WEEKS = [
     phase: 'p3',
     focus: 'Design problems · full DP revision',
     patterns: ['design'],
-    target: 10,
+    target: 5,
     cp: 8,
     extras: [
       'LRU, LFU, Min Stack, Twitter, Median from Data Stream — the ones that look like system design in miniature',
@@ -339,11 +371,11 @@ export const WEEKS = [
   {
     n: 18,
     phase: 'p3',
-    focus: 'Consolidate — all 429 seen',
+    focus: 'Consolidate — all 396 seen',
     patterns: [],
     target: 0,
     cp: 12,
-    milestone: 'Roadmap complete — every one of the 429 attempted',
+    milestone: 'Plan complete — every one of the 396 targeted problems attempted',
     extras: [
       'Mixed random sets only — use Pick one, no pattern labels, no warning',
       'Three mocks this week',
@@ -532,7 +564,7 @@ export const RULES = [
   {
     id: 'r7',
     title: 'The ladder is for speed, never for rating',
-    body: 'Foundations through Specialist only — 409 of the 800. The 391 above that are a genuinely good curriculum for a sport you are not currently playing. After the offer, not before.',
+    body: 'Foundations through Specialist only — 562 of the 1,100. The 538 above that are a genuinely good curriculum for a sport you are not currently playing. After the offer, not before.',
   },
   {
     id: 'r8',

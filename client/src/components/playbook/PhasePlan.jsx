@@ -1,4 +1,4 @@
-import { PHASES, WEEKS } from '../../playbook/plan.js';
+import { PHASES, PLAN_TOTALS, WEEKS } from '../../playbook/plan.js';
 import { expectedBy } from './PlanHeader.jsx';
 import { usePlaybook } from '../../store/PlaybookContext.jsx';
 import { IconCheck } from '../ui/Icons.jsx';
@@ -87,6 +87,17 @@ export function PhasePlan({ week, patternProgress }) {
         no new patterns — 13 and 18 — are not slack. They are what stops the middle of a plan like
         this from quietly falling apart, and they exist because you said you need revision to keep
         what you learn.
+      </p>
+
+      {/* Says the quiet part, because the meter above divides by 517 and this
+          divides by 396, and an unexplained gap between two numbers on the same
+          screen reads as a bug rather than as a decision. */}
+      <p className="pb-foot-note">
+        The schedule targets {PLAN_TOTALS.roadmap} problems, not the whole roadmap. Everything on
+        Striver&apos;s SDE Sheet or NeetCode 150, plus everything reported asked at a named company
+        in 2025-26 — the rest of the roadmap is there when you want more, and the bars above still
+        count it. Covering all of it in twenty-four weeks would mean a fifth more work a week than
+        the hours you actually have.
       </p>
     </div>
   );

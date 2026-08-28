@@ -35,6 +35,17 @@ const INTERVAL_SLUG = /interval|meeting-rooms|merge-triplets|car-pooling|my-cale
 
 // First matching rule wins.
 const TAG_RULES = [
+  /*
+    Concurrency goes first, and it is the only rule here that is not about which
+    algorithm a problem uses.
+
+    'Print in Order' carries Concurrency and nothing else, so before this rule
+    existed it fell all the way through to the `arrays-hashing` default and sat
+    in the beginner ramp next to Two Sum. The tag is only ever applied to the
+    handful of threading problems, so matching it first costs nothing and cannot
+    steal a problem from a pattern that wants it.
+  */
+  ['concurrency', ['Concurrency', 'Multi-threading']],
   ['tries', ['Trie']],
   [
     'advanced-graphs',

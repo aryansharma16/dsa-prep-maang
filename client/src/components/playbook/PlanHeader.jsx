@@ -156,7 +156,13 @@ export function PlanHeader({ week, roadmap, ladder, design, checklist }) {
         <Meter
           label="Ladder · Foundations→Specialist"
           value={ladder.solved}
-          total={ladder.total || 409}
+          /*
+            562 is the fallback only — the live count comes from the CP stats
+            endpoint above. It moved from 409 when the ladder grew to 1,100, and
+            a stale fallback here is a meter that reads over 100% for anyone
+            whose stats request fails.
+          */
+          total={ladder.total || 562}
           note={`plan asks for ${PLAN_TOTALS.cp}`}
           hue="teal"
         />

@@ -18,6 +18,7 @@ const SHEET_LABEL = {
   'striver-sde': 'SDE',
   'neetcode-150': 'NC150',
   'blind-75': 'B75',
+  'faang-2026': 'FAANG',
 };
 
 const STATUS_LABEL = {
@@ -134,6 +135,34 @@ export const COLUMNS = [
     cell: ({ problem, width }) => (
       <CompanyChips companies={problem.companies} max={Math.max(1, Math.floor((width - 34) / 22))} />
     ),
+  },
+  {
+    /*
+      Who asked it lately, which is not the column above.
+
+      'Asked at' draws logos weighted by a measured frequency with no date on
+      it; this draws names reported in 2025-26 interviews and no frequency at
+      all. They are different claims about different years, so they are
+      different columns — collapsing them would let a 2019 tag and a 2026 report
+      render identically. Names rather than logos because half of these
+      companies (OpenAI, Anthropic, Databricks, Stripe) have no logo seeded.
+    */
+    id: 'askedRecently',
+    label: 'Asked 2025-26',
+    width: 190,
+    hidden: true,
+    cell: ({ problem }) =>
+      problem.askedRecently?.length ? (
+        <div className="chip-row" title={problem.askedRecently.join(', ')}>
+          {problem.askedRecently.map((c) => (
+            <span className="topic-chip" key={c}>
+              {c}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <Empty />
+      ),
   },
   {
     id: 'topics',

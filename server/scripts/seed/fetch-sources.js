@@ -10,6 +10,8 @@ import path from 'node:path';
 import {
   ALL_COMPANIES,
   COMPANY_BASE,
+  FAANG_BASE,
+  FAANG_FILES,
   LEETCODE_ALL_URL,
   NEETCODE_URL,
   RAW_DIR,
@@ -60,6 +62,22 @@ async function main() {
     if (written) ok += 1;
   }
   console.log(`  ${ok}/${ALL_COMPANIES.length} company files saved`);
+
+  /*
+    Optional, like the company CSVs: a 404 here costs the recency signal and
+    nothing else, and the curate step treats an absent directory as "no FAANG
+    data" rather than an error. A source that can only be fetched or fail is a
+    source that stops you re-seeding on a bad network day.
+  */
+  console.log(`Fetching FAANG interview questions (${FAANG_FILES.length} files)...`);
+  let faang = 0;
+  for (const file of FAANG_FILES) {
+    const written = await download(`${FAANG_BASE}/${file}`, path.join(RAW_DIR, 'faang', file), {
+      optional: true,
+    });
+    if (written) faang += 1;
+  }
+  console.log(`  ${faang}/${FAANG_FILES.length} FAANG files saved`);
 
   console.log(`\nDone. Raw sources in ${RAW_DIR}`);
   console.log('Next: npm run seed:curate');

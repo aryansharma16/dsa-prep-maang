@@ -15,6 +15,30 @@ export const COMPANY_BASE =
   'https://raw.githubusercontent.com/liquidslr/leetcode-company-wise-problems/main';
 
 /**
+ * The FAANG interview-questions repo, as three markdown files.
+ *
+ * Kept as raw markdown in data/raw rather than parsed at fetch time, for the
+ * same reason every other source is: the curate step has to be re-runnable
+ * offline against exactly the bytes the current list was built from. The parser
+ * lives in parse-faang.js and runs during curation.
+ *
+ * `master` rather than `main` — the repo's default branch, which is what the
+ * raw host serves. A wrong branch name here fails as a 404 on an optional
+ * download, which is to say silently, so it is worth stating why.
+ */
+export const FAANG_BASE =
+  'https://raw.githubusercontent.com/ombharatiya/FAANG-Coding-Interview-Questions/master';
+
+export const FAANG_FILES = [
+  'README.md',
+  'FAANG-Recent-Questions.md',
+  'TopLeetCodeProblems.md',
+];
+
+/** Where the sheet badge, the sheet filter and curate.js all agree to call it. */
+export const FAANG_SHEET = 'faang-2026';
+
+/**
  * Weighted because a Google tag should count for more than a Cisco tag when
  * ranking what to study first.
  */

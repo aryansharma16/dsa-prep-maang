@@ -239,17 +239,25 @@ export const ccProblemPage = (code) => `https://www.codechef.com/problems/${code
  * therefore declared here rather than computed, and it is approximate on
  * purpose: it is a teaching order, not a claim of equivalence.
  */
+/*
+  `keep` was scaled by half again when the ladder target went from 200 CodeChef
+  problems to 300. The shape is deliberately unchanged — descending with rating,
+  because the lower bands are where a ladder is actually walked — and the extra
+  slots come off the top of a much deeper pool rather than off the bottom of
+  this one: 3,872 problems clear the submission and solver floors, so 300 is
+  still the best 8% of what is eligible. The floors themselves did not move.
+*/
 export const CC_BANDS = Object.freeze([
-  { min: 1000, max: 1199, tier: 'newbie', keep: 26 },
-  { min: 1200, max: 1399, tier: 'newbie', keep: 24 },
-  { min: 1400, max: 1599, tier: 'pupil', keep: 26 },
-  { min: 1600, max: 1799, tier: 'pupil', keep: 24 },
-  { min: 1800, max: 1999, tier: 'specialist', keep: 24 },
-  { min: 2000, max: 2199, tier: 'specialist', keep: 22 },
-  { min: 2200, max: 2399, tier: 'expert', keep: 20 },
-  { min: 2400, max: 2599, tier: 'expert', keep: 16 },
-  { min: 2600, max: 2799, tier: 'candidate-master', keep: 12 },
-  { min: 2800, max: 2999, tier: 'master', keep: 6 },
+  { min: 1000, max: 1199, tier: 'newbie', keep: 39 },
+  { min: 1200, max: 1399, tier: 'newbie', keep: 36 },
+  { min: 1400, max: 1599, tier: 'pupil', keep: 39 },
+  { min: 1600, max: 1799, tier: 'pupil', keep: 36 },
+  { min: 1800, max: 1999, tier: 'specialist', keep: 36 },
+  { min: 2000, max: 2199, tier: 'specialist', keep: 33 },
+  { min: 2200, max: 2399, tier: 'expert', keep: 30 },
+  { min: 2400, max: 2599, tier: 'expert', keep: 24 },
+  { min: 2600, max: 2799, tier: 'candidate-master', keep: 18 },
+  { min: 2800, max: 2999, tier: 'master', keep: 9 },
 ]);
 
 /**
