@@ -5,6 +5,7 @@ import {
   IconChart,
   IconChat,
   IconCode,
+  IconDatabase,
   IconDice,
   IconRotate,
 } from '../components/ui/Icons.jsx';
@@ -39,6 +40,12 @@ export const MODULE_NAV = [
     this is the first row under the roadmap, which is the same statement.
   */
   { key: 'procoder', to: '/cp', label: 'Pro Coder', Icon: IconCode },
+  /*
+    Third, under the two curriculums it sits beside. The Lab is a list you work
+    through like the roadmap and the ladder, not something you do *about* them
+    — which is what everything below this line is.
+  */
+  { key: 'sql', to: '/sql', label: 'SQL Lab', Icon: IconDatabase },
   { key: 'revision', to: '/revision', label: 'Revision', Icon: IconRotate },
   { key: 'stats', to: '/stats', label: 'Stats', Icon: IconChart },
   { key: 'chat', to: '/chat', label: 'AI Chat', Icon: IconChat },

@@ -140,15 +140,33 @@ export const reasonOf = (value) =>
  * The languages a solution may be stored in.
  *
  * Mirrors `SOLUTION_LANGS` on the server. `id` is what is stored and what
- * `highlight()` is handed; `label` is what the picker shows. Adding a fourth
- * means adding a keyword set to highlight.js first — it knows a JS family and a
- * C family, and an unlisted language renders subtly wrong rather than failing.
+ * `highlight()` is handed; `label` is what the picker shows. Adding one means
+ * adding a keyword set to highlight.js first — it knows a JS family, a C family
+ * and SQL, and an unlisted language renders subtly wrong rather than failing.
+ *
+ * Storable is not the same as offered, and the two lists below are that
+ * distinction. This one is every language an attempt may carry — it is what
+ * `langLabel` reads, so a stored SQL attempt is labelled correctly wherever it
+ * is rendered. What a *picker* shows is `CodeEditor`'s `langs` prop.
  */
 export const SOLUTION_LANGS = [
   { id: 'java', label: 'Java' },
   { id: 'cpp', label: 'C++' },
   { id: 'js', label: 'JavaScript' },
+  { id: 'sql', label: 'SQL' },
 ];
+
+/**
+ * What the roadmap and the ladder offer, and `CodeEditor`'s default.
+ *
+ * SQL is missing on purpose: a graph problem's attempt dialog has no business
+ * offering it, and the four-wide picker that fell out of simply appending to the
+ * list above was the whole reason these are two lists.
+ */
+export const PROBLEM_LANGS = SOLUTION_LANGS.filter((l) => l.id !== 'sql');
+
+/** The Lab's picker: one entry, drawn as a label rather than a choice. */
+export const SQL_ONLY = SOLUTION_LANGS.filter((l) => l.id === 'sql');
 
 export const DEFAULT_LANG = 'java';
 

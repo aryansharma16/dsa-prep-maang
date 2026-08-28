@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import { HOVERS, NARROW, useMediaQuery } from '../../hooks/useMediaQuery.js';
-import { useRoadmap } from '../../store/RoadmapContext.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
 import { FeedbackHost } from '../feedback/FeedbackHost.jsx';
 import { TimerPill } from '../tasks/TimerPill.jsx';
 import { AttemptTimerPill } from '../problem/AttemptTimerPill.jsx';
 import { AddProblemModal } from '../problem/AddProblemModal.jsx';
-import { IconMenu, IconPlus, IconSearch } from '../ui/Icons.jsx';
+import { IconMenu, IconPlus } from '../ui/Icons.jsx';
 import { isAnyModalOpen } from '../ui/Modal.jsx';
 import { AccountMenu } from './AccountMenu.jsx';
 import { AppearancePicker } from './AppearancePicker.jsx';
+import { ProgressRotator } from './ProgressRotator.jsx';
 import { Sidebar } from './Sidebar.jsx';
 import { SignOutDialog } from './SignOutDialog.jsx';
 
@@ -27,26 +27,9 @@ export function AppShell() {
   */
   const [hoverOpen, setHoverOpen] = useLocalState('sidebar-hover-open', true);
   const [peeking, setPeeking] = useState(false);
-  const { totals } = useRoadmap();
-  const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const searchRef = useRef(null);
-  const navigate = useNavigate();
   const { pathname } = useLocation();
-
-  /*
-    The admin panel has its own filters, and yanking someone to the roadmap
-    mid-edit because they typed in the wrong box would be worse than a search
-    that does nothing. Everywhere else, only the roadmap renders results, so
-    searching from Stats or Revision takes you there.
-  */
-  const onAdmin = pathname.startsWith('/admin');
-
-  const onSearch = (value) => {
-    setQuery(value);
-    if (value && pathname !== '/' && !onAdmin) navigate('/');
-  };
 
   /*
     Below 760px the sidebar stops being a column and becomes a drawer: it lifts
@@ -134,28 +117,18 @@ export function AppShell() {
   const closeNav = () => narrow && setCollapsed(true);
 
   useEffect(() => {
+    /* `/` belonged to the top bar's search box and left with it — it is bound
+       by whichever page's own box is mounted now. See `useSearchHotkey`. */
     const onKey = (e) => {
-      const typing = /^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable;
       if (isAnyModalOpen()) return;
-
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
         e.preventDefault();
         toggleNav();
-        return;
-      }
-      if (e.key === '/' && !typing) {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-      if (e.key === 'Escape' && document.activeElement === searchRef.current) {
-        searchRef.current.blur();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleNav]);
-
-  const pct = totals.total ? Math.round((totals.solved / totals.total) * 100) : 0;
 
   return (
     <div className={`shell ${navOpen ? 'nav-open' : ''}`}>
@@ -199,20 +172,12 @@ export function AppShell() {
             <IconMenu size={16} />
           </button>
 
-          <div className="search">
-            <span className="glass">
-              <IconSearch size={13} />
-            </span>
-            <input
-              ref={searchRef}
-              value={query}
-              onChange={(e) => onSearch(e.target.value)}
-              placeholder="Search problems, companies, tags..."
-              aria-label="Search problems"
-            />
-            {!query && <kbd>/</kbd>}
-          </div>
-
+          {/*
+            No search box up here any more — every page that has something to
+            search now owns its own, beside the filters it works with. See
+            `PageSearch`. The spacer is what is left of it, and it is what keeps
+            the timers and the counter pinned to the right.
+          */}
           <div className="spacer" />
 
           {/*
@@ -228,14 +193,8 @@ export function AppShell() {
               inside it. */}
           <AttemptTimerPill />
 
-          <div className="overall">
-            <span>
-              <b>{totals.solved}</b> / {totals.total} solved
-            </span>
-            <div className="bar" style={{ width: 64 }}>
-              <span style={{ width: `${pct}%` }} />
-            </div>
-          </div>
+          {/* Three curriculums, one slot — see ProgressRotator. */}
+          <ProgressRotator />
 
           <button className="btn" onClick={() => setAdding(true)} title="Add your own problem">
             <IconPlus size={13} />
@@ -256,7 +215,7 @@ export function AppShell() {
 
         <main className="content">
           <div className="content-inner">
-            <Outlet context={{ query, setQuery }} />
+            <Outlet />
           </div>
         </main>
       </div>

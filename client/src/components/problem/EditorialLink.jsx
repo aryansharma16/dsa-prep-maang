@@ -1,6 +1,5 @@
-import { useAttemptTimer } from '../../store/AttemptTimerContext.jsx';
+import { useEditorialGate } from '../../hooks/useEditorialGate.js';
 import { IconLock } from '../ui/Icons.jsx';
-import { EDITORIAL_GATE_MINUTES } from './attempts.js';
 import { notePeek } from './peeks.js';
 
 /**
@@ -11,38 +10,16 @@ import { notePeek } from './peeks.js';
  * block rather than a warning because minute four is exactly when a warning gets
  * clicked through — and minute four is where the learning would have been.
  *
- * ---------------------------------------------------------------------------
- * What counts as time spent, and why it is two numbers.
- *
- * `progress.attemptMinutes` is the sum of every sitting already logged against
- * this problem. It is computed server-side and already rides along on every row
- * (see the aggregation in server/src/controllers/problem.controller.js), so it
- * is durable: it survives a closed browser, a different machine, and a cleared
- * cache.
- *
- * The running clock is added on top, because the twenty-five minutes you are in
- * the middle of should count while you are in the middle of them — otherwise the
- * gate opens only after you stop and log, which is the wrong moment.
- *
- * The durable half is what makes a hard block survivable at all. Gating on the
- * live timer alone — which is `localStorage` and single-problem — would mean
- * closing a tab locks an editorial you had genuinely earned, with no way back
- * except waiting another twenty-five minutes.
- * ---------------------------------------------------------------------------
+ * The rule itself — what counts as time spent, and why it is two numbers — is
+ * in `useEditorialGate`, shared with the SQL Lab's reference-solution panel.
+ * Same gate, different chrome: this one guards a link out to somebody else's
+ * site, that one guards a panel on the page.
  *
  * A solved problem is never gated. You have earned the answer, and comparing
  * your solution against a better one is the most useful thing you can do next.
  */
 export function EditorialLink({ problem, progress = {}, href, title, className = '', children }) {
-  const timer = useAttemptTimer();
-
-  const logged = progress.attemptMinutes || 0;
-  const live = timer.isOn(problem._id) ? Math.floor(timer.elapsed() / 60) : 0;
-  const spent = logged + live;
-
-  const solved = progress.status === 'solved';
-  const unlocked = solved || spent >= EDITORIAL_GATE_MINUTES;
-  const left = Math.max(0, EDITORIAL_GATE_MINUTES - spent);
+  const { unlocked, solved, minutesLeft: left, running } = useEditorialGate(problem._id, progress);
 
   if (!unlocked) {
     /*
@@ -56,7 +33,7 @@ export function EditorialLink({ problem, progress = {}, href, title, className =
         type="button"
         className={`cell-link editorial-locked ${className}`}
         title={`${left} more ${left === 1 ? 'minute' : 'minutes'} on this problem first. ${
-          timer.isOn(problem._id)
+          running
             ? 'The clock is running.'
             : 'Start the clock from the attempt dialog and it counts.'
         }`}

@@ -148,10 +148,17 @@ function Block({ block, index }) {
       );
     }
 
+    /*
+      `caption` and `variant` are both optional and both arrived with the SQL
+      track, where a topic is often three tables in a row — the sample data, then
+      the query, then what it returned. Unnamed, those read as one undifferentiated
+      run of grids. Every table written before them renders exactly as it did.
+    */
     case 'table':
       return (
-        <div className="guide-tablewrap">
+        <div className="guide-tablewrap" data-variant={block.variant || undefined}>
           <table className="guide-table">
+            {block.caption && <caption>{inline(block.caption)}</caption>}
             <thead>
               <tr>
                 {block.columns.map((col) => (

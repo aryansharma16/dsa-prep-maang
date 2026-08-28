@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useOutletContext, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { FiltersModal } from '../components/filters/FiltersModal.jsx';
 import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
 import { GuideReader } from '../components/problem/GuideReader.jsx';
@@ -14,6 +14,7 @@ import {
   IconFilter,
 } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
+import { PageSearch } from '../components/ui/PageSearch.jsx';
 import { ROADMAP_FILTERS } from '../filters/roadmap.js';
 import { activeCount, clearPatch, matchesFilters } from '../filters/spec.js';
 import { useLocalState } from '../hooks/useLocalState.js';
@@ -35,7 +36,8 @@ export function Roadmap() {
   // Cosmetic, like every module check in the client — the route is not declared
   // and the API 404s when the module is off.
   const hasPractice = moduleVisible(modules, 'practice');
-  const { query, setQuery } = useOutletContext();
+  /* The roadmap's own search — see `PageSearch`. */
+  const [query, setQuery] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
 
   /*
@@ -155,7 +157,14 @@ export function Roadmap() {
   const allOpen = groups.length > 0 && groups.every((g) => openSections.includes(g.slug));
   const toggleAll = () => setOpenSections(allOpen ? [] : groups.map((g) => g.slug));
 
-  // Sidebar clicks and ?pattern= both land here.
+  /*
+    Where `?pattern=` lands — from the Playbook's today panel, and from anywhere
+    else that deep-links a section open.
+
+    It used to be reached two ways: this, and a `focus-pattern` window event the
+    sidebar's pattern list dispatched when you were already on the roadmap. That
+    list is gone, so the event had no dispatcher left and the listener with it.
+  */
   const focusPattern = useCallback(
     (slug) => {
       setOpenSections((prev) => (prev.includes(slug) ? prev : [...prev, slug]));
@@ -165,12 +174,6 @@ export function Roadmap() {
     },
     [setOpenSections],
   );
-
-  useEffect(() => {
-    const handler = (e) => focusPattern(e.detail);
-    window.addEventListener('focus-pattern', handler);
-    return () => window.removeEventListener('focus-pattern', handler);
-  }, [focusPattern]);
 
   useEffect(() => {
     const slug = searchParams.get('pattern');
@@ -350,6 +353,14 @@ export function Roadmap() {
         change how the roadmap is drawn, not what is in it.
       */}
       <div className="filterbar">
+        <PageSearch
+          value={query}
+          onChange={setQuery}
+          count={shown}
+          label="Search the roadmap"
+          placeholder="Search problems, companies, tags…"
+        />
+
         <button
           className={`toggle-chip ${narrowingCount ? 'on' : ''}`}
           onClick={() => setFiltersOpen(true)}

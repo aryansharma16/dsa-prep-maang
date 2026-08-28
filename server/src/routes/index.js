@@ -73,6 +73,7 @@ import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { cpRouter } from './cp.routes.js';
 import { feedbackRouter } from './feedback.routes.js';
+import { sqlRouter } from './sql.routes.js';
 import { taskRouter } from './task.routes.js';
 
 export const router = Router();
@@ -160,6 +161,16 @@ router.use('/chat', requireModule('chat'), chatRouter);
   behind the module gate by having been added there at all.
 */
 router.use('/cp', requireModule('procoder'), cpRouter);
+
+/*
+  The SQL Lab. Mounted the same way and for the same reason: ten routes is a
+  table of its own, and the module gate belongs on the mount so a route added
+  to that file tomorrow is covered by having been added.
+
+  Nothing behind it executes SQL — the engine runs in the reader's browser, so
+  this is a store of what happened rather than a place queries are sent.
+*/
+router.use('/sql', requireModule('sql'), sqlRouter);
 
 router.get('/patterns', listPatterns);
 router.get('/patterns/:slug/guide', getGuide);

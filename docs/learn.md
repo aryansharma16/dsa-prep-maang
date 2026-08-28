@@ -24,7 +24,7 @@ and how to add a topic or a whole new track.
 ```
 client/src/
   learn/
-    tracks.js                 the track registry — Complexity, React, Node.js, and what is coming
+    tracks.js                 the track registry — Complexity, React, Node.js, SQL
     blocks.js                 the block constructors content is written with
     progress.js               which topics you have read
     complexity/
@@ -36,6 +36,10 @@ client/src/
     node/
       index.js                the same, for Node.js
       event-loop-phases.js    one topic, one module          (68 of these)
+    sql/
+      index.js                the same, for SQL
+      left-and-right-join.js  one topic, one module          (53 of these)
+      sample-data.js          the two tables every SQL topic uses — not a topic
   hooks/useLearnDoc.js        the cache around the dynamic imports
   hooks/useScrollContainer.js the element that actually scrolls, found at runtime
   pages/Learn.jsx             /learn            the hub
@@ -47,17 +51,28 @@ client/src/
   components/problem/
     GuideBlocks.jsx           the renderer, shared with the pattern guides
     inline.jsx                `code`, **bold**, *italic* inside a sentence
-    highlight.js              the Java/C++/JS/JSX lexer
+    highlight.js              the Java/C++/JS/JSX/SQL lexer
 
-server/src/config/modules.js  the `learn` key, for the admin on/off switch
+server/src/
+  config/modules.js           the `learn` key, for the admin on/off switch
+  models/LearnProgress.js     one row per account per topic
+  controllers/learn.controller.js  read state, and the revision queue
+  routes/index.js             the four /learn/* routes, behind requireModule
 ```
 
-There is **no server code and no database**. Learn content is authored prose
-that only we edit, so it ships as JavaScript modules in the client bundle. That
-is the whole architectural decision, and it is why `learn` is the one module key
-with no matching `requireModule` in `routes/index.js` — there is no API to
-guard. Hiding it is therefore cosmetic, which is safe here precisely because
-there is nothing behind it but the notes themselves.
+**The content has no server code and no database.** Learn's prose is authored
+material that only we edit, identical for every reader, so it ships as
+JavaScript modules in the client bundle. That is the architectural decision, and
+it is why there is no collection of topics to seed and no migration when a
+sentence changes.
+
+What *is* per-account is your **reading progress**, and that has a model, a
+controller and four routes — added when marking a topic read started putting it
+on the same 3/7/21/60 revision ladder a problem goes on. So `/learn/*` is behind
+`requireModule('learn')` like every other module, and hiding Learn is no longer
+merely cosmetic: it takes the reading progress with the pages. What hiding it
+still cannot do is un-ship the prose, which is in the bundle either way — and
+that was always the trade.
 
 ## How a topic is authored
 
@@ -128,17 +143,28 @@ bundle has no business reaching across the repo for it.
 | `code(jsx(src), js(src), ts(src))` | a code block; several variants become a tab strip |
 | `code(sh(src))` | a terminal block — commands, not JavaScript |
 | `code(java(src))` | the same, for the Complexity track — `java` is not in `JS_LANGS`, so it takes the highlighter's C-family scan, which is the one the pattern guides have always used |
-| `table(columns, rows)` | a table |
+| `code(sql(src))` · `code(mysql(src), postgres(src))` | the same, for the SQL track. One `lang` and three names: the dialect is a tab *label*, never a different scan, and the two-name form is how a topic shows a real dialect difference |
+| `table(columns, rows, caption)` | a table, optionally captioned |
+| `data(caption, columns, rows)` | a **sample table** — the caption is its real name, set in mono, and the `FROM` clause below it uses that name |
+| `result(columns, rows, caption)` | **what the query returned** — the same block, drawn with the track's hue on its edge, because it is the only grid on the page that is an answer |
 | `sig(rows)` | `table` with the header `Parameter / Type / What it does` |
 | `cheat(rows)` | `table` with the header `Want to / Reach for` |
 | `asked(rows)` | `table` with the header `Asked in interviews / The answer in one line` |
 | `note` · `tip` · `warn` | a labelled callout |
 | `links(link(label, url))` | the footer links |
-| `reactDoc(path, label)` · `nodeDoc(path, label)` · `mdn(path, label)` · `wiki(path, label)` | a footer link to react.dev, nodejs.org/api, MDN or Wikipedia |
+| `reactDoc(path, label)` · `nodeDoc(path, label)` · `mdn(path, label)` · `wiki(path, label)` · `mysqlDoc(path, label)` · `pgDoc(path, label)` | a footer link to react.dev, nodejs.org/api, MDN, Wikipedia, or the MySQL and PostgreSQL manuals |
 
 `sig`, `cheat` and `asked` exist so the header row is written once. Writing
 `['Parameter', 'Type', 'What it does']` at the top of twenty files is how the
 fourth one ends up saying something else.
+
+`data` and `result` exist for the same reason one level up. A SQL topic is
+regularly three grids in a row — here are the tables, here is the query, here is
+what came back — and three *unlabelled* grids is a page the reader has to count
+their way through. Both are the ordinary `table` block with `caption` and
+`variant` set, so `GuideBlocks` renders one table and `learn.css` decides what a
+sample looks like against an answer. Every table written before they existed is
+unaffected: both fields are optional and default to nothing.
 
 `sh` deliberately uses a `lang` the highlighter does not know, so a command list
 falls through to the neutral scan instead of having `install` coloured as an
@@ -435,11 +461,24 @@ it every frame does not re-render the page.
 
 ## Syntax highlighting
 
-`highlight(source, lang)` takes a language now. `jsx`, `js`, `ts` and `tsx` use
-the JavaScript scan: JS and TypeScript keywords, template literals, and a JSX
-mode where a name after `<` is a tag and the names inside the tag are
-attributes. Anything else falls through to the original Java/C++ scan, so every
-pattern-guide call site is unchanged.
+`highlight(source, lang)` takes a language now, and picks between **three**
+scans. `jsx`, `js`, `ts` and `tsx` use the JavaScript one: JS and TypeScript
+keywords, template literals, and a JSX mode where a name after `<` is a tag and
+the names inside the tag are attributes. `sql` uses its own. Anything else falls
+through to the original Java/C++ scan, so every pattern-guide call site is
+unchanged.
+
+SQL needed a scan of its own rather than a third keyword set bolted onto the
+C-family one, because the two disagree about the rule the C scan leans on
+hardest: there, an identifier starting with a capital is a type. In SQL, capitals
+are what people put on **keywords**, and half of those keywords — `SELECT`,
+`ORDER`, `KEY`, `NAME` — are perfectly ordinary column names in lowercase. So the
+SQL lists are matched **case-insensitively** and capitalisation decides nothing.
+Three other differences fall out of the same file: `--` and `#` open a line
+comment rather than `//`, a string is single-quoted with `''` as the escape, and a
+*quoted identifier* — MySQL's backticks, everyone else's double quotes — gets its
+own alternative in the regex so `` `order` `` is coloured as the column name it is
+rather than as a literal.
 
 It is still a lexer, not a parser. JSX text starting with a capital letter reads
 as a type, and `${...}` inside a template literal is coloured as part of the
@@ -472,8 +511,8 @@ cd client && npm run dev
 ```
 
 - Sidebar shows **Learn**, in both the collapsed rail and the expanded menu.
-- `/learn` lists Complexity, React and Node.js live — Complexity first — with
-  SQL as *Soon* and not clickable.
+- `/learn` lists four live tracks — Complexity first, then React, Node.js and
+  SQL — with a meter under each.
 - `/learn/complexity` renders 3 sections and 6 topics.
 - `/learn/complexity/logarithms` renders the halving table, the Java/JS code
   tabs and the rules table. `/learn/complexity/cheatsheet` renders eight tables
@@ -482,6 +521,21 @@ cd client && npm run dev
   summary **and** tags — try `hook`, `performance`, `ref`, `typescript`.
 - `/learn/node` renders 13 sections and 68 topics; try the filter on `closure`,
   `event loop`, `interview`, `express`.
+- `/learn/sql` renders 10 sections and 53 topics, in amber; the filter matches
+  title, summary and tags — try `joins`, `normalisation`, `null`, `window`,
+  `interview`.
+- `/learn/sql/left-and-right-join` renders the two captioned sample tables, the
+  query, and a captioned result grid under each — the result grid wearing the
+  track's hue on its edge. SQL keywords are coloured, `--` comments are grey, a
+  backticked identifier is not coloured as a string, and the Java/C++ and JS
+  guides are unaffected.
+- `/learn/sql/sql-overview` has a code block with **MySQL** and **PostgreSQL**
+  tabs; switching them re-highlights and the copy button copies the visible tab.
+- `/learn/sql/read-phenomena` and `/learn/sql/isolation-levels` render the
+  two-session timelines without a horizontal scrollbar at 1000px.
+- Every SQL topic ends with an **Interview** table and a links block. Spot-check
+  a result grid against the data in `sql/sample-data.js` — six employees, four
+  departments, Radia with no department, Legal with no employees.
 - `/learn/react` ends with **The ecosystem** — 8 topics carrying Interview
   tables, unlike the six sections above them.
 - `/learn/node/native-server` and `/learn/node/scope-and-closures` render the
@@ -787,4 +841,135 @@ operations a second.
 
 ### SQL
 
-Not written yet.
+53 topics in 10 sections, in reading order. Each file is
+`client/src/learn/sql/<slug>.js`.
+
+The odd one out in this catalogue, and deliberately: React and Node are notes
+about somebody's API and Complexity is the maths under the roadmap, but this is
+a **subject**. An interview asks about ER models, BCNF and isolation levels the
+way it asks about graphs, so the track is written to be learned front to back
+rather than referred to, and it runs theory-first — what a database is, how one
+is designed and normalised, and only then the language.
+
+**One dataset, all the way through.** `client/src/learn/sql/sample-data.js` is
+the only file in that folder which is not a topic, and it earns the exception:
+six employees and four departments, defined once, used by every example in the
+track. Two rows in it are load-bearing — **Radia has no `dept_id`** and
+**Legal has no employees** — and they are what make the six join types return
+six different results from one dataset. A reader comparing `INNER` to `LEFT`
+should be comparing two results, not two worlds. `SCHEMA_SQL` in the same file
+is the DDL behind them.
+
+Every syntax topic follows the house shape with one substitution, and it is the
+substitution the whole track exists for: **the tables, the query, and the result
+grid underneath it.** That is what `data()` and `result()` are for — see
+[The block vocabulary](#the-block-vocabulary).
+
+**Foundations** — What a database actually is, and why nobody keeps a company in a folder of spreadsheets any more.
+
+| topic | |
+|---|---|
+| **What a database is** <br> `what-is-a-database` | Data, database, DBMS — three words people use interchangeably, and the difference between them. |
+| **DBMS vs a file system** <br> `dbms-vs-file-system` | Redundancy, inconsistency, concurrent writes and no crash recovery — the five problems that ended the flat file. |
+| **The three-schema architecture** <br> `three-schema-architecture` | Physical, logical and view level — and the data independence the split was invented to buy. |
+| **Data models** <br> `data-models` | Hierarchical, network, relational, object — what each got wrong, and why the relational model won. |
+
+**Designing it** — From a sentence about the business to a set of tables that can hold it.
+
+| topic | |
+|---|---|
+| **The ER model** <br> `er-model` | Entities and attributes: strong and weak, simple and composite, stored and derived. |
+| **Relationships and cardinality** <br> `relationships-and-cardinality` | 1:1, 1:N, M:N, and the difference between total and partial participation. |
+| **Turning an ER diagram into tables** <br> `er-to-tables` | The seven mapping rules, worked on one diagram — including the junction table every M:N needs. |
+| **The relational model** <br> `relational-model` | Relation, tuple, attribute, domain, degree, cardinality — the words a theory question is asked in. |
+| **Keys** <br> `keys` | Super, candidate, primary, alternate, composite, foreign and surrogate — seven names, and how they nest. |
+| **Constraints** <br> `constraints` | NOT NULL, UNIQUE, CHECK, DEFAULT and the referential actions. |
+
+**Normalisation** — The anomalies that come from putting everything in one table, and the forms that remove them.
+
+| topic | |
+|---|---|
+| **Functional dependencies** <br> `functional-dependencies` | A → B, closure, and Armstrong's axioms — the arithmetic every normal form is defined in. |
+| **1NF, 2NF and 3NF** <br> `normal-forms` | One badly-designed table, carried through all three forms, with the anomaly each one fixes named. |
+| **BCNF, 4NF and lossless joins** <br> `bcnf-and-beyond` | The case 3NF lets through, and what "lossless" and "dependency-preserving" are protecting. |
+| **Denormalisation** <br> `denormalisation` | Breaking the rules on purpose, and what it costs to keep the copy true. |
+
+**The language** — The five command families, the types a column can hold, and the statements that change data.
+
+| topic | |
+|---|---|
+| **SQL, and its five families** <br> `sql-overview` | DDL, DML, DQL, DCL, TCL — and which of them you can roll back. |
+| **Data types** <br> `data-types` | Numbers, strings, dates and booleans — plus why money is never a FLOAT. |
+| **Creating and altering tables** <br> `creating-tables` | CREATE TABLE with its constraints inline, then ALTER — and the NOT NULL column that fails in production. |
+| **INSERT, UPDATE, DELETE** <br> `insert-update-delete` | Getting rows in and out, and the missing WHERE that changes every row you own. |
+| **DELETE vs TRUNCATE vs DROP** <br> `delete-truncate-drop` | Three ways to remove things, compared on the four axes an interview asks about. |
+
+**Querying** — Reading data back out, one clause at a time — and the execution order that makes the rest of it obvious.
+
+| topic | |
+|---|---|
+| **How a SELECT actually runs** <br> `select-lifecycle` | You write SELECT first and the engine runs it sixth. The real order, and the five puzzles it solves. |
+| **WHERE and its operators** <br> `where-and-operators` | Comparison, BETWEEN, IN, LIKE and the wildcards — and which of them an index can serve. |
+| **NULL, and three-valued logic** <br> `null-handling` | NULL is unknown, and it makes every comparison a third thing. The topic behind most silent wrong answers. |
+| **ORDER BY and LIMIT** <br> `order-and-limit` | Sorting, ties, where NULLs land, and paginating without skipping a row. |
+| **DISTINCT and aliases** <br> `distinct-and-aliases` | Removing duplicates across the whole row, and where an alias is and is not visible. |
+| **Aggregate functions** <br> `aggregate-functions` | COUNT, SUM, AVG, MIN, MAX — and the COUNT(*) vs COUNT(column) question that gets asked every time. |
+| **GROUP BY and HAVING** <br> `group-by-having` | Collapsing rows into groups, filtering them afterwards, and why HAVING exists at all. |
+
+**Joins** — Every join type on the same two tables, with the rows it returns printed underneath.
+
+| topic | |
+|---|---|
+| **What a join really is** <br> `joins-overview` | Every join is a filtered cross product. The 24 rows underneath, printed once. |
+| **INNER JOIN** <br> `inner-join` | Rows that matched on both sides — and the NULL keys it drops silently. |
+| **LEFT and RIGHT JOIN** <br> `left-and-right-join` | Keep every row from one side, and the WHERE clause that silently cancels it. |
+| **FULL OUTER and CROSS JOIN** <br> `full-and-cross-join` | Everything from both sides, everything against everything — and faking FULL OUTER in MySQL. |
+| **SELF JOIN** <br> `self-join` | Joining a table to itself, for hierarchies and for comparing a row against its neighbours. |
+| **UNION, INTERSECT, EXCEPT** <br> `set-operations` | Stacking result sets rather than widening them. |
+
+**Going further** — The four things that separate a query someone can follow from a query someone can maintain.
+
+| topic | |
+|---|---|
+| **Subqueries** <br> `subqueries` | Scalar, row, column and table — and the three clauses one can appear in. |
+| **Correlated subqueries** <br> `correlated-subqueries` | The subquery that runs once per outer row, and the two rewrites that make it fast. |
+| **EXISTS, IN, ANY and ALL** <br> `exists-in-any-all` | Four ways to ask "is it in that set", with different NULL behaviour and different costs. |
+| **CTEs, including recursive ones** <br> `ctes` | WITH: naming a subquery so the query reads top to bottom — and the recursive form that walks a hierarchy. |
+| **Window functions** <br> `window-functions` | Aggregate without collapsing: OVER, PARTITION BY, and ROW_NUMBER vs RANK vs DENSE_RANK. |
+| **Frames, LAG and LEAD** <br> `window-frames-lag-lead` | Running totals, moving averages, and the default frame that quietly changes what SUM means. |
+
+**Beyond the query** — The objects a real schema has that a tutorial one does not.
+
+| topic | |
+|---|---|
+| **Views** <br> `views` | A stored query that behaves like a table — when it is updatable, and what a materialised view changes. |
+| **Stored procedures and functions** <br> `stored-procedures-and-functions` | Code that lives in the database, and the argument about whether it should. |
+| **Triggers** <br> `triggers` | Code that fires on write — for audit trails, and the reason they are easy to regret. |
+| **Indexes** <br> `indexes` | The B+ tree, clustered vs non-clustered, composite indexes and the leftmost-prefix rule. |
+| **Privileges and SQL injection** <br> `grants-and-injection` | GRANT and REVOKE, least privilege, and the one line of code that ends injection for good. |
+
+**Transactions and concurrency** — What happens when two people write at the same time, worked step by step.
+
+| topic | |
+|---|---|
+| **Transactions** <br> `transactions` | BEGIN, COMMIT, ROLLBACK and SAVEPOINT — the bank transfer, one statement at a time. |
+| **ACID** <br> `acid` | Four letters, each with the exact thing that breaks without it, and which component provides it. |
+| **Dirty, non-repeatable and phantom reads** <br> `read-phenomena` | Everything a concurrent reader can see that it should not, each as a two-session timeline. |
+| **Isolation levels** <br> `isolation-levels` | Read Uncommitted to Serializable: what each allows, and what your database actually defaults to. |
+| **Locks and deadlocks** <br> `locks-and-deadlocks` | Shared and exclusive locks, two-phase locking, and the deadlock two polite transactions cause. |
+| **MVCC** <br> `mvcc` | How Postgres and InnoDB let readers and writers ignore each other — and why VACUUM exists. |
+
+**Fast, and asked** — Why a query is slow, how to find out, and the questions all of it gets asked as.
+
+| topic | |
+|---|---|
+| **How a query is executed** <br> `query-execution` | Parse, rewrite, plan, execute — what the optimiser chooses between, and why statistics decide it. |
+| **Reading EXPLAIN** <br> `reading-explain` | A real plan line by line, in both engines, and one query taken from six seconds to a few milliseconds. |
+| **What makes a query slow** <br> `query-killers` | Ten things that stop an index being used or turn one query into a thousand — each with the rewrite. |
+| **The questions, and the classic queries** <br> `interview-questions` | ~90 theory questions answered in a line each, then the twelve queries asked by name. |
+
+The dialect is **MySQL first**, because that is what LeetCode grades and what
+interview questions assume. Where a difference is real the topic carries a
+second tab — `code(mysql(...), postgres(...))` — rather than a paragraph about
+it. Footer links go to the MySQL and PostgreSQL manuals via `mysqlDoc()` and
+`pgDoc()`, and to Wikipedia for the theory topics, which have no vendor.

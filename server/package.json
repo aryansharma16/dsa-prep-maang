@@ -23,10 +23,14 @@
     "seed:cp:db": "node scripts/seed/cp/seed.js",
     "seed:cp:guides": "node scripts/seed/cp/guides.js",
     "seed:cp": "npm run seed:cp:fetch && npm run seed:cp:sheets && npm run seed:cp:codechef && npm run seed:cp:curate && npm run seed:cp:solutions && npm run seed:cp:db && npm run seed:cp:guides",
+    "seed:sql:verify": "node scripts/seed/sql/verify.js",
+    "seed:sql:db": "node scripts/seed/sql/seed.js",
+    "seed:sql": "npm run seed:sql:verify && npm run seed:sql:db",
     "migrate:problem-slugs": "node scripts/migrate/problem-slug-owner.js",
     "migrate:attempt-ids": "node scripts/migrate/attempt-ids.js",
     "ai:probe": "node scripts/ai/probe-providers.js",
-    "s3:probe": "node scripts/s3/probe-storage.js"
+    "s3:probe": "node scripts/s3/probe-storage.js",
+    "sql:probe": "node scripts/sql/probe-engine.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1106.0",
@@ -45,5 +49,8 @@
     "morgan": "^1.10.0",
     "multer": "^2.2.0",
     "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "sql.js": "1.14.2"
   }
 }

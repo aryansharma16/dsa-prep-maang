@@ -49,6 +49,17 @@ export default defineConfig(({ mode, command }) => {
 
   return {
     plugins: [react()],
+    /*
+      The SQL Lab's engine runs in a module worker, and the build default for
+      `worker.format` is `iife` — which cannot represent a worker that
+      code-splits, so `vite build` fails with "UMD and IIFE output formats are
+      not supported for code-splitting builds".
+
+      It is worth knowing that dev serves workers as real ES modules either way,
+      so without this line the Lab works perfectly on every machine it is
+      developed on and the failure appears for the first time in CI.
+    */
+    worker: { format: 'es' },
     server: {
       port: Number(env.PORT) || 5173,
       // Fail loudly instead of silently hopping to another port — otherwise the

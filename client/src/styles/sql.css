@@ -1,0 +1,1032 @@
+/* =====================================================================
+   SQL Lab — the practice bench.
+
+   The whole theme is one wrapper, exactly as `.cp-root` is. `.sql-root`
+   redefines the token set every component in this app already reads —
+   --surface, --border, --text, --radius, --row-h — so the modals, chips,
+   dropdowns and tables the Lab *reuses* re-skin themselves without a line of
+   code. Without that leverage this file would be a fork of app.css.
+
+   Three rules are inherited from the ladder's room and not re-litigated here:
+
+     1. No `backdrop-filter`. Anywhere. Translucency over the ambient wash
+        only — the measurement behind that is in the README, and the Lab has
+        a sticky table header and a full-viewport overlay, both of which a
+        backdrop filter would make expensive and one of which it would break
+        outright by becoming the containing block for fixed descendants.
+
+     2. `--accent` is deliberately not redefined. It is the one colour the
+        reader picked.
+
+     3. It follows `data-theme` in both directions. A room pinned dark in a
+        light theme sends every portalled dropdown — those render on <body>,
+        outside this wrapper — back in the app's palette, so a light-theme
+        reader gets a white menu falling out of a black page.
+
+   What makes this its own room rather than the ladder's: a cooler, deeper
+   canvas, and grids as the dominant material. This is a console, not an
+   arena.
+   ===================================================================== */
+
+/* ---------------------------------------------------- the difficulty ramp */
+
+/*
+  Declared at `:root`, not inside the wrapper, and that is deliberate: the
+  revision queue renders SQL rows *outside* `.sql-root`, and a colour defined
+  only in here would fall back to nothing there. Same reason `--cf-*` sits at
+  the root in cp.css.
+*/
+:root,
+:root[data-theme='dark'] {
+  --sql-easy: #4ade80;
+  --sql-medium: #f5b544;
+  --sql-hard: #f4737d;
+}
+:root[data-theme='light'] {
+  --sql-easy: #15803d;
+  --sql-medium: #b45309;
+  --sql-hard: #be123c;
+}
+
+[data-difficulty='Easy'] { --band: var(--sql-easy); }
+[data-difficulty='Medium'] { --band: var(--sql-medium); }
+[data-difficulty='Hard'] { --band: var(--sql-hard); }
+
+/*
+  One category, one colour, resolved through `--band` so every downstream rule
+  is a single selector instead of eight. The hues are the app's own palette
+  names — see tokens.css — so the light theme re-steps them through the block
+  that re-steps every other hue in the app.
+*/
+[data-category='select'] { --band: var(--h-sky); }
+[data-category='sorting'] { --band: var(--h-teal); }
+[data-category='aggregation'] { --band: var(--h-green); }
+[data-category='joins'] { --band: var(--h-amber); }
+[data-category='subqueries'] { --band: var(--h-orange); }
+[data-category='window'] { --band: var(--h-violet); }
+[data-category='strings-dates'] { --band: var(--h-pink); }
+[data-category='modify'] { --band: var(--h-red); }
+
+/* ------------------------------------------------------- the token wrapper */
+
+/*
+  Tokens and nothing else — no background, no padding, no size. That is what
+  lets the workbench wear it: it is a full-viewport overlay with its own
+  layout and it wants the palette without inheriting a page's margins.
+*/
+.sql-root {
+  --bg: #0c1013;
+  --surface: #141a1e;
+  --surface-2: #1a2126;
+  --surface-hover: #202a30;
+  --border: rgb(255 255 255 / 0.09);
+  --border-soft: rgb(255 255 255 / 0.055);
+
+  --text: #e6edf0;
+  --text-2: #9fadb5;
+  --text-3: #6f7f88;
+
+  /* Translucency over the wash, plus opaque twins for anything sticky. */
+  --sql-panel: rgb(255 255 255 / 0.05);
+  --sql-panel-2: rgb(255 255 255 / 0.03);
+  --sql-solid: #161d21;
+  --sql-solid-2: #1b2429;
+  --sql-hair: rgb(255 255 255 / 0.08);
+  --sql-aurora: rgb(60 190 190 / 0.09);
+
+  --easy: var(--sql-easy);
+  --medium: var(--sql-medium);
+  --hard: var(--sql-hard);
+
+  --shadow: rgb(0 0 0 / 0.5);
+
+  /* Tighter than the ladder. This is a page of grids, and grids want density. */
+  --radius: 10px;
+  --row-h: 32px;
+}
+
+:root[data-theme='light'] .sql-root {
+  --bg: #f5f7f8;
+  --surface: #ffffff;
+  --surface-2: #f0f3f5;
+  --surface-hover: #e8edef;
+  --border: rgb(15 23 42 / 0.12);
+  --border-soft: rgb(15 23 42 / 0.07);
+
+  --text: #101820;
+  --text-2: #4a5860;
+  --text-3: #74838c;
+
+  /* On a light canvas the glass is ink over the wash, not white light through it. */
+  --sql-panel: rgb(15 23 42 / 0.035);
+  --sql-panel-2: rgb(15 23 42 / 0.02);
+  --sql-solid: #ffffff;
+  --sql-solid-2: #f4f7f8;
+  --sql-hair: rgb(15 23 42 / 0.1);
+  --sql-aurora: rgb(20 150 150 / 0.08);
+
+  --shadow: rgb(15 23 42 / 0.12);
+}
+
+/* ---------------------------------------------------------------- the page */
+
+/*
+  Full bleed, the same `:has()` trick and for the same reason as `.cp-page`:
+  `.content` belongs to the app shell several levels above any page, and a page
+  cannot reach up to it.
+*/
+.content:has(.sql-page) {
+  padding: 0;
+}
+.content:has(.sql-page) .content-inner {
+  max-width: none;
+  margin: 0;
+}
+
+/*
+  The wash is layered into the element's own background rather than drawn by a
+  pseudo-element. A `z-index: -1` pseudo would need a stacking context on the
+  parent, and a stacking context here would trap the workbench and the filters
+  dialog underneath the floating chat launcher.
+*/
+.sql-page {
+  position: relative;
+  color: var(--text);
+  background:
+    radial-gradient(900px 340px at 8% -12%, rgb(var(--accent-rgb) / 0.09), transparent 68%) no-repeat,
+    radial-gradient(720px 300px at 90% -14%, var(--sql-aurora), transparent 70%) no-repeat,
+    var(--bg);
+  background-size: 100% 440px, 100% 440px, auto;
+  padding: 22px 28px 72px;
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+/* --------------------------------------------------------------- the arena */
+
+.sql-arena {
+  margin-bottom: 18px;
+}
+.sql-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sql-brand-mark {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  padding: 6px 10px;
+  border: 1px solid var(--sql-hair);
+  border-radius: 8px;
+  background: var(--sql-panel);
+}
+.sql-brand h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.sql-brand p {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  color: var(--text-3);
+}
+
+.sql-rail {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+.sql-rung {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 11px 11px;
+  background: var(--sql-panel-2);
+  border: 1px solid var(--sql-hair);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+.sql-rung:hover {
+  background: var(--sql-panel);
+  border-color: color-mix(in srgb, var(--band, var(--accent)) 34%, transparent);
+}
+.sql-rung-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.sql-rung-label::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--band, var(--text-3));
+}
+.sql-rung-bar {
+  width: 100%;
+  height: 4px;
+  background: color-mix(in srgb, var(--text-3) 22%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.sql-rung-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--band, var(--accent));
+}
+.sql-rung-frac {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+/* ----------------------------------------------------------------- the bar */
+
+.sql-root .toggle-chip,
+.sql-root .chip-clear {
+  background: var(--sql-panel-2);
+  border-color: var(--sql-hair);
+}
+.sql-root .toggle-chip.on {
+  background: var(--accent-bg);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.sql-bar {
+  margin-bottom: 14px;
+}
+.sql-spine button.on {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------- a section */
+
+.sql-section {
+  border: 1px solid var(--sql-hair);
+  border-radius: var(--radius);
+  background: var(--sql-panel-2);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.sql-heading {
+  margin: 0;
+  display: flex;
+  align-items: stretch;
+}
+.sql-head {
+  flex: 1;
+  display: flex;
+  padding: 12px 14px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+}
+.sql-head:hover {
+  background: var(--sql-panel);
+}
+.sql-head-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.sql-head .chev {
+  display: flex;
+  transition: transform 0.15s;
+  color: var(--text-3);
+}
+.sql-head .chev.open {
+  transform: rotate(90deg);
+}
+.sql-head-title {
+  flex: 1;
+  min-width: 0;
+}
+.sql-head-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sql-head-name::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--band, var(--text-3));
+}
+.sql-step {
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+.sql-head-blurb {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.sql-meter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+}
+.sql-meter .bar {
+  width: 84px;
+  height: 4px;
+  background: color-mix(in srgb, var(--text-3) 22%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.sql-meter .bar > span {
+  display: block;
+  height: 100%;
+  background: var(--band, var(--accent));
+}
+.sql-frac,
+.sql-meter .pct {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------- the table */
+
+.sql-root .tablewrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--sql-hair);
+}
+.sql-root table.problems {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+.sql-root table.problems thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  /* Opaque, not translucent: a sticky header over scrolling rows must not
+     show them through it. This is what `--sql-solid` exists for. */
+  background: var(--sql-solid);
+  border-bottom: 1px solid var(--sql-hair);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: left;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.sql-root table.problems td {
+  height: var(--row-h);
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+  vertical-align: middle;
+}
+.sql-root table.problems tr:last-child td {
+  border-bottom: none;
+}
+.sql-root table.problems tr:hover td {
+  background: var(--sql-panel);
+}
+.sql-root table.problems tr.solved .sql-title-cell {
+  color: var(--text-2);
+}
+
+.sql-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.sql-title-cell:hover {
+  color: var(--accent);
+}
+
+.sql-diff-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent);
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+}
+.diff-easy { --tone: var(--sql-easy); }
+.diff-medium { --tone: var(--sql-medium); }
+.diff-hard { --tone: var(--sql-hard); }
+
+.sql-cat-tag {
+  font-size: 10.5px;
+  color: var(--band, var(--text-3));
+  letter-spacing: 0.03em;
+}
+
+/* ---------------------------------------------------------- the workbench */
+
+/*
+  The overlay wears `.sql-root` and nothing on the page under it needs to —
+  the wrapper is tokens only, so it re-skins this dialog wherever it is
+  mounted. `.reader-*` comes from app.css; only the two-pane body is new.
+*/
+.sql-workbench .reader {
+  background: var(--bg);
+}
+.sql-bench {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.sql-pane {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px 24px 60px;
+}
+.sql-pane-left {
+  border-right: 1px solid var(--sql-hair);
+}
+/*
+  A column, so the editor can take the slack. Everything below it keeps its
+  natural height — only `.sql-editor` carries `flex-grow`.
+*/
+.sql-pane-right {
+  display: flex;
+  flex-direction: column;
+}
+.sql-pane-right > *:not(.sql-editor) {
+  flex: 0 0 auto;
+}
+
+.sql-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+.sql-statement p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 62ch;
+  color: var(--text-2);
+}
+.sql-statement strong {
+  color: var(--text);
+}
+
+.sql-clock {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--sql-hair);
+  background: var(--sql-panel-2);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.sql-clock.on {
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.sql-solved-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--sql-easy);
+}
+
+/* --------------------------------------------------------------- a grid */
+
+.sql-grid {
+  margin: 14px 0;
+  border: 1px solid var(--sql-hair);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.sql-grid-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 12px;
+  background: var(--sql-panel-2);
+  border-bottom: 1px solid var(--sql-hair);
+}
+.sql-grid-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.sql-grid-note {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.sql-grid-scroll {
+  overflow-x: auto;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.sql-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.sql-table th {
+  position: sticky;
+  top: 0;
+  background: var(--sql-solid-2);
+  border-bottom: 1px solid var(--sql-hair);
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.sql-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+.sql-table tr:last-child td {
+  border-bottom: none;
+}
+.sql-table td.sql-num {
+  text-align: right;
+}
+/* NULL is dim and italic — visibly not a value, which is the whole lesson. */
+.sql-table td.sql-null {
+  color: var(--text-3);
+  font-style: italic;
+}
+.sql-table td.sql-diff {
+  background: color-mix(in srgb, var(--sql-hard) 18%, transparent);
+  color: var(--sql-hard);
+  font-weight: 600;
+}
+.sql-grid-empty {
+  padding: 14px 10px;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.sql-grid.tone-expected {
+  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.sql-grid.tone-expected .sql-grid-head {
+  background: var(--accent-bg);
+}
+.sql-grid.tone-expected .sql-grid-name {
+  color: var(--accent);
+}
+.sql-grid.tone-result {
+  border-color: var(--sql-hair);
+}
+
+/* ------------------------------------------------------------ the editor */
+
+.sql-editor {
+  display: flex;
+  flex-direction: column;
+  /*
+    Grows into whatever the right pane is not using. Before this the editor was
+    a fixed 190px box with several hundred pixels of empty pane under it, which
+    read as an unfinished screen rather than as a place to write a query. With a
+    result on screen there is no free space to take, so `flex-grow` does nothing
+    and the pane scrolls instead — which is the behaviour wanted in both states.
+  */
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid var(--sql-hair);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+.sql-editor-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 12px;
+  background: var(--sql-panel-2);
+  border-bottom: 1px solid var(--sql-hair);
+}
+.sql-lang {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.sql-chars {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.sql-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.sql-run kbd {
+  font-size: 10px;
+  opacity: 0.65;
+  /* Inherits the filled button's own text colour — a kbd styled for a page
+     background is unreadable on an accent fill. */
+  color: inherit;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  border-color: transparent;
+}
+/* A filled button that is off is worse than an outlined one that is off: it
+   still reads as "press me" from across the pane. */
+.sql-run:disabled {
+  background: var(--surface);
+  border-color: var(--sql-hair);
+  color: var(--text-3);
+  font-weight: 400;
+}
+/*
+  ---------------------------------------------------------------------------
+  Three layers, one set of metrics.
+
+  The gutter, the highlighted mirror and the textarea are stacked on top of each
+  other, and they only line up while they agree about every property that
+  affects where a glyph lands. So the metrics are declared **once**, here, and
+  inherited — `font`, `font-size`, `line-height`, `letter-spacing`, `tab-size`
+  and the padding. Setting any of them on `.sql-code` alone is how the mirror
+  drifts half a pixel per line and the colours end up under the wrong words.
+
+  `--sql-gutter` is the one number two of the three need separately: it is the
+  gutter's width, and it is the text layers' left padding.
+  ---------------------------------------------------------------------------
+*/
+.sql-editor-body {
+  --sql-gutter: 44px;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 220px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  tab-size: 2;
+}
+
+/*
+  The three share a box. `inset: 0` on all of them rather than the mirror being
+  in flow: a mirror in flow would size the container to the *code*, and an empty
+  editor would then be one line tall.
+*/
+.sql-gutter,
+.sql-mirror,
+.sql-code {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  tab-size: inherit;
+  white-space: pre;
+}
+
+.sql-gutter {
+  right: auto;
+  width: var(--sql-gutter);
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  overflow: hidden;
+  text-align: right;
+  color: var(--text-3);
+  /*
+    Opaque, and this is not a taste decision — it is the same rule the sticky
+    table header follows, for the same reason. The gutter is pinned while the
+    code scrolls horizontally *underneath* it, so a translucent background lets
+    the scrolled query show through and read as the line numbers' own gibberish.
+    `--sql-solid` exists precisely for the surfaces something else slides under.
+  */
+  background: var(--sql-solid);
+  border-right: 1px solid var(--sql-hair);
+  user-select: none;
+  z-index: 1;
+}
+.sql-gutter span {
+  /* Dimmed here rather than on the gutter, so the opacity applies to the digits
+     and not to the background that has to stay solid behind them. */
+  opacity: 0.5;
+}
+.sql-gutter span {
+  padding-right: 10px;
+  flex: 0 0 auto;
+}
+
+
+.sql-mirror {
+  padding: 12px 12px 12px calc(var(--sql-gutter) + 12px);
+  /*
+    Hidden rather than auto, and scrolled from JS. A second scrollbar under a
+    transparent textarea would be a scrollbar nobody can grab, and two elements
+    each deciding their own scroll position are two elements that disagree the
+    first time one of them is scrolled by the keyboard.
+  */
+  overflow: hidden;
+  color: var(--text-2);
+  pointer-events: none;
+}
+
+.sql-code {
+  padding: 12px 12px 12px calc(var(--sql-gutter) + 12px);
+  overflow: auto;
+  outline: none;
+  resize: none;
+  background: transparent;
+  /*
+    The glyphs are drawn by the mirror underneath; this layer contributes the
+    caret and the selection, which a transparent colour does not take with it.
+  */
+  color: transparent;
+  caret-color: var(--accent);
+}
+/* `color: transparent` would take the placeholder with it, and an empty box
+   with no prompt in it is the one state this editor is in first. */
+.sql-code::placeholder {
+  color: var(--text-3);
+  opacity: 0.7;
+}
+/* Over transparent text, the selection *is* the feedback — so it is drawn
+   solidly enough to read the highlighted glyphs through. */
+.sql-code::selection {
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+.sql-code:focus-visible {
+  outline: none;
+}
+.sql-editor:focus-within {
+  border-color: var(--accent-line);
+}
+
+.sql-block {
+  margin: 12px 0;
+  border: 1px solid var(--sql-hair);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.sql-block-cap {
+  display: block;
+  padding: 6px 12px;
+  font-size: 10.5px;
+  color: var(--text-3);
+  background: var(--sql-panel-2);
+  border-bottom: 1px solid var(--sql-hair);
+}
+.sql-block pre {
+  margin: 0;
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+.sql-block .cl {
+  display: block;
+}
+
+/* ----------------------------------------------------------- the verdict */
+
+.sql-verdict {
+  margin: 14px 0;
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--tone-line);
+  background: var(--tone-bg);
+}
+.sql-verdict p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.sql-verdict-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tone);
+}
+.sql-verdict.tone-pass {
+  --tone: var(--sql-easy);
+  --tone-line: color-mix(in srgb, var(--sql-easy) 40%, transparent);
+  --tone-bg: color-mix(in srgb, var(--sql-easy) 10%, transparent);
+}
+.sql-verdict.tone-fail {
+  --tone: var(--sql-medium);
+  --tone-line: color-mix(in srgb, var(--sql-medium) 40%, transparent);
+  --tone-bg: color-mix(in srgb, var(--sql-medium) 10%, transparent);
+}
+.sql-verdict.tone-error {
+  --tone: var(--sql-hard);
+  --tone-line: color-mix(in srgb, var(--sql-hard) 40%, transparent);
+  --tone-bg: color-mix(in srgb, var(--sql-hard) 10%, transparent);
+}
+.sql-verdict.tone-error p {
+  font-size: 12px;
+  color: var(--sql-hard);
+}
+.sql-first {
+  color: var(--sql-easy) !important;
+  font-weight: 600;
+}
+
+/* -------------------------------------------------- hints, notes, solution */
+
+.sql-note {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 10px 13px;
+  border-left: 3px solid var(--accent);
+  border-radius: 4px var(--radius) var(--radius) 4px;
+  background: var(--accent-bg);
+}
+.sql-note p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.sql-note-tag {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.sql-hints {
+  margin: 16px 0;
+}
+.sql-hint {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.sql-hint > .mono {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  font-size: 11px;
+  padding-top: 2px;
+}
+
+.sql-solution {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+.sql-solution .sql-block,
+.sql-solution .sql-explain {
+  flex: 1 1 100%;
+}
+.sql-explain p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-2);
+  max-width: 62ch;
+}
+.sql-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+.sql-learn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.sql-learn-link:hover {
+  color: var(--accent);
+}
+
+.sql-idle,
+.sql-error {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+.sql-error {
+  color: var(--sql-hard);
+}
+.sql-loading .skeleton {
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 1100px) {
+  /* One pane over the other: two columns of grids below this is unreadable. */
+  .sql-bench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sql-pane-left {
+    border-right: none;
+    border-bottom: 1px solid var(--sql-hair);
+  }
+  .sql-rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .sql-page {
+    padding: 16px 14px 60px;
+  }
+  .sql-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.skeleton-rail {
+  height: 92px;
+  border-radius: var(--radius);
+  background: var(--sql-panel-2);
+  margin-bottom: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Rows that live somewhere else.
+
+   A linked problem reuses the roadmap's `.title-cell` / `.title-link` / `.ext`
+   markup rather than the Lab's own button, so most of this is already styled by
+   `app.css` and everything below is the Lab's palette catching up with it:
+   `--accent` here is the Lab's, so the hover already reads as this page.
+   -------------------------------------------------------------------------- */
+
+.sql-root .sql-title-ext .tag-mini {
+  color: var(--text-3);
+  border-color: color-mix(in srgb, var(--text-3) 32%, transparent);
+}
+.sql-root tr:hover .sql-title-ext .tag-mini {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/*
+  The Where column. Two values and they should be told apart at a glance without
+  reading either — the Lab's own rows carry the accent, the linked ones are
+  deliberately quieter, because "this one is ordinary" is the more common answer
+  and the louder treatment belongs to the exception.
+*/
+.sql-where-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  white-space: nowrap;
+}
+.sql-where-tag.is-external {
+  border-color: var(--line);
+  color: var(--text-3);
+  background: none;
+}

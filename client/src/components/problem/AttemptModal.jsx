@@ -11,7 +11,6 @@ import {
   DEFAULT_LANG,
   FAILURE_REASONS,
   OUTCOMES,
-  SOLUTION_LANGS,
   TIME_PRESETS,
   attemptStamp,
   editWindowLeft,

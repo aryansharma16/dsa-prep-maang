@@ -76,17 +76,24 @@ export const reasonAllowed = (outcome) => !outcomeEffect(outcome).solves;
 /**
  * The languages a stored solution may be written in.
  *
- * Three, and the list is deliberately short. Java and C++ are what the twelve CP
- * guides are written in, so a solution here sits beside a reference in the same
- * language; JavaScript is the one this account actually works in daily. A fourth
- * would need a keyword set adding to client/src/components/problem/highlight.js
- * first — that file knows a JS family and a C family and nothing else, so an
- * unlisted language does not fail, it renders subtly wrong, which is worse.
+ * The list is deliberately short. Java and C++ are what the twelve CP guides are
+ * written in, so a solution here sits beside a reference in the same language;
+ * JavaScript is the one this account actually works in daily. `sql` joined them
+ * for the SQL Lab, where the stored solution is the query that passed.
+ *
+ * Adding one means adding a keyword set to
+ * client/src/components/problem/highlight.js *first* — that file knows a JS
+ * family, a C family and SQL, and an unlisted language does not fail, it renders
+ * subtly wrong, which is worse.
+ *
+ * This is the list of languages a solution may be *stored* in, not the list any
+ * one picker offers: `CodeEditor` takes a `langs` prop, so the Lab shows SQL
+ * alone and the roadmap's attempt dialog is unchanged at three.
  *
  * `cpp` and `js` rather than `c++` and `javascript`: these are stored on every
  * attempt forever and read straight into a CSS class and a highlighter switch.
  */
-export const SOLUTION_LANGS = ['java', 'cpp', 'js'];
+export const SOLUTION_LANGS = ['java', 'cpp', 'js', 'sql'];
 
 /** What a solution is written in when nothing said otherwise. */
 export const DEFAULT_LANG = 'java';

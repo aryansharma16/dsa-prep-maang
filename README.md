@@ -27,9 +27,10 @@ the sign-in page as well as from the sidebar.
 | **Roadmap** | 517 problems in 23 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
-| **Learn** | Reference notes for the things around the algorithms. Three tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; and Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
+| **Learn** | Reference notes for the things around the algorithms. Four tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests; and SQL, 53 topics from "what is a database" through ER models, normalisation, every join shown with its result, window functions, isolation levels and query plans — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
 | **Playbook** | The site owner's own 24-week interview-prep plan — four phases targeting 396 of the 517 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
+| **SQL Lab** | 117 SQL problems in 8 categories, with two kinds of row and one rule between them: **72 run in your browser** — SQLite compiled to WASM, their own schema and rows, graded against a generated expected result — and **45 link out to LeetCode**, because a problem that already has a judge should be solved on it. Progressive hints, a reference solution behind the same 25-minute gate as every editorial, MySQL shims so the answers match what the Learn track teaches, and the same revision ladder as everything else |
 | **Pro Coder** | A competitive-programming ladder: 1,100 problems (800 Codeforces, 300 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own palette — the app's glass material, re-stepped darker and carrying Codeforces' rating ramp — following your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across both curriculums |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
@@ -89,6 +90,9 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:cp:solutions` | attaches reference solutions from four public repos — additive and idempotent |
 | `npm run seed:cp:db` | upserts the CP ladder into MongoDB |
 | `npm run seed:cp:guides` | writes the 12 core CP guides |
+| `npm run seed:sql` | the SQL Lab: verify, then write |
+| `npm run seed:sql:verify` | runs every reference solution and generates the expected grids → `data/sql/curated-sql.json`. Refuses to write if anything disagrees |
+| `npm run seed:sql:db` | upserts the verified SQL bank into MongoDB |
 | `npm run seed:motivation` | writes the 160 motivational lines |
 | `npm run seed:logos` | pre-warms the company logo cache |
 | `npm run ai:draft` | drafts new motivational lines with Gemini, for you to curate |
@@ -187,18 +191,23 @@ error; the reader shows the blurb and the key techniques instead.
 
 The roadmap teaches the algorithms. **Learn** is for everything around them —
 the vocabulary you use every day and could not define under pressure. There are
-three tracks: **Complexity**, 6 topics that start at "how many times can you
+four tracks: **Complexity**, 6 topics that start at "how many times can you
 halve a thousand" and end at the Big-O tables; **React**, 43 topics from what
 happens between a `setState` and the pixels through to the ecosystem a React job
-actually expects; and **Node.js**, 68 topics that start at closures and `map`
-and end at a hardened, paginated, authenticated API with a cache, a queue and
-tests behind it.
+actually expects; **Node.js**, 68 topics that start at closures and `map` and
+end at a hardened, paginated, authenticated API with a cache, a queue and tests
+behind it; and **SQL**, 53 topics that start at "what is a database" and end at
+reading a query plan.
 
-Complexity is the odd one out and sits first for that reason. The other two are
-notes about somebody's API; this one is the maths the roadmap assumes you have
-already. A pattern guide that opens with "this is `O(n log n)`" is worth nothing
-to a reader for whom the `log` in that is a mystery, and that is a gap worth
-closing on its own page rather than in an aside.
+Two of them sit at the ends for the same reason, and it is not length.
+**Complexity** is first because it is the maths the roadmap assumes you have
+already — a pattern guide that opens with "this is `O(n log n)`" is worth
+nothing to a reader for whom the `log` in that is a mystery, and that is a gap
+worth closing on its own page rather than in an aside. **SQL** is last because
+it is the only track that is not notes about somebody's API. React and Node are
+reference you reach for while building; an interview asks about ER models, BCNF
+and isolation levels the way it asks about graphs, so that track is written to
+be learned front to back rather than looked up.
 
 Sidebar → **Learn** → a track → a topic. Each topic is the same shape, so it
 reads as a cheatsheet and holds up as documentation: the definition in the
@@ -353,9 +362,194 @@ Every topic carries two or three questions wired to the assistant. Clicking one
 opens the chat dock and sends it, so the question the notes did not answer is
 one click rather than a context switch.
 
-**SQL** is listed as **Soon**. Adding a track is a folder and an entry in
-`client/src/learn/tracks.js` — see [docs/learn.md](docs/learn.md) for the block
-vocabulary and how to add a topic or a track.
+Adding a track is a folder and an entry in `client/src/learn/tracks.js` — see
+[docs/learn.md](docs/learn.md) for the block vocabulary and how to add a topic
+or a track.
+
+### SQL — the 53 topics
+
+| | |
+|---|---|
+| **Foundations** (4) | What a database is · DBMS vs a file system · The three-schema architecture · Data models |
+| **Designing it** (6) | The ER model · Relationships and cardinality · ER diagram → tables · The relational model · Keys · Constraints |
+| **Normalisation** (4) | Functional dependencies · 1NF, 2NF, 3NF · BCNF and lossless joins · Denormalisation |
+| **The language** (5) | SQL's five families · Data types · Creating and altering tables · INSERT/UPDATE/DELETE · DELETE vs TRUNCATE vs DROP |
+| **Querying** (7) | How a SELECT actually runs · WHERE · NULL · ORDER BY and LIMIT · DISTINCT and aliases · Aggregates · GROUP BY and HAVING |
+| **Joins** (6) | What a join really is · INNER · LEFT and RIGHT · FULL OUTER and CROSS · SELF · UNION, INTERSECT, EXCEPT |
+| **Going further** (6) | Subqueries · Correlated subqueries · EXISTS, IN, ANY, ALL · CTEs · Window functions · Frames, LAG and LEAD |
+| **Beyond the query** (5) | Views · Stored procedures · Triggers · Indexes · Privileges and SQL injection |
+| **Transactions** (6) | Transactions · ACID · Dirty, non-repeatable and phantom reads · Isolation levels · Locks and deadlocks · MVCC |
+| **Fast, and asked** (4) | How a query is executed · Reading EXPLAIN · What makes a query slow · The questions, and the classic queries |
+
+**Every syntax topic prints its result.** That is the thing this track does that
+a reference page does not: two sample tables, the query, and the rows that came
+back, one under the other. `LEFT JOIN` returning six rows and `INNER JOIN`
+returning five is not a sentence to remember, it is two grids on the same page
+with a person visibly missing from one of them.
+
+Which means the data has to be the same everywhere, so it is defined once, in
+`client/src/learn/sql/sample-data.js`: **six employees and four departments.**
+Small enough to check a result by eye, and chosen so that two rows carry the
+whole Joins section — **Radia has no department** and **Legal has no
+employees**. Those are the only rows the six join types disagree about. The same
+two tables are behind `COUNT(*)` being 6 while `COUNT(dept_id)` is 5, behind the
+self-join that walks the manager chain, and behind the recursive CTE that walks
+it to any depth.
+
+**Theory first, and it is an argument.** Sections 1 to 3 are what a DBMS is, how
+a schema is designed, and how it is normalised — before a single `SELECT`.
+Normalisation is one badly-designed table carried through 1NF, 2NF and 3NF with
+the anomaly each step removes named as it goes, rather than three definitions
+and three unrelated examples. Transactions get six topics and are worked as
+**two-session timelines**: a dirty read is a clock with two columns, not a
+paragraph, because that is the only honest way to show what the second
+connection could see and when.
+
+The dialect is **MySQL first** — it is what LeetCode grades and what interview
+questions assume — with a second code tab where a difference is real rather than
+a paragraph about it. Footer links go to the MySQL and PostgreSQL manuals, and to
+Wikipedia for the theory topics, which have no vendor.
+
+The last topic is the revision page: ~90 questions answered in a line each, then
+the twelve queries that get asked by name — Nth highest salary, duplicates,
+department-wise top-N, consecutive rows, running totals, pivoting — each against
+those same six employees, with the answer printed.
+
+## SQL Lab — practise the queries
+
+The Learn track teaches SQL; this is where you write it. **117 problems** across
+the eight shapes a SQL interview question comes in, and the thing that makes it
+a Lab rather than a list: for most of them, **the query actually runs**, against
+a real database, in your browser, and the app tells you whether the answer is
+right.
+
+| Category | Problems | Runs here | Links out | What it is for |
+|---|---|---|---|---|
+| Select & filter | 18 | 15 | 3 | Right rows, right columns, one table |
+| Sorting & pagination | 7 | 6 | 1 | Order, ties, top-N, the Nth of something |
+| Aggregation & grouping | 21 | 7 | 14 | Collapse rows into groups, then filter the groups |
+| Joins | 30 | 20 | 10 | Combine tables, and keep the rows that did not match |
+| Subqueries & CTEs | 12 | 6 | 6 | A query inside a query, and naming one |
+| Window functions | 11 | 6 | 5 | Rank, running totals, the previous row |
+| Strings, dates & logic | 12 | 6 | 6 | CASE, text functions, date arithmetic |
+| Modify & design | 6 | 6 | 0 | INSERT, UPDATE, DELETE, DDL |
+| **Total** | **117** | **72** | **45** | 53 Easy · 58 Medium · 6 Hard |
+
+Category is the default spine; **difficulty** is one toggle (or `g`) away, from
+the same payload, exactly as the ladder does it.
+
+### Two kinds of row, and the rule between them
+
+A problem is either solved **here** or solved **where it lives**, and `mode` on
+the problem says which. The rule is one line: **if the problem already exists on
+a platform, it links to the platform.**
+
+|  | In the Lab | On the platform |
+|---|---|---|
+| What it carries | Its own schema, rows, expected grid, hints, a solution and an explanation | A title, a summary in our words, a difficulty, a category and a link |
+| Where it runs | SQLite compiled to WASM, in a worker, in your tab | LeetCode's judge |
+| What marks it | The app compares your result against the expected one | You do, with the status button, after LeetCode says so |
+| The row | A button that opens the workbench | An anchor with the external-link mark, exactly like a roadmap row |
+
+Re-typing LeetCode's tables so the same question could be graded a second time
+would have been a worse copy in three separate ways. Their judge has the hidden
+cases; ours would have five hand-picked rows. Their page has the editorial and
+the discussion. And a submission there **counts** — it goes on a profile
+somebody is actually building. What the Lab adds to a linked problem is the part
+LeetCode does not have: which of the eight categories it belongs to, which Learn
+topic teaches the idea behind it, and the same 3/7/21/60 revision ladder every
+other problem in this app is on.
+
+The distinction is visible **before** the click, not after it — the linked rows
+carry the external mark and an `LC` tag, and a `Where` column says `Lab` or `LC`
+outright. A row that silently opened a new tab when the one above it opened a
+panel is how a table stops being trusted.
+
+### Where the problems come from
+
+| Source | Contribution |
+|---|---|
+| [LeetCode SQL 50](https://leetcode.com/studyplan/top-sql-50/) | 45 link-outs, in the plan's own numbering, filed under the Lab's categories |
+| [SQL-Interview-Prep-Question](https://github.com/Aafreen29/SQL-Interview-Prep-Question) | Real questions from Facebook, Visa and Wayfair loops — CTR per app, friend-request acceptance rate, page recommendations, histogram buckets — authored here, because none of them has a platform to send you to |
+| [CrackingTheSQLInterview](https://github.com/xoraus/CrackingTheSQLInterview) · [Awesome-SQL-Interview](https://github.com/jaimin-bariya/Awesome-SQL-Interview) · [dbms-core-notes](https://github.com/a2rp/dbms-core-notes) · [awesome-database-learning](https://github.com/pingcap/awesome-database-learning) | The theory side, which is the Learn track's 53 topics rather than the Lab's — there is no query to write for ACID or BCNF |
+| Written for the Lab | The traps. `NOT IN` with a NULL, `<>` skipping NULLs, `DISTINCT` applying to the row — the mistakes that produce a **wrong answer with no error**, which is the one thing reading about them demonstrably does not fix |
+
+All fifty of the SQL 50 are reachable, but only forty-five are links: the other
+five were authored here before the plan was imported, and the local versions are
+the gentlest problems in the bank and the ones a beginner meets first. They keep
+a credit link to the original. `verify.js` **fails the seed if any LeetCode id
+appears twice**, so that arrangement cannot quietly drift into the bank holding
+two copies of Big Countries — one you solve here and one that sends you away.
+
+### The engine
+
+`sql.js` — SQLite compiled to WebAssembly — in a Web Worker, so a query that
+loops forever costs a worker rather than the tab. ~700 KB, fetched when a
+problem is opened rather than when the page loads, so the download overlaps with
+reading the statement.
+
+**Nothing leaves the browser.** No SQL is sent anywhere — the server ships
+problems and stores progress, and never executes a query. That is what removes
+the injection and resource-exhaustion questions a server-side runner would have
+raised, and it is why the whole content half of the API is three read endpoints:
+the bank, one problem, and the category counts.
+
+The dialect people write is **MySQL**, because that is what the Learn track
+teaches and what LeetCode grades — so the missing functions are shimmed onto the
+SQLite handle rather than the SQL being rewritten. `DATEDIFF`, `DATE_FORMAT`, `DATE_ADD`,
+`DATE_SUB`, `ADDDATE`, `SUBDATE`, `IF`, `LEFT`, `RIGHT`, `LOCATE`, `NVL` and
+MySQL's `TRUNCATE`. A rewriter would be a second
+SQL implementation and a second set of bugs nobody could see from the query they
+typed. Where a difference is real and cannot be shimmed, the problem says so in
+a `dialectNote` — 16 of them do.
+
+### How a problem is graded
+
+The expected result is **generated, never typed**. `npm run seed:sql:verify`
+runs each reference solution against the same sql.js build and the same shims
+the browser will use, and whatever comes back *is* the expectation. A
+hand-written grid would be a second opinion about the answer, and the two
+disagree eventually — at which point the Lab tells somebody with a correct query
+that they are wrong, which is the one failure that makes the module worthless.
+
+That closes one hole and opens another: running a solution proves it **runs**,
+not that it answers the **question**. So every problem carries a hand-written
+`expectRows`, and the verifier fails the seed when the count it produced
+disagrees. It is the cheapest possible assertion against the most expensive
+possible mistake.
+
+Three more things the verifier refuses to write:
+
+- a problem marked `orderMatters` whose reference solution is **not order-stable
+  across two runs** — an `ORDER BY` that does not fully determine the order would
+  fail correct answers at random;
+- a linked problem carrying a `setupSql` or a `solutionSql`, because a fragment
+  of half-finished local authoring left on a link-out is how one problem ends up
+  existing twice with the two halves disagreeing;
+- two linked problems pointing at the same URL, or any two problems claiming the
+  same LeetCode id.
+
+`orderMatters` is `false` by default and set on 61 problems — only where the
+question actually asks for an ordering, because a query with no `ORDER BY` has
+no defined order and grading one positionally is a coin toss. The six `modify`
+problems are graded differently again: an `UPDATE` returns no rows, so the
+reader's statements run for their side effects and a `checkSql` the problem
+carries runs afterwards against the table they left behind.
+
+### The workbench
+
+Two panes, because the point of the screen is seeing the question and your
+answer at once: the statement, the sample tables and the expected grid on the
+left; the editor, the verdict and what you actually got on the right. A wrong
+result is **diffed cell by cell** rather than merely rejected.
+
+Hints are progressive and revealed one at a time; the reference solution sits
+behind the same 25-minute clock as every editorial in the app, and peeking is
+recorded the same way. Your draft is kept per problem, so closing the workbench
+to go and read a Learn topic and coming back does not lose what you had written.
+A first pass puts the problem on the revision ladder; running it again does not,
+because re-running a solved query here is free and celebrating it every time
+would make the message mean nothing.
 
 ## Pro Coder — competitive programming
 

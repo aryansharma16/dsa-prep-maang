@@ -29,6 +29,13 @@ import './styles/playbook.css';
   plain `.thing` at equal specificity, so source order is what decides them.
 */
 import './styles/learn.css';
+/*
+  After learn.css, and last of all. `.sql-root` redefines the same tokens the
+  shared components read, exactly as `.cp-root` and `.learn-shell` do, and
+  several of its rules override a plain `.thing` at equal specificity — so
+  source order is what decides them.
+*/
+import './styles/sql.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

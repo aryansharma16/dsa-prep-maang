@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { FiltersModal } from '../components/filters/FiltersModal.jsx';
 import { ColumnsModal } from '../components/problem/ColumnsModal.jsx';
 import { ArenaHeader } from '../components/cp/ArenaHeader.jsx';
@@ -19,6 +18,7 @@ import {
   IconFilter,
 } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
+import { PageSearch } from '../components/ui/PageSearch.jsx';
 import { CP_FILTERS } from '../filters/cp.js';
 import { activeCount, clearPatch, matchesFilters } from '../filters/spec.js';
 import { useLocalState } from '../hooks/useLocalState.js';
@@ -54,7 +54,8 @@ export function ProCoder() {
     setProgress,
   } = useCP();
   const { toast } = useToast();
-  const { query, setQuery } = useOutletContext();
+  /* The ladder's own search — see `PageSearch`. */
+  const [query, setQuery] = useState('');
 
   const [filters, setFilters] = useSavedFilters('cp', CP_FILTERS);
   const patch = useCallback(
@@ -414,7 +415,15 @@ export function ProCoder() {
       />
 
       <div className="filterbar cp-bar">
-        {/* The spine. First control on the bar because it decides what
+        <PageSearch
+          value={query}
+          onChange={setQuery}
+          count={shown}
+          label="Search the ladder"
+          placeholder="Search title, 1352G, contest, tag…"
+        />
+
+        {/* The spine. Next control on the bar because it decides what
             everything below it means. */}
         <div className="size-group filter-seg cp-spine">
           {['tier', 'pattern'].map((mode) => (

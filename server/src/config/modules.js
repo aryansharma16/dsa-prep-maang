@@ -70,6 +70,17 @@ export const MODULES = Object.freeze([
   */
   { key: 'procoder', label: 'Pro Coder', path: '/cp' },
   /*
+    SQL Lab — the third curriculum, and the only one that grades itself.
+
+    A module rather than part of Learn, because Learn is prose we ship in the
+    bundle and this is a problem collection, a progress row per account and an
+    execution engine. Hideable for the reason Pro Coder is: someone six weeks
+    from a front-end interview has no business being sent down a hundred and
+    twenty SQL problems, and a deployment aimed at them should be able to take
+    it off the menu.
+  */
+  { key: 'sql', label: 'SQL Lab', path: '/sql' },
+  /*
     Practice — the two things you do *with* the curriculum rather than to it.
 
     A drill that shows a problem's title and asks which pattern it is, and a mock

@@ -61,7 +61,28 @@ export const sh = (source, label = 'Terminal') => ({ lang: 'sh', label, code: so
 */
 export const java = (source, label = 'Java') => ({ lang: 'java', label, code: source.trim() });
 
-export const table = (columns, rows) => ({ type: 'table', columns, rows });
+/*
+  SQL, for the DBMS track.
+
+  Three constructors and one `lang`, because the dialect is a *label* and never a
+  different scan: `highlight()` has one SQL keyword set and MySQL, PostgreSQL and
+  SQLite share more than 95% of it. What the separate names buy is the tab strip
+  — `code(mysql(...), postgres(...))` is how a topic shows a dialect difference
+  without writing the same query twice in prose, and the track is MySQL-first, so
+  `mysql` is the one that goes on the left.
+
+  Plain `sql` is for the majority of snippets, which are standard enough that
+  naming a vendor on the tab would imply a difference that is not there.
+*/
+export const sql = (source, label = 'SQL') => ({ lang: 'sql', label, code: source.trim() });
+export const mysql = (source, label = 'MySQL') => ({ lang: 'sql', label, code: source.trim() });
+export const postgres = (source, label = 'PostgreSQL') => ({
+  lang: 'sql',
+  label,
+  code: source.trim(),
+});
+
+export const table = (columns, rows, caption = '') => ({ type: 'table', columns, rows, caption });
 
 /**
  * The signature table every API topic opens with. It is `table` with the header
@@ -72,6 +93,36 @@ export const sig = (rows) => table(['Parameter', 'Type', 'What it does'], rows);
 
 /** The "when do I reach for this" table every topic closes with. */
 export const cheat = (rows) => table(['Want to', 'Reach for'], rows);
+
+/*
+  The two tables a SQL topic is really made of.
+
+  A page about `LEFT JOIN` is three grids in a row — here are the tables, here is
+  the query, here is what came back — and three anonymous grids is a page the
+  reader has to count their way through. So both of these are captioned, and the
+  caption is doing real work: on `data` it is the table's actual name, the one
+  the `FROM` clause below it uses, and on `result` it says that this grid is an
+  answer rather than more input.
+
+  `variant` is what the stylesheet switches on. A sample table is drawn as data
+  you are being handed; a result is drawn as data the query produced, with the
+  hue's edge on it. Same block type either way — `GuideBlocks` renders one table.
+*/
+export const data = (caption, columns, rows) => ({
+  type: 'table',
+  variant: 'data',
+  caption,
+  columns,
+  rows,
+});
+
+export const result = (columns, rows, caption = 'Result') => ({
+  type: 'table',
+  variant: 'result',
+  caption,
+  columns,
+  rows,
+});
 
 /**
  * The interview table the Node topics close with, for the same reason `sig` and
@@ -120,5 +171,28 @@ export const mdn = (path, label) =>
  * doc because they are about somebody's API; this one is about mathematics that
  * has no vendor, and the encyclopedia article is the closest thing to a
  * canonical page a topic like `Big O notation` has.
+ *
+ * The SQL track uses it too, and for the same reason: `Third normal form` and
+ * `Two-phase locking` are not MySQL's and not PostgreSQL's.
  */
 export const wiki = (path, label) => link(label, `https://en.wikipedia.org/wiki/${path}`);
+
+/**
+ * The MySQL manual — `mysqlDoc('join.html', 'JOIN')`.
+ *
+ * Pinned to 8.4, the current LTS, rather than to `/refman/en/`: an unversioned
+ * URL silently becomes a page about a different release, and a note that links
+ * to "whatever is current in three years" is a note that will one day be wrong
+ * without anyone editing it.
+ */
+export const mysqlDoc = (path, label) =>
+  link(label, `https://dev.mysql.com/doc/refman/8.4/en/${path}`);
+
+/**
+ * The PostgreSQL manual — `pgDoc('sql-select.html', 'SELECT')`.
+ *
+ * `/docs/current/` here, unlike MySQL above, because that is the URL Postgres
+ * itself publishes and versioned ones redirect to it anyway.
+ */
+export const pgDoc = (path, label) =>
+  link(label, `https://www.postgresql.org/docs/current/${path}`);

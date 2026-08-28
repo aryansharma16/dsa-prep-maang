@@ -70,7 +70,7 @@ export function AdminProblems() {
       )}
 
       <div className="filterbar">
-        <div className="search admin-search">
+        <div className="admin-search">
           <input
             value={q}
             onChange={(e) => {

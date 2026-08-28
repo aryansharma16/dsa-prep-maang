@@ -1,5 +1,6 @@
-import { useMemo, useRef } from 'react';
-import { SOLUTION_LANGS, langLabel } from './attempts.js';
+import { useMemo } from 'react';
+import { useTabIndent } from '../../hooks/useTabIndent.js';
+import { PROBLEM_LANGS, langLabel } from './attempts.js';
 import { highlight } from './highlight.js';
 
 /**
@@ -15,45 +16,31 @@ import { highlight } from './highlight.js';
  * attempt fixed the bug or repeated it.
  */
 
-/** How far one Tab moves. Two, matching the guides' own code samples. */
-const INDENT = '  ';
-
 /**
- * The textarea, with the two behaviours that make it usable for code.
+ * The textarea, with the two behaviours that make it usable for code — both of
+ * them in `useTabIndent`, which the SQL Lab's editor shares.
  *
- * **Tab indents instead of leaving the field.** A plain textarea hands Tab to
- * the browser, which moves focus to the next control — in a dialog, that is the
- * Cancel button, and you discover it after typing three lines. Trapping it costs
- * the keyboard route out of the field, so Escape still closes the dialog and
- * Shift+Tab still steps backwards, which is the pair people actually reach for.
- *
- * **Selection is preserved.** Setting `value` moves the caret to the end in
- * every browser, so the caret is restored by hand after an indent. Without it
- * every Tab throws you to the bottom of the file.
+ * `langs` is the picker's list. It defaults to `PROBLEM_LANGS` — the three a
+ * roadmap or ladder problem is solved in — and the SQL Lab passes `SQL_ONLY`.
+ * Defaulting to the full `SOLUTION_LANGS` instead would put a SQL button on
+ * every graph problem's attempt dialog, which is the bug this prop exists to
+ * avoid rather than the reason it was added.
  */
-export function CodeEditor({ value, lang, onChange, onLang, placeholder, rows = 10 }) {
-  const ref = useRef(null);
-
-  const onKeyDown = (event) => {
-    if (event.key !== 'Tab' || event.shiftKey) return;
-    event.preventDefault();
-
-    const el = ref.current;
-    const { selectionStart: start, selectionEnd: end } = el;
-    const next = `${value.slice(0, start)}${INDENT}${value.slice(end)}`;
-    onChange(next);
-
-    // After React has written the new value back into the field.
-    requestAnimationFrame(() => {
-      const at = start + INDENT.length;
-      el.setSelectionRange(at, at);
-    });
-  };
+export function CodeEditor({
+  value,
+  lang,
+  onChange,
+  onLang,
+  placeholder,
+  rows = 10,
+  langs = PROBLEM_LANGS,
+}) {
+  const [ref, onKeyDown] = useTabIndent(value, onChange);
 
   return (
     <div className="sol-editor">
       <div className="sol-langs size-group filter-seg" role="group" aria-label="Language">
-        {SOLUTION_LANGS.map((option) => (
+        {langs.map((option) => (
           <button
             key={option.id}
             type="button"

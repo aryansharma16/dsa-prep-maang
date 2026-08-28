@@ -914,6 +914,50 @@
   max-width: 260px;
 }
 
+/*
+  Captioned tables, and the two kinds the SQL track needs.
+
+  A caption is a label on the grid, not a heading above it, so it sits inside the
+  frame on its own tinted strip rather than floating over the gap — a sample
+  table and its name have to read as one object when the next thing down the
+  page is another table.
+
+  The `data` / `result` split is one line of colour and nothing else. Sample data
+  is neutral: it is the input, and the page has not said anything yet. A result
+  wears the track's hue on its top edge, because it is the only grid on the page
+  that is an *answer*, and that is the whole reason a reader scrolled to it.
+*/
+.learn-col .guide-table caption {
+  caption-side: top;
+  text-align: left;
+  padding: 9px 15px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+  background: rgb(255 255 255 / 0.025);
+  border-bottom: 1px solid var(--border-soft);
+}
+:root[data-theme='light'] .learn-col .guide-table caption {
+  background: rgb(15 23 42 / 0.03);
+}
+
+/* A table name is an identifier, so it is set like one. */
+.learn-col .guide-tablewrap[data-variant='data'] caption {
+  font-family: var(--mono);
+  letter-spacing: 0;
+  color: var(--text-2);
+}
+
+.learn-col .guide-tablewrap[data-variant='result'] {
+  border-color: rgb(var(--hue-rgb) / 0.28);
+}
+.learn-col .guide-tablewrap[data-variant='result'] caption {
+  color: rgb(var(--hue-rgb));
+  background: rgb(var(--hue-rgb) / 0.07);
+  border-bottom-color: rgb(var(--hue-rgb) / 0.22);
+}
+
 /* A tinted box with a tag reads as an aside; a rule down its edge reads as a
    margin note, which is what these are. */
 .learn-col .guide-callout {
@@ -1179,4 +1223,36 @@
   .track-card:hover .track-card-go {
     transform: none;
   }
+}
+
+/* ---------------------------------------------------------------- hub search
+
+   The top bar's box lands here when you are anywhere under /learn, and the hub
+   answers it across every track at once — which is the one question a track
+   page cannot answer about itself.
+
+   Results reuse `.learn-section` and `.learn-topics` rather than inventing a
+   result row, so a topic found by searching looks exactly like the same topic
+   sitting in its own track's index. One group per track, in track order.
+   -------------------------------------------------------------------------- */
+
+/*
+  `--lx-1` is what draws the little rule beside a section heading, and it is
+  normally mapped on `.learn-shell[data-hue]` — one hue for the whole page,
+  because a track page only ever shows one track. Results show several, so the
+  mapping is repeated per group and each keeps its own track's colour.
+*/
+.learn-section[data-hue] {
+  --lx-1: var(--hue-rgb);
+}
+
+/* The hub's box is the track page's box, so it needs nothing of its own — only
+   the `/` hint, which the track page has never had room for. */
+.learn-search-key {
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 5px;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
 }

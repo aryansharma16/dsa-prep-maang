@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { cpApi, learnApi, progressApi } from '../api/index.js';
+import { cpApi, learnApi, progressApi, sqlApi } from '../api/index.js';
 import { errorMessage } from '../api/http.js';
 import { CompanyChips } from '../components/problem/CompanyChips.jsx';
 import {
@@ -53,6 +53,25 @@ const shortDate = (value) => {
  * third. Open by default, so the first visit is not a queue with two unlabelled
  * icons on every row.
  */
+/**
+ * Where a queue row's title goes when clicked.
+ *
+ * Returns `{ to }` for somewhere in this app and `{ href }` for somewhere else,
+ * and the caller renders a `Link` or an `<a>` accordingly.
+ *
+ * Three of the four curriculums answer this the same way — a roadmap or ladder
+ * problem is a link to a judge, a Learn topic is a page here. The Lab is the one
+ * that answers it per row: a problem it hosts opens in the Lab, and a problem it
+ * links to opens on the platform. The queue therefore cannot decide by `source`
+ * alone, which is what it used to do — and a Lab row's `href` was `undefined`,
+ * so its title was an anchor that went nowhere at all.
+ */
+function queueLink(item) {
+  if (item.source === 'learn') return { to: `/learn/${item.track}/${item.topic}` };
+  if (item.source === 'sql') return item.url ? { href: item.url } : { to: '/sql' };
+  return { href: item.url || item.articleUrl };
+}
+
 function HowItWorks() {
   const [open, setOpen] = useLocalState('revision-how-open', true);
 
@@ -180,6 +199,7 @@ function TestCard({ item, onRecalled, onMissed, onSkip }) {
         <h3>{item.title}</h3>
         {item.source === 'cp' && <span className="tag-mini">CP</span>}
         {item.source === 'learn' && <span className="tag-mini">LEARN</span>}
+        {item.source === 'sql' && <span className="tag-mini">SQL</span>}
       </header>
 
       {!revealed ? (
@@ -271,6 +291,7 @@ export function Revision() {
   const { modules } = useAuth();
   const hasCp = moduleVisible(modules, 'procoder');
   const hasLearn = moduleVisible(modules, 'learn');
+  const hasSql = moduleVisible(modules, 'sql');
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -302,7 +323,7 @@ export function Revision() {
         because it is hidden) leaves the roadmap queue working rather than
         emptying the page.
       */
-      const [dsa, cp, learn] = await Promise.allSettled([
+      const [dsa, cp, learn, sql] = await Promise.allSettled([
         progressApi.revision(),
         hasCp ? cpApi.revision() : Promise.resolve({ items: [] }),
         /*
@@ -313,6 +334,8 @@ export function Revision() {
           morning" is one question.
         */
         hasLearn ? learnApi.revision() : Promise.resolve({ items: [] }),
+        /* And a fourth. A SQL problem you solved comes back on the same ladder. */
+        hasSql ? sqlApi.revision() : Promise.resolve({ items: [] }),
       ]);
 
       if (dsa.status === 'rejected' && cp.status === 'rejected') throw dsa.reason;
@@ -321,6 +344,7 @@ export function Revision() {
         ...(dsa.value?.items || []).map((i) => ({ ...i, source: 'dsa' })),
         ...(cp.value?.items || []).map((i) => ({ ...i, source: 'cp' })),
         ...(learn.value?.items || []).map((i) => ({ ...i, source: 'learn' })),
+        ...(sql.value?.items || []).map((i) => ({ ...i, source: 'sql' })),
       ];
 
       /*
@@ -341,7 +365,7 @@ export function Revision() {
     } finally {
       setLoading(false);
     }
-  }, [hasCp]);
+  }, [hasCp, hasLearn, hasSql]);
 
   useEffect(() => {
     load();
@@ -373,6 +397,7 @@ export function Revision() {
       // any problem collection. See server/src/models/LearnProgress.js.
       if (item.source === 'learn')
         return learnApi.review(item.track, item.topic, result, undefined, recallText);
+      if (item.source === 'sql') return sqlApi.review(item._id, result, undefined, recallText);
       return null;
     };
 
@@ -409,6 +434,7 @@ export function Revision() {
     await act(item, 'dismissed', recallText);
     const flag = { needsRevision: true };
     if (item.source === 'cp') cpApi.patch(item._id, flag).catch(() => {});
+    else if (item.source === 'sql') sqlApi.patch(item._id, flag).catch(() => {});
     else if (item.source === 'learn') {
       // Re-marking it read at the lowest confidence is how a topic goes back to
       // the front of the ladder — there is no `needsRevision` patch route for
@@ -423,6 +449,7 @@ export function Revision() {
     dsa: items.filter((i) => i.source === 'dsa').length,
     cp: items.filter((i) => i.source === 'cp').length,
     learn: items.filter((i) => i.source === 'learn').length,
+    sql: items.filter((i) => i.source === 'sql').length,
   };
   const shown = source === 'all' ? items : items.filter((i) => (i.source || 'dsa') === source);
 
@@ -465,6 +492,9 @@ export function Revision() {
                 : []),
               ...(hasLearn && counts.learn > 0
                 ? [{ value: 'learn', label: 'Learn', n: counts.learn }]
+                : []),
+              ...(hasSql && counts.sql > 0
+                ? [{ value: 'sql', label: 'SQL Lab', n: counts.sql }]
                 : []),
             ].map((option) => (
               <button
@@ -520,6 +550,7 @@ export function Revision() {
             Nothing due
             {source === 'cp' && ' in Pro Coder'}
             {source === 'learn' && ' in Learn'}
+            {source === 'sql' && ' in the SQL Lab'}
             {source === 'dsa' && ' in the roadmap'}
           </h3>
           <p>Mark a problem for revision, or come back after your next solve schedules one.</p>
@@ -564,20 +595,21 @@ export function Revision() {
                       <td>
                         <div className="title-cell">
                           {/*
-                            A Learn topic is a page in this app, not a problem on
-                            somebody else's site, so it takes an internal link
+                            A Learn topic — and a SQL Lab problem the Lab itself
+                            hosts — is a page in this app rather than a problem
+                            on somebody else's site, so it takes an internal link
                             and no external-link mark. Everything else keeps the
-                            anchor it always had.
+                            anchor it always had. See `queueLink`.
                           */}
-                          {item.source === 'learn' ? (
-                            <Link className="title-link" to={`/learn/${item.track}/${item.topic}`}>
+                          {queueLink(item).to ? (
+                            <Link className="title-link" to={queueLink(item).to}>
                               {item.title}
                             </Link>
                           ) : (
                             <>
                               <a
                                 className="title-link"
-                                href={item.url || item.articleUrl}
+                                href={queueLink(item).href}
                                 target="_blank"
                                 rel="noreferrer"
                               >
@@ -596,6 +628,7 @@ export function Revision() {
                               CP
                             </span>
                           )}
+                          {item.source === 'sql' && <span className="tag-mini">SQL</span>}
                           {item.source === 'learn' && (
                             <span className="tag-mini" title="A Learn topic you marked read">
                               LEARN

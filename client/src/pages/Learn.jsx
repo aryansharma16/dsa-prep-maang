@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { TopicCard } from '../components/learn/TopicCard.jsx';
 import { TrackCard } from '../components/learn/TrackCard.jsx';
-import { useReadTopics } from '../learn/progress.js';
+import { topicKey, useReadTopics } from '../learn/progress.js';
 import { TRACKS, flatTopics } from '../learn/tracks.js';
+import { useSearchHotkey } from '../hooks/useSearchHotkey.js';
+import { IconSearch } from '../components/ui/Icons.jsx';
 
 /**
  * Waits for the browser to be idle, falling back to a timeout where
@@ -38,12 +41,30 @@ function whenIdle(fn, timeout = 1200) {
  * can arrive a beat late. The page cannot.
  */
 export function Learn() {
-  const { countRead } = useReadTopics();
+  const { countRead, read } = useReadTopics();
+
+  /*
+    The hub's own search, in the hub. It used to be the top bar's single box
+    reaching in through the outlet — see `PageSearch` for why that stopped.
+
+    Deliberately the same control the track pages already have rather than the
+    `.filterbar` one the roadmap and the ladder use: this is Learn, and a reader
+    moving between the hub and a track should meet the same box in the same
+    place. The difference is only what it searches — every track at once here,
+    one track there.
+  */
+  const [query, setQuery] = useState('');
+  const searchRef = useRef(null);
+  useSearchHotkey(searchRef);
+
   const [topicsByTrack, setTopicsByTrack] = useState({});
+
+  const searching = Boolean(query.trim());
 
   useEffect(() => {
     let live = true;
-    const cancel = whenIdle(() => {
+
+    const load = () => {
       Promise.all(
         TRACKS.filter((track) => track.status === 'live' && track.load).map((track) =>
           track
@@ -56,12 +77,53 @@ export function Learn() {
       ).then((entries) => {
         if (live) setTopicsByTrack(Object.fromEntries(entries.filter(Boolean)));
       });
-    });
+    };
+
+    /*
+      Idle is right for the meters and wrong for a search: the indexes *are* the
+      search, so waiting for a quiet frame before fetching them would mean typing
+      into a box that answers "nothing found" until the browser gets around to
+      it. A query jumps the queue; everything else still waits.
+    */
+    if (searching) {
+      load();
+      return () => {
+        live = false;
+      };
+    }
+
+    const cancel = whenIdle(load);
     return () => {
       live = false;
       cancel();
     };
-  }, []);
+  }, [searching]);
+
+  /*
+    Every live track's topics, flattened and matched — the hub is the only page
+    that can search *across* tracks, which is what makes it the right place for
+    the top bar's box to land. A track page filters its own list; this answers
+    "where in Learn is this mentioned at all".
+
+    Matched on the same three fields a track page's own filter uses, so the two
+    boxes do not disagree about what counts as a hit.
+  */
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+
+    return TRACKS.map((track) => {
+      const topics = (topicsByTrack[track.slug] || []).filter(
+        (topic) =>
+          topic.title.toLowerCase().includes(q) ||
+          (topic.summary || '').toLowerCase().includes(q) ||
+          (topic.tags || []).some((tag) => tag.toLowerCase().includes(q)),
+      );
+      return { track, topics };
+    }).filter((group) => group.topics.length > 0);
+  }, [query, topicsByTrack]);
+
+  const hits = results.reduce((n, group) => n + group.topics.length, 0);
 
   /*
     The one line of arithmetic on this page, and it only says something once
@@ -103,19 +165,77 @@ export function Learn() {
         )}
       </header>
 
-      <div className="learn-hub">
-        {TRACKS.map((track) => {
-          const topics = topicsByTrack[track.slug] || [];
-          return (
-            <TrackCard
-              key={track.slug}
-              track={track}
-              total={topics.length}
-              read={countRead(track.slug, topics)}
-            />
-          );
-        })}
+      <div className="learn-toolbar">
+        <label className="learn-search">
+          <IconSearch size={14} />
+          <input
+            ref={searchRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search every track — try 'join', 'closure', 'useMemo'"
+            aria-label="Search Learn"
+            spellCheck="false"
+            autoComplete="off"
+          />
+          {searching ? (
+            <span className="learn-search-count mono">{hits}</span>
+          ) : (
+            <kbd className="mono learn-search-key">/</kbd>
+          )}
+        </label>
       </div>
+
+      {searching ? (
+        <>
+          {results.map(({ track, topics }) => (
+            <section className="learn-section" key={track.slug} data-hue={track.hue}>
+              <div className="learn-section-head">
+                <h2>
+                  {track.name}
+                  <span className="learn-section-count mono">{topics.length}</span>
+                </h2>
+              </div>
+              <div className="learn-topics">
+                {topics.map((topic) => (
+                  <TopicCard
+                    key={topic.slug}
+                    trackSlug={track.slug}
+                    topic={topic}
+                    read={Boolean(read[topicKey(track.slug, topic.slug)])}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+
+          {/* The indexes are three lazy chunks, so an empty result a beat after
+              a keystroke may only mean they have not landed. Saying which of the
+              two it is costs one line and saves the reader retyping. */}
+          {hits === 0 && (
+            <div className="empty">
+              <h3>{Object.keys(topicsByTrack).length ? 'Nothing matches' : 'Looking…'}</h3>
+              {Object.keys(topicsByTrack).length > 0 && (
+                <p>No topic title, summary or tag contains that. Try a shorter word.</p>
+              )}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="learn-hub">
+          {TRACKS.map((track) => {
+            const topics = topicsByTrack[track.slug] || [];
+            return (
+              <TrackCard
+                key={track.slug}
+                track={track}
+                total={topics.length}
+                read={countRead(track.slug, topics)}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

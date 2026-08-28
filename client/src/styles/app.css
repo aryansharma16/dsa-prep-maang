@@ -409,49 +409,97 @@
   cursor: pointer;
 }
 
-.search {
+/* ---- a page's own search box
+
+   `.search` — the single box that used to live in the top bar — is gone with
+   the markup that used it. This replaces it, and the difference is not
+   cosmetic: it sits inside `.filterbar`, so it is chip-height and lines up with
+   the controls it works alongside rather than floating in the chrome above
+   them. See `PageSearch`. */
+
+.page-search {
   position: relative;
-  flex: 1;
-  max-width: 380px;
-}
-.search input {
-  width: 100%;
-  height: 30px;
-  padding: 0 30px 0 30px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  flex: 1 1 240px;
+  /* Wide enough for a real query, capped so it cannot crowd out the filter
+     chips it shares the bar with. */
+  max-width: 300px;
+  padding: 0 8px 0 9px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font-size: 13px;
-}
-.search input::placeholder {
   color: var(--text-3);
+  transition: border-color 0.15s;
+  /* The inset sheen comes from the shared material block near the foot of this
+     file, with every other control that is made of the same stuff. */
 }
-.search input:focus {
-  outline: none;
-  border-color: var(--text-3);
+.page-search:focus-within,
+.page-search.has-value {
+  border-color: var(--accent-line);
 }
-.search .glass {
-  position: absolute;
-  left: 9px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-3);
-  pointer-events: none;
+.page-search-glass {
   display: flex;
+  flex: 0 0 auto;
 }
-.search kbd {
-  position: absolute;
-  right: 7px;
-  top: 50%;
-  transform: translateY(-50%);
+.page-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.page-search input:focus {
+  outline: none;
+}
+.page-search input::placeholder {
+  color: var(--text-3);
+}
+/* How many rows survived. Only drawn with a query on the box, because a count
+   beside an empty field is a fact about the page, not about the search. */
+.page-search-count {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: var(--accent);
+}
+.page-search-clear {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.page-search-clear:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.page-search kbd {
+  flex: 0 0 auto;
   font-family: var(--mono);
   font-size: 10px;
+  line-height: 1;
+  padding: 2px 5px;
   color: var(--text-3);
   border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 1px 4px;
-  pointer-events: none;
 }
+
+/* ---- the top bar's own layout
+
+   `.spacer` is what pins everything after it to the right-hand end of the bar.
+   It used to be doing that job next to the search box; the box is gone and the
+   spacer is not — it is the only thing keeping the timers, the counter, Add,
+   the theme picker and the avatar off the left margin. */
 
 .spacer {
   flex: 1;
@@ -468,6 +516,85 @@
   font-family: var(--mono);
   color: var(--text);
   font-weight: 600;
+}
+
+/* ---- the rotating counter
+
+   Three curriculums taking turns in one slot. The slot is given a fixed width
+   rather than sized to its contents, because "517" and "117" are different
+   widths and everything to the right of it — Add, the theme picker, the avatar
+   — would step sideways every six seconds otherwise. A bar that twitches on a
+   timer is worse than no bar. */
+.rotator {
+  position: relative;
+  width: 208px;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+.rotator-slide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-end;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  /* Each slide is a fresh element (React keys it), so this runs on every
+     change rather than only on mount. */
+  animation: rotator-in 0.32s ease;
+}
+.rotator-slide:hover .rotator-label {
+  color: var(--accent);
+}
+.rotator-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.rotator-slide > span:not(.rotator-label) {
+  white-space: nowrap;
+}
+
+@keyframes rotator-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* The slide still swaps; it just stops sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .rotator-slide {
+    animation: none;
+  }
+}
+
+.rotator-pips {
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  display: flex;
+  gap: 3px;
+}
+.rotator-pips span {
+  width: 10px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-3) 40%, transparent);
+  transition: background 0.2s;
+}
+.rotator-pips span.on {
+  background: var(--accent);
 }
 
 /* ---- appearance menu */
@@ -1217,6 +1344,20 @@ table.problems tbody tr:last-child td {
   overflow: hidden;
   white-space: nowrap;
 }
+/*
+  Shrinkable, and that is the whole point of `0 1 auto` over `0 0 auto`.
+
+  The row is `overflow: hidden`, so an unshrinkable chip that does not fit is
+  cut off mid-glyph — "count-disti" — which reads as a typo rather than as
+  truncation. Worse, the `+N` counter sits *after* the chips, so the row that
+  overflows is exactly the row whose "and two more" indicator gets pushed out of
+  view: the one place the count was needed is the one place it vanished.
+
+  Letting the chips shrink instead hands the overflow to `text-overflow`, and
+  because flexbox shrinks in proportion to width it is the longest tag that
+  gives up the most. `.att-chip-more` stays unshrinkable, so the counter is now
+  the one thing guaranteed to survive.
+*/
 .topic-chip {
   font-size: 10.5px;
   color: var(--text-3);
@@ -1226,7 +1367,10 @@ table.problems tbody tr:last-child td {
   padding: 0 5px;
   height: 17px;
   line-height: 15px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ratio {
@@ -4442,6 +4586,13 @@ a.tile.attention:hover {
   margin-top: 3px;
 }
 
+/*
+  Self-contained. It used to be `class="search admin-search"`, leaning on the
+  top bar's `.search` for its placeholder colour and focus ring — and `.search`
+  left with the box in the top bar. The panel's own filter boxes are not that
+  control and should not have been sharing its rules; these are the two lines
+  that were actually being inherited.
+*/
 .admin-search {
   flex: 0 1 260px;
   min-width: 160px;
@@ -4454,6 +4605,13 @@ a.tile.attention:hover {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 12.5px;
+}
+.admin-search input::placeholder {
+  color: var(--text-3);
+}
+.admin-search input:focus {
+  outline: none;
+  border-color: var(--text-3);
 }
 
 .admin-pager {
@@ -10917,7 +11075,8 @@ a.tile.attention:hover {
 .toggle-chip,
 .tk-views,
 .dd-trigger,
-.search input,
+.admin-search input,
+.page-search,
 .chip-clear,
 .tk-timer-btn,
 .docs-outcome-btn {

@@ -62,6 +62,18 @@ export const guideBlockSchema = new mongoose.Schema(
     // table
     columns: { type: [String], default: [] },
     rows: { type: [[String]], default: [] },
+    /*
+      table — an optional name above the grid, and what kind of grid it is.
+
+      Both came from the Learn SQL track, where a section is regularly "here are
+      the tables, here is the query, here is the result" and three unlabelled
+      grids in a row is a puzzle. Kept in step here because the vocabulary is one
+      thing across both collections — see the note at the top of this file — even
+      though no seeded guide sets them yet. `''` and undefined render exactly as
+      every table written before them did.
+    */
+    caption: { type: String, default: '' },
+    variant: { type: String, enum: ['', 'data', 'result'], default: '' },
     // callout
     tone: { type: String, enum: ['note', 'warn', 'tip'], default: 'note' },
     // image

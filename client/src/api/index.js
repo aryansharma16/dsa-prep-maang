@@ -153,6 +153,59 @@ export const cpApi = {
 };
 
 /**
+ * SQL Lab — the practice bank you actually run queries against.
+ *
+ * Its own namespace beside `cpApi` for the same reasons: a separate collection,
+ * a separate visibility rule, a separate module gate. The shapes rhyme
+ * deliberately, so anyone who has read the ladder's calls can read these.
+ *
+ * `bank` answers a flat list plus ordered category and difficulty metadata,
+ * rather than a pre-grouped tree — the page offers two groupings of the same
+ * rows and re-fetching on a toggle would make a client-side regroup feel like a
+ * page load.
+ *
+ * `problem` is a second request on open, and that split is deliberate: the
+ * expected result, the sample rows and the reference answer are the bulk of the
+ * payload and are needed for exactly one problem at a time. Sending 120 of them
+ * with the list would also hand over every answer before anybody had opened
+ * anything.
+ *
+ * There is no `run` here, and there should never be one. Queries execute in the
+ * reader's own browser; this API stores what happened.
+ */
+export const sqlApi = {
+  bank: () => http.get('/sql/bank').then((r) => r.data),
+  stats: () => http.get('/sql/stats').then((r) => r.data),
+  problem: (id) => http.get(`/sql/problems/${id}`).then((r) => r.data.problem),
+  revision: () => http.get('/sql/revision').then((r) => r.data),
+
+  patch: (problemId, body) =>
+    http.patch(`/sql/progress/${problemId}`, body).then((r) => r.data.progress),
+
+  /** The verified pass. Answers `firstSolve` so the workbench can say so. */
+  solved: (problemId, query, ms) =>
+    http.post(`/sql/progress/${problemId}/solved`, { query, ms }).then((r) => r.data.progress),
+
+  attempt: (problemId, body) =>
+    http.post(`/sql/progress/${problemId}/attempt`, body).then((r) => r.data.progress),
+  attempts: (problemId) => http.get(`/sql/progress/${problemId}/attempts`).then((r) => r.data),
+  editAttempt: (problemId, attemptId, body) =>
+    http
+      .patch(`/sql/progress/${problemId}/attempts/${attemptId}`, body)
+      .then((r) => r.data.progress),
+  deleteAttempt: (problemId, attemptId) =>
+    http.delete(`/sql/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
+  review: (problemId, result, confidence, recall) =>
+    http
+      .post(`/sql/progress/${problemId}/review`, {
+        result,
+        ...(confidence ? { confidence } : {}),
+        ...(recall ? { recall } : {}),
+      })
+      .then((r) => r.data.progress),
+};
+
+/**
  * How a screen is set up for you — today, the filters you left on it.
  *
  * Deliberately untyped in both directions: the server bounds the payload and

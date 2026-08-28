@@ -397,6 +397,21 @@ export const IconTable = (p) => (
   </Svg>
 );
 
+/*
+  The database cylinder, for the SQL Lab's side-menu row.
+
+  `IconTable` above is already the Learn SQL track's, and the two rows sit six
+  apart in the same menu — one grid glyph for both would make the notes and the
+  Lab look like the same destination.
+*/
+export const IconDatabase = (p) => (
+  <Svg {...p}>
+    <ellipse cx="8" cy="4" rx="5.2" ry="2.1" />
+    <path d="M2.8 4v8c0 1.16 2.33 2.1 5.2 2.1s5.2-.94 5.2-2.1V4" />
+    <path d="M2.8 8c0 1.16 2.33 2.1 5.2 2.1s5.2-.94 5.2-2.1" />
+  </Svg>
+);
+
 export const IconDivider = (p) => (
   <Svg {...p}>
     <path d="M2 8h12" />

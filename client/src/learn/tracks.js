@@ -58,13 +58,28 @@ export const TRACKS = [
       'The language first, then the runtime: closures and promises, the event loop, your first server, and the backend a real API needs behind it.',
     load: () => import('./node/index.js'),
   },
+  /*
+    Last, and the only track that is not notes about a tool. Complexity is the
+    maths under the roadmap; React and Node are the day job. This one is a
+    subject in its own right — an interview asks about ER models and isolation
+    levels the way it asks about graphs, so it is written to be *learned* rather
+    than referred to, and it runs theory-first: what a database is, how one is
+    designed and normalised, and only then the language.
+
+    Its examples all use the same two tables, defined once in sql/sample-data.js
+    — six employees and four departments, with one employee who has no
+    department and one department with no employees. Those two rows are what
+    make the six join types return six different results from one dataset.
+  */
   {
     slug: 'sql',
     hue: 'amber',
     name: 'SQL',
-    status: 'soon',
+    status: 'live',
     Icon: IconTable,
-    blurb: 'Joins, indexes, window functions, and reading a query plan.',
+    blurb:
+      'Databases from the ground up: ER models and normalisation, every clause and join with its result printed underneath, window functions, transactions and isolation levels, indexes and query plans.',
+    load: () => import('./sql/index.js'),
   },
 ];
 

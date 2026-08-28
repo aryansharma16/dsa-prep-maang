@@ -12,6 +12,7 @@ import { Playbook } from './pages/Playbook.jsx';
 import { Practice } from './pages/Practice.jsx';
 import { Profile } from './pages/Profile.jsx';
 import { ProCoder } from './pages/ProCoder.jsx';
+import { SqlLab } from './pages/SqlLab.jsx';
 import { Register } from './pages/Register.jsx';
 import { Revision } from './pages/Revision.jsx';
 import { Roadmap } from './pages/Roadmap.jsx';
@@ -23,6 +24,7 @@ import { Docs } from './pages/Docs.jsx';
 import { AttemptTimerProvider } from './store/AttemptTimerContext.jsx';
 import { RoadmapProvider } from './store/RoadmapContext.jsx';
 import { CPProvider } from './store/CPContext.jsx';
+import { SqlProvider } from './store/SqlContext.jsx';
 import { PlaybookProvider } from './store/PlaybookContext.jsx';
 import { TasksProvider } from './store/TasksContext.jsx';
 
@@ -136,6 +138,19 @@ export function App() {
                       <CPProvider>
                         <ProCoder />
                       </CPProvider>
+                    }
+                  />
+                )}
+                {/* Route-level provider, for the reason the ladder's is: the bank
+                    is a hundred and twenty statements and a WASM engine, and
+                    nothing outside this page reads either. */}
+                {has('sql') && (
+                  <Route
+                    path="/sql"
+                    element={
+                      <SqlProvider>
+                        <SqlLab />
+                      </SqlProvider>
                     }
                   />
                 )}
