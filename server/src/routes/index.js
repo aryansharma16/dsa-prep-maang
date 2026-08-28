@@ -33,15 +33,6 @@ import {
   revisionQueue,
 } from '../controllers/progress.controller.js';
 import {
-  learnRevisionQueue,
-  listLearnProgress,
-  markSchema as learnMarkSchema,
-  markTopic,
-  reviewSchema as learnReviewSchema,
-  reviewTopic,
-  topicParams,
-} from '../controllers/learn.controller.js';
-import {
   getPlaybook,
   patchPlaybook,
   patchSchema as playbookPatchSchema,
@@ -73,6 +64,7 @@ import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { cpRouter } from './cp.routes.js';
 import { feedbackRouter } from './feedback.routes.js';
+import { learnRouter } from './learn.routes.js';
 import { sqlRouter } from './sql.routes.js';
 import { taskRouter } from './task.routes.js';
 
@@ -207,32 +199,19 @@ router.delete(
 router.get('/stats', requireModule('stats'), getStats);
 
 /*
-  Learn — reading progress, and the topics that are due.
+  Learn — the reference itself, and what you have done with it.
 
-  This module had no API surface at all until now: its prose is authored in the
-  client bundle, so there was nothing per-account to store. Marking a topic read
-  is the one fact it has, and it is what puts a topic on the same 3/7/21/60
-  ladder a problem goes on — see controllers/learn.controller.js.
+  One mount, like chat, cp and sql, and it earned one the moment the content
+  moved into Mongo: four routes became six, all repeating the same guard. The
+  gate belongs here so a route added to learn.routes.js tomorrow is behind it by
+  having been added at all.
 
-  Behind the same `learn` gate as the pages, so hiding the module now takes a
-  real API with it rather than only the nav item.
+  Worth noting what this now gates. Learn's prose used to ship in the client
+  bundle, so hiding the module took away the pages and left the words — the
+  README called that the trade. The words come from here now, so hiding Learn
+  hides Learn.
 */
-router.get('/learn/progress', requireModule('learn'), listLearnProgress);
-router.get('/learn/revision', requireModule('learn'), learnRevisionQueue);
-router.put(
-  '/learn/progress/:track/:topic',
-  requireModule('learn'),
-  validate(topicParams, 'params'),
-  validate(learnMarkSchema),
-  markTopic,
-);
-router.post(
-  '/learn/progress/:track/:topic/review',
-  requireModule('learn'),
-  validate(topicParams, 'params'),
-  validate(learnReviewSchema),
-  reviewTopic,
-);
+router.use('/learn', requireModule('learn'), learnRouter);
 
 /*
   Practice — the pattern drill and the mock harness.

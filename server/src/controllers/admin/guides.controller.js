@@ -4,111 +4,23 @@ import { PatternGuide } from '../../models/PatternGuide.js';
 import { AUDIT, recordAudit } from '../../services/audit.service.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
+import { blocksField, checkTableArity } from '../../validation/blocks.js';
 
 /**
- * One zod member per block type, assembled into a discriminated union.
+ * What a guide save may contain.
  *
- * This mirrors the enum on PatternGuide.blockSchema. Being a union rather than
- * one loose object matters twice over: a `code` block missing its variants is
- * rejected here instead of rendering as nothing in the reader, and zod strips
- * unknown keys — so a block whose type the editor changed leaves its orphaned
- * fields behind rather than carrying them into Mongo.
+ * The blocks themselves are validated by the shared vocabulary in
+ * `validation/blocks.js` — this file owns only the envelope around them, which
+ * is the part that is a *guide* rather than a block. `LearnTopic` has its own
+ * envelope over the same vocabulary, for the same reason.
  */
-const heading = z.object({ type: z.literal('heading'), text: z.string().min(1).max(200) });
-const paragraph = z.object({ type: z.literal('paragraph'), text: z.string().min(1).max(8000) });
-const bullets = z.object({
-  type: z.literal('bullets'),
-  items: z.array(z.string().min(1).max(1000)).min(1).max(100),
-});
-const code = z.object({
-  type: z.literal('code'),
-  variants: z
-    .array(
-      z.object({
-        lang: z.string().min(1).max(20),
-        label: z.string().max(40).default(''),
-        code: z.string().min(1).max(20000),
-      }),
-    )
-    .min(1)
-    .max(5),
-});
-const callout = z.object({
-  type: z.literal('callout'),
-  tone: z.enum(['note', 'warn', 'tip']).default('note'),
-  text: z.string().min(1).max(4000),
-});
-const table = z.object({
-  type: z.literal('table'),
-  columns: z.array(z.string().max(80)).min(1).max(8),
-  rows: z.array(z.array(z.string().max(500)).max(8)).max(100),
-});
-const image = z.object({
-  type: z.literal('image'),
-  url: z.string().url().max(500),
-  text: z.string().max(300).default(''),
-});
-const video = z.object({
-  type: z.literal('video'),
-  // A bare id, never a URL — GuideBlocks interpolates this straight into the
-  // embed src, so a full URL there renders a silently dead iframe.
-  videoId: z.string().regex(/^[\w-]{6,20}$/, 'a YouTube id, not a URL'),
-  text: z.string().max(300).default(''),
-});
-const links = z.object({
-  type: z.literal('links'),
-  links: z
-    .array(
-      z.object({
-        label: z.string().min(1).max(120),
-        url: z.string().url().max(500),
-        source: z.string().max(80).default(''),
-      }),
-    )
-    .min(1)
-    .max(20),
-});
-
-const guideBlock = z.discriminatedUnion('type', [
-  heading,
-  paragraph,
-  bullets,
-  code,
-  callout,
-  table,
-  image,
-  video,
-  links,
-]);
-
 export const guideSaveSchema = z
   .object({
     title: z.string().min(1).max(160),
     summary: z.string().max(2000).default(''),
-    blocks: z.array(guideBlock).max(300),
+    blocks: blocksField,
   })
-  /*
-    The row/column arity check lives here rather than on the `table` member.
-    A member of z.discriminatedUnion has to be a ZodObject, and `.refine()`
-    returns ZodEffects — attaching it to `table` throws at import time, which
-    is a crash on boot rather than a validation error on a request.
-
-    It matters because GuideBlocks maps each row blind: a row one cell short
-    silently loses a column and nobody notices until a reader sees a hole.
-  */
-  .superRefine((value, ctx) => {
-    value.blocks.forEach((block, i) => {
-      if (block.type !== 'table') return;
-      const bad = block.rows.findIndex((row) => row.length !== block.columns.length);
-      if (bad >= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['blocks', i, 'rows', bad],
-          message: `row ${bad + 1} has ${block.rows[bad].length} cells but the table has ${block.columns.length} columns`,
-        });
-      }
-    });
-  });
+  .superRefine((value, ctx) => checkTableArity(value.blocks, ctx));
 
 /** Metadata only — 22 guides of two thousand words each is not a list payload. */
 export const listGuides = asyncHandler(async (_req, res) => {

@@ -1,17 +1,34 @@
 # Learn — the reference
 
-The prose version, with the reasoning, is [**Learn** in the README](../README.md#learn).
-This is the part that would clutter it: the file layout, the block vocabulary,
-and how to add a topic or a whole new track.
+Learn is the reference half of this app: **4 tracks, 33 sections, 170 topics** of
+authored prose about Complexity, React, Node.js and SQL. The roadmap teaches the
+algorithms; Learn is everything around them.
 
+The prose version of *why*, for a human reading the repo for the first time, is
+[**Learn** in the README](../README.md#learn). This file is the part that would
+clutter it — the architecture, the data model, the API, the block vocabulary, and
+how to add a topic or a whole new track.
+
+**If you are picking this up cold, read [Architecture](#architecture) and
+[Invariants](#invariants) and you will not break anything.**
+
+- [Architecture](#architecture)
 - [Where the code lives](#where-the-code-lives)
+- [The data model](#the-data-model)
+- [The API](#the-api)
+  - [Caching](#caching)
+- [The client](#the-client)
+- [Read, and scheduled](#read-and-scheduled)
 - [How a topic is authored](#how-a-topic-is-authored)
 - [The block vocabulary](#the-block-vocabulary)
 - [Inline formatting](#inline-formatting)
+- [The seeder](#the-seeder)
 - [Adding a topic](#adding-a-topic)
 - [Adding a track](#adding-a-track)
+- [Invariants](#invariants)
+- [What is not built](#what-is-not-built)
+- [The look](#the-look)
 - [The reading page](#the-reading-page)
-  - [What scrolling costs](#what-scrolling-costs)
 - [Syntax highlighting](#syntax-highlighting)
 - [Ask AI](#ask-ai)
 - [Verifying it](#verifying-it)
@@ -19,14 +36,62 @@ and how to add a topic or a whole new track.
 
 ---
 
+## Architecture
+
+**Authored in git, served from the database.** One sentence, and it is
+deliberately two answers rather than one.
+
+```
+server/scripts/seed/learn/**        170 JS modules — the source of truth
+        │  npm run seed:learn
+        ▼
+MongoDB  learntracks · learntopics   what the app actually reads
+        │  GET /learn/catalogue  ·  GET /learn/topics/:track/:topic
+        ▼
+client   useLearnCatalogue · useLearnTopic → GuideBlocks
+```
+
+The prose is written as JavaScript modules and reviewed as diffs, because a
+paragraph about `useEffect` is authored material that wants `git blame`, not a
+form. The seeder writes it into Mongo, skipping any topic the admin panel has
+edited. The app reads the database and never the files.
+
+**This is the same shape `PatternGuide` already used**, and copying it was the
+whole reason the move was cheap. If you have read `server/scripts/seed/guides.js`
+you already know this seeder.
+
+### Why it is not in the bundle any more
+
+Until recently all 170 topics shipped as lazy chunks in the client bundle, and
+the doc here argued that was the architectural decision. What it cost was
+everything the server could not see:
+
+- The revision queue rendered a title **the client had sent it**, because nothing
+  on the server could turn `react/use-effect` into "useEffect".
+- Renaming a slug orphaned progress rows.
+- Cross-track search meant downloading all four track indexes.
+- Fixing a typo meant a deploy.
+
+**Bundle size was never the reason**, and a future change should not claim it
+was. The topic bodies were already lazy chunks; the main bundle did not contain
+them and did not shrink when they left. What *did* change: the build went from
+178 JS chunks to 2, and `client/src/learn/` went from 1.9 MB to two files.
+
+Two consequences worth knowing. Hiding Learn in the admin panel now takes the
+prose with the pages, where before it could only remove the nav item — a real
+change in what that toggle does. And every Learn page now depends on the seeder
+having been run, which is a runtime failure where it used to be a build one.
+
 ## Where the code lives
 
 ```
-client/src/
-  learn/
-    tracks.js                 the track registry — Complexity, React, Node.js, SQL
+server/
+  scripts/seed/learn.js       the seeder — npm run seed:learn
+  scripts/seed/learn/
+    tracks.js                 the 4-track registry, and CONTENT_ROOT
+    index.js                  reads the tree into plain documents
+    verify.js                 npm run seed:learn:verify
     blocks.js                 the block constructors content is written with
-    progress.js               which topics you have read
     complexity/
       index.js                the track's table of contents; metadata only
       logarithms.js           one topic, one module           (6 of these)
@@ -40,7 +105,23 @@ client/src/
       index.js                the same, for SQL
       left-and-right-join.js  one topic, one module          (53 of these)
       sample-data.js          the two tables every SQL topic uses — not a topic
-  hooks/useLearnDoc.js        the cache around the dynamic imports
+  src/
+    models/LearnTrack.js      one per track; sections embedded
+    models/LearnTopic.js      one per topic; blocks: [guideBlockSchema]
+    models/LearnProgress.js   one row per account per topic
+    models/schemas/guideBlock.js  the block vocabulary, shared with the guides
+    validation/blocks.js      the same vocabulary as a request validator
+    services/learn.content.js plaintext, word count, reading time — one writer
+    controllers/learn.content.controller.js  the catalogue and one topic
+    controllers/learn.controller.js          read state, and the revision queue
+    routes/learn.routes.js    all eight /learn/* routes, behind requireModule
+    utils/httpCache.js        ETag + 304, and the memo behind the catalogue stamp
+
+client/src/
+  learn/tracks.js             the four tracks' chrome — icons and the stubs
+  learn/progress.js           read state and the revision control
+  hooks/useLearnCatalogue.js  the catalogue, fetched once and mirrored to disk
+  hooks/useLearnTopic.js      one topic's words, cached for the session
   hooks/useScrollContainer.js the element that actually scrolls, found at runtime
   pages/Learn.jsx             /learn            the hub
   pages/LearnTrack.jsx        /learn/:track     the topic index
@@ -52,28 +133,321 @@ client/src/
     GuideBlocks.jsx           the renderer, shared with the pattern guides
     inline.jsx                `code`, **bold**, *italic* inside a sentence
     highlight.js              the Java/C++/JS/JSX/SQL lexer
-
-server/src/
-  config/modules.js           the `learn` key, for the admin on/off switch
-  models/LearnProgress.js     one row per account per topic
-  controllers/learn.controller.js  read state, and the revision queue
-  routes/index.js             the four /learn/* routes, behind requireModule
 ```
 
-**The content has no server code and no database.** Learn's prose is authored
-material that only we edit, identical for every reader, so it ships as
-JavaScript modules in the client bundle. That is the architectural decision, and
-it is why there is no collection of topics to seed and no migration when a
-sentence changes.
+## The data model
 
-What *is* per-account is your **reading progress**, and that has a model, a
-controller and four routes — added when marking a topic read started putting it
-on the same 3/7/21/60 revision ladder a problem goes on. So `/learn/*` is behind
-`requireModule('learn')` like every other module, and hiding Learn is no longer
-merely cosmetic: it takes the reading progress with the pages. What hiding it
-still cannot do is un-ship the prose, which is in the bundle either way — and
-that was always the trade.
+Three collections. Two hold content and are written only by the seeder (and, one
+day, the admin panel); one holds per-account state.
 
+### `LearnTrack` — 4 documents
+
+```js
+{
+  slug, name,                       // 'react', 'React'
+  hue,                              // a palette NAME from tokens.css: violet|sky|green|amber
+  icon,                             // a NAME: clock|layers|globe|table — see below
+  status,                           // 'live' | 'soon'
+  order,                            // hub order, authored (there are only four)
+  blurb,                            // the hub card's sentence
+  summary,                          // the track page's hero sentence — a different string
+  sections: [{ key, title, blurb, order }],   // embedded, _id: false
+  editedAt, editedBy, seededAt,
+}
+```
+
+**`icon` is a name, not a component.** The registry used to hold a React
+component, which is the one field of a track that no JSON response can carry.
+`client/src/learn/tracks.js` maps the name back and falls back to a generic icon
+rather than crashing, so a fifth track added in the database renders with no
+deploy at all.
+
+**Sections are embedded and keyed by a string.** 33 of them, four scalars each,
+never fetched without their track. `key` is a plain string and not a subdoc
+`_id`, because the seeder rewrites the whole array on every run — a generated id
+would be a "stable" pointer that moves. `LearnTopic.section` joins on it.
+
+**`blurb` and `summary` are both kept** and neither is derivable from the other:
+one is an advertisement on a card, the other an introduction on a page.
+
+### `LearnTopic` — 170 documents
+
+```js
+{
+  track, slug, section,             // identity is { track, slug }
+  order,                            // reading order within the track, 0..n-1, CONTIGUOUS
+  status,                           // 'live' | 'draft' — the catalogue lists only live
+  title, summary, tags[], ask[],    // the catalogue's fields
+  blocks: [guideBlockSchema],       // the words — see The block vocabulary
+  plaintext,                        // select: false — prose only, no code
+  wordCount, readingMinutes,        // derived; one writer, services/learn.content.js
+  related: { patterns[], problems[] },   // roadmap slugs — designed, not yet populated
+  slugHistory[],                    // previous slugs, for resolving old URLs
+  version,                          // $inc on every write — the topic's ETag
+  editedAt, editedBy, seededAt,
+}
+```
+
+Indexes:
+
+```js
+{ track: 1, slug: 1 }, { unique: true }   // identity; every read and upsert
+{ track: 1, order: 1 }                    // a track's list, the catalogue sort
+{ status: 1, updatedAt: -1 }              // the catalogue ETag stamp, index-only
+{ track: 1, slugHistory: 1 }              // resolving a renamed slug
+{ 'related.patterns': 1 }                 // "which topics teach this pattern"
+```
+
+**`order` is two guarantees in one number**: the sequence prev/next walks, and
+the sequence the section headings group. It is assigned by the seeder from array
+position and **never authored**. The old client code got this for free because
+`flatTopics` walked the very array the page rendered; this number is what
+replaces that guarantee now the array is rows in a database.
+
+**`plaintext` excludes code**, on purpose. A search that matches `const` and
+`SELECT` across most of the corpus is not a search, it is a list of every topic.
+It is `select: false` because it is 866 KB across the collection and no reader
+wants it.
+
+### `LearnProgress` — one row per account per topic
+
+```js
+{
+  user, track, topic,               // slug pair, NOT a ref to LearnTopic — see below
+  title,                            // snapshot, resolved server-side at schedule time
+  readAt, lastViewedAt,             // the browsing fact
+  scheduledAt,                      // the deliberate act — null means not on the ladder
+  confidence, needsRevision,
+  lastReviewedAt, nextReviewAt, reviewStage,   // the 3/7/21/60 ladder
+  recalls[],
+}
+```
+
+**Why the topic is still a slug pair and not a ref.** The old docblock justified
+it with "Learn has no collection", and that premise died. The conclusion
+survived it: a ref has to be backfilled, and the rows that cannot be — the ones
+naming a slug renamed at some point — are exactly the rows a ref is meant to
+protect. It would fix them by losing them. `slugHistory` is the version that
+works and is strictly larger, because it also fixes bookmarks, roadmap links and
+`SqlProblem.learnTopic`. Nothing was migrated and marking a topic stays one
+query. `npm run seed:learn` reports rows pointing at slugs that no longer exist,
+which is the visibility that replaces enforcement.
+
+## The API
+
+Eight routes, all in `server/src/routes/learn.routes.js`, mounted as
+`router.use('/learn', requireModule('learn'), learnRouter)`. The gate is on the
+**mount**, so a route added to that file tomorrow is covered by having been added
+at all.
+
+| method | path | what |
+|---|---|---|
+| `GET` | `/learn/catalogue` | every track, section and topic heading — one document, ETagged |
+| `GET` | `/learn/topics/:track/:topic` | one topic's blocks; resolves a renamed slug |
+| `GET` | `/learn/progress` | every row for this account, in one request |
+| `GET` | `/learn/revision` | the topics that are due, shaped for the merged queue |
+| `PUT` | `/learn/progress/read` | bulk — the one-time localStorage hand-over |
+| `PUT` | `/learn/progress/:track/:topic/read` | the browsing fact; never touches the ladder |
+| `PUT` | `/learn/progress/:track/:topic` | schedule with a confidence |
+| `POST` | `/learn/progress/:track/:topic/review` | working the queue: `recalled` \| `dismissed` |
+
+`/topics/:track/:topic` rather than `/:track/:topic` so it can never shadow
+`/progress`. `/progress/read` is two segments against the three of
+`/progress/:track/:topic`, so those two cannot shadow each other either.
+
+### The two content endpoints
+
+| | raw | gzipped |
+|---|---|---|
+| `GET /learn/catalogue` | 69 KB | **20 KB** |
+| `GET /learn/topics/:track/:topic` | 9 KB avg, 25 KB max | 3.5 KB avg |
+
+```jsonc
+// GET /learn/catalogue
+{
+  "version": 1787925473396,          // max(updatedAt) — the client keys its cache on this
+  "tracks": [{
+    "slug": "sql", "name": "SQL", "hue": "amber", "icon": "table",
+    "status": "live", "order": 3, "blurb": "…", "summary": "…",
+    "topicCount": 53,
+    "sections": [{
+      "key": "joins", "title": "Joins", "blurb": "…",
+      "topics": [{ "track", "slug", "title", "summary", "tags": [], "ask": [], "order", "readingMinutes" }]
+    }]
+  }]
+}
+
+// GET /learn/topics/sql/left-and-right-join
+{
+  "topic": { "track", "slug", "section", "title", "summary", "tags": [], "ask": [],
+             "blocks": [ … ], "related": {}, "readingMinutes", "wordCount",
+             "version", "updatedAt" },
+  "canonical": null                  // set to "sql/join-types" when the slug was renamed
+}
+```
+
+**One document, not one per track**, because every consumer wants all of it: the
+hub searches across tracks and draws four meters, a topic page needs its track's
+whole reading order before it can draw a pager or say `07 / 43`. Per-track
+endpoints would put the hub back to four requests — the exact problem the old
+`requestIdleCallback` fan-out existed to hide, reproduced in HTTP instead of in
+the bundler.
+
+**Nested, not flat.** The response is `tracks[].sections[].topics[]`, the shape
+the pages render. A flat list would have to be regrouped on arrival, and a
+regroup that ever ran inside a render would hand every card a new object — which
+is precisely what breaks `TopicCard`'s memo.
+
+**`ask` is included** even though only the topic page reads it. It costs 6 KB
+gzipped, and leaving it out would mean the Ask-AI block above a topic's prose
+could not render until the body landed.
+
+**A renamed slug answers `200` with `canonical`, not a 301.** An XHR follows a
+redirect transparently, so the client would never learn the URL changed and the
+address bar would keep the dead one. A body the page can act on lets it call
+`navigate(…, { replace: true })`.
+
+### Caching
+
+There was no ETag or `Cache-Control` handling anywhere in `server/src` before
+this. `utils/httpCache.js` is fifteen lines:
+
+- **The ETag is set before the work.** Express computes its own from the
+  serialised body, which means the query has already run and the JSON has already
+  been stringified before it can answer 304. Setting it first wins — `res.send`
+  only generates one when the header is absent — and lets the handler return
+  before touching Mongo at all.
+- **`private, no-cache`.** `private` because every one of these sits below
+  `requireAuth` and carries a session cookie. `no-cache` means "store it, but
+  revalidate every time", which turns a repeat visit into a 304 with an empty
+  body; a `max-age` on content an admin can edit is a stale copy with no way to
+  bust it.
+- **The catalogue's tag is `W/"learn-<tracks>-<topics>-<maxUpdatedAt>"`**, from
+  four index-only queries memoised for ten seconds. The **counts are
+  load-bearing**: a deletion does not move any surviving document's `updatedAt`,
+  so a tag built only from the newest edit would serve a deleted topic forever.
+  That is the classic bug in this pattern and it costs one `countDocuments`.
+- **The topic's tag is `W/"<track>/<slug>-<version>"`.**
+- **There is no invalidation to write.** A save `$inc`s `version` and bumps
+  `updatedAt`; both tags move on the next request. No cache to purge and no
+  second worker to notify — which is the entire argument for deriving a validator
+  from the data rather than keeping one.
+
+Also new, and not Learn-specific: **`compression` is mounted in `app.js`.** Every
+JSON response this API had ever sent went out uncompressed. It is a three-to-one
+saving across the whole surface.
+
+## The client
+
+Two hooks, three pages, and one rule.
+
+**The rule: a request means you opened something.** No prefetching, anywhere.
+See [What was measured and rejected](#what-was-measured-and-rejected) for the two
+kinds that were built and removed. On a walk from the hub into a topic:
+
+```
+/learn          GET /learn/progress   GET /learn/catalogue
+/learn/react    (nothing)
+  …idle, pointer moving over cards…   (nothing)
+open a topic    GET /learn/topics/react/use-effect
+```
+
+Three requests. Walking three topics with `→` costs three more; walking back over
+them costs **zero**.
+
+### `hooks/useLearnCatalogue.js`
+
+Module-scope `cache` + `inflight` + `generation`, the `useGuide.js` shape. Plus:
+
+- **Seeded synchronously from `localStorage` at module load.** This is the whole
+  reason it is localStorage and not IndexedDB: an async store cannot answer on
+  the first frame, and answering on the first frame is the entire job.
+- **`shape(payload)` derives `Icon`, `flat` and `at` once at parse time** — not
+  per render. `flat` is the track in reading order; `at` is a `slug → position`
+  Map. The spread `{...track}` clones the track and nothing beneath it, so
+  `sections` and every topic keep the identity `JSON.parse` gave them. This is
+  what `TopicCard`'s memo depends on.
+- **A matching `version` keeps the existing object** rather than swapping in a
+  fresh parse — 170 memo misses to redraw an identical page is a strange way to
+  spend a 304.
+- **One request per session, and it took two flags.** `cache` is set at module
+  load from disk, so *"do we have a catalogue"* and *"have we confirmed it is
+  current"* are different questions; collapsing them gives a choice of two bugs.
+  Bail on `cache` and a returning reader never revalidates, so a re-seed is
+  invisible until they clear storage. Ignore it and every page mount fires
+  another request — hub → track → topic asked three times to learn nothing.
+  `validated` is the second flag.
+- Exports `findTrack(catalogue, slug)`, `catalogueVersion()` and
+  `invalidateLearnCatalogue()`. The last is unused until an editor exists, and
+  ships now because the localStorage layer has to agree with the generation
+  counter and retrofitting that later is the expensive version.
+
+### `hooks/useLearnTopic.js`
+
+Same shape, keyed by `track/slug`. Two deliberate differences from the
+`useLearnDoc` it replaced:
+
+- **No `load` thunk parameter.** It only existed because the loader came off a
+  frozen registry, and it was the source of the footgun its own docblock warned
+  about: `[key, load]` in the deps meant an inline closure re-ran forever. The key
+  *is* the request now.
+- **The previous topic's body is cleared during render, not in an effect.** This
+  fixed a latent bug: `LearnTopic` does not remount between topics (same route,
+  changed params), so a lazy `useState` initialiser runs once and never again.
+  The old hook cleared from inside its effect, which runs *after* paint, so every
+  prev/next navigation drew the last topic's words under the new one's title for
+  a frame.
+
+### The pages
+
+`client/src/learn/tracks.js` is no longer a registry. It holds the two things a
+JSON response cannot carry and the one thing that cannot wait for one:
+`trackIcon(name)`, and `TRACK_STUBS` — four names, colours and sentences, about
+600 bytes. `findTrack` was synchronous and three things leaned on that: the hue
+on the shell, the name in the crumb, and the "No such track" gate. The stubs
+answer on the first frame and the catalogue replaces them when it lands.
+
+| page | reads |
+|---|---|
+| `Learn.jsx` | `catalogue.tracks` for the cards, meters and cross-track search; `TRACK_STUBS` until it lands |
+| `LearnTrack.jsx` | `track.sections` for the grouped list, `track.flat` for the counts; filters client-side over title + summary + tags |
+| `LearnTopic.jsx` | `track.at.get(slug)` for the position, `track.flat` for prev/next, and `useLearnTopic` for the blocks |
+
+Both track-scoped pages need the "slug in neither the stub nor a landed
+catalogue" branch: render an empty shell for a frame rather than a verdict,
+because `track.hue` on `null` throws.
+
+## Read, and scheduled
+
+Two facts about one topic, on one row, in two fields. **Do not merge them.**
+
+| | field | set by | in the revision queue? |
+|---|---|---|---|
+| **Read** | `readAt`, `lastViewedAt` | scrolling past 90%, or the button | **never** |
+| **Scheduled** | `scheduledAt` + the ladder | pressing *Revise this* with a confidence | yes, when due |
+
+Read used to live in localStorage *specifically* to keep the two apart — a topic
+skimmed on a train must not turn up in Tuesday's queue. That was a good argument
+for separating the two **meanings** and a bad one for choosing a storage to do
+it, which is what it had quietly been conscripted into. `scheduledAt` separates
+them properly now, so read is an account fact and follows you between browsers.
+
+`learnRevisionQueue` filters on `scheduledAt: { $ne: null }` and **never**
+`readAt`. If you ever change that line, every topic anyone has scrolled to the
+bottom of lands in their queue.
+
+Client side, `learn/progress.js` holds one shared map keyed `track/slug`,
+hydrated from `GET /learn/progress` and **mirrored write-through to
+localStorage** so ticks paint on the first frame. `mark` is optimistic and
+**idempotent** — it is called from a scroll handler on every frame past the mark
+and writes exactly once. A one-time migration hands the old `learn-read` map to
+`PUT /learn/progress/read` and sets a done-flag; it is additive, because that map
+is one device's memory and treating an absence in it as "not read" would let the
+first laptop to sync erase the second one's ticks.
+
+`markTopic` resolves the title from `LearnTopic` and ignores any `title` in the
+request body. The field is still stored, because a queue row has to render for a
+topic that has since been deleted.
 ## How a topic is authored
 
 A topic is a module exporting one object:
@@ -131,10 +505,17 @@ page linked at the foot. Never bulk-pasted.
 
 ## The block vocabulary
 
-`client/src/learn/blocks.js` is a twin of
-`server/scripts/seed/guides/blocks.js`, deliberately duplicated rather than
-imported: that one is a seed-script dependency under `server/`, and the browser
-bundle has no business reaching across the repo for it.
+`server/scripts/seed/learn/blocks.js` is a twin of
+`server/scripts/seed/guides/blocks.js`. They used to be duplicated because one
+lived under `client/` and one under `server/`, and the browser bundle had no
+business reaching across the repo; both are seed-script dependencies now, so that
+argument is gone and they are still two files for a better one. They are two
+*vocabularies* for two authors — the guides need `java` and `cpp`, Learn needs
+`jsx`, `sql`, `data`, `result` and the six documentation-link helpers — over one
+block schema. `models/schemas/guideBlock.js` is the thing that is genuinely
+shared, and `validation/blocks.js` is that same vocabulary as a request
+validator, so what the seeder can write and what the admin panel can save are
+the same set by construction.
 
 | constructor | block |
 |---|---|
@@ -206,10 +587,60 @@ Two rules keep it from firing on prose that never asked for it:
   underscores hugging non-space — markdown would italicise straight through the
   middle of two identifiers. Asterisks do not appear in identifiers.
 
+## The seeder
+
+```bash
+npm run seed:learn -- --dry-run   # validate the whole tree, open no connection
+npm run seed:learn                # write it
+npm run seed:learn:verify         # compare the database against the files
+npm run seed:learn -- --force     # overwrite topics the panel has edited
+```
+
+**Everything that can be wrong is found before `connectDb()`.** Track and topic
+slugs, uniqueness within a track, every topic's section key existing on its
+track, `related.patterns` against `PATTERN_SLUGS` — and **every block against the
+shared zod union** from `src/validation/blocks.js`. That last one is what makes
+*seedable* and *editable* the same word: a topic this seeder writes that the
+admin panel would refuse is a page nobody can fix from the panel, and you find
+out when you try. It was green on all 5,495 blocks the day it went in, which is
+exactly when a check like that should be installed.
+
+`--dry-run` runs all of it and prints the totals having opened nothing.
+
+**`verify.js` earns its place once.** It compares every authored field of every
+topic against what came back out of Mongo — 170 topics and 5,495 blocks — and it
+exists because during the cutover both copies were on disk and that was the only
+moment the move could be *proved* lossless rather than assumed to be. It compares
+the fields an author wrote, not whole documents: Mongoose fills every optional
+field on the way in, so a heading comes back carrying an empty `rows` and
+`columns`, and a deep equality would fail on all 5,495 and prove nothing.
+
+**The `editedAt` handshake, with one difference from `seed:guides`.** A topic
+with `editedAt` set keeps its prose; unlike a guide, it does *not* keep its
+placement. `section` and `order` are rewritten on every run regardless:
+
+```js
+const structural = { section, order, seededAt: new Date() };          // always
+const content    = { title, summary, tags, ask, blocks, ...summarise(blocks) };  // locked
+```
+
+A guide has no position — there is one per pattern and nothing moves. A topic
+sits in a reading order, and if someone edits topic 12 in the panel and a new
+topic is later inserted above it, a frozen `order` breaks prev/next for every
+reader with nothing reporting it. A human who edits a topic edited its *prose*;
+where it sits in the curriculum is the seed file's business.
+
+**Pruning is three-way.** A topic no longer in the content files and never
+hand-edited is deleted. One that *was* edited is somebody's writing and is
+reported instead. `LearnProgress` is never cascaded into — those rows are keyed
+on slugs, so a deleted topic orphans nothing and a schedule for a topic that
+comes back next week survives. The run reports any rows pointing at slugs that no
+longer exist, which is the visibility that replaces enforcement.
+
 ## Adding a topic
 
-1. Write `client/src/learn/react/<slug>.js` exporting `doc`.
-2. Add an entry to the right section in `client/src/learn/react/index.js`:
+1. Write `server/scripts/seed/learn/react/<slug>.js` exporting `doc`.
+2. Add an entry to the right section in `server/scripts/seed/learn/react/index.js`:
 
 ```js
 {
@@ -222,31 +653,140 @@ Two rules keep it from firing on prose that never asked for it:
 }
 ```
 
-Section order is reading order — `flatTopics` in `tracks.js` walks it, so
-moving a topic in the index moves it in prev/next too.
+3. `npm run seed:learn` — or `-- --dry-run` first, which validates every block
+   and prints the totals without opening a connection.
 
-Keep `index.js` free of prose. It ships with the track page, and everything in
-it is paid for whether or not a topic is opened; the body behind `load` is a
-separate chunk that costs nothing until someone clicks.
+Section order is reading order. The seeder numbers topics from their position as
+it walks the sections, and `order` is the only thing prev/next and the section
+headings both read — so moving a topic in the index moves it everywhere, and the
+two cannot drift. It is never written by hand.
+
+`load` still reads as a lazy import and is no longer lazy about anything: the
+seeder simply calls it. It stayed because `() => import('./use-thing.js')`
+resolves relative to the file that wrote it under Node ESM exactly as it did in
+the bundler, which is what let 174 files move without one of them being edited.
 
 `ask` is at most three questions. They are a nudge past the blank composer, not
 a FAQ.
 
 ## Adding a track
 
-1. `client/src/learn/<track>/index.js` with `title`, `summary` and `sections`.
+1. `server/scripts/seed/learn/<track>/index.js` with `title`, `summary` and
+   `sections`.
 2. One module per topic beside it.
-3. Flip the entry in `client/src/learn/tracks.js` from `status: 'soon'` to
-   `status: 'live'` and give it a `load`.
+3. Add the entry to `server/scripts/seed/learn/tracks.js` with `status: 'live'`.
+4. `npm run seed:learn`.
 
-Nothing else. The hub, the breadcrumb, the router and the "is this a real
-track" check all read the registry — and so does the colour: the `hue` on the
-entry is a name from the palette in `tokens.css`, and it is the only line that
-decides the track's ambient wash, its icon tile, its meters, its section rules
-and its topics' side rail. See [The look](#the-look).
+The `hue` on the entry is a name from the palette in `tokens.css`, and it is the
+only line that decides the track's ambient wash, its icon tile, its meters, its
+section rules and its topics' side rail. See [The look](#the-look).
+
+`icon` is a name too — `clock`, `layers`, `globe`, `table` — and it is the one
+field of a track that a JSON response cannot carry, because it was a React
+component. `client/src/learn/tracks.js` maps the name back to a component and
+falls back to a generic one rather than crashing, so a *fifth* track added here
+shows up with no deploy at all. It will want its icon added to that map to stop
+looking generic, which is the only client-side step left in adding a track.
 
 A `soon` track is listed on purpose rather than hidden — a hub showing what is
 coming reads as a plan, one showing a single item reads as abandoned.
+
+## Invariants
+
+The things a change here must not break. Each one has cost something to learn.
+
+1. **`order` is contiguous `0..n-1` per track, and assigned from array position
+   by the seeder.** It is the sequence prev/next walks *and* the sequence the
+   section headings group. Authoring it by hand invites the drift it exists to
+   prevent. The seeder asserts it; `verify` checks it.
+2. **A locked topic keeps its prose, not its placement.** `editedAt` freezes
+   `title`/`summary`/`tags`/`ask`/`blocks`; `section` and `order` are rewritten
+   every run. A human who edits a topic edited its *words* — where it sits in the
+   curriculum is the seed file's business, and a frozen `order` silently breaks
+   prev/next when a topic is inserted above it.
+3. **The revision queue filters on `scheduledAt`, never `readAt`.** See
+   [Read, and scheduled](#read-and-scheduled).
+4. **The catalogue ETag includes document counts, not just `max(updatedAt)`.** A
+   deletion moves no surviving document's timestamp.
+5. **Nothing maps over the topic list per render.** `Icon`, `flat` and `at` are
+   attached once in `shape()`. `TopicCard` is memoised against those object
+   identities, and the Node track is 68 cards re-rendered on every keystroke in
+   the filter box.
+6. **No prefetching.** A request means you opened something.
+7. **The block vocabulary is one set across three collections.** `guideBlock.js`
+   (Mongoose), `validation/blocks.js` (zod) and `blockKinds.js` (the editor's
+   field lists) must agree. A field in one and not the others is silently
+   dropped — that is exactly how `caption`/`variant` were lost for a while, and
+   fixing only the server fixed nothing because `toPayload` stripped them in the
+   browser first.
+8. **`AuditLog.targetType` is a closed enum and `recordAudit` swallows its own
+   errors.** A value not in `AUDIT_TARGET_TYPES` is a row that silently never
+   writes. `learn` is in the list.
+9. **`LearnProgress` is never cascaded into.** Deleting a topic orphans nothing;
+   the seeder reports orphans instead.
+10. **Learn pages depend on the seeder having been run.** A fresh deployment that
+    skips `npm run seed:learn` gets an empty Learn. This used to be a build-time
+    guarantee and is now a runtime one.
+
+## What is not built
+
+Designed, argued for, and deliberately left out. If you are here to add
+something, it is probably one of these.
+
+### The admin editor (prose only)
+
+The intended shape, already decided:
+
+- `client/src/components/admin/AdminLearn.jsx` + `server/src/controllers/admin/learn.controller.js`.
+- **Reuse `GuideEditor.jsx` and `BlockFields.jsx` as they stand.** They know
+  nothing about patterns — only `GuideEditor`'s load/save/identity is
+  guide-specific. `blockKinds.js` is already correct for Learn's blocks.
+- **Reuse the `guide:write` capability rather than adding `learn:write`.** It
+  protects long-form block prose, a Learn topic *is* long-form block prose, and
+  the roles holding it are exactly the right set. Widen the comment in
+  `config/roles.js` if you do.
+- **Prose only.** `order` and `section` stay outside the editor so the seeder can
+  always re-place a topic — see invariant 2.
+- The audit actions already exist: `LEARN_TOPIC_SAVE`, `LEARN_TOPIC_UNLOCK`,
+  `LEARN_TRACK_SAVE`, and `learn` is in the `targetType` enum.
+- `invalidateLearnCatalogue()` and `invalidateLearnTopic()` already exist on the
+  client for the save-then-check loop.
+
+One warning from the existing code: `listGuides` and `AdminGuides` are hardwired
+to the `Pattern` collection, and `CPPatternGuide` has a model and a seeder but
+**no editor at all**. The "one collection gets an editor" precedent has already
+failed to generalise once.
+
+### `related.patterns` / `related.problems`
+
+The fields, the index and the seed-time validation against `PATTERN_SLUGS` are
+all in place; **nothing populates them.** This is the part that would actually
+serve MAANG prep — Complexity's `from-constraints` and `time-complexity` against
+the 23 roadmap patterns, and a link back from the pattern guide drawer.
+
+Store slugs, not refs, matching `SqlProblem.learnTopic`. Query the reverse with
+`LearnTopic.find({ 'related.patterns': slug })` on the existing index — **do not
+store both directions**, that is a second thing to keep true.
+
+Be honest about the scale: it is a handful of hand-authored arrays in the seed
+files, not a system.
+
+### Body search
+
+`plaintext` is populated and `select: false`. The house pattern is
+`escapeRegex` from `server/src/utils/query.js` over 170 documents — **not** a
+Mongo text index. `$text` is stemmed whole-word matching, so it would not match
+"memo" against "useMemo", which is literally what the hub's placeholder
+advertises; and Mongo permits one text index per collection, which makes it a
+one-way door. Revisit at 1,700 topics, not 170.
+
+### Cross-track prerequisites
+
+Cut on purpose. Reading order already expresses within-track prerequisites, and
+the section blurbs are the argument in prose. The only version worth defending is
+**cross-track** — `node/sql-basics` genuinely presupposes `sql/select-lifecycle`
+— and there are maybe eight such pairs and no UI for them. Add it when the "read
+this first" banner is designed, not before.
 
 ## The look
 
@@ -361,10 +901,10 @@ fires again if one of them is ever replaced by real markup.
 |---|---|
 | Progress rule | `scrollProgress(container)` written straight onto the bar's `style.transform` through a ref — **not** React state. Sticky and transform-only, so scrolling never lays anything out. Sits **outside** `.learn-page` — a full-width bar inside a flex row is an item competing for horizontal space. |
 | Side rail | Scroll-spy on the same container, against heading offsets measured once rather than re-read every frame. A heading is current once it reaches the upper quarter of the scroll region. rAF-throttled. |
-| Deep links | A rail click writes `#heading-id` with `replaceState`, so a section is copyable from the address bar without piling up history entries. On load, a hash suppresses the scroll-to-top and scrolls to the anchor once the topic's chunk has landed. |
+| Deep links | A rail click writes `#heading-id` with `replaceState`, so a section is copyable from the address bar without piling up history entries. On load, a hash suppresses the scroll-to-top and scrolls to the anchor once the topic's body has landed. |
 | Arrow keys | `←` / `→` walk the track. Ignored while typing (input, textarea, select, contenteditable), while a modifier is held, and while a modal is open. |
-| Read tracking | `learn/progress.js` — `useLocalState` over one map keyed `track/slug`. Auto-marked at 90% scrolled, plus a button to set or unset it. Drives the ticks on topic cards, the per-section counts, and the meters on the track and hub pages. |
-| Loading | No page holds the route on a blank `Loading...`. The frame comes from the URL and the chunks fill it in: `LearnTrack` draws its title, filter and a grid of correctly-sized `.skeleton` cards; `LearnTopic` draws its crumb, column and progress rule, with the slug spelled out as a placeholder title so the paragraph under it does not jump when the index lands. |
+| Read tracking | `learn/progress.js` — one shared map keyed `track/slug`, hydrated from `GET /learn/progress` and mirrored to `localStorage` so the ticks paint on the first frame. Auto-marked at 90% scrolled, plus a button. Optimistic, and **idempotent**: the scroll handler fires every frame past the mark and writes exactly once. Drives the ticks, the per-section counts and the meters. |
+| Loading | No page holds the route on a blank `Loading...`. The frame comes from the URL and the requests fill it in: `LearnTrack` draws its title, filter and a grid of correctly-sized `.skeleton` cards; `LearnTopic` draws its crumb, column and progress rule, with the slug spelled out as a placeholder title so the paragraph under it does not jump when the catalogue lands. |
 
 ### What scrolling costs
 
@@ -399,60 +939,77 @@ them.
 
 ### What the other two pages cost
 
-**The hub fetched three chunks in front of its own paint.** Everything on
-`/learn` is already in `TRACKS`, so the cards can be on screen in the first
-frame; the three track indexes it also pulls exist only to put "12 of 43" under
-them. Fetching those from a plain mount effect put the largest download Learn
-makes — and its parse — ahead of a paint it contributes nothing to. It is behind
-`requestIdleCallback` now (with a `setTimeout` fallback, for Safari), so the
-meters arrive a beat late and the page does not.
+**The hub fanned out over four track indexes behind `requestIdleCallback`.** That
+whole apparatus is gone. One catalogue request answers every question the page
+has, it is smaller than the four chunks it replaces, and it blocks nothing — so
+there is nothing left to defer, and `whenIdle`, `topicsByTrack` and the
+search-jumps-the-queue special case all went with it.
 
 **`TopicCard` is memoised.** The filter box re-renders the track page on every
-keystroke, and the Node track is 68 cards — none of which has changed, because
-the topics come off a frozen module and `read` only moves when a topic is
-actually marked. Its props are three primitives and one stable object, so the
-comparison is nearly free and it takes 68 re-renders per keystroke down to
-however many cards actually appeared or disappeared.
+keystroke, and the Node track is 68 cards — none of which has changed. What used
+to guarantee that was a frozen module; what guarantees it now is that the
+catalogue is parsed and shaped **once**, at module scope, and nothing downstream
+maps over the topic list per render. `Icon`, the flat reading order and the
+`slug → position` Map are all attached at parse time for exactly this reason.
+A revalidation that comes back with the same `version` deliberately keeps the
+existing object rather than swapping in a fresh parse — 170 memo misses to redraw
+an identical page is a strange way to spend a 304.
 
-`LearnTrack`'s `allSections` falls back to one frozen `EMPTY` rather than a
-fresh `[]`. A new literal per render is a new dependency per render, which is
-the one shape of `useMemo` that costs more than it saves.
+That is *more* stable than before, not less: `LearnTrack` used to `useMemo` a
+fresh flattened array whenever its sections changed, and needed a frozen
+module-scope `EMPTY` to keep the dependency stable at all. `track.flat` is one
+array, computed once, and both of those memos deleted.
 
 ### What was measured and rejected
 
-The index → body waterfall. A topic's body is reachable only through its entry
-in the track index, so a *cold* arrival at `/learn/react/use-effect` is two
-requests in a row: fetch the index, read `load` off it, fetch the words.
-Deriving the loader from the slug instead — `import.meta.glob` in `tracks.js`,
-keyed `./<track>/<slug>.js` — lets both start on the same frame and removes one
-round trip.
+The index → body waterfall, which the move to the database dissolved rather than
+solved. A topic's body used to be reachable only through its entry in the track
+index, so a cold arrival at `/learn/react/use-effect` was two requests *in a
+row*: fetch the index, read `load` off it, fetch the words. Deriving the loader
+from the slug with `import.meta.glob` was built, measured and reverted — it put a
+map of 117 import thunks in the main bundle, **+5.1 KB gzipped on every first
+load of the whole app**, including for people who never open Learn.
 
-It was built, measured and reverted. `tracks.js` is imported eagerly by the
-Learn pages, which are imported eagerly by `App.jsx`, so the generated map of
-117 import thunks lands in the **main bundle**: **+16.6 KB raw, +5.1 KB gzipped**
-on every first load of the whole app, including for people who never open Learn.
-(Every other change on this page came to +0.5 KB gzipped combined.) That buys one
-round trip on cold direct entry to a topic — a path `TopicCard`'s hover prefetch
-already covers for the normal one. Not a good trade. If the Learn routes are
-ever made lazy, it becomes one.
+The endpoint made the problem disappear. A topic's URL is derivable from the
+address bar, so the catalogue and the body leave on the same frame with nothing
+generated and nothing added to the bundle. Measured on a cold deep link: the
+catalogue started at 342ms and the body at 343ms, and the body *finished first*
+— which under the old design was not possible.
 
-`TopicCard`'s hover prefetch is the same kind of fix one page up: it fired on
-`mouseenter`, so reaching a card at the bottom of the 68-card Node grid dragged
-the pointer across a dozen others and fetched all of them. It waits 120ms for
-the pointer to settle now — long enough to tell "on the way past" from "about to
-click", short enough that the chunk still lands before the click does.
+**Prefetching, of both kinds, was built and then removed.** `TopicCard` fetched a
+topic once the pointer had rested on it for 120ms, and `LearnTopic` fetched its
+two neighbours on idle. Neither was expensive and the rest timer did its job — a
+sweep down the 68-card Node grid cost nothing.
 
-`useLocalState` also stopped writing what it had just read. Its effect runs on
-mount as well as on change, so every component using it serialised its whole
-value and wrote it back unchanged on arrival — and `learn-read` is read by the
-hub, the track page and every topic, so walking a track was one redundant
-synchronous write of the whole map per navigation. It compares against
-`getItem` first now. That one is app-wide, not Learn-only.
+They went anyway, because of what they looked like from the outside. Resting on
+four cards while deciding fetched four topics; opening one topic put three
+requests in the panel. The rule now is that **a request means you opened
+something**, and it is worth more than the round trip it saves: a network panel
+you can read is what you need on the day something is actually wrong, and a page
+that speculates is indistinguishable from a page with a bug. Bodies are cached
+for the session, so walking back across a track is still free.
 
-Read state is in localStorage, not on the server, which is a deliberate
-downgrade from how the roadmap stores progress: Learn has no API, and inventing
-a collection and a route so a reference page can draw a tick is a lot of
-machinery for a convenience. It does not follow you to another browser.
+`useLocalState` stopped writing what it had just read. Its effect ran on mount as
+well as on change, so every component using it serialised its whole value and
+wrote it back unchanged on arrival. It compares against `getItem` first now —
+app-wide, not Learn-only. `learn/progress.js` no longer uses it at all: read
+state is a server fact with a hand-rolled localStorage mirror, because the mirror
+has to be read *synchronously at module load* to paint on the first frame, and
+has to be written through on an optimistic update rather than on a render.
+
+**Read state was in localStorage, deliberately, and is now on the server.** The
+old argument was that syncing it would be wrong — a topic skimmed on a train has
+no business in Tuesday's queue. That was a good argument for keeping the two
+*meanings* apart and a bad one for choosing a storage to do it, which is what it
+had been quietly conscripted into. `scheduledAt` on the row keeps them apart now:
+the revision queue reads that field and never `readAt`, so read can be an account
+fact and follow you between browsers without the queue hearing about it.
+
+IndexedDB was considered for the catalogue mirror and rejected in one line: it is
+async, so it cannot answer on the first frame, and answering on the first frame
+is the entire job. Its quota advantage is irrelevant at 60 KB. A service worker
+was rejected too — there is no manifest and no offline story anywhere else in the
+app, so offline Learn alone would be an inconsistency rather than a feature.
 
 The 90% threshold is not 100% because the pager, the ask-AI block and the footer
 links all sit below the last paragraph — you have finished the words well before
@@ -507,9 +1064,17 @@ algorithms.
 ## Verifying it
 
 ```bash
+cd server && npm run seed:learn -- --dry-run && npm run seed:learn && npm run seed:learn:verify
 cd client && npm run dev
 ```
 
+- The dry run prints **4 tracks, 33 sections, 170 topics, 5495 blocks** and says
+  every block validates. `verify` compares all 170 against the database and says
+  the move is lossless. Re-running the seeder writes the same numbers again.
+- `curl` the catalogue: ~69 KB, and ~20 KB with `Accept-Encoding: gzip`. Repeat
+  it with `If-None-Match` and get a **304 with an empty body**. Delete a topic in
+  Mongo and the catalogue's ETag moves — that is the document count in the tag
+  doing its job, and the half of it that `max(updatedAt)` cannot do alone.
 - Sidebar shows **Learn**, in both the collapsed rail and the expanded menu.
 - `/learn` lists four live tracks — Complexity first, then React, Node.js and
   SQL — with a meter under each.
@@ -551,26 +1116,46 @@ cd client && npm run dev
   side rail still tracks, and still tracks after switching a code block to its
   other language tab, which changes the page height under it.
 - Reaching the bottom ticks the topic; the tick shows on its card back on
-  `/learn/react`, and the counts and meters follow.
+  `/learn/react`, and the counts and meters follow. Scroll past the mark a dozen
+  times with the network panel open: **one** `PUT …/read`, not one per frame.
+- Clear `localStorage` and reload: the ticks come back, because they are on the
+  server now. Confirm the topic did **not** enter `/revision` — read and
+  scheduled are different fields, and only *Revise this* schedules.
+- Press **Revise this**: it appears in `/revision` under its real title, resolved
+  server-side. Sending a wrong `title` in the request body changes nothing.
 - Prev/next walks the track in index order, and so do `←` and `→` — but not
-  while the cursor is in the filter box.
+  while the cursor is in the filter box. Both neighbours are already fetched.
 - Sweep the pointer down `/learn/node` without stopping: the network panel shows
-  no topic chunks. Rest on one card for a moment and its chunk arrives.
+  no topic requests — and resting on one changes nothing either. Only a click
+  fetches. Walk three topics with `→` and then back with `←`: three requests out,
+  **none** on the way back.
+- Deep-link a topic cold: the catalogue and the body start on the **same frame**,
+  not one after the other.
 - Paste a URL with a `#section` anchor: it opens at that heading, not the top.
 - **Ask AI** opens the dock and streams a reply; the buttons are gone when the
   chat module is hidden.
+- `/learn/sql/left-and-right-join` renders two captioned sample grids and nine
+  captioned result grids — that is the `caption`/`variant` round trip, from the
+  seed file through Mongo to the DOM.
 - Open a pattern guide from the roadmap — Java and C++ highlighting and the
-  guide body are unchanged.
-- Admin → Modules → hide **Learn**: the nav entry goes and `/learn` falls
-  through to the roadmap.
+  guide body are unchanged. Edit a guide's table in the admin panel and give it a
+  caption: it survives the save, which it did not before.
+- Admin → Modules → hide **Learn**: the nav entry goes, `/learn` falls through to
+  the roadmap, **and `/learn/catalogue` 404s**. The prose goes with the pages
+  now, which it could not before.
 
 ```bash
 npm run build
 ```
 
-Each topic must appear as its own chunk of a few kB. If the main bundle grows
-by the size of the notes, something is importing a topic module statically
-instead of through `load`.
+**No per-topic chunks at all.** There were 170 of them — `logarithms-*.js`,
+`use-state-*.js` — and `client/dist/assets` should now hold two JavaScript files:
+the main bundle and the SQL Lab's worker. If a topic slug appears in a filename,
+something is importing content from the client again.
+
+The main bundle must **not shrink either**, and that is worth stating because it
+is the thing people expect to happen and the reason the move was not about bundle
+size. The topic bodies were already lazy chunks; they were never in it.
 
 ## What is in each track
 
@@ -584,7 +1169,7 @@ summaries live. If you add a topic, copy its row here too.
 ### Complexity
 
 6 topics in 3 sections, in reading order. Each file is
-`client/src/learn/complexity/<slug>.js`.
+`server/scripts/seed/learn/complexity/<slug>.js`.
 
 **The idea** — The maths first — one page of it — and then what the notation is actually claiming.
 
@@ -621,7 +1206,7 @@ operations a second.
 ### React
 
 43 topics in 7 sections, in reading order. Each file is
-`client/src/learn/react/<slug>.js`.
+`server/scripts/seed/learn/react/<slug>.js`.
 
 **Foundations** — What React is doing between your state update and the pixels.
 
@@ -704,7 +1289,7 @@ operations a second.
 ### Node.js
 
 68 topics in 13 sections, in reading order. Each file is
-`client/src/learn/node/<slug>.js`.
+`server/scripts/seed/learn/node/<slug>.js`.
 
 **JavaScript foundations** — The language Node runs. Most "Node is confusing" is really this, unlearned.
 
@@ -842,7 +1427,7 @@ operations a second.
 ### SQL
 
 53 topics in 10 sections, in reading order. Each file is
-`client/src/learn/sql/<slug>.js`.
+`server/scripts/seed/learn/sql/<slug>.js`.
 
 The odd one out in this catalogue, and deliberately: React and Node are notes
 about somebody's API and Complexity is the maths under the roadmap, but this is
@@ -851,7 +1436,7 @@ way it asks about graphs, so the track is written to be learned front to back
 rather than referred to, and it runs theory-first — what a database is, how one
 is designed and normalised, and only then the language.
 
-**One dataset, all the way through.** `client/src/learn/sql/sample-data.js` is
+**One dataset, all the way through.** `server/scripts/seed/learn/sql/sample-data.js` is
 the only file in that folder which is not a topic, and it earns the exception:
 six employees and four departments, defined once, used by every example in the
 track. Two rows in it are load-bearing — **Radia has no `dept_id`** and

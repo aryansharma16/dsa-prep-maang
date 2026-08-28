@@ -69,9 +69,21 @@ export const BLOCK_KINDS = [
   {
     type: 'table',
     label: 'Table',
-    fields: ['columns', 'rows'],
-    blank: () => ({ columns: ['', ''], rows: [['', '']] }),
-    summary: (b) => `${b.columns.length} columns · ${b.rows.length} rows`,
+    /*
+      `caption` and `variant` are listed here for a reason worth stating: this
+      array is what `toPayload` copies, and *only* what it copies. They were
+      missing, so a table carrying either one lost it in the browser before the
+      request was even sent — and the matching gap in the server's zod would
+      have stripped whatever survived. Both halves had to be fixed together;
+      either alone fixes nothing.
+
+      A sample table and a result grid are the two halves of every SQL topic in
+      Learn, and `caption` is the name the FROM clause below the grid uses.
+    */
+    fields: ['columns', 'rows', 'caption', 'variant'],
+    blank: () => ({ columns: ['', ''], rows: [['', '']], caption: '', variant: '' }),
+    summary: (b) =>
+      [b.caption, `${b.columns.length} columns · ${b.rows.length} rows`].filter(Boolean).join(' — '),
     validate: (b) => {
       const bad = b.rows.findIndex((r) => r.length !== b.columns.length);
       return bad < 0

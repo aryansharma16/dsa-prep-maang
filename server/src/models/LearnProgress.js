@@ -20,17 +20,40 @@ import { recallSchema } from './schemas/recall.js';
  * ---------------------------------------------------------------------------
  * Why the topic is a pair of slugs and not a ref.
  *
- * Learn has no collection. Its content is authored as JavaScript modules in the
- * client bundle (`client/src/learn/react/…`), deliberately — it is reference
- * prose we write, identical for every reader, with nothing per-account in it.
- * There is nothing here to point a ref at.
+ * This used to read "Learn has no collection", and that was the whole argument:
+ * the prose was authored as modules in the client bundle, so there was nothing
+ * to point a ref at. `LearnTopic` exists now, and the premise is gone.
  *
- * That makes `{ track, topic }` the natural key, and it has one honest
- * consequence worth stating: renaming a topic's slug orphans its progress rows.
- * The alternative — seeding 117 documents to own an id — would mean a migration
- * every time a sentence changes, which is the cost this design was chosen to
- * avoid. A renamed slug is rare, and its failure is a topic that quietly leaves
- * the queue rather than one that shows wrong.
+ * The conclusion survives it. A ref would have to be backfilled, and the rows
+ * that cannot be — the ones naming a slug that was renamed at some point — are
+ * exactly the rows a ref is supposed to protect; it would fix them by losing
+ * them. `LearnTopic.slugHistory` is the version of that idea which works, and it
+ * is strictly larger: the read endpoint resolves an old slug to its canonical
+ * one, so a rename stops breaking bookmarks and cross-module links too, not just
+ * these rows. Nothing had to be migrated, and marking a topic stays one query.
+ *
+ * `npm run seed:learn` reports rows pointing at slugs that no longer exist,
+ * which is the visibility that replaces the enforcement.
+ * ---------------------------------------------------------------------------
+ *
+ * ---------------------------------------------------------------------------
+ * Two facts on one row, and they must not be confused.
+ *
+ * **Read** — `readAt`, `lastViewedAt` — is a browsing fact. It is set by
+ * scrolling to the bottom of a page as well as by the button, so it means "my
+ * eyes have been over this", and it says nothing about whether you could explain
+ * it tomorrow.
+ *
+ * **Scheduled** — `scheduledAt` and the three ladder fields — is the deliberate
+ * act. It only ever happens when you press the control and say how solid it
+ * felt.
+ *
+ * They live on one row because they are two facts about one topic, and they are
+ * separate fields because a topic skimmed on a train must never turn up in
+ * Tuesday's revision queue. That was the argument for keeping read in
+ * localStorage; the argument was for keeping the two *meanings* apart, and it is
+ * `scheduledAt` that does that now — so read can be on the server, and follow
+ * you between browsers, without the queue ever hearing about it.
  * ---------------------------------------------------------------------------
  */
 const learnProgressSchema = new mongoose.Schema(
@@ -43,16 +66,37 @@ const learnProgressSchema = new mongoose.Schema(
     topic: { type: String, required: true, trim: true, maxlength: 128 },
 
     /**
-     * What it is called, captured when it is marked read.
+     * What it is called, captured when it is scheduled.
      *
-     * A snapshot, unlike everything else here, and for the reason `Task`
-     * snapshots a problem title: the queue is rendered server-side from these
-     * rows and the server cannot see the client bundle the titles live in.
-     * Without it the queue would be a list of slugs.
+     * Still a snapshot, and still for the reason `Task` snapshots a problem
+     * title — but no longer for the reason written here before. The server used
+     * to have no way to turn `react/use-effect` into "useEffect", so it trusted
+     * a string the client sent; it reads it out of `LearnTopic` now, and the
+     * request is not consulted.
+     *
+     * The field stays because a queue row has to render for a topic that has
+     * since been deleted or renamed, and a list of slugs is not a queue.
      */
     title: { type: String, default: '', maxlength: 200 },
 
+    /** First time your eyes reached the bottom, or you pressed the button. */
     readAt: { type: Date, default: null },
+    /** Most recent of the same. Cheap, and it is what "recently read" needs. */
+    lastViewedAt: { type: Date, default: null },
+
+    /**
+     * When this topic was put on the revision ladder — and `null` when it is not
+     * on it.
+     *
+     * A field rather than a derivation, and that is deliberate. The obvious test
+     * is `nextReviewAt != null`, and it is wrong twice: a topic dismissed from
+     * the queue has its `nextReviewAt` cleared while still being something you
+     * chose to learn, and a topic merely *read* has no business being confused
+     * with either. One field that means one thing beats three fields read in a
+     * particular combination that everybody has to remember.
+     */
+    scheduledAt: { type: Date, default: null },
+
     confidence: { type: Number, min: 1, max: 5, default: 3 },
     needsRevision: { type: Boolean, default: false },
 

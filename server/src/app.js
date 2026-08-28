@@ -1,3 +1,4 @@
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -38,6 +39,27 @@ export function createApp() {
     as a CORS failure instead.
   */
   app.use('/api', apiLimiter);
+
+  /*
+    Every JSON response this API had ever sent went out uncompressed.
+
+    Nothing was obviously wrong, which is why it survived: the payloads that
+    made the app feel fast were already small, and the ones that were not — the
+    roadmap aggregation, a two-thousand-word guide, and now Learn's catalogue at
+    60KB — are exactly the ones nobody measures because they only load once.
+    That catalogue is 19KB compressed. The same three-to-one holds across the
+    whole surface; JSON is mostly punctuation and repeated key names.
+
+    Below the rate limiter, so a 429 is still written before any of this is
+    reached, and above the body parser because it wraps the *response* — the
+    order relative to `express.json` is free, and this is where it reads.
+
+    The SSE stream needs no exception: `chat.controller.js` already sets
+    `no-transform` on it, which this honours by design. Without that header a
+    compressor buffers, and a token stream that arrives in one lump at the end
+    is not a stream.
+  */
+  app.use(compression());
 
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());

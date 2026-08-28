@@ -1,6 +1,33 @@
 import mongoose from 'mongoose';
 
 /**
+ * Every kind of thing an audit row can point at.
+ *
+ * Exported so `services/audit.service.js` can check a call against it before
+ * writing — see the note on `targetType` below for why a silent enum failure is
+ * the worst shape this bug can take. The dependency runs model → service and
+ * never the other way: the service already imports from here, and the reverse
+ * would be a cycle.
+ *
+ * `learn` covers both a track and a topic. Not two values, because this field is
+ * a filter facet in the activity feed and the question a human asks is "what
+ * happened to Learn", never "track edits but not topic edits" — `targetLabel`
+ * carries `sql` or `sql/joins` and answers that when it is actually asked.
+ */
+export const AUDIT_TARGET_TYPES = Object.freeze([
+  'user',
+  'problem',
+  'pattern',
+  'guide',
+  'learn',
+  'motivation',
+  'feedback',
+  'module',
+  'settings',
+  'system',
+]);
+
+/**
  * Who changed what, and when.
  *
  * The actor's email and role are copied in rather than looked up. An audit row
@@ -30,17 +57,7 @@ const auditLogSchema = new mongoose.Schema(
      */
     targetType: {
       type: String,
-      enum: [
-        'user',
-        'problem',
-        'pattern',
-        'guide',
-        'motivation',
-        'feedback',
-        'module',
-        'settings',
-        'system',
-      ],
+      enum: AUDIT_TARGET_TYPES,
       required: true,
     },
     targetId: { type: String, default: '' },

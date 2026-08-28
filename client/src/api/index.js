@@ -224,19 +224,36 @@ export const viewsApi = {
 };
 
 /**
- * Learn — which topics you have read, and which are due to come back.
+ * Learn — the reference itself, and what you have done with it.
  *
- * The prose itself never comes through here: it is authored in the bundle and
- * imported per topic. These four calls carry the only per-account fact Learn
- * has, which is enough to put a topic on the same revision ladder a problem
- * goes on.
+ * `catalogue` is the whole table of contents in one response: four tracks,
+ * thirty-three sections and every topic's heading, about 20KB on the wire. One
+ * request rather than one per track, because the hub needs all four for its
+ * search and its meters, and a topic page needs its track's reading order before
+ * it can draw a pager. It replaces four lazy chunks that were larger.
  *
- * `mark` sends the title because only the client can see it — the server has no
- * collection of topics to look one up in. See models/LearnProgress.js.
+ * `topic` is one topic's words, and it resolves a renamed slug rather than
+ * 404ing on it — the response carries `canonical` when the URL should be
+ * corrected.
+ *
+ * `mark` still sends the title. It no longer has to — there is a collection to
+ * look one up in now — but `LearnProgress` snapshots it on purpose, so a row in
+ * your revision queue still says what you scheduled even if the topic is renamed
+ * underneath it.
  */
 export const learnApi = {
+  catalogue: () => http.get('/learn/catalogue').then((r) => r.data),
+  topic: (track, topic) => http.get(`/learn/topics/${track}/${topic}`).then((r) => r.data),
+
   progress: () => http.get('/learn/progress').then((r) => r.data.topics),
   revision: () => http.get('/learn/revision').then((r) => r.data),
+
+  /** The browsing fact. Never touches the revision ladder — see the server. */
+  markRead: (track, topic, read) =>
+    http.put(`/learn/progress/${track}/${topic}/read`, { read }).then((r) => r.data.topic),
+  /** The one-time hand-over of the old localStorage map, in one request. */
+  bulkRead: (keys) => http.put('/learn/progress/read', { keys }).then((r) => r.data),
+
   mark: (track, topic, body) =>
     http.put(`/learn/progress/${track}/${topic}`, body).then((r) => r.data.topic),
   review: (track, topic, result, confidence, recall) =>

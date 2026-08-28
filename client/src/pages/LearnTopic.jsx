@@ -10,23 +10,29 @@ import {
   IconRotate,
 } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
-import { useLearnDoc } from '../hooks/useLearnDoc.js';
+import { findTrack, useLearnCatalogue } from '../hooks/useLearnCatalogue.js';
+import { useLearnTopic } from '../hooks/useLearnTopic.js';
 import { scrollProgress, useScrollContainer } from '../hooks/useScrollContainer.js';
 import { topicKey, useReadTopics, useTopicRevision } from '../learn/progress.js';
-import { findTrack, flatTopics } from '../learn/tracks.js';
+
+/* The one empty list, shared, for a track whose topics have not arrived yet. */
+const EMPTY = [];
 
 /**
  * One topic, read.
  *
- * Two imports deep: the track index gives the title, the summary and the
- * neighbours for prev/next, and the topic's own module gives the blocks. Both go
- * through the same cache, so arriving from the track page costs only the second
- * one — and the topic card has usually already fetched that on hover.
+ * Two requests, and the important word is *parallel*. This page used to be two
+ * chained imports — the track index named the topic's loader, so the words could
+ * not begin downloading until the index had resolved — and a cold deep link paid
+ * both round trips end to end. The body's URL comes from `useParams` now, so
+ * both fire on the same frame and the slower one decides the wait.
  *
- * The page is built from whichever has arrived rather than gated on both, which
- * is what replaced the bare `Loading...` that used to own the route until the
- * index resolved. That also means `.learn-page` exists on the first render, so
- * the scroll container has a node to be found from — see `useScrollContainer`.
+ * The catalogue still gives the neighbours for prev/next, the `07 / 43` counter
+ * and the title above the prose; the topic endpoint gives the blocks and the
+ * Ask-AI questions. The page is built from whichever has arrived rather than
+ * gated on both, which is what replaced the bare `Loading...` that used to own
+ * the route. That also means `.learn-page` exists on the first render, so the
+ * scroll container has a node to be found from — see `useScrollContainer`.
  *
  * The body is `GuideBlocks`, unchanged and unwrapped. That is the point of
  * authoring Learn content in the guide block shapes: code tabs, copy buttons,
@@ -35,27 +41,59 @@ import { findTrack, flatTopics } from '../learn/tracks.js';
  */
 export function LearnTopic() {
   const { track: trackSlug, topic: topicSlug } = useParams();
-  const track = findTrack(trackSlug);
+  const { catalogue, loading: catalogueLoading } = useLearnCatalogue();
+  const track = findTrack(catalogue, trackSlug);
   const navigate = useNavigate();
 
   const [pageRef, container] = useScrollContainer();
 
-  const { data: index, loading: indexLoading } = useLearnDoc(
-    track?.status === 'live' ? trackSlug : null,
-    track?.load,
-  );
+  /*
+    Position comes off a Map built once when the catalogue was parsed, rather
+    than a scan of the list per render. On the Node track that is sixty-eight
+    string comparisons saved on every keystroke anywhere on the page — small, but
+    free, and the Map had to exist anyway for prev/next.
+  */
+  const topics = track?.flat || EMPTY;
+  const position = track?.at?.get(topicSlug) ?? -1;
+  const indexLoading = catalogueLoading || !track?.flat;
 
-  const topics = useMemo(() => flatTopics(index?.sections), [index]);
-  const position = topics.findIndex((entry) => entry.slug === topicSlug);
-  const topic = position === -1 ? null : topics[position];
+  const { topic: doc, canonical, loading, error } = useLearnTopic(trackSlug, topicSlug);
 
-  const { data: doc, loading, error } = useLearnDoc(
-    topic ? `${trackSlug}/${topicSlug}` : null,
-    topic?.load,
-  );
+  /*
+    The heading comes from the catalogue and the body from the topic endpoint,
+    and either can arrive first. Preferring the catalogue keeps the title stable
+    once it is on screen; falling back to the body is what makes a topic
+    reachable at all when it is newer than the cached catalogue.
+  */
+  const topic = position === -1 ? doc : topics[position];
 
   const previous = position > 0 ? topics[position - 1] : null;
-  const next = position < topics.length - 1 ? topics[position + 1] : null;
+  const next = position >= 0 && position < topics.length - 1 ? topics[position + 1] : null;
+
+  /*
+    A renamed slug. The endpoint answers 200 with the canonical path rather than
+    a redirect, because an XHR follows a 301 invisibly and the address bar would
+    keep the dead URL. Replacing rather than pushing, so Back still goes where
+    the reader came from instead of bouncing through the old name.
+  */
+  useEffect(() => {
+    if (canonical && canonical !== `${trackSlug}/${topicSlug}`) {
+      navigate(`/learn/${canonical}${window.location.hash}`, { replace: true });
+    }
+  }, [canonical, trackSlug, topicSlug, navigate]);
+
+  /*
+    There is deliberately no prefetch of the neighbours here.
+
+    An earlier version fetched the two pages the arrow keys reach while the
+    reader was reading, on the grounds that it is the cheapest moment there is.
+    It is — but it also means opening one topic puts three requests in the
+    network panel, and two of them are for pages nobody asked for. A request
+    should mean you opened something; the rule is worth more than the round trip
+    it saves, because it is what makes the panel readable when something is
+    actually wrong. Bodies are cached for the session, so walking back and forth
+    across a track is still free after the first visit to each page.
+  */
 
   const { read, mark } = useReadTopics();
   const revision = useTopicRevision(trackSlug, topicSlug);
@@ -77,7 +115,9 @@ export function LearnTopic() {
     picture for none of it.
   */
   const barRef = useRef(null);
-  const blocks = doc?.doc?.blocks;
+  /* `doc.blocks`, not `doc.doc.blocks`. The double nesting was an artifact of
+     reading a module namespace — the body is the response now. */
+  const blocks = doc?.blocks;
   const headings = useMemo(() => guideHeadings(blocks), [blocks]);
 
   /*
@@ -165,7 +205,14 @@ export function LearnTopic() {
     return () => window.removeEventListener('keydown', onKey);
   }, [go, previous, next]);
 
-  if (!track || track.status !== 'live') {
+  /*
+    A slug in neither the stub nor a landed catalogue. Until the catalogue
+    answers there is no way to tell a bad bookmark from a track added since this
+    build, so this draws the empty shell rather than a verdict — and with no hue,
+    because nothing knows which one yet.
+  */
+  if (!track) {
+    if (catalogueLoading) return <div className="learn-shell" aria-busy="true" />;
     return (
       <div className="learn-shell">
         <div className="empty">
@@ -178,12 +225,29 @@ export function LearnTopic() {
     );
   }
 
+  if (track.status !== 'live') {
+    return (
+      <div className="learn-shell" data-hue={track.hue}>
+        <div className="empty">
+          <h3>{track.name} is not written yet</h3>
+          <p>
+            <Link to="/learn">Back to Learn</Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   /*
-    Only once the index has actually answered. Asking before it lands would call
-    every topic missing for as long as the fetch takes, and the page would flash
-    "No such topic" on its way to rendering the topic.
+    Only once both have actually answered, and `loading` is now part of that.
+
+    The catalogue not knowing a slug is no longer proof it does not exist: a
+    topic added since the cached catalogue was stored is missing from it and
+    perfectly fetchable, which is exactly the case `topic` falls back to the body
+    for. So this waits for the request to fail too, rather than calling a topic
+    missing while its own words are on the way.
   */
-  if (!indexLoading && !topic) {
+  if (!indexLoading && !loading && !topic) {
     return (
       <div className="learn-shell" data-hue={track.hue}>
         <div className="empty">
@@ -224,7 +288,7 @@ export function LearnTopic() {
               <IconArrowLeft size={13} />
               {track.name}
             </Link>
-            {topic && (
+            {position >= 0 && (
               <span className="learn-crumb-pos mono">
                 {String(position + 1).padStart(2, '0')} / {topics.length}
               </span>
@@ -232,21 +296,22 @@ export function LearnTopic() {
           </div>
 
           <div className="page-head">
-            {/* The slug, spelled out, until the index says what the title
+            {/* The slug, spelled out, until the catalogue says what the title
                 really is. It is right about nine times in ten and it is the
                 right height every time, which is what stops the words below
-                from jumping when the index lands. */}
+                from jumping when the catalogue lands. */}
             <h1>{topic ? topic.title : slugToTitle(topicSlug)}</h1>
             <p>{topic ? topic.summary : '\u00a0'}</p>
           </div>
 
           <AskAi questions={topic?.ask} compact />
 
-          {/* `indexLoading` as well as `loading`: the body import cannot start
-              until the index has named the topic, so without this the document
-              area is blank for one fetch and then a skeleton for the next.
-              Something is coming either way, and the skeleton is what says so. */}
-          {(loading || indexLoading) && (
+          {/* Only `loading` now. It used to need `indexLoading` too, because the
+              body could not start downloading until the index had named its
+              loader \u2014 so the document area went blank for one fetch and then
+              showed a skeleton for the next. Both requests leave together now,
+              and this one is about the words. */}
+          {loading && (
             <div className="guide-loading">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div className="skeleton" key={i} />
@@ -337,11 +402,13 @@ export function LearnTopic() {
                           />
                         ))}
                       </span>
+                      {/* `schedule` takes no title any more — the server reads
+                          it off LearnTopic rather than trusting what we send. */}
                       <button
                         type="button"
                         className="btn sm"
                         disabled={revision.busy}
-                        onClick={() => revision.schedule(confidence, topic.title)}
+                        onClick={() => revision.schedule(confidence)}
                       >
                         <IconRotate size={12} />
                         {revision.busy ? 'Saving…' : 'Revise this'}

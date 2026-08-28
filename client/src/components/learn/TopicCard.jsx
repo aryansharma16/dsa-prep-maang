@@ -1,59 +1,38 @@
-import { memo, useCallback, useEffect, useRef } from 'react';
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { IconCheck } from '../ui/Icons.jsx';
-
-/*
-  How long the pointer has to stay on a card before it counts as interest.
-
-  Firing on `mouseenter` itself is what the Node track exposed: 68 cards in a
-  grid, and reaching the one at the bottom drags the pointer across a dozen on
-  the way, each of which fetched its own chunk. In development, where every
-  module is its own request, that is a stall you can watch happen. A short rest
-  separates "on the way past" from "about to click", and 120ms is short enough
-  that the import still lands before the click does.
-*/
-const REST = 120;
 
 /**
  * One topic in a track's index.
  *
- * Prefetches its own body once the pointer has settled on it. The chunk is a
- * few kilobytes and a card is hovered for a beat before the click lands, so by
- * the time the route changes the import has usually already resolved and the
- * topic renders without a skeleton. Failure is ignored on purpose — this is a
- * guess about what you are about to do, and a wrong guess must cost nothing.
+ * ---------------------------------------------------------------------------
+ * It used to prefetch its own body on hover, and deliberately does not now.
+ *
+ * The rule this page follows is that **a request means you opened something**.
+ * A hover is a guess, and a guess is indistinguishable from a mistake when you
+ * are looking at a network panel trying to work out what the app is doing —
+ * which is the state anybody debugging this is in. The old version waited 120ms
+ * for the pointer to settle before firing, so a sweep down the grid cost
+ * nothing; but resting on four cards while deciding still fetched four topics
+ * you never opened, and that is exactly what it looked like.
+ *
+ * What it costs is one round trip on the click instead of zero — a few
+ * kilobytes, gzipped, against an ETag. The body is cached for the session once
+ * it arrives, so going back to a topic is still free.
+ * ---------------------------------------------------------------------------
  *
  * Memoised, and the reason is the filter box above it. Typing into that
  * re-renders the track page on every keystroke, and the Node track is 68 of
- * these — none of which has changed, because the topics come off a frozen
- * module and `read` only moves when a topic is actually marked. The props are
- * three primitives and one stable object, so the comparison is nearly free and
- * it takes 68 re-renders per keystroke down to however many actually appeared
- * or disappeared.
+ * these — none of which has changed, because the topic objects are the ones
+ * `JSON.parse` produced when the catalogue was shaped and nothing maps over them
+ * per render, and `read` only moves when a topic is actually marked. The props
+ * are three primitives and one stable object, so the comparison is nearly free
+ * and it takes 68 re-renders per keystroke down to however many actually
+ * appeared or disappeared.
  */
 export const TopicCard = memo(function TopicCard({ trackSlug, topic, read = false }) {
-  const timer = useRef(0);
-
-  const prefetch = useCallback(() => {
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => topic.load?.().catch(() => {}), REST);
-  }, [topic]);
-
-  const cancel = useCallback(() => clearTimeout(timer.current), []);
-
-  // A card unmounted mid-wait — the filter box narrowed the list — must not
-  // leave a timer holding a reference to it.
-  useEffect(() => cancel, [cancel]);
-
   return (
-    <Link
-      className={`topic-card ${read ? 'read' : ''}`}
-      to={`/learn/${trackSlug}/${topic.slug}`}
-      onMouseEnter={prefetch}
-      onMouseLeave={cancel}
-      onFocus={prefetch}
-      onBlur={cancel}
-    >
+    <Link className={`topic-card ${read ? 'read' : ''}`} to={`/learn/${trackSlug}/${topic.slug}`}>
       <span className="topic-card-head">
         <span className="topic-card-title">{topic.title}</span>
         {/* Present but invisible until read, so a row of cards does not reflow

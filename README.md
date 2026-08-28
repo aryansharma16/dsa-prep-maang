@@ -53,6 +53,7 @@ cp .env.example .env          # fill in MONGO_URI and the two JWT secrets
 npm install
 npm run seed                  # fetch sources -> curate -> write to MongoDB
 npm run seed:guides           # the 22 pattern guides
+npm run seed:learn            # the 4 Learn tracks and their 170 topics
 npm run dev                   # http://localhost:4000
 
 # 2. Frontend (second terminal)
@@ -82,6 +83,8 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:db` | upserts problems and patterns into MongoDB |
 | `npm run seed` | all three, in order |
 | `npm run seed:guides` | writes the pattern guides |
+| `npm run seed:learn` | writes the 4 Learn tracks and their 170 topics. `-- --dry-run` validates every block and prints the totals without opening a connection; `-- --force` overwrites topics the admin panel has edited |
+| `npm run seed:learn:verify` | compares every seeded topic against the content files, field by field, and fails if anything differs |
 | `npm run seed:cp` | the whole Pro Coder pipeline — see [Seeding it](#seeding-it) |
 | `npm run seed:cp:fetch` | Codeforces problemset + contests → `data/raw/cp/` |
 | `npm run seed:cp:sheets` | the curated CP sheets (CP-31, ladders, A2OJ) |
@@ -215,15 +218,19 @@ official docs' terms, why the API exists, its signature as a table, the smallest
 example that shows the point, how it actually works, the mistakes people make,
 a one-line "when do I reach for this" table, and a link back to the official page.
 
-**Read, and revised.** These are two different facts and they are stored in two
-different places. *Read* is local, set by scrolling to the bottom as well as by
-the button, and means "my eyes have been over this" — syncing it would be wrong,
-because a topic you skimmed on a train has no business in Tuesday's queue.
-*Revise this* is the deliberate act: you say how solid it felt and the topic
-joins the same 3/7/21/60 ladder a problem goes on, in the same merged queue,
-scheduled by the same `nextReview()`. That is what finally gave Learn an API —
-it was the one module with none, because prose in the bundle is nobody's data
-and reading progress is.
+**Read, and revised.** Two different facts, and they stay two different facts.
+*Read* is set by scrolling to the bottom as well as by the button, and means "my
+eyes have been over this". *Revise this* is the deliberate act: you say how solid
+it felt and the topic joins the same 3/7/21/60 ladder a problem goes on, in the
+same merged queue, scheduled by the same `nextReview()`.
+
+Both are on the server now, on one row, in two fields. Read used to be kept in
+localStorage *specifically* to keep the two apart — a topic skimmed on a train
+has no business in Tuesday's queue — and what actually keeps them apart is
+`scheduledAt`, not which storage the fact lives in. The queue reads that field
+and never `readAt`, so read can follow you between browsers, which is what it
+should always have done. The scroll handler that sets it fires on every frame
+past the ninety-percent mark and writes exactly once.
 
 ### Complexity — the 6 topics
 
@@ -330,8 +337,8 @@ tracks the heading you are on, clicking one puts the anchor in the address bar
 so a section is linkable, and `←` and `→` walk the track. Reaching the bottom
 ticks the topic off; the ticks and counts show up again on the track index and
 as a meter on the hub, so you can see what is left. That progress lives in the
-browser, not the account — read is a browsing fact, and only *Revise this* is
-deliberate enough to be worth a row on the server.
+account, on the same row as the schedule and in a different field — see
+[Read, and revised](#learn) above.
 
 None of that costs a frame. The rule is written straight to its own element
 rather than held in state, so scrolling a topic does not re-render the page
@@ -340,31 +347,66 @@ and compares scroll offsets after that, rather than reading the layout of every
 heading on every frame. Both were doing real work per frame on a long topic —
 see [docs/learn.md](docs/learn.md#the-reading-page).
 
-**Nothing waits on a blank page.** Every Learn page now draws its own frame from
-the URL and fills it in as the chunks land, rather than holding the route on the
+**Nothing waits on a blank page.** Every Learn page draws its own frame from the
+URL and fills it in as the requests land, rather than holding the route on the
 word `Loading...` until they do. A track index paints its title, its filter and
 a grid of correctly-sized cards straight away; a topic paints its crumb, its
-column and its progress rule. The hub is the same idea from the other end — its
-cards come from the registry and are on screen immediately, and the three track
-indexes it needs for the "12 of 43" meters are fetched at `requestIdleCallback`
-rather than in front of the paint they contribute nothing to.
+column and its progress rule.
 
-It renders through the **same block renderer** as the pattern guides — Learn
-content is authored as the same typed blocks, so code tabs, copy buttons,
-callouts and syntax colours were already built. What the two do not share is storage: a
-pattern guide is prose in Mongo behind an endpoint, while Learn is authored
-reference text nobody but us edits, so it ships as JavaScript modules and needs
-no model, no controller and no seed script. Each topic is its own lazily
-imported chunk, so the hub costs nothing and a topic costs a few kilobytes —
-prefetched when your pointer touches its card.
+The hub is the same idea from the other end, and it is the one place the move to
+the database could have cost something visible. Its four cards used to come from
+a registry in the bundle and were on screen in the first frame; a catalogue
+request cannot be. So the four tracks' **chrome** — name, colour, icon, one
+sentence, about six hundred bytes — stays in the bundle and answers immediately,
+and the catalogue replaces it the moment it arrives. On a second visit it never
+appears at all: the catalogue is read synchronously out of localStorage at module
+load, so the meters, the totals and a working search box are there on the first
+frame, which is better than the page managed before. That mirror is a cache and
+never the record — the response overwrites it, and a version that has not changed
+deliberately keeps the existing objects so a hundred and seventy cards are not
+handed new identities to redraw an identical page.
+
+It renders through the **same block renderer** as the pattern guides, and now it
+uses the same storage too. Learn content is authored as the same typed blocks, so
+code tabs, copy buttons, callouts and syntax colours were already built — and
+because the block vocabulary was already a Mongoose schema, moving 170 topics
+into Mongo added **no new block types at all**. `sig`, `cheat` and `asked` are a
+table with the header row filled in; the SQL track's sample and result grids are
+a table with `caption` and `variant` set, and those two fields had been on
+`guideBlockSchema` since that track was written.
+
+**The prose is authored in git and served from the database.** The 170 modules
+live under `server/scripts/seed/learn/` and `npm run seed:learn` writes them,
+skipping anything the admin panel has edited — the same `editedAt` handshake the
+pattern guides use. Git stays the place a paragraph is written and reviewed; the
+database is what the app reads.
+
+Two requests serve the whole module. `GET /learn/catalogue` is every track,
+section and topic heading in one document — about 20 KB compressed, replacing
+four lazy chunks that were larger — and `GET /learn/topics/:track/:topic` is one
+topic's words. Both carry an ETag and answer a repeat visit with a 304 and an
+empty body.
+
+**A request means you opened something.** A hover prefetch on the topic cards and
+an idle prefetch of the two pages the arrow keys reach were both built and both
+removed: individually cheap, and collectively they turn the network panel into
+noise on a page whose entire job is being read. Opening a topic is one request;
+going back to one you have already opened is none, because bodies are cached for
+the session.
+
+The move made the topic page *faster*, which was not the goal. It used to be two
+chained imports — the track index named the topic's loader, so the words could
+not start downloading until the index had arrived — and a cold link paid both
+round trips end to end. The body's URL comes from the address bar now, so both
+requests leave on the same frame.
 
 Every topic carries two or three questions wired to the assistant. Clicking one
 opens the chat dock and sends it, so the question the notes did not answer is
 one click rather than a context switch.
 
-Adding a track is a folder and an entry in `client/src/learn/tracks.js` — see
-[docs/learn.md](docs/learn.md) for the block vocabulary and how to add a topic
-or a track.
+Adding a track is a folder under `server/scripts/seed/learn/` and an entry in its
+registry — see [docs/learn.md](docs/learn.md) for the block vocabulary and how to
+add a topic or a track.
 
 ### SQL — the 53 topics
 
@@ -388,7 +430,7 @@ returning five is not a sentence to remember, it is two grids on the same page
 with a person visibly missing from one of them.
 
 Which means the data has to be the same everywhere, so it is defined once, in
-`client/src/learn/sql/sample-data.js`: **six employees and four departments.**
+`server/scripts/seed/learn/sql/sample-data.js`: **six employees and four departments.**
 Small enough to check a result by eye, and chosen so that two rows carry the
 whole Joins section — **Radia has no department** and **Legal has no
 employees**. Those are the only rows the six join types disagree about. The same
@@ -2089,14 +2131,17 @@ in it.
 403 announces that the feature exists. The super admin sees the module with a
 **Dev** badge, so an unfinished page is never mistaken for a shipped one.
 
-**Learn is the one exception to the third point**, and the exception is worth
-naming rather than leaving to be discovered. Its content is authored prose that
-ships as modules in the client bundle, so there is no API surface to guard and
-no `requireModule('learn')` line to write. Hiding it is therefore cosmetic —
-which is safe here for the reason the rule exists in the first place: the hidden
-door that rule prevents is a route still serving somebody else's records, and
-there are no records. Anyone who reads the bundle finds the same notes the nav
-item would have linked to.
+**Learn used to be the exception to the third point, and no longer is** — worth
+naming because the change moved a line that had been drawn deliberately. Its
+prose shipped in the client bundle, so there was no API surface to guard and
+hiding the module was cosmetic: anyone who read the bundle found the same notes
+the nav item would have linked to. That was safe for the reason the rule exists
+— the hidden door it prevents is a route still serving somebody else's records,
+and there were no records — but it was still a module the toggle could not fully
+turn off.
+
+The content is served from Mongo now, behind `requireModule('learn')` on the
+mount like every other module. Hiding Learn takes the words with the pages.
 
 Two capabilities, not one: `module:preview` is "an unfinished feature is safe in
 my hands", `module:write` is "I decide when it ships". Both are the super
@@ -2625,7 +2670,7 @@ client/
       learn/     track and topic cards, the side rail, the Ask-AI buttons
       ui/        Modal, ConfirmDialog, Dropdown, Avatar, PhotoPreview, Icons
     filters/     what each screen can be narrowed by, and the engine
-    hooks/       useGuide, useLearnDoc, useMotivation, useLocalState,
+    hooks/       useGuide, useLearnCatalogue, useLearnTopic, useMotivation,
                  useTableLayout, useSavedFilters, useBoardDrag
     learn/       the Learn content itself — track registry, block
                  constructors, and one module per topic (react/, node/)
@@ -2655,6 +2700,12 @@ docs/          the deep-dive references the README links out to:
 | `POST` | `/progress/:id/review` | working the revision queue — `recalled` advances the ladder, `dismissed` only clears what put the row there |
 | `GET` `PATCH` `DELETE` | `/progress/:id/attempts` · `/progress/:id/attempts/:attemptId` | the attempt log for one problem, and editing or removing one of them — see [Attempts](#attempts) |
 | `GET` | `/stats` | profile and stats pages |
+| `GET` | `/learn/catalogue` | every track, section and topic heading in one document, ETagged — see [Learn](#learn) |
+| `GET` | `/learn/topics/:track/:topic` | one topic's blocks; answers a renamed slug with its canonical path rather than a redirect |
+| `GET` | `/learn/progress` · `/learn/revision` | every topic you have read or scheduled, and the ones that are due |
+| `PUT` | `/learn/progress/:track/:topic/read` | the browsing fact — never touches the revision ladder |
+| `PUT` | `/learn/progress/read` | the one-time hand-over of the old localStorage map, in one request |
+| `PUT` `POST` | `/learn/progress/:track/:topic` · `/learn/progress/:track/:topic/review` | scheduling a topic with a confidence, and working the queue |
 | `GET` `POST` `PATCH` `DELETE` | `/tasks` · `/tasks/:id` | the board and everything on it in one read; a task |
 | `POST` | `/tasks/move` | a drag — `{ id, status, ids }`, the destination column in the order it was drawn |
 | `POST` `PUT` `PATCH` `DELETE` | `/tasks/board/statuses` · `/tasks/board/statuses/:statusId` | your columns; `PUT` reorders them, `DELETE` takes `?moveTo=` for the tasks inside |

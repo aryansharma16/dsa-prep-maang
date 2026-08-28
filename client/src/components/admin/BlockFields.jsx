@@ -296,6 +296,22 @@ function CodeFields({ block, patch }) {
 }
 
 /**
+ * What kind of grid this is.
+ *
+ * Three values and not a checkbox, because they are not degrees of one thing. A
+ * plain table is a table; a `data` grid is input the reader is being handed; a
+ * `result` grid is what the query gave back, and the stylesheet draws it with
+ * the track's hue on its edge because it is the only grid on the page that is an
+ * answer. The empty string is the default and reads as "just a table" — it is
+ * what every table written before these existed still carries.
+ */
+const VARIANT_OPTIONS = [
+  { value: '', label: 'Plain table' },
+  { value: 'data', label: 'Sample data' },
+  { value: 'result', label: 'Query result' },
+];
+
+/**
  * The table editor, and its one invariant: every row has exactly one cell per
  * column. GuideBlocks maps rows blind, so a short row silently loses a cell and
  * nobody notices until a reader sees a hole. Enforced in these helpers rather
@@ -324,6 +340,33 @@ function TableFields({ block, patch }) {
   return (
     <div className="field">
       <span>Table</span>
+
+      <div className="field-row">
+        <label className="field" style={{ flex: 1 }}>
+          <span>Caption</span>
+          <input
+            value={block.caption || ''}
+            /*
+              Not decoration. On a sample grid this is the table's real name —
+              the one the FROM clause underneath it uses — so leaving it blank
+              is what turns three grids in a row into a page the reader has to
+              count their way through.
+            */
+            placeholder="Optional — the grid's name, e.g. employees"
+            onChange={(e) => patch({ caption: e.target.value })}
+          />
+        </label>
+        <div className="field" style={{ flex: 1 }}>
+          <span>Kind</span>
+          <Dropdown
+            ariaLabel="Table kind"
+            value={block.variant || ''}
+            onChange={(variant) => patch({ variant })}
+            options={VARIANT_OPTIONS}
+          />
+        </div>
+      </div>
+
       <div className="gb-grid">
         <div className="gb-grid-row gb-grid-head">
           {block.columns.map((col, c) => (

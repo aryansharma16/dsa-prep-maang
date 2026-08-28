@@ -1,4 +1,4 @@
-import { AuditLog } from '../models/AuditLog.js';
+import { AUDIT_TARGET_TYPES, AuditLog } from '../models/AuditLog.js';
 
 /**
  * The action vocabulary. Kept as constants so the activity filter can be built
@@ -22,6 +22,19 @@ export const AUDIT = Object.freeze({
 
   GUIDE_SAVE: 'guide.save',
   GUIDE_UNLOCK: 'guide.unlock',
+
+  /*
+    Learn's content, once it lives in Mongo rather than the client bundle.
+
+    The same two verbs a guide has, because Learn borrows the same ownership
+    model: the seed files are the source of truth until a human takes a topic
+    over, and `unlock` is the way back. A track is separate from a topic here —
+    unlike in `targetType`, where they share one value — because these are
+    *actions* and editing a track's blurb is not editing 1,400 words of prose.
+  */
+  LEARN_TOPIC_SAVE: 'learn.topic.save',
+  LEARN_TOPIC_UNLOCK: 'learn.topic.unlock',
+  LEARN_TRACK_SAVE: 'learn.track.save',
 
   MOTIVATION_CREATE: 'motivation.create',
   MOTIVATION_UPDATE: 'motivation.update',
@@ -65,6 +78,9 @@ export const AUDIT_LABEL = {
   [AUDIT.PATTERN_UPDATE]: 'edited pattern',
   [AUDIT.GUIDE_SAVE]: 'saved the guide for',
   [AUDIT.GUIDE_UNLOCK]: 'handed back to the seeder',
+  [AUDIT.LEARN_TOPIC_SAVE]: 'edited the Learn topic',
+  [AUDIT.LEARN_TOPIC_UNLOCK]: 'handed the Learn topic back to the seeder',
+  [AUDIT.LEARN_TRACK_SAVE]: 'edited the Learn track',
   [AUDIT.MOTIVATION_CREATE]: 'wrote the line',
   [AUDIT.MOTIVATION_UPDATE]: 'edited the line',
   [AUDIT.MOTIVATION_DELETE]: 'deleted the line',
@@ -116,6 +132,22 @@ export function diff(before, after, fields) {
  * be read before it stops existing.
  */
 export async function recordAudit(req, { action, targetType, targetId, targetLabel, meta = {} }) {
+  /*
+    Named before it is swallowed.
+
+    The enum on the model is the real gate, but it fails as a ValidationError
+    inside the catch below — which prints, and is then indistinguishable from a
+    dropped connection to anyone skimming the log. Every audit row this app has
+    ever failed to write failed this way, and `module` sat unrecorded until
+    somebody went looking. Saying the word "targetType" out loud costs one
+    lookup on a route three people use.
+  */
+  if (!AUDIT_TARGET_TYPES.includes(targetType)) {
+    console.error(
+      `[audit] unknown targetType '${targetType}' for ${action} — add it to AUDIT_TARGET_TYPES in models/AuditLog.js`,
+    );
+  }
+
   try {
     await AuditLog.create({
       actor: req?.actor?._id ?? null,

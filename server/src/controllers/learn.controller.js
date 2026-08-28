@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { z } from 'zod';
 import { LearnProgress } from '../models/LearnProgress.js';
+import { LearnTopic } from '../models/LearnTopic.js';
 import { LADDER_RUNGS, nextReview } from '../services/review.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -36,17 +37,42 @@ const slug = z
 export const topicParams = z.object({ track: slug, topic: slug });
 
 export const markSchema = z.object({
-  /**
-   * The title, sent by the client because only the client can see it.
-   *
-   * Snapshotted rather than looked up — see the model. It is the caller's own
-   * bundle talking about its own content, so there is nothing to verify it
-   * against; it is bounded and stored.
-   */
-  title: z.string().max(200).default(''),
+  /*
+    `title` is deliberately absent.
+
+    The client used to send it, because only the client could see it. There is a
+    `LearnTopic` collection now, so the server looks it up and the request is not
+    consulted — zod strips unknown keys, so an older bundle still sending one is
+    silently fine rather than an error nobody can act on.
+  */
   confidence: z.number().int().min(1).max(5).default(3),
-  /** `false` un-reads a topic — clears its schedule and takes it off the queue. */
+  /** `false` takes the topic off the ladder. It does not un-read it. */
   read: z.boolean().default(true),
+});
+
+/**
+ * Marking a topic *read* — a browsing fact, and nothing more.
+ *
+ * Separate from `markSchema` above because the two must never be reachable by
+ * accident from one another: this is fired by a scroll handler at 90% of the
+ * page, and if it touched the revision ladder then skimming a topic on a train
+ * would put it in Tuesday's queue. See the model.
+ */
+export const readSchema = z.object({ read: z.boolean().default(true) });
+
+/**
+ * The one-time hand-over of what localStorage was holding.
+ *
+ * Read state lived in the browser until there was a collection worth putting it
+ * in, so every existing reader has a `learn-read` map that the server has never
+ * seen. This takes the whole thing in one request rather than one per topic —
+ * there are 170 topics, and 170 PUTs to migrate a page of ticks is a thing you
+ * only get to do wrong once.
+ */
+export const bulkReadSchema = z.object({
+  keys: z
+    .array(z.string().regex(/^[a-z0-9-]+\/[a-z0-9-]+$/i, 'Not a track/topic key'))
+    .max(500),
 });
 
 export const reviewSchema = z.object({
@@ -59,6 +85,8 @@ const shape = (row) => ({
   track: row.track,
   topic: row.topic,
   readAt: row.readAt,
+  lastViewedAt: row.lastViewedAt,
+  scheduledAt: row.scheduledAt,
   confidence: row.confidence,
   needsRevision: row.needsRevision,
   nextReviewAt: row.nextReviewAt,
@@ -73,9 +101,91 @@ const shape = (row) => ({
  */
 export const listLearnProgress = asyncHandler(async (req, res) => {
   const rows = await LearnProgress.find({ user: oid(req.userId) })
-    .select('track topic readAt confidence needsRevision nextReviewAt reviewStage')
+    .select(
+      'track topic readAt lastViewedAt scheduledAt confidence needsRevision nextReviewAt reviewStage',
+    )
     .lean();
   res.json({ topics: rows.map(shape) });
+});
+
+/**
+ * PUT /learn/progress/:track/:topic/read — your eyes have been over this.
+ *
+ * The cheap half, and it is careful to stay cheap. It never touches
+ * `scheduledAt` or any ladder field, so a topic read at 90% scroll is recorded
+ * and nothing is scheduled; and it never clears `scheduledAt` either, so
+ * un-ticking a topic you deliberately put on the ladder does not silently take
+ * it off.
+ *
+ * `readAt` is the *first* time and only set once — a topic you re-read has not
+ * become newly read — while `lastViewedAt` moves every time.
+ */
+export const markRead = asyncHandler(async (req, res) => {
+  const { track, topic } = req.params;
+  const user = oid(req.userId);
+  const now = new Date();
+
+  const row = await LearnProgress.findOneAndUpdate(
+    { user, track, topic },
+    req.body.read
+      ? { $set: { lastViewedAt: now }, $setOnInsert: { user, track, topic, readAt: now } }
+      : { $set: { readAt: null } },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  ).lean();
+
+  /*
+    A row that already existed but had been un-read needs `readAt` set, and
+    `$setOnInsert` above only fires on a genuine insert. One extra write, and
+    only on the re-read of a previously cleared topic.
+  */
+  if (req.body.read && !row.readAt) {
+    const fixed = await LearnProgress.findOneAndUpdate(
+      { _id: row._id },
+      { $set: { readAt: now } },
+      { new: true },
+    ).lean();
+    return res.json({ topic: shape(fixed) });
+  }
+
+  res.json({ topic: shape(row) });
+});
+
+/**
+ * PUT /learn/progress/read — the localStorage hand-over, in one request.
+ *
+ * Idempotent, and deliberately additive: it never clears a topic that is not in
+ * the list. The browser's map is one device's memory of what was read, not the
+ * truth about every device, so treating an absence there as "not read" would let
+ * the first laptop to run the migration erase the second one's ticks.
+ */
+export const bulkMarkRead = asyncHandler(async (req, res) => {
+  const user = oid(req.userId);
+  const now = new Date();
+
+  const pairs = req.body.keys.map((key) => {
+    const [track, topic] = key.split('/');
+    return { track, topic };
+  });
+
+  if (pairs.length) {
+    await LearnProgress.bulkWrite(
+      pairs.map(({ track, topic }) => ({
+        updateOne: {
+          filter: { user, track, topic },
+          update: { $setOnInsert: { user, track, topic, readAt: now, lastViewedAt: now } },
+          upsert: true,
+        },
+      })),
+      { ordered: false },
+    );
+  }
+
+  const rows = await LearnProgress.find({ user })
+    .select(
+      'track topic readAt lastViewedAt scheduledAt confidence needsRevision nextReviewAt reviewStage',
+    )
+    .lean();
+  res.json({ topics: rows.map(shape), migrated: pairs.length });
 });
 
 /**
@@ -87,22 +197,45 @@ export const listLearnProgress = asyncHandler(async (req, res) => {
  */
 export const markTopic = asyncHandler(async (req, res) => {
   const { track, topic } = req.params;
-  const { title, confidence, read } = req.body;
+  const { confidence, read } = req.body;
   const user = oid(req.userId);
 
-  const existing = await LearnProgress.findOne({ user, track, topic });
+  const [existing, doc] = await Promise.all([
+    LearnProgress.findOne({ user, track, topic }),
+    /*
+      The title, looked up rather than believed.
+
+      It arrived in the request body until there was a collection to resolve it
+      against. Reading it here means the queue cannot be made to say something
+      the content does not — and it costs one indexed lookup on a click a reader
+      makes a few times an hour.
+    */
+    LearnTopic.findOne({ track, slug: topic }).select('title').lean(),
+  ]);
 
   const set = { confidence, needsRevision: false };
-  if (title) set.title = title;
+  if (doc?.title) set.title = doc.title;
 
   if (read) {
-    set.readAt = existing?.readAt || new Date();
-    set.lastReviewedAt = new Date();
+    const now = new Date();
+    // Scheduling is also a reading: you do not press this without having read it.
+    set.readAt = existing?.readAt || now;
+    set.lastViewedAt = now;
+    set.scheduledAt = existing?.scheduledAt || now;
+    set.lastReviewedAt = now;
     const stage = existing?.reviewStage ?? 0;
     set.reviewStage = stage + 1;
     set.nextReviewAt = nextReview(stage, confidence).nextReviewAt;
   } else {
-    set.readAt = null;
+    /*
+      Off the ladder, still read.
+
+      This used to clear `readAt` too, back when that field was what "scheduled"
+      meant. The control says "stop bringing this back", not "I never saw it",
+      and taking the tick away as a side effect would be the page contradicting
+      the button.
+    */
+    set.scheduledAt = null;
     set.nextReviewAt = null;
     set.reviewStage = 0;
   }
@@ -129,7 +262,14 @@ export const learnRevisionQueue = asyncHandler(async (req, res) => {
   const now = new Date();
   const rows = await LearnProgress.find({
     user: oid(req.userId),
-    readAt: { $ne: null },
+    /*
+      `scheduledAt`, not `readAt`. This was `readAt` when that field meant "put
+      on the ladder"; read is a browsing fact now, set by a scroll handler, and
+      queueing off it would put every topic you have ever skimmed into Tuesday
+      morning — which is exactly what keeping read out of the database was
+      protecting against.
+    */
+    scheduledAt: { $ne: null },
     $or: [{ needsRevision: true }, { nextReviewAt: { $ne: null, $lte: now } }],
   })
     .sort({ nextReviewAt: 1, updatedAt: -1 })
