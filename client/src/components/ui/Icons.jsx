@@ -448,6 +448,22 @@ export const IconGlobe = (p) => (
   </Svg>
 );
 
+/*
+  One node above, two below, joined — the shape a network diagram is drawn in.
+
+  Not IconGlobe, which the Node track already wears: a globe says "the internet"
+  and this track is about the machinery under it, most of which is a subnet in a
+  building somewhere.
+*/
+export const IconNetwork = (p) => (
+  <Svg {...p}>
+    <rect x="5.8" y="1.6" width="4.4" height="3.4" rx="1" />
+    <rect x="1.4" y="11" width="4.4" height="3.4" rx="1" />
+    <rect x="10.2" y="11" width="4.4" height="3.4" rx="1" />
+    <path d="M8 5v3.2M3.6 11V8.2h8.8V11" />
+  </Svg>
+);
+
 export const IconUpload = (p) => (
   <Svg {...p}>
     <path d="M8 10.5V2.6M5 5.6L8 2.6l3 3" />

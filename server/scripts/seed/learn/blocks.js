@@ -167,15 +167,41 @@ export const mdn = (path, label) =>
   link(label, `https://developer.mozilla.org/en-US/docs/${path}`);
 
 /**
- * Wikipedia, for the Complexity track. The other three tracks close on a vendor
- * doc because they are about somebody's API; this one is about mathematics that
- * has no vendor, and the encyclopedia article is the closest thing to a
- * canonical page a topic like `Big O notation` has.
+ * Wikipedia, for the Complexity track. The other tracks close on a vendor doc
+ * because they are about somebody's API; this one is about mathematics that has
+ * no vendor, and the encyclopedia article is the closest thing to a canonical
+ * page a topic like `Big O notation` has.
  *
- * The SQL track uses it too, and for the same reason: `Third normal form` and
- * `Two-phase locking` are not MySQL's and not PostgreSQL's.
+ * The SQL and Networks tracks use it too, and for the same reason: `Third normal
+ * form` and `OSI model` are not MySQL's and not Amazon's.
  */
 export const wiki = (path, label) => link(label, `https://en.wikipedia.org/wiki/${path}`);
+
+/**
+ * An RFC, for the Networks track — `rfc(9293, 'RFC 9293 — TCP')`.
+ *
+ * The specification *is* the canonical page for a protocol: there is no vendor
+ * whose documentation is the authority on what a TCP segment contains. Points
+ * at `rfc-editor.org`, which serves the plain and HTML renderings of every RFC
+ * at a stable URL, rather than at the IETF datatracker, whose URLs are about
+ * the *process* that produced the document.
+ *
+ * Takes a number rather than a path so a topic cannot link to a draft by
+ * accident, and so the label is the only place the number is typed twice.
+ */
+export const rfc = (number, label) =>
+  link(label, `https://www.rfc-editor.org/rfc/rfc${number}.html`);
+
+/**
+ * The AWS documentation — `awsDoc('vpc/latest/userguide/what-is-amazon-vpc.html', 'What is a VPC')`.
+ *
+ * The Networks track's fifth and sixth sections are about a cloud account
+ * rather than about a protocol, and there the vendor's page *is* the authority:
+ * what a security group does is a fact about AWS, not about networking.
+ * Unversioned because `docs.aws.amazon.com` has no version in its paths — the
+ * `latest` in most of them is AWS's own word, and part of the path you pass.
+ */
+export const awsDoc = (path, label) => link(label, `https://docs.aws.amazon.com/${path}`);
 
 /**
  * The MySQL manual — `mysqlDoc('join.html', 'JOIN')`.

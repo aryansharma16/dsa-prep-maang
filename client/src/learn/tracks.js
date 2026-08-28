@@ -3,11 +3,12 @@ import {
   IconClock,
   IconGlobe,
   IconLayers,
+  IconNetwork,
   IconTable,
 } from '../components/ui/Icons.jsx';
 
 /**
- * The four tracks' chrome, and nothing else.
+ * The five tracks' chrome, and nothing else.
  *
  * This file used to be Learn: the registry, the loaders, and the whole answer to
  * "what does this cover". The content lives in Mongo now and arrives through
@@ -23,13 +24,13 @@ import {
  * leaned on that: the hue on the shell, the name in the crumb, and the "No such
  * track" gate. A fetch cannot answer on the first frame, and a hub that draws
  * nothing for a beat is the one regression this move could have shipped. These
- * four entries answer immediately and the catalogue replaces them the moment it
- * lands — so a fifth track added in the database still appears with no deploy,
+ * five entries answer immediately and the catalogue replaces them the moment it
+ * lands — so a sixth track added in the database still appears with no deploy,
  * just a beat later, which is right for a track nobody has a bookmark to yet.
  *
  * They are a *fallback*, never the truth. Anything a reader acts on — how many
  * topics a track has, what they are called, what order they read in — comes from
- * the catalogue. What is here is four names, four colours and four sentences,
+ * the catalogue. What is here is five names, five colours and five sentences,
  * which is about six hundred bytes and does not go stale in a way that matters.
  */
 
@@ -38,6 +39,7 @@ const ICONS = {
   layers: IconLayers,
   globe: IconGlobe,
   table: IconTable,
+  network: IconNetwork,
 };
 
 /**
@@ -85,6 +87,15 @@ export const TRACK_STUBS = [
     Icon: IconTable,
     blurb:
       'Databases from the ground up: ER models and normalisation, every clause and join with its result printed underneath, window functions, transactions and isolation levels, indexes and query plans.',
+  },
+  {
+    slug: 'networks',
+    hue: 'teal',
+    name: 'Computer Networks',
+    status: 'live',
+    Icon: IconNetwork,
+    blurb:
+      'What happens between your fetch and their server: the layers, IP and subnets, TCP and DNS, HTTPS, load balancers and CDNs, and a VPC drawn the way AWS draws it.',
   },
 ];
 

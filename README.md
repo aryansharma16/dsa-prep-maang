@@ -27,7 +27,7 @@ the sign-in page as well as from the sidebar.
 | **Roadmap** | 517 problems in 23 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
-| **Learn** | Reference notes for the things around the algorithms. Four tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests; and SQL, 53 topics from "what is a database" through ER models, normalisation, every join shown with its result, window functions, isolation levels and query plans — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
+| **Learn** | Reference notes for the things around the algorithms. Five tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests; SQL, 53 topics from "what is a database" through ER models, normalisation, every join shown with its result, window functions, isolation levels and query plans; and Computer Networks, 35 topics from the OSI layers through subnets, TCP, DNS and TLS to load balancers, CDNs and a VPC drawn the way AWS draws it — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
 | **Playbook** | The site owner's own 24-week interview-prep plan — four phases targeting 396 of the 517 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
 | **SQL Lab** | 117 SQL problems in 8 categories, with two kinds of row and one rule between them: **72 run in your browser** — SQLite compiled to WASM, their own schema and rows, graded against a generated expected result — and **45 link out to LeetCode**, because a problem that already has a judge should be solved on it. Progressive hints, a reference solution behind the same 25-minute gate as every editorial, MySQL shims so the answers match what the Learn track teaches, and the same revision ladder as everything else |
@@ -53,7 +53,7 @@ cp .env.example .env          # fill in MONGO_URI and the two JWT secrets
 npm install
 npm run seed                  # fetch sources -> curate -> write to MongoDB
 npm run seed:guides           # the 22 pattern guides
-npm run seed:learn            # the 4 Learn tracks and their 170 topics
+npm run seed:learn            # the 5 Learn tracks and their 205 topics
 npm run dev                   # http://localhost:4000
 
 # 2. Frontend (second terminal)
@@ -83,7 +83,7 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:db` | upserts problems and patterns into MongoDB |
 | `npm run seed` | all three, in order |
 | `npm run seed:guides` | writes the pattern guides |
-| `npm run seed:learn` | writes the 4 Learn tracks and their 170 topics. `-- --dry-run` validates every block and prints the totals without opening a connection; `-- --force` overwrites topics the admin panel has edited |
+| `npm run seed:learn` | writes the 5 Learn tracks and their 205 topics. `-- --dry-run` validates every block and prints the totals without opening a connection; `-- --force` overwrites topics the admin panel has edited |
 | `npm run seed:learn:verify` | compares every seeded topic against the content files, field by field, and fails if anything differs |
 | `npm run seed:cp` | the whole Pro Coder pipeline — see [Seeding it](#seeding-it) |
 | `npm run seed:cp:fetch` | Codeforces problemset + contests → `data/raw/cp/` |
@@ -194,23 +194,25 @@ error; the reader shows the blurb and the key techniques instead.
 
 The roadmap teaches the algorithms. **Learn** is for everything around them —
 the vocabulary you use every day and could not define under pressure. There are
-four tracks: **Complexity**, 6 topics that start at "how many times can you
+five tracks: **Complexity**, 6 topics that start at "how many times can you
 halve a thousand" and end at the Big-O tables; **React**, 43 topics from what
 happens between a `setState` and the pixels through to the ecosystem a React job
 actually expects; **Node.js**, 68 topics that start at closures and `map` and
 end at a hardened, paginated, authenticated API with a cache, a queue and tests
-behind it; and **SQL**, 53 topics that start at "what is a database" and end at
-reading a query plan.
+behind it; **SQL**, 53 topics that start at "what is a database" and end at
+reading a query plan; and **Computer Networks**, 35 topics that start at "what
+is a network" and end at debugging one in a VPC.
 
-Two of them sit at the ends for the same reason, and it is not length.
+The ends of that list are deliberate, and it is not about length.
 **Complexity** is first because it is the maths the roadmap assumes you have
 already — a pattern guide that opens with "this is `O(n log n)`" is worth
 nothing to a reader for whom the `log` in that is a mystery, and that is a gap
-worth closing on its own page rather than in an aside. **SQL** is last because
-it is the only track that is not notes about somebody's API. React and Node are
-reference you reach for while building; an interview asks about ER models, BCNF
-and isolation levels the way it asks about graphs, so that track is written to
-be learned front to back rather than looked up.
+worth closing on its own page rather than in an aside. **SQL** and **Networks**
+are last because they are the two tracks that are not notes about somebody's
+API. React and Node are reference you reach for while building; an interview
+asks about ER models, BCNF, isolation levels, the OSI layers and TCP the way it
+asks about graphs, so those two are written to be learned front to back rather
+than looked up.
 
 Sidebar → **Learn** → a track → a topic. Each topic is the same shape, so it
 reads as a cheatsheet and holds up as documentation: the definition in the
@@ -313,15 +315,15 @@ it on Postgres, add login, and then attack it. **Production essentials** closes
 it out with the three things a tutorial API never has: a cache, somewhere to put
 slow work, and tests.
 
-A one-line summary of every topic in all three tracks is in
-[docs/learn.md](docs/learn.md#what-is-in-each-track). **SQL** will get its own
-section there as it is written.
+A one-line summary of every topic in all five tracks is in
+[docs/learn.md](docs/learn.md#what-is-in-each-track).
 
 **Each track has its own light.** Learn wears the app's glass material like
 every other page — see [The material](#the-material) — and adds one thing to it:
 a colour. `.shell` lights the whole app in whichever accent you picked; a track
 page relights its own region in the track's hue over the top of that, so
-Complexity is violet, React is sky and Node is green, and the icon tile, the
+Complexity is violet, React is sky, Node is green, SQL is amber and Networks is
+teal, and the icon tile, the
 meter, the section rules, the side rail's marker and the progress bar down a
 topic all follow. The hue is one word in the registry, resolved from the same
 palette the accent picker draws from, which is also what re-steps it for the
@@ -354,36 +356,37 @@ a grid of correctly-sized cards straight away; a topic paints its crumb, its
 column and its progress rule.
 
 The hub is the same idea from the other end, and it is the one place the move to
-the database could have cost something visible. Its four cards used to come from
+the database could have cost something visible. Its cards used to come from
 a registry in the bundle and were on screen in the first frame; a catalogue
-request cannot be. So the four tracks' **chrome** — name, colour, icon, one
-sentence, about six hundred bytes — stays in the bundle and answers immediately,
+request cannot be. So the five tracks' **chrome** — name, colour, icon, one
+sentence, under a kilobyte — stays in the bundle and answers immediately,
 and the catalogue replaces it the moment it arrives. On a second visit it never
 appears at all: the catalogue is read synchronously out of localStorage at module
 load, so the meters, the totals and a working search box are there on the first
 frame, which is better than the page managed before. That mirror is a cache and
 never the record — the response overwrites it, and a version that has not changed
-deliberately keeps the existing objects so a hundred and seventy cards are not
-handed new identities to redraw an identical page.
+deliberately keeps the existing objects so two hundred cards are not handed new
+identities to redraw an identical page.
 
 It renders through the **same block renderer** as the pattern guides, and now it
 uses the same storage too. Learn content is authored as the same typed blocks, so
 code tabs, copy buttons, callouts and syntax colours were already built — and
-because the block vocabulary was already a Mongoose schema, moving 170 topics
-into Mongo added **no new block types at all**. `sig`, `cheat` and `asked` are a
+because the block vocabulary was already a Mongoose schema, moving the topics
+into Mongo added **no new block types at all**, and the Networks track added
+none either — only two link helpers, `rfc` and `awsDoc`. `sig`, `cheat` and `asked` are a
 table with the header row filled in; the SQL track's sample and result grids are
 a table with `caption` and `variant` set, and those two fields had been on
 `guideBlockSchema` since that track was written.
 
-**The prose is authored in git and served from the database.** The 170 modules
+**The prose is authored in git and served from the database.** The 205 modules
 live under `server/scripts/seed/learn/` and `npm run seed:learn` writes them,
 skipping anything the admin panel has edited — the same `editedAt` handshake the
 pattern guides use. Git stays the place a paragraph is written and reviewed; the
 database is what the app reads.
 
 Two requests serve the whole module. `GET /learn/catalogue` is every track,
-section and topic heading in one document — about 20 KB compressed, replacing
-four lazy chunks that were larger — and `GET /learn/topics/:track/:topic` is one
+section and topic heading in one document — about 25 KB compressed, replacing
+the lazy chunks that were larger — and `GET /learn/topics/:track/:topic` is one
 topic's words. Both carry an ETag and answer a repeat visit with a 304 and an
 empty body.
 
@@ -456,6 +459,45 @@ The last topic is the revision page: ~90 questions answered in a line each, then
 the twelve queries that get asked by name — Nth highest salary, duplicates,
 department-wise top-N, consecutive rows, running totals, pivoting — each against
 those same six employees, with the answer printed.
+
+### Computer Networks — the 35 topics
+
+| | |
+|---|---|
+| **The idea** (4) | What a network actually is · The OSI and TCP/IP models · Encapsulation, and what a packet is · What happens when you type a URL |
+| **The link and the address** (5) | Switch, router, gateway · MAC addresses and ARP · IP addresses · Subnets and CIDR · NAT, and why your laptop is 192.168.x.x |
+| **Routes and names** (3) | How a packet finds its way · Joining a network: DHCP · DNS |
+| **Transport** (4) | TCP vs UDP · The TCP handshake, and closing down · Ports and sockets · Reliability, windows and congestion |
+| **The web layer** (6) | HTTP from the network side · HTTP/1.1, /2 and /3 · HTTPS and TLS · Origins, and CORS · WebSockets, SSE and polling · The other protocols worth naming |
+| **Delivering it at scale** (5) | Forward and reverse proxies · Load balancers, L4 and L7 · CDNs, caching and the edge · Latency, bandwidth and throughput · The network security a developer owns |
+| **Networking in the cloud** (4) | VPCs, subnets and route tables · Security groups vs NACLs · Route 53, ALB, ACM, CloudFront · Peering, VPN, PrivateLink |
+| **When it breaks** (2) | ping, dig, curl, ss, tcpdump · Reading the failure |
+| **The interview** (2) | The cheat sheet · The questions, rapid fire |
+
+**Written to a ceiling, and the ceiling is the point.** The reader is a developer
+who builds applications, deploys them to AWS and sits interviews — not someone
+becoming a network engineer. There is no OSPF, no VLAN trunking, no packet
+crafting and no subnet arithmetic drilled for its own sake. Every topic had to
+answer one question to get in: *does knowing this change what I would build,
+debug or say out loud?*
+
+**The order is the path a byte takes.** Layers and addresses first, because
+nothing after them parses without those words; then routes and names, then
+transport, then the web layer on top of all of it. Section 6 is the four boxes
+that appear in every system design answer — proxy, load balancer, CDN, and the
+latency budget they exist to spend — and section 7 is the same ideas with AWS's
+names on them, because a route table and a security group are where this reader
+actually meets them. **What happens when you type a URL** is the one topic that
+is a narrative rather than a reference: the sixty-second version you should say
+out loud, and then the same journey in full.
+
+The last two are revision. **The cheat sheet** is every table in the track in
+one place — layers, ports, status codes, CIDR sizes, latency numbers,
+`Cache-Control`, the AWS mapping — and **The questions, rapid fire** is forty
+questions answered at the length you would actually say them, in the order an
+interview walks. Where the track overlaps Node — HTTP, CORS, cookies — the split
+is the side of the socket you are on: Node teaches you to write the server, this
+teaches what the network did before your handler ran.
 
 ## SQL Lab — practise the queries
 
@@ -2672,8 +2714,8 @@ client/
     filters/     what each screen can be narrowed by, and the engine
     hooks/       useGuide, useLearnCatalogue, useLearnTopic, useMotivation,
                  useTableLayout, useSavedFilters, useBoardDrag
-    learn/       the Learn content itself — track registry, block
-                 constructors, and one module per topic (react/, node/)
+    learn/       the five tracks' chrome — icons and stubs — and the
+                 read/revision helpers; the prose lives on the server now
     pages/       Login, Register, Roadmap, Revision, Stats, Tasks, Learn,
                  Profile, Admin
     store/       Auth, Roadmap, Tasks, AttemptTimer, Toast contexts

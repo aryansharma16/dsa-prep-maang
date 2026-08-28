@@ -1,8 +1,8 @@
 # Learn — the reference
 
-Learn is the reference half of this app: **4 tracks, 33 sections, 170 topics** of
-authored prose about Complexity, React, Node.js and SQL. The roadmap teaches the
-algorithms; Learn is everything around them.
+Learn is the reference half of this app: **5 tracks, 42 sections, 205 topics** of
+authored prose about Complexity, React, Node.js, SQL and Computer Networks. The
+roadmap teaches the algorithms; Learn is everything around them.
 
 The prose version of *why*, for a human reading the repo for the first time, is
 [**Learn** in the README](../README.md#learn). This file is the part that would
@@ -42,7 +42,7 @@ how to add a topic or a whole new track.
 deliberately two answers rather than one.
 
 ```
-server/scripts/seed/learn/**        170 JS modules — the source of truth
+server/scripts/seed/learn/**        205 JS modules — the source of truth
         │  npm run seed:learn
         ▼
 MongoDB  learntracks · learntopics   what the app actually reads
@@ -88,7 +88,7 @@ having been run, which is a runtime failure where it used to be a build one.
 server/
   scripts/seed/learn.js       the seeder — npm run seed:learn
   scripts/seed/learn/
-    tracks.js                 the 4-track registry, and CONTENT_ROOT
+    tracks.js                 the 5-track registry, and CONTENT_ROOT
     index.js                  reads the tree into plain documents
     verify.js                 npm run seed:learn:verify
     blocks.js                 the block constructors content is written with
@@ -105,6 +105,9 @@ server/
       index.js                the same, for SQL
       left-and-right-join.js  one topic, one module          (53 of these)
       sample-data.js          the two tables every SQL topic uses — not a topic
+    networks/
+      index.js                the same, for Computer Networks
+      url-to-page.js          one topic, one module          (35 of these)
   src/
     models/LearnTrack.js      one per track; sections embedded
     models/LearnTopic.js      one per topic; blocks: [guideBlockSchema]
@@ -118,7 +121,7 @@ server/
     utils/httpCache.js        ETag + 304, and the memo behind the catalogue stamp
 
 client/src/
-  learn/tracks.js             the four tracks' chrome — icons and the stubs
+  learn/tracks.js             the five tracks' chrome — icons and the stubs
   learn/progress.js           read state and the revision control
   hooks/useLearnCatalogue.js  the catalogue, fetched once and mirrored to disk
   hooks/useLearnTopic.js      one topic's words, cached for the session
@@ -140,7 +143,7 @@ client/src/
 Three collections. Two hold content and are written only by the seeder (and, one
 day, the admin panel); one holds per-account state.
 
-### `LearnTrack` — 4 documents
+### `LearnTrack` — 5 documents
 
 ```js
 {
@@ -162,7 +165,7 @@ component, which is the one field of a track that no JSON response can carry.
 rather than crashing, so a fifth track added in the database renders with no
 deploy at all.
 
-**Sections are embedded and keyed by a string.** 33 of them, four scalars each,
+**Sections are embedded and keyed by a string.** 42 of them, four scalars each,
 never fetched without their track. `key` is a plain string and not a subdoc
 `_id`, because the seeder rewrites the whole array on every run — a generated id
 would be a "stable" pointer that moves. `LearnTopic.section` joins on it.
@@ -170,7 +173,7 @@ would be a "stable" pointer that moves. `LearnTopic.section` joins on it.
 **`blurb` and `summary` are both kept** and neither is derivable from the other:
 one is an advertisement on a card, the other an introduction on a page.
 
-### `LearnTopic` — 170 documents
+### `LearnTopic` — 205 documents
 
 ```js
 {
@@ -259,8 +262,8 @@ at all.
 
 | | raw | gzipped |
 |---|---|---|
-| `GET /learn/catalogue` | 69 KB | **20 KB** |
-| `GET /learn/topics/:track/:topic` | 9 KB avg, 25 KB max | 3.5 KB avg |
+| `GET /learn/catalogue` | 85 KB | **25 KB** |
+| `GET /learn/topics/:track/:topic` | 9 KB avg, 24 KB max | 4 KB avg |
 
 ```jsonc
 // GET /learn/catalogue
@@ -368,7 +371,7 @@ Module-scope `cache` + `inflight` + `generation`, the `useGuide.js` shape. Plus:
   `sections` and every topic keep the identity `JSON.parse` gave them. This is
   what `TopicCard`'s memo depends on.
 - **A matching `version` keeps the existing object** rather than swapping in a
-  fresh parse — 170 memo misses to redraw an identical page is a strange way to
+  fresh parse — 205 memo misses to redraw an identical page is a strange way to
   spend a 304.
 - **One request per session, and it took two flags.** `cache` is set at module
   load from disk, so *"do we have a catalogue"* and *"have we confirmed it is
@@ -479,8 +482,8 @@ The house shape, so the whole track reads the same way:
 6. `warn` / `tip` — the gotchas.
 7. `cheat(...)` — the "when do I reach for this" table.
 8. `h('Interview')` + `asked(...)` — the questions this topic gets asked,
-   answered in a line each. **Every Node topic, and the React ecosystem
-   section.** Not the rest of React.
+   answered in a line each. **Every Node, SQL and Networks topic, and the React
+   ecosystem section.** Not the rest of React.
 9. `links(reactDoc(...))` — always back to the official page.
 
 **Complexity is the exception**, and deliberately. It has no API to sign, so
@@ -493,12 +496,22 @@ is the language this reader thinks in, and complexity is a shape that reads the
 same in both.
 
 Step 8 marks the interview-oriented material. React's first six sections are
-reference you reach for while building, so they stop at step 7; the Node track
-and React's `ecosystem` section are also written for someone preparing for an
-interview, and a topic that cannot be explained out loud has not been learned.
-Node's examples are additionally **runnable** — a real file with the command to
-run it — and its sections 07 to 12 build one `/tasks` API across topics rather
-than showing unrelated fragments.
+reference you reach for while building, so they stop at step 7; the Node, SQL
+and Networks tracks and React's `ecosystem` section are written for someone
+preparing for an interview, and a topic that cannot be explained out loud has
+not been learned. Node's examples are additionally **runnable** — a real file
+with the command to run it — and its sections 07 to 12 build one `/tasks` API
+across topics rather than showing unrelated fragments.
+
+**Networks is the other exception, and in the opposite direction to Complexity.**
+It has no API to sign either, so no `sig`; what replaces the code example is
+usually an ASCII diagram in an `sh` block — a handshake, a route table, a header
+layout — because the thing being taught is a *sequence of messages* and there is
+no snippet that shows one. Its footer links are `wiki`, `rfc` and `awsDoc`
+rather than a single vendor's docs, because a protocol's canonical page is its
+specification and a VPC's is Amazon's manual, and those are different kinds of
+authority. Its code blocks are `sh` and occasionally `js` — never `java`, since
+nothing in the track is an algorithm.
 
 Text is written from the official docs in our own sentences, with the canonical
 page linked at the foot. Never bulk-pasted.
@@ -511,8 +524,8 @@ lived under `client/` and one under `server/`, and the browser bundle had no
 business reaching across the repo; both are seed-script dependencies now, so that
 argument is gone and they are still two files for a better one. They are two
 *vocabularies* for two authors — the guides need `java` and `cpp`, Learn needs
-`jsx`, `sql`, `data`, `result` and the six documentation-link helpers — over one
-block schema. `models/schemas/guideBlock.js` is the thing that is genuinely
+`jsx`, `sql`, `data`, `result` and the eight documentation-link helpers — over
+one block schema. `models/schemas/guideBlock.js` is the thing that is genuinely
 shared, and `validation/blocks.js` is that same vocabulary as a request
 validator, so what the seeder can write and what the admin panel can save are
 the same set by construction.
@@ -534,6 +547,7 @@ the same set by construction.
 | `note` · `tip` · `warn` | a labelled callout |
 | `links(link(label, url))` | the footer links |
 | `reactDoc(path, label)` · `nodeDoc(path, label)` · `mdn(path, label)` · `wiki(path, label)` · `mysqlDoc(path, label)` · `pgDoc(path, label)` | a footer link to react.dev, nodejs.org/api, MDN, Wikipedia, or the MySQL and PostgreSQL manuals |
+| `rfc(number, label)` · `awsDoc(path, label)` | the Networks track's two: an RFC at rfc-editor.org, and a page of the AWS documentation. `rfc` takes a **number**, not a path, so a topic cannot link to a draft by accident |
 
 `sig`, `cheat` and `asked` exist so the header row is written once. Writing
 `['Parameter', 'Type', 'What it does']` at the top of twenty files is how the
@@ -608,12 +622,12 @@ exactly when a check like that should be installed.
 `--dry-run` runs all of it and prints the totals having opened nothing.
 
 **`verify.js` earns its place once.** It compares every authored field of every
-topic against what came back out of Mongo — 170 topics and 5,495 blocks — and it
+topic against what came back out of Mongo — 205 topics and 6,440 blocks — and it
 exists because during the cutover both copies were on disk and that was the only
 moment the move could be *proved* lossless rather than assumed to be. It compares
 the fields an author wrote, not whole documents: Mongoose fills every optional
 field on the way in, so a heading comes back carrying an empty `rows` and
-`columns`, and a deep equality would fail on all 5,495 and prove nothing.
+`columns`, and a deep equality would fail on all 6,440 and prove nothing.
 
 **The `editedAt` handshake, with one difference from `seed:guides`.** A topic
 with `editedAt` set keeps its prose; unlike a guide, it does *not* keep its
@@ -681,7 +695,7 @@ The `hue` on the entry is a name from the palette in `tokens.css`, and it is the
 only line that decides the track's ambient wash, its icon tile, its meters, its
 section rules and its topics' side rail. See [The look](#the-look).
 
-`icon` is a name too — `clock`, `layers`, `globe`, `table` — and it is the one
+`icon` is a name too — `clock`, `layers`, `globe`, `table`, `network` — and it is the one
 field of a track that a JSON response cannot carry, because it was a React
 component. `client/src/learn/tracks.js` maps the name back to a component and
 falls back to a generic one rather than crashing, so a *fifth* track added here
@@ -774,11 +788,11 @@ files, not a system.
 ### Body search
 
 `plaintext` is populated and `select: false`. The house pattern is
-`escapeRegex` from `server/src/utils/query.js` over 170 documents — **not** a
+`escapeRegex` from `server/src/utils/query.js` over 205 documents — **not** a
 Mongo text index. `$text` is stemmed whole-word matching, so it would not match
 "memo" against "useMemo", which is literally what the hub's placeholder
 advertises; and Mongo permits one text index per collection, which makes it a
-one-way door. Revisit at 1,700 topics, not 170.
+one-way door. Revisit at 2,000 topics, not 205.
 
 ### Cross-track prerequisites
 
@@ -952,7 +966,7 @@ catalogue is parsed and shaped **once**, at module scope, and nothing downstream
 maps over the topic list per render. `Icon`, the flat reading order and the
 `slug → position` Map are all attached at parse time for exactly this reason.
 A revalidation that comes back with the same `version` deliberately keeps the
-existing object rather than swapping in a fresh parse — 170 memo misses to redraw
+existing object rather than swapping in a fresh parse — 205 memo misses to redraw
 an identical page is a strange way to spend a 304.
 
 That is *more* stable than before, not less: `LearnTrack` used to `useMemo` a
@@ -1068,16 +1082,16 @@ cd server && npm run seed:learn -- --dry-run && npm run seed:learn && npm run se
 cd client && npm run dev
 ```
 
-- The dry run prints **4 tracks, 33 sections, 170 topics, 5495 blocks** and says
-  every block validates. `verify` compares all 170 against the database and says
+- The dry run prints **5 tracks, 42 sections, 205 topics, 6440 blocks** and says
+  every block validates. `verify` compares all 205 against the database and says
   the move is lossless. Re-running the seeder writes the same numbers again.
-- `curl` the catalogue: ~69 KB, and ~20 KB with `Accept-Encoding: gzip`. Repeat
+- `curl` the catalogue: ~85 KB, and ~25 KB with `Accept-Encoding: gzip`. Repeat
   it with `If-None-Match` and get a **304 with an empty body**. Delete a topic in
   Mongo and the catalogue's ETag moves — that is the document count in the tag
   doing its job, and the half of it that `max(updatedAt)` cannot do alone.
 - Sidebar shows **Learn**, in both the collapsed rail and the expanded menu.
-- `/learn` lists four live tracks — Complexity first, then React, Node.js and
-  SQL — with a meter under each.
+- `/learn` lists five live tracks — Complexity first, then React, Node.js, SQL
+  and Computer Networks — with a meter under each.
 - `/learn/complexity` renders 3 sections and 6 topics.
 - `/learn/complexity/logarithms` renders the halving table, the Java/JS code
   tabs and the rules table. `/learn/complexity/cheatsheet` renders eight tables
@@ -1101,6 +1115,13 @@ cd client && npm run dev
 - Every SQL topic ends with an **Interview** table and a links block. Spot-check
   a result grid against the data in `sql/sample-data.js` — six employees, four
   departments, Radia with no department, Legal with no employees.
+- `/learn/networks` renders 9 sections and 35 topics, in teal, with the node
+  glyph on its icon tile. The filter matches title, summary and tags — try
+  `tcp`, `dns`, `aws`, `interview`, `cidr`.
+- `/learn/networks/url-to-page` renders the sixty-second answer as bullets and
+  then the long version; `/learn/networks/cheatsheet` renders fourteen reference
+  tables and none of them scrolls sideways at 1000px. Every Networks topic ends
+  with an **Interview** table and a links block, and the RFC links resolve.
 - `/learn/react` ends with **The ecosystem** — 8 topics carrying Interview
   tables, unlike the six sections above them.
 - `/learn/node/native-server` and `/learn/node/scope-and-closures` render the
@@ -1160,8 +1181,7 @@ size. The topic bodies were already lazy chunks; they were never in it.
 ## What is in each track
 
 The catalogue — what exists, in one line each, so you can see the shape of a
-track without opening it. One section per track, in the hub's order; SQL gets
-its own when it is written.
+track without opening it. One section per track, in the hub's order.
 
 Generated from the track's `index.js`, which is the only place these titles and
 summaries live. If you add a topic, copy its row here too.
@@ -1558,3 +1578,118 @@ interview questions assume. Where a difference is real the topic carries a
 second tab — `code(mysql(...), postgres(...))` — rather than a paragraph about
 it. Footer links go to the MySQL and PostgreSQL manuals via `mysqlDoc()` and
 `pgDoc()`, and to Wikipedia for the theory topics, which have no vendor.
+
+### Networks
+
+35 topics in 9 sections, in reading order. Each file is
+`server/scripts/seed/learn/networks/<slug>.js`.
+
+**Written to a stated ceiling, and the ceiling is the design.** The reader is a
+developer who builds applications, deploys them to AWS and sits interviews — not
+someone becoming a network engineer. So there is no OSPF, no VLAN trunking, no
+packet crafting, and no subnet arithmetic drilled for its own sake. Every topic
+had to answer one question to get in: *does knowing this change what I would
+build, debug or say out loud?* The material that only pays off with a router
+console in front of you is absent on purpose, and a future addition should have
+to clear the same bar.
+
+**Section order is the path a byte takes.** Layers and addresses first, because
+nothing later parses without those words; then routes and names; then transport;
+then the web layer on top of all of it; then the four boxes between your users
+and your server — proxies, load balancers, CDNs and the latency budget they
+exist to spend; then the same ideas with AWS's names on them, which is where
+this reader actually meets a route table; then debugging, and the tables worth
+having in your head an hour before an interview.
+
+**It overlaps the Node track deliberately, and the split is the side of the
+socket you are on.** Node's `http-fundamentals`, `cors-and-headers` and
+`sessions-and-cookies` teach you to *write the server*. These teach what the
+network did before your handler ran and what it will do to your response
+afterwards — and where they touch, the topic here says so in a `note`.
+
+The two closing topics are revision rather than teaching. **The cheat sheet** is
+every table in the track in one place — layers, ports, status codes, CIDR,
+latency numbers, `Cache-Control`, the AWS mapping — with nothing new in it, and
+**The questions, rapid fire** is forty questions answered at the length you
+would actually say them out loud, grouped in the order an interview tends to
+walk.
+
+**The idea** — The vocabulary everything else is written in — the layers, what a packet is, and one end-to-end walk from a URL to a page.
+
+| topic | |
+|---|---|
+| **What a network actually is** <br> `what-is-a-network` | Nodes, links and protocols; LAN, WAN and the internet; client–server against peer-to-peer. |
+| **The OSI and TCP/IP models** <br> `osi-and-tcp-ip` | Seven layers, four layers, and which one a real engineer actually talks in — with a protocol on every floor. |
+| **Encapsulation, and what a packet is** <br> `encapsulation` | Headers wrapped around headers: segment, packet, frame — plus MTU, fragmentation and why 1500 keeps appearing. |
+| **What happens when you type a URL** <br> `url-to-page` | The whole journey in one page — cache, DNS, ARP, TCP, TLS, HTTP, render — and the version of it you say in an interview. |
+
+**The link and the address** — How one machine is identified and how the box next to it is reached — MAC and IP, subnets, and the NAT hiding your laptop.
+
+| topic | |
+|---|---|
+| **The boxes: switch, router, gateway** <br> `devices` | Hub, switch, router, gateway, NIC, access point, modem — what each one does, and at which layer. |
+| **MAC addresses and ARP** <br> `mac-and-arp` | Why every machine has two addresses, and the broadcast that maps one to the other on the local wire. |
+| **IP addresses** <br> `ip-addresses` | IPv4 and IPv6, public against private, loopback, link-local — and how a machine ends up with the address it has. |
+| **Subnets and CIDR** <br> `subnetting-and-cidr` | Reading /24 without a calculator: masks, host counts, and splitting 10.0.0.0/16 into the subnets a VPC wants. |
+| **NAT, and why your laptop is 192.168.x.x** <br> `nat-and-ports` | One public address for a whole house or a whole VPC: the translation table, port forwarding, and what NAT breaks. |
+
+**Routes and names** — Getting a packet across the world, getting an address at all, and turning a name people can remember into one.
+
+| topic | |
+|---|---|
+| **How a packet finds its way** <br> `routing` | Routing tables, the default route, hop by hop forwarding, and the two-sentence version of BGP. |
+| **Joining a network: DHCP** <br> `dhcp` | The four messages that hand a device an address, a gateway and a resolver — and the lease behind them. |
+| **DNS** <br> `dns` | The lookup in full — resolver, root, TLD, authoritative — every record type you will meet, TTLs, and why it is always DNS. |
+
+**Transport: TCP and UDP** — The layer your socket actually speaks — a reliable ordered stream, or fast messages with no promises.
+
+| topic | |
+|---|---|
+| **TCP vs UDP** <br> `tcp-vs-udp` | The comparison every interview opens with, and the four cases where UDP is the right answer. |
+| **The TCP handshake, and closing down** <br> `tcp-handshake` | SYN, SYN-ACK, ACK; the four-way close; and what TIME_WAIT, RST and a half-open connection mean in your logs. |
+| **Ports and sockets** <br> `ports-and-sockets` | The five-tuple that identifies a connection, the ports worth knowing by heart, and why one server handles 10,000 clients on port 443. |
+| **Reliability, windows and congestion** <br> `reliability-and-congestion` | Sequence numbers and ACKs, the sliding window, slow start, and the head-of-line blocking that shaped HTTP/3. |
+
+**The web layer** — The protocols your application actually speaks, from the network side: HTTP and its versions, TLS, origins, and the ways to keep a connection open.
+
+| topic | |
+|---|---|
+| **HTTP, from the network side** <br> `http-basics` | The request and response on the wire, the status families, and the headers that decide how far a response travels. |
+| **HTTP/1.1, HTTP/2 and HTTP/3** <br> `http-versions` | Keep-alive, multiplexing, header compression and QUIC — what each version fixed, and what it means for your frontend. |
+| **HTTPS and TLS** <br> `https-and-tls` | The handshake in five steps, what a certificate proves, why the padlock is about identity as much as encryption, and where TLS is terminated. |
+| **Origins, and CORS** <br> `origins-and-cors` | What an origin is, why the browser blocks the response and not the request, and how a preflight is negotiated. |
+| **WebSockets, SSE and polling** <br> `websockets-and-realtime` | Four ways to push data to a browser, the upgrade handshake, and what each one costs a load balancer. |
+| **The other protocols worth naming** <br> `application-protocols` | SSH, FTP and SFTP, SMTP with IMAP and POP3, NTP, SNMP, gRPC and MQTT — one line each, and their ports. |
+
+**Delivering it at scale** — The four boxes between your users and your server in every system design answer — and the latency budget they exist to spend.
+
+| topic | |
+|---|---|
+| **Forward and reverse proxies** <br> `proxies` | The same box pointed two ways, and everything a reverse proxy takes off your application: TLS, compression, rate limits, retries. |
+| **Load balancers, L4 and L7** <br> `load-balancing` | Layer 4 against layer 7, the algorithms, health checks, sticky sessions, and how the load balancer itself gets balanced. |
+| **CDNs, caching and the edge** <br> `cdn-and-caching` | Why a copy near the user beats a faster server, the cache headers that decide it, anycast, and how to invalidate. |
+| **Latency, bandwidth and throughput** <br> `latency-and-throughput` | The four numbers people mix up, the round trips a first request really costs, and the latency table worth memorising. |
+| **The network security a developer owns** <br> `network-security-basics` | Sniffing, spoofing, man-in-the-middle, DDoS and firewalls — the developer-level version, and the six defaults that cover most of it. |
+
+**Networking in the cloud** — The same ideas with AWS names on them — which is where this reader actually meets a route table and a security group.
+
+| topic | |
+|---|---|
+| **VPCs, subnets and route tables** <br> `vpc-and-subnets` | Your own private network in someone else’s data centre: the CIDR, public and private subnets, availability zones, and what makes a subnet “public”. |
+| **Security groups vs NACLs** <br> `security-groups-and-nacls` | Stateful against stateless, allow-only against allow-and-deny, instance against subnet — the comparison AWS interviews ask for. |
+| **The front door: Route 53, ALB, ACM, CloudFront** <br> `aws-front-door` | One request from a browser to a container, named service by service — and where the certificate lives. |
+| **Connecting networks: peering, VPN, PrivateLink** <br> `connecting-networks` | Reaching another VPC, an office, or a managed service without going over the public internet — and the bastion you should not need. |
+
+**When it breaks** — The commands that answer “where did it stop”, and the failure messages read as evidence rather than as noise.
+
+| topic | |
+|---|---|
+| **The tools: ping, dig, curl, ss, tcpdump** <br> `the-tools` | Eight commands, what each one proves, and the order to reach for them in. |
+| **Reading the failure** <br> `common-failures` | Connection refused, timeout, reset, DNS failure, 502 against 504 — what each one rules out, as a decision tree. |
+
+**The interview** — The tables to have in your head an hour before, and the questions that actually get asked.
+
+| topic | |
+|---|---|
+| **The cheat sheet** <br> `cheatsheet` | Every table in one place: layers, ports, status codes, protocols, record types, and the latency numbers. |
+| **The questions, rapid fire** <br> `top-questions` | Forty questions with the answer said out loud in one or two lines, in the order they get asked. |

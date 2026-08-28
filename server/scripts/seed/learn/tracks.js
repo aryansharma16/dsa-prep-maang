@@ -12,7 +12,7 @@
  * JSON response cannot carry and the one field this file had to invent.
  *
  * `order` is written out rather than taken from array position, unlike a
- * topic's. There are four of these and they are read by a human deciding what
+ * topic's. There are five of these and they are read by a human deciding what
  * Learn opens with; a number you can see is worth more than one you have to
  * count to.
  */
@@ -86,5 +86,22 @@ export const TRACKS = [
     order: 3,
     blurb:
       'Databases from the ground up: ER models and normalisation, every clause and join with its result printed underneath, window functions, transactions and isolation levels, indexes and query plans.',
+  },
+  /*
+    Last, beside SQL, because it is the same kind of track: a subject rather
+    than notes about somebody's API, learned front to back. It is also the one
+    written to a stated ceiling — a developer who deploys to AWS and sits
+    interviews, not a network engineer — so it stops where CCNA starts, and
+    every topic is chosen by whether it changes what you would build or answer.
+  */
+  {
+    slug: 'networks',
+    name: 'Computer Networks',
+    hue: 'teal',
+    icon: 'network',
+    status: 'live',
+    order: 4,
+    blurb:
+      'What happens between your fetch and their server: the layers, IP and subnets, TCP and DNS, HTTPS, load balancers and CDNs, and a VPC drawn the way AWS draws it.',
   },
 ];
