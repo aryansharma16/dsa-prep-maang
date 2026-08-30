@@ -95,7 +95,7 @@ async function main() {
   // or slugs that changed) so a re-seed can't leave orphans behind. Problems you
   // added yourself have an owner and are never touched.
   const keep = problems.map((p) => p.slug);
-  const stale = await Problem.find({
+  const candidates = await Problem.find({
     owner: null,
     /*
       Never pruned, --force or not. A problem the admin panel created is shared
@@ -108,6 +108,37 @@ async function main() {
     editedAt: null,
     slug: { $nin: keep },
   }).select('_id slug');
+
+  /*
+    And nothing anybody has worked on, for the same reason one line up.
+
+    A curated problem leaves the list for reasons that have nothing to do with
+    the person who solved it: a pattern quota shifts, a reclassification lets a
+    higher-scoring problem into a pattern, an upstream sheet is re-cut. That is
+    curation changing its mind, and curation changing its mind must not be able
+    to delete an evening's work — including the attempt log and the notes on it,
+    which exist nowhere else.
+
+    So the row stays. It keeps the pattern and sheets it had, it stops being
+    refreshed, and it goes on rendering exactly as it did. The cost is a roadmap
+    that can hold a problem the current curation would not have picked, which is
+    strictly the better failure: one extra row against somebody's lost work.
+  */
+  const worked = candidates.length
+    ? await Progress.distinct('problem', { problem: { $in: candidates.map((c) => c._id) } })
+    : [];
+  const kept = new Set(worked.map(String));
+  const stale = candidates.filter((c) => !kept.has(String(c._id)));
+
+  if (kept.size) {
+    console.log(
+      `[seed:db] ${kept.size} problem(s) left the curated list but have progress — kept: ` +
+        candidates
+          .filter((c) => kept.has(String(c._id)))
+          .map((c) => c.slug)
+          .join(', '),
+    );
+  }
   if (stale.length) {
     await Progress.deleteMany({ problem: { $in: stale.map((s) => s._id) } });
     await Problem.deleteMany({ _id: { $in: stale.map((s) => s._id) } });

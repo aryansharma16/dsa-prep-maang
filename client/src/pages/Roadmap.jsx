@@ -59,6 +59,24 @@ export function Roadmap() {
   const { flagged, revision, mine } = filters;
 
   const [openSections, setOpenSections] = useLocalState('open-sections', []);
+  /*
+    The patterns you have closed *while a filter is on*, which is a different
+    question from which patterns are open normally.
+
+    A filter opens every matching pattern, because a filtered view whose matches
+    are all behind closed headers has answered nothing. That default is right;
+    it was the implementation that was wrong — `isFiltering || openSections
+    .includes(slug)` made it a lock rather than a default, so `toggleSection`
+    went on writing to `openSections` while `isOpen` ignored it and the header
+    was a control that visibly did nothing.
+
+    Kept separate rather than seeded into `openSections`, so clearing the filter
+    returns the page to exactly the shape it had before. Seeding would leave all
+    twenty-three patterns open the moment the filter came off — and it is not
+    persisted, because "I collapsed graphs while looking at one sheet" is not a
+    preference worth surviving a reload.
+  */
+  const [closedWhileFiltering, setClosedWhileFiltering] = useState([]);
   const [cursorId, setCursorId] = useState(null);
   const [openNotesId, setOpenNotesId] = useState(null);
   const [columnsOpen, setColumnsOpen] = useState(false);
@@ -139,23 +157,72 @@ export function Roadmap() {
   const visible = useMemo(() => filtered.filter((g) => g.problems.length > 0), [filtered]);
 
   const isOpen = useCallback(
-    (slug) => isFiltering || openSections.includes(slug),
-    [isFiltering, openSections],
+    (slug) =>
+      isFiltering ? !closedWhileFiltering.includes(slug) : openSections.includes(slug),
+    [isFiltering, closedWhileFiltering, openSections],
   );
 
-  const toggleSection = (slug) =>
-    setOpenSections((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
-    );
+  const toggleSection = (slug) => {
+    const flip = (prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug];
+    // While filtering, the list being edited is the exceptions to "all open";
+    // otherwise it is the open set itself. Two lists, one gesture.
+    if (isFiltering) setClosedWhileFiltering(flip);
+    else setOpenSections(flip);
+  };
+
+  /*
+    Force one section open, in whichever list is live.
+
+    Two callers jump the page to a specific row — the random pick and the
+    `?pattern=` deep link the Playbook uses — and both used to write
+    `openSections` directly. That was correct only while a filter forced every
+    section open. Once sections could be closed under a filter, the pick landed
+    on a row that was never rendered and the scroll had nothing to scroll to:
+    the toast named a problem you could not see.
+
+    It writes both lists rather than branching on `isFiltering`, and that is the
+    intended behaviour rather than a shortcut — a jump is a navigation, not a
+    toggle, so the section you were sent to should still be open when the filter
+    comes off. Toggling stays sealed inside its own list; only an explicit jump
+    crosses over.
+  */
+  const openSection = useCallback(
+    (slug) => {
+      // Both return `prev` untouched when there is nothing to do, so a jump to
+      // a section that is already open re-renders nothing. Unfiltered, the
+      // first line is always that no-op.
+      setClosedWhileFiltering((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : prev));
+      setOpenSections((prev) => (prev.includes(slug) ? prev : [...prev, slug]));
+    },
+    [setOpenSections],
+  );
+
+  /* A new filter starts from everything open again. Without this, closing a
+     pattern under one filter would leave it closed under the next one, which
+     reads as the app losing a section. */
+  useEffect(() => {
+    if (!isFiltering) setClosedWhileFiltering([]);
+  }, [isFiltering]);
 
   /* Empties the dialog's filters and leaves the bar's toggles alone — the X sits
      against the Filters chip, so it should clear what is behind that chip. */
   const clearNarrowing = () => patch(clearPatch(ROADMAP_FILTERS, 'dialog'));
 
-  /* Open counts as "every pattern", not "every pattern with matches" — the
-     button has to be able to close what it opened after a filter is cleared. */
-  const allOpen = groups.length > 0 && groups.every((g) => openSections.includes(g.slug));
-  const toggleAll = () => setOpenSections(allOpen ? [] : groups.map((g) => g.slug));
+  /*
+    Unfiltered, open counts as "every pattern", not "every pattern with matches"
+    — the button has to be able to close what it opened after a filter is
+    cleared. Filtered, only the patterns actually on screen can be counted:
+    there is no header to press for the ones with no matches.
+  */
+  const allOpen = isFiltering
+    ? visible.length > 0 && visible.every((g) => !closedWhileFiltering.includes(g.slug))
+    : groups.length > 0 && groups.every((g) => openSections.includes(g.slug));
+
+  const toggleAll = () => {
+    if (isFiltering) setClosedWhileFiltering(allOpen ? visible.map((g) => g.slug) : []);
+    else setOpenSections(allOpen ? [] : groups.map((g) => g.slug));
+  };
 
   /*
     Where `?pattern=` lands — from the Playbook's today panel, and from anywhere
@@ -167,12 +234,12 @@ export function Roadmap() {
   */
   const focusPattern = useCallback(
     (slug) => {
-      setOpenSections((prev) => (prev.includes(slug) ? prev : [...prev, slug]));
+      openSection(slug);
       requestAnimationFrame(() => {
         sectionRefs.current[slug]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     },
-    [setOpenSections],
+    [openSection],
   );
 
   useEffect(() => {
@@ -220,12 +287,12 @@ export function Roadmap() {
     const choice = pool[Math.floor(Math.random() * pool.length)];
     lastPickRef.current = choice.id;
 
-    setOpenSections((prev) => (prev.includes(choice.slug) ? prev : [...prev, choice.slug]));
+    openSection(choice.slug);
     setCursorId(choice.id);
     pickSeq.current += 1;
     setPick({ id: choice.id, seq: pickSeq.current });
     toast(`${choice.title} — ${choice.pattern}`);
-  }, [pickable, setOpenSections, toast]);
+  }, [pickable, openSection, toast]);
 
   /*
     The row cannot be scrolled to inside the click handler: its section may have
@@ -467,13 +534,10 @@ export function Roadmap() {
         <button
           className="toggle-chip"
           onClick={toggleAll}
-          disabled={isFiltering}
           title={
-            isFiltering
-              ? 'While a filter is on, every matching pattern stays open'
-              : allOpen
-                ? 'Close every pattern'
-                : 'Open all 22 patterns'
+            allOpen
+              ? `Close every ${isFiltering ? 'matching ' : ''}pattern`
+              : `Open all ${isFiltering ? visible.length : groups.length} patterns`
           }
         >
           {allOpen ? <IconChevronsUp size={12} /> : <IconChevronsDown size={12} />}

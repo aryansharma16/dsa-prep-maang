@@ -153,8 +153,55 @@ per-pattern quotas in `patterns.js` were re-derived as `core + existing filler`
 to make it additive, and the curation report now prints `+n over quota` per
 pattern so the next drift is visible rather than silent.
 
-Re-running the seed is safe: it upserts by slug, prunes retired problems, and
-never touches your progress or the problems you added yourself.
+**Within a pattern the order is the ramp — easy to hard, and now actually so.**
+Striver's 61 GFG-only rows used to be stamped `patternOrder: 1000 + n`, which
+parked them *behind* the curated LeetCode problems instead of inside them. That
+made the promise on the page false at the tail: `binary-search` ended
+`H H H E H M H H`, because the ramp stopped and a second unsorted list began, and
+anyone working top to bottom met Aggressive Cows after Median of Two Sorted
+Arrays. The order is now derived once over the combined list with the same
+difficulty-then-score key, so the GFG rows interleave by difficulty and their
+fixed score of 2.5 puts them at the back of their own band. **0 out-of-order
+pairs across all 6,539**, down from 274.
+
+**Eight problems were refiled**, and the fix was in three places rather than one
+because they were wrong for three different reasons: five grid DPs (`01 Matrix`,
+`Dungeon Game`, `Minimum Falling Path Sum`, `Count Square Submatrices`,
+`Maximum Number of Points with Cost`) sat in `dp-1d` because the dp-2d rule only
+matched knapsack and LCS tags, so there is now a compound rule — a problem
+tagged *both* `Dynamic Programming` and `Matrix` is 2-D DP by definition, and it
+sits after `backtracking` so Sliding Puzzle keeps its home. `Flood Fill` and
+`Bus Routes` fell through every rule to the `arrays-hashing` default, so a
+last-resort `graphs` rule on the traversal tags now catches exactly what nothing
+else claimed — it cannot be asked earlier without stealing every tree problem.
+And `Populating Next Right Pointers` is filed under "Binary Search" **in
+NeetCode's own data**, which `classify` trusts above tags, so it needed a
+`SLUG_OVERRIDES` entry that sits above everything.
+
+**A quota is an allowance, so refiling is not free.** Moving a problem across a
+boundary without moving its slot makes the pattern it left backfill the vacancy
+and the pattern it joined push its weakest filler out. The first run of this fix
+quietly swapped nine problems in and eight out — one of which had been solved. So
+the quotas in `patterns.js` were re-derived a second time, paired: −5 dp-1d /
++5 dp-2d, −2 arrays-hashing / +2 graphs, −1 binary-search / +1 trees. Any future
+reclassification has to be paired the same way.
+
+**And the prune no longer deletes anything you have worked on.** Pairing the
+quotas got the churn from seventeen rows to two, but not to zero: a refiled
+problem still competes on score for its new pattern's filler slots, so it can
+displace one. A curated problem leaves the list for reasons that have nothing to
+do with the person who solved it — a quota shifts, an upstream sheet is re-cut —
+and curation changing its mind must not be able to delete an evening's work,
+including the attempt log and the notes, which exist nowhere else. So
+`seed:db` now excludes any problem with a progress row from the prune, prints
+what it kept, and leaves the row rendering exactly as it did with the pattern and
+sheets it already had. The cost is that a deployment can carry a row the current
+curation would not pick — strictly the better failure. It is the same asymmetry
+that already protects admin-created problems.
+
+Re-running the seed is safe: it upserts by slug, prunes only retired problems
+nobody has touched, and never affects your progress or the problems you added
+yourself.
 
 ### The AI-recommended 300
 
@@ -1311,6 +1358,31 @@ a question you asked, not a decision about how you're working. See
 While anything is filtering, every pattern section expands and empty ones
 disappear — a collapsed section that happens to hold your only match is a search
 that looks like it found nothing.
+
+**That is a default, not a lock, and it used to be a lock.** `isOpen` read
+`isFiltering || openSections.includes(slug)`, so a filter forced every section
+open and `toggleSection` went on writing to a set the predicate ignored: the
+header was a control that visibly did nothing, and **Expand all** was greyed out
+beside it. Sections now collapse under a filter like they do without one, and
+Expand/Collapse all works there too — counting only the patterns on screen,
+since there is no header to press for one with no matches.
+
+The closed-while-filtering set is tracked **separately** from the ordinary open
+set and is not persisted. That is what lets clearing the filter return the page
+to exactly the shape it had before, rather than leaving all twenty-three
+patterns open; and a new filter starts from everything-open again, so a pattern
+you closed under one sheet does not go missing under the next.
+
+**Anything that jumps you to a row opens its section first**, in both lists.
+Two things do that — **Pick one** and the `?pattern=` deep link the Playbook's
+Today panel uses — and both used to write only the ordinary open set, which was
+correct exactly as long as a filter forced every section open. The moment
+sections could be closed under one, a pick could land on a row that was never
+rendered: the toast named a problem, the cursor moved to it, and the page
+scrolled to nothing. They now share one `openSection` helper. It deliberately
+writes both lists, because a jump is a navigation rather than a toggle — the
+section you were sent to should still be open when the filter comes off, while
+plain collapsing stays sealed inside its own list.
 
 ### The problems table
 

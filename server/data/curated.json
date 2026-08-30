@@ -309,7 +309,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 10
+        "order": 9
       }
     ],
     "lcId": 14,
@@ -472,7 +472,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 11
+        "order": 10
       }
     ],
     "lcId": 169,
@@ -535,7 +535,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 15
+        "order": 14
       }
     ],
     "lcId": 118,
@@ -616,7 +616,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 12
+        "order": 11
       }
     ],
     "lcId": 496,
@@ -628,83 +628,6 @@
     "patternSlug": "arrays-hashing",
     "score": 6.36,
     "patternOrder": 6
-  },
-  {
-    "slug": "flood-fill",
-    "title": "Flood Fill",
-    "source": "leetcode",
-    "difficulty": "Easy",
-    "url": "https://leetcode.com/problems/flood-fill/",
-    "articleUrl": "",
-    "topicTags": [
-      "Array",
-      "Depth-First Search",
-      "Breadth-First Search",
-      "Matrix"
-    ],
-    "companies": [
-      {
-        "name": "Amazon",
-        "freq": 53
-      },
-      {
-        "name": "Uber",
-        "freq": 47.5
-      },
-      {
-        "name": "Apple",
-        "freq": 46
-      },
-      {
-        "name": "Microsoft",
-        "freq": 41.5
-      },
-      {
-        "name": "Bloomberg",
-        "freq": 33.8
-      },
-      {
-        "name": "Google",
-        "freq": 31.8
-      },
-      {
-        "name": "Oracle",
-        "freq": 25.3
-      },
-      {
-        "name": "Meta",
-        "freq": 25.1
-      }
-    ],
-    "sheets": [
-      {
-        "sheet": "striver-sde",
-        "group": "Day 22: Binary Trees[Miscellaneous]",
-        "order": 5
-      },
-      {
-        "sheet": "faang-2026",
-        "group": "2 companies",
-        "order": 0
-      },
-      {
-        "sheet": "ai-300",
-        "group": "Arrays & Hashing",
-        "order": 9
-      }
-    ],
-    "lcId": 733,
-    "likes": 9650,
-    "dislikes": 965,
-    "likeRatio": 90.9,
-    "videoId": "",
-    "askedRecently": [
-      "Apple",
-      "Palantir"
-    ],
-    "patternSlug": "arrays-hashing",
-    "score": 5.91,
-    "patternOrder": 7
   },
   {
     "slug": "max-consecutive-ones",
@@ -753,7 +676,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 4.75,
-    "patternOrder": 8
+    "patternOrder": 7
   },
   {
     "slug": "design-hashmap",
@@ -816,7 +739,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 17
+        "order": 15
       }
     ],
     "lcId": 706,
@@ -831,7 +754,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 4.5,
-    "patternOrder": 9
+    "patternOrder": 8
   },
   {
     "slug": "can-place-flowers",
@@ -891,6 +814,11 @@
         "sheet": "faang-2026",
         "group": "LinkedIn",
         "order": 0
+      },
+      {
+        "sheet": "ai-300",
+        "group": "Arrays & Hashing",
+        "order": 23
       }
     ],
     "lcId": 605,
@@ -903,7 +831,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 4.07,
-    "patternOrder": 10
+    "patternOrder": 9
   },
   {
     "slug": "find-the-index-of-the-first-occurrence-in-a-string",
@@ -959,7 +887,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 3.87,
-    "patternOrder": 11
+    "patternOrder": 10
   },
   {
     "slug": "remove-element",
@@ -1015,7 +943,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 3.76,
-    "patternOrder": 12
+    "patternOrder": 11
   },
   {
     "slug": "isomorphic-strings",
@@ -1075,7 +1003,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 3.6,
-    "patternOrder": 13
+    "patternOrder": 12
   },
   {
     "slug": "create-hello-world-function",
@@ -1116,7 +1044,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 3.36,
-    "patternOrder": 14
+    "patternOrder": 13
   },
   {
     "slug": "is-subsequence",
@@ -1173,7 +1101,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 3.13,
-    "patternOrder": 15
+    "patternOrder": 14
   },
   {
     "slug": "find-pivot-index",
@@ -1237,7 +1165,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 3.11,
-    "patternOrder": 16
+    "patternOrder": 15
   },
   {
     "slug": "toeplitz-matrix",
@@ -1277,7 +1205,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 1.2,
-    "patternOrder": 17
+    "patternOrder": 16
   },
   {
     "slug": "number-of-unequal-triplets-in-array",
@@ -1309,7 +1237,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 0.4,
-    "patternOrder": 18
+    "patternOrder": 17
   },
   {
     "slug": "top-k-frequent-elements",
@@ -1435,7 +1363,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 15.67,
-    "patternOrder": 19
+    "patternOrder": 18
   },
   {
     "slug": "group-anagrams",
@@ -1550,7 +1478,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 14.25,
-    "patternOrder": 20
+    "patternOrder": 19
   },
   {
     "slug": "longest-consecutive-sequence",
@@ -1665,7 +1593,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 12.67,
-    "patternOrder": 21
+    "patternOrder": 20
   },
   {
     "slug": "product-of-array-except-self",
@@ -1774,7 +1702,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 11.85,
-    "patternOrder": 22
+    "patternOrder": 21
   },
   {
     "slug": "sort-colors",
@@ -1880,7 +1808,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 9.25,
-    "patternOrder": 23
+    "patternOrder": 22
   },
   {
     "slug": "subarray-sum-equals-k",
@@ -1969,7 +1897,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 22
+        "order": 20
       }
     ],
     "lcId": 560,
@@ -1986,7 +1914,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 9.1,
-    "patternOrder": 24
+    "patternOrder": 23
   },
   {
     "slug": "insert-delete-getrandom-o1",
@@ -2061,7 +1989,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 13
+        "order": 12
       }
     ],
     "lcId": 380,
@@ -2076,7 +2004,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 6.94,
-    "patternOrder": 25
+    "patternOrder": 24
   },
   {
     "slug": "valid-sudoku",
@@ -2152,7 +2080,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 6.84,
-    "patternOrder": 26
+    "patternOrder": 25
   },
   {
     "slug": "best-time-to-buy-and-sell-stock-ii",
@@ -2217,7 +2145,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 4.54,
-    "patternOrder": 27
+    "patternOrder": 26
   },
   {
     "slug": "majority-element-ii",
@@ -2264,7 +2192,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 14
+        "order": 13
       }
     ],
     "lcId": 229,
@@ -2275,7 +2203,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 4.34,
-    "patternOrder": 28
+    "patternOrder": 27
   },
   {
     "slug": "largest-number",
@@ -2332,7 +2260,13 @@
         "freq": 20.4
       }
     ],
-    "sheets": [],
+    "sheets": [
+      {
+        "sheet": "ai-300",
+        "group": "Arrays & Hashing",
+        "order": 22
+      }
+    ],
     "lcId": 179,
     "likes": 9565,
     "dislikes": 811,
@@ -2341,7 +2275,7 @@
     "askedRecently": [],
     "patternSlug": "arrays-hashing",
     "score": 3.74,
-    "patternOrder": 29
+    "patternOrder": 28
   },
   {
     "slug": "diagonal-traverse",
@@ -2406,7 +2340,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 3.18,
-    "patternOrder": 30
+    "patternOrder": 29
   },
   {
     "slug": "find-all-anagrams-in-a-string",
@@ -2459,7 +2393,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 18
+        "order": 16
       }
     ],
     "lcId": 438,
@@ -2472,7 +2406,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 3.16,
-    "patternOrder": 31
+    "patternOrder": 30
   },
   {
     "slug": "continuous-subarray-sum",
@@ -2523,7 +2457,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 19
+        "order": 17
       }
     ],
     "lcId": 523,
@@ -2537,7 +2471,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 3.15,
-    "patternOrder": 32
+    "patternOrder": 31
   },
   {
     "slug": "h-index",
@@ -2603,7 +2537,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 3.08,
-    "patternOrder": 33
+    "patternOrder": 32
   },
   {
     "slug": "range-sum-query-2d-immutable",
@@ -2653,7 +2587,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 21
+        "order": 19
       }
     ],
     "lcId": 304,
@@ -2666,7 +2600,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 2.11,
-    "patternOrder": 34
+    "patternOrder": 33
   },
   {
     "slug": "game-of-life",
@@ -2719,7 +2653,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 20
+        "order": 18
       }
     ],
     "lcId": 289,
@@ -2732,7 +2666,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 1.92,
-    "patternOrder": 35
+    "patternOrder": 34
   },
   {
     "slug": "design-underground-system",
@@ -2773,7 +2707,7 @@
       {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
-        "order": 23
+        "order": 21
       }
     ],
     "lcId": 1396,
@@ -2786,7 +2720,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 1.61,
-    "patternOrder": 36
+    "patternOrder": 35
   },
   {
     "slug": "count-unhappy-friends",
@@ -2826,7 +2760,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 0.76,
-    "patternOrder": 37
+    "patternOrder": 36
   },
   {
     "slug": "first-missing-positive",
@@ -2908,7 +2842,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 6.03,
-    "patternOrder": 38
+    "patternOrder": 37
   },
   {
     "slug": "text-justification",
@@ -2985,83 +2919,7 @@
     ],
     "patternSlug": "arrays-hashing",
     "score": 4.7,
-    "patternOrder": 39
-  },
-  {
-    "slug": "bus-routes",
-    "title": "Bus Routes",
-    "source": "leetcode",
-    "difficulty": "Hard",
-    "url": "https://leetcode.com/problems/bus-routes/",
-    "articleUrl": "",
-    "topicTags": [
-      "Array",
-      "Hash Table",
-      "Breadth-First Search"
-    ],
-    "companies": [
-      {
-        "name": "Uber",
-        "freq": 100
-      },
-      {
-        "name": "TikTok",
-        "freq": 54.4
-      },
-      {
-        "name": "Amazon",
-        "freq": 36.7
-      },
-      {
-        "name": "Google",
-        "freq": 33.7
-      },
-      {
-        "name": "Microsoft",
-        "freq": 29.3
-      },
-      {
-        "name": "Salesforce",
-        "freq": 27.7
-      },
-      {
-        "name": "Oracle",
-        "freq": 25.3
-      },
-      {
-        "name": "Bloomberg",
-        "freq": 24.6
-      },
-      {
-        "name": "Meta",
-        "freq": 5
-      }
-    ],
-    "sheets": [
-      {
-        "sheet": "faang-2026",
-        "group": "3 companies",
-        "order": 0
-      },
-      {
-        "sheet": "ai-300",
-        "group": "Arrays & Hashing",
-        "order": 16
-      }
-    ],
-    "lcId": 815,
-    "likes": 4781,
-    "dislikes": 137,
-    "likeRatio": 97.2,
-    "videoId": "",
-    "askedRecently": [
-      "Apple",
-      "Nvidia",
-      "Uber"
-    ],
-    "patternSlug": "arrays-hashing",
-    "score": 3.64,
-    "patternOrder": 40
+    "patternOrder": 38
   },
   {
     "slug": "department-top-three-salaries",
@@ -4996,7 +4854,7 @@
     "askedRecently": [],
     "patternSlug": "prefix-sum",
     "score": 2.03,
-    "patternOrder": 5
+    "patternOrder": 6
   },
   {
     "slug": "product-of-the-last-k-numbers",
@@ -5057,7 +4915,7 @@
     "askedRecently": [],
     "patternSlug": "prefix-sum",
     "score": 1.28,
-    "patternOrder": 6
+    "patternOrder": 7
   },
   {
     "slug": "zero-array-transformation-i",
@@ -5110,7 +4968,7 @@
     ],
     "patternSlug": "prefix-sum",
     "score": 1.27,
-    "patternOrder": 7
+    "patternOrder": 8
   },
   {
     "slug": "make-sum-divisible-by-p",
@@ -5159,7 +5017,7 @@
     "askedRecently": [],
     "patternSlug": "prefix-sum",
     "score": 1.11,
-    "patternOrder": 8
+    "patternOrder": 9
   },
   {
     "slug": "plates-between-candles",
@@ -5203,7 +5061,7 @@
     "askedRecently": [],
     "patternSlug": "prefix-sum",
     "score": 1.1,
-    "patternOrder": 9
+    "patternOrder": 10
   },
   {
     "slug": "count-the-hidden-sequences",
@@ -5247,7 +5105,7 @@
     "askedRecently": [],
     "patternSlug": "prefix-sum",
     "score": 1.01,
-    "patternOrder": 10
+    "patternOrder": 11
   },
   {
     "slug": "minimum-number-of-operations-to-move-all-balls-to-each-box",
@@ -5302,7 +5160,7 @@
     "askedRecently": [],
     "patternSlug": "prefix-sum",
     "score": 0.97,
-    "patternOrder": 11
+    "patternOrder": 12
   },
   {
     "slug": "ways-to-make-a-fair-array",
@@ -5347,7 +5205,7 @@
     ],
     "patternSlug": "prefix-sum",
     "score": 0.57,
-    "patternOrder": 12
+    "patternOrder": 13
   },
   {
     "slug": "threshold-majority-queries",
@@ -5397,7 +5255,7 @@
     "askedRecently": [],
     "patternSlug": "prefix-sum",
     "score": 1.07,
-    "patternOrder": 13
+    "patternOrder": 15
   },
   {
     "slug": "number-of-flowers-in-full-bloom",
@@ -5446,7 +5304,7 @@
     ],
     "patternSlug": "prefix-sum",
     "score": 0.8,
-    "patternOrder": 14
+    "patternOrder": 16
   },
   {
     "slug": "best-time-to-buy-and-sell-stock",
@@ -6536,7 +6394,7 @@
     ],
     "patternSlug": "sliding-window",
     "score": 12.88,
-    "patternOrder": 12
+    "patternOrder": 14
   },
   {
     "slug": "minimum-window-substring",
@@ -6643,7 +6501,7 @@
     ],
     "patternSlug": "sliding-window",
     "score": 11.98,
-    "patternOrder": 13
+    "patternOrder": 15
   },
   {
     "slug": "substring-with-concatenation-of-all-words",
@@ -6696,7 +6554,7 @@
     "askedRecently": [],
     "patternSlug": "sliding-window",
     "score": 2.28,
-    "patternOrder": 14
+    "patternOrder": 16
   },
   {
     "slug": "subarrays-with-k-different-integers",
@@ -6754,7 +6612,7 @@
     "askedRecently": [],
     "patternSlug": "sliding-window",
     "score": 2.11,
-    "patternOrder": 15
+    "patternOrder": 17
   },
   {
     "slug": "contains-duplicate-iii",
@@ -6818,7 +6676,7 @@
     ],
     "patternSlug": "sliding-window",
     "score": 2.01,
-    "patternOrder": 16
+    "patternOrder": 18
   },
   {
     "slug": "maximum-number-of-visible-points",
@@ -6865,7 +6723,7 @@
     ],
     "patternSlug": "sliding-window",
     "score": 0.96,
-    "patternOrder": 17
+    "patternOrder": 19
   },
   {
     "slug": "ransom-note",
@@ -7793,7 +7651,7 @@
     "askedRecently": [],
     "patternSlug": "strings",
     "score": 1.77,
-    "patternOrder": 16
+    "patternOrder": 17
   },
   {
     "slug": "shortest-palindrome",
@@ -7852,7 +7710,7 @@
     "askedRecently": [],
     "patternSlug": "strings",
     "score": 1.6,
-    "patternOrder": 17
+    "patternOrder": 18
   },
   {
     "slug": "binary-search",
@@ -8161,7 +8019,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 2.44,
-    "patternOrder": 4
+    "patternOrder": 5
   },
   {
     "slug": "search-in-rotated-sorted-array",
@@ -8286,7 +8144,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 16.79,
-    "patternOrder": 5
+    "patternOrder": 6
   },
   {
     "slug": "koko-eating-bananas",
@@ -8399,7 +8257,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 11.25,
-    "patternOrder": 6
+    "patternOrder": 7
   },
   {
     "slug": "search-a-2d-matrix",
@@ -8491,7 +8349,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 9.68,
-    "patternOrder": 7
+    "patternOrder": 8
   },
   {
     "slug": "time-based-key-value-store",
@@ -8588,7 +8446,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 9.31,
-    "patternOrder": 8
+    "patternOrder": 9
   },
   {
     "slug": "find-minimum-in-rotated-sorted-array",
@@ -8683,7 +8541,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 8.03,
-    "patternOrder": 9
+    "patternOrder": 10
   },
   {
     "slug": "find-peak-element",
@@ -8773,7 +8631,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 6.9,
-    "patternOrder": 10
+    "patternOrder": 11
   },
   {
     "slug": "single-element-in-a-sorted-array",
@@ -8839,7 +8697,7 @@
     "askedRecently": [],
     "patternSlug": "binary-search",
     "score": 6.47,
-    "patternOrder": 11
+    "patternOrder": 12
   },
   {
     "slug": "find-first-and-last-position-of-element-in-sorted-array",
@@ -8924,63 +8782,6 @@
     ],
     "patternSlug": "binary-search",
     "score": 5.95,
-    "patternOrder": 12
-  },
-  {
-    "slug": "populating-next-right-pointers-in-each-node",
-    "title": "Populating Next Right Pointers in Each Node",
-    "source": "leetcode",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/populating-next-right-pointers-in-each-node/",
-    "articleUrl": "",
-    "topicTags": [
-      "Linked List",
-      "Tree",
-      "Depth-First Search",
-      "Breadth-First Search",
-      "Binary Tree"
-    ],
-    "companies": [
-      {
-        "name": "Bloomberg",
-        "freq": 50.2
-      },
-      {
-        "name": "Meta",
-        "freq": 48.8
-      },
-      {
-        "name": "Amazon",
-        "freq": 45.1
-      },
-      {
-        "name": "Microsoft",
-        "freq": 42.4
-      },
-      {
-        "name": "Oracle",
-        "freq": 33.3
-      },
-      {
-        "name": "Google",
-        "freq": 24.4
-      }
-    ],
-    "sheets": [
-      {
-        "sheet": "striver-sde",
-        "group": "Day 20: Binary Search Tree",
-        "order": 0
-      }
-    ],
-    "lcId": 116,
-    "likes": 10528,
-    "dislikes": 329,
-    "likeRatio": 97,
-    "videoId": "U4hFQCa1Cq0",
-    "askedRecently": [],
-    "patternSlug": "binary-search",
-    "score": 5.11,
     "patternOrder": 13
   },
   {
@@ -9446,7 +9247,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 14.2,
-    "patternOrder": 19
+    "patternOrder": 20
   },
   {
     "slug": "reverse-pairs",
@@ -9511,7 +9312,7 @@
     "askedRecently": [],
     "patternSlug": "binary-search",
     "score": 4.54,
-    "patternOrder": 20
+    "patternOrder": 21
   },
   {
     "slug": "split-array-largest-sum",
@@ -9591,7 +9392,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 4.36,
-    "patternOrder": 21
+    "patternOrder": 22
   },
   {
     "slug": "count-of-smaller-numbers-after-self",
@@ -9655,7 +9456,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 2.05,
-    "patternOrder": 22
+    "patternOrder": 26
   },
   {
     "slug": "count-of-range-sum",
@@ -9705,7 +9506,7 @@
     ],
     "patternSlug": "binary-search",
     "score": 0.98,
-    "patternOrder": 23
+    "patternOrder": 27
   },
   {
     "slug": "valid-parentheses",
@@ -10139,7 +9940,7 @@
     ],
     "patternSlug": "stack",
     "score": 11.75,
-    "patternOrder": 4
+    "patternOrder": 8
   },
   {
     "slug": "generate-parentheses",
@@ -10243,7 +10044,7 @@
     ],
     "patternSlug": "stack",
     "score": 9.68,
-    "patternOrder": 5
+    "patternOrder": 9
   },
   {
     "slug": "daily-temperatures",
@@ -10328,7 +10129,7 @@
     ],
     "patternSlug": "stack",
     "score": 7.86,
-    "patternOrder": 6
+    "patternOrder": 10
   },
   {
     "slug": "decode-string",
@@ -10417,7 +10218,7 @@
     ],
     "patternSlug": "stack",
     "score": 6.88,
-    "patternOrder": 7
+    "patternOrder": 11
   },
   {
     "slug": "evaluate-reverse-polish-notation",
@@ -10489,7 +10290,7 @@
     "askedRecently": [],
     "patternSlug": "stack",
     "score": 5.71,
-    "patternOrder": 8
+    "patternOrder": 12
   },
   {
     "slug": "asteroid-collision",
@@ -10576,7 +10377,7 @@
     ],
     "patternSlug": "stack",
     "score": 5.56,
-    "patternOrder": 9
+    "patternOrder": 13
   },
   {
     "slug": "online-stock-span",
@@ -10637,7 +10438,7 @@
     "askedRecently": [],
     "patternSlug": "stack",
     "score": 5.07,
-    "patternOrder": 10
+    "patternOrder": 14
   },
   {
     "slug": "basic-calculator-ii",
@@ -10716,7 +10517,7 @@
     ],
     "patternSlug": "stack",
     "score": 4.8,
-    "patternOrder": 11
+    "patternOrder": 15
   },
   {
     "slug": "simplify-path",
@@ -10788,7 +10589,7 @@
     ],
     "patternSlug": "stack",
     "score": 4.56,
-    "patternOrder": 12
+    "patternOrder": 16
   },
   {
     "slug": "car-fleet",
@@ -10849,7 +10650,7 @@
     "askedRecently": [],
     "patternSlug": "stack",
     "score": 4.26,
-    "patternOrder": 13
+    "patternOrder": 17
   },
   {
     "slug": "remove-all-adjacent-duplicates-in-string-ii",
@@ -10922,7 +10723,7 @@
     ],
     "patternSlug": "stack",
     "score": 3.6,
-    "patternOrder": 14
+    "patternOrder": 18
   },
   {
     "slug": "next-greater-element-ii",
@@ -10987,7 +10788,7 @@
     "askedRecently": [],
     "patternSlug": "stack",
     "score": 3.21,
-    "patternOrder": 15
+    "patternOrder": 19
   },
   {
     "slug": "minimum-remove-to-make-valid-parentheses",
@@ -11051,7 +10852,7 @@
     ],
     "patternSlug": "stack",
     "score": 3.1,
-    "patternOrder": 16
+    "patternOrder": 20
   },
   {
     "slug": "remove-k-digits",
@@ -11115,7 +10916,7 @@
     "askedRecently": [],
     "patternSlug": "stack",
     "score": 3.09,
-    "patternOrder": 17
+    "patternOrder": 21
   },
   {
     "slug": "exclusive-time-of-functions",
@@ -11175,7 +10976,7 @@
     "askedRecently": [],
     "patternSlug": "stack",
     "score": 2.75,
-    "patternOrder": 18
+    "patternOrder": 22
   },
   {
     "slug": "longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit",
@@ -11240,7 +11041,7 @@
     ],
     "patternSlug": "stack",
     "score": 2.25,
-    "patternOrder": 19
+    "patternOrder": 23
   },
   {
     "slug": "mini-parser",
@@ -11285,7 +11086,7 @@
     ],
     "patternSlug": "stack",
     "score": 0.67,
-    "patternOrder": 20
+    "patternOrder": 24
   },
   {
     "slug": "largest-rectangle-in-histogram",
@@ -11397,7 +11198,7 @@
     ],
     "patternSlug": "stack",
     "score": 11.88,
-    "patternOrder": 21
+    "patternOrder": 25
   },
   {
     "slug": "basic-calculator",
@@ -11480,7 +11281,7 @@
     ],
     "patternSlug": "stack",
     "score": 4.25,
-    "patternOrder": 22
+    "patternOrder": 26
   },
   {
     "slug": "longest-valid-parentheses",
@@ -11555,7 +11356,7 @@
     ],
     "patternSlug": "stack",
     "score": 3.42,
-    "patternOrder": 23
+    "patternOrder": 27
   },
   {
     "slug": "merge-two-sorted-lists",
@@ -13389,7 +13190,7 @@
     ],
     "patternSlug": "linked-list",
     "score": 1.33,
-    "patternOrder": 20
+    "patternOrder": 21
   },
   {
     "slug": "maximum-depth-of-binary-tree",
@@ -14256,7 +14057,7 @@
     ],
     "patternSlug": "trees",
     "score": 12.18,
-    "patternOrder": 11
+    "patternOrder": 13
   },
   {
     "slug": "validate-binary-search-tree",
@@ -14350,7 +14151,7 @@
     ],
     "patternSlug": "trees",
     "score": 11.19,
-    "patternOrder": 12
+    "patternOrder": 14
   },
   {
     "slug": "construct-binary-tree-from-preorder-and-inorder-traversal",
@@ -14437,7 +14238,7 @@
     ],
     "patternSlug": "trees",
     "score": 10.6,
-    "patternOrder": 13
+    "patternOrder": 15
   },
   {
     "slug": "kth-smallest-element-in-a-bst",
@@ -14531,7 +14332,7 @@
     ],
     "patternSlug": "trees",
     "score": 10.11,
-    "patternOrder": 14
+    "patternOrder": 16
   },
   {
     "slug": "lowest-common-ancestor-of-a-binary-tree",
@@ -14630,7 +14431,7 @@
     ],
     "patternSlug": "trees",
     "score": 9.37,
-    "patternOrder": 15
+    "patternOrder": 17
   },
   {
     "slug": "lowest-common-ancestor-of-a-binary-search-tree",
@@ -14710,7 +14511,7 @@
     ],
     "patternSlug": "trees",
     "score": 9.24,
-    "patternOrder": 16
+    "patternOrder": 18
   },
   {
     "slug": "binary-tree-zigzag-level-order-traversal",
@@ -14797,7 +14598,7 @@
     ],
     "patternSlug": "trees",
     "score": 7.1,
-    "patternOrder": 17
+    "patternOrder": 19
   },
   {
     "slug": "binary-tree-right-side-view",
@@ -14877,7 +14678,7 @@
     ],
     "patternSlug": "trees",
     "score": 7.07,
-    "patternOrder": 18
+    "patternOrder": 20
   },
   {
     "slug": "binary-search-tree-iterator",
@@ -14953,7 +14754,64 @@
     ],
     "patternSlug": "trees",
     "score": 6.41,
-    "patternOrder": 19
+    "patternOrder": 21
+  },
+  {
+    "slug": "populating-next-right-pointers-in-each-node",
+    "title": "Populating Next Right Pointers in Each Node",
+    "source": "leetcode",
+    "difficulty": "Medium",
+    "url": "https://leetcode.com/problems/populating-next-right-pointers-in-each-node/",
+    "articleUrl": "",
+    "topicTags": [
+      "Linked List",
+      "Tree",
+      "Depth-First Search",
+      "Breadth-First Search",
+      "Binary Tree"
+    ],
+    "companies": [
+      {
+        "name": "Bloomberg",
+        "freq": 50.2
+      },
+      {
+        "name": "Meta",
+        "freq": 48.8
+      },
+      {
+        "name": "Amazon",
+        "freq": 45.1
+      },
+      {
+        "name": "Microsoft",
+        "freq": 42.4
+      },
+      {
+        "name": "Oracle",
+        "freq": 33.3
+      },
+      {
+        "name": "Google",
+        "freq": 24.4
+      }
+    ],
+    "sheets": [
+      {
+        "sheet": "striver-sde",
+        "group": "Day 20: Binary Search Tree",
+        "order": 0
+      }
+    ],
+    "lcId": 116,
+    "likes": 10528,
+    "dislikes": 329,
+    "likeRatio": 97,
+    "videoId": "U4hFQCa1Cq0",
+    "askedRecently": [],
+    "patternSlug": "trees",
+    "score": 5.11,
+    "patternOrder": 22
   },
   {
     "slug": "maximum-width-of-binary-tree",
@@ -15013,7 +14871,7 @@
     "askedRecently": [],
     "patternSlug": "trees",
     "score": 4.95,
-    "patternOrder": 20
+    "patternOrder": 23
   },
   {
     "slug": "all-nodes-distance-k-in-binary-tree",
@@ -15102,7 +14960,7 @@
     ],
     "patternSlug": "trees",
     "score": 4.44,
-    "patternOrder": 21
+    "patternOrder": 24
   },
   {
     "slug": "flatten-binary-tree-to-linked-list",
@@ -15164,7 +15022,7 @@
     "askedRecently": [],
     "patternSlug": "trees",
     "score": 4.35,
-    "patternOrder": 22
+    "patternOrder": 25
   },
   {
     "slug": "construct-binary-tree-from-inorder-and-postorder-traversal",
@@ -15226,7 +15084,7 @@
     "askedRecently": [],
     "patternSlug": "trees",
     "score": 4.13,
-    "patternOrder": 23
+    "patternOrder": 26
   },
   {
     "slug": "count-good-nodes-in-binary-tree",
@@ -15274,7 +15132,7 @@
     "askedRecently": [],
     "patternSlug": "trees",
     "score": 3.79,
-    "patternOrder": 24
+    "patternOrder": 27
   },
   {
     "slug": "sum-root-to-leaf-numbers",
@@ -15337,7 +15195,7 @@
     ],
     "patternSlug": "trees",
     "score": 3.19,
-    "patternOrder": 25
+    "patternOrder": 28
   },
   {
     "slug": "flatten-nested-list-iterator",
@@ -15405,7 +15263,7 @@
     ],
     "patternSlug": "trees",
     "score": 2.64,
-    "patternOrder": 26
+    "patternOrder": 29
   },
   {
     "slug": "construct-quad-tree",
@@ -15464,7 +15322,7 @@
     ],
     "patternSlug": "trees",
     "score": 2.34,
-    "patternOrder": 27
+    "patternOrder": 35
   },
   {
     "slug": "check-completeness-of-a-binary-tree",
@@ -15513,7 +15371,7 @@
     ],
     "patternSlug": "trees",
     "score": 1.76,
-    "patternOrder": 28
+    "patternOrder": 36
   },
   {
     "slug": "step-by-step-directions-from-a-binary-tree-node-to-another",
@@ -15570,7 +15428,7 @@
     ],
     "patternSlug": "trees",
     "score": 1,
-    "patternOrder": 29
+    "patternOrder": 37
   },
   {
     "slug": "maximum-binary-tree",
@@ -15623,7 +15481,7 @@
     ],
     "patternSlug": "trees",
     "score": 0.82,
-    "patternOrder": 30
+    "patternOrder": 38
   },
   {
     "slug": "serialize-and-deserialize-binary-tree",
@@ -15740,7 +15598,7 @@
     ],
     "patternSlug": "trees",
     "score": 13.26,
-    "patternOrder": 31
+    "patternOrder": 39
   },
   {
     "slug": "binary-tree-maximum-path-sum",
@@ -15849,7 +15707,7 @@
     ],
     "patternSlug": "trees",
     "score": 12.34,
-    "patternOrder": 32
+    "patternOrder": 40
   },
   {
     "slug": "vertical-order-traversal-of-a-binary-tree",
@@ -15931,7 +15789,7 @@
     ],
     "patternSlug": "trees",
     "score": 6.3,
-    "patternOrder": 33
+    "patternOrder": 41
   },
   {
     "slug": "two-sum-iv-input-is-a-bst",
@@ -16114,7 +15972,7 @@
     ],
     "patternSlug": "bst",
     "score": 1.67,
-    "patternOrder": 2
+    "patternOrder": 4
   },
   {
     "slug": "minimum-absolute-difference-in-bst",
@@ -16159,7 +16017,7 @@
     "askedRecently": [],
     "patternSlug": "bst",
     "score": 0.58,
-    "patternOrder": 3
+    "patternOrder": 5
   },
   {
     "slug": "find-mode-in-binary-search-tree",
@@ -16201,7 +16059,7 @@
     "askedRecently": [],
     "patternSlug": "bst",
     "score": 0.46,
-    "patternOrder": 4
+    "patternOrder": 6
   },
   {
     "slug": "construct-binary-search-tree-from-preorder-traversal",
@@ -16264,7 +16122,7 @@
     "askedRecently": [],
     "patternSlug": "bst",
     "score": 3.83,
-    "patternOrder": 5
+    "patternOrder": 7
   },
   {
     "slug": "recover-binary-search-tree",
@@ -16327,7 +16185,7 @@
     ],
     "patternSlug": "bst",
     "score": 1.96,
-    "patternOrder": 6
+    "patternOrder": 10
   },
   {
     "slug": "convert-sorted-list-to-binary-search-tree",
@@ -16388,7 +16246,7 @@
     "askedRecently": [],
     "patternSlug": "bst",
     "score": 1.33,
-    "patternOrder": 7
+    "patternOrder": 11
   },
   {
     "slug": "serialize-and-deserialize-bst",
@@ -16442,7 +16300,7 @@
     ],
     "patternSlug": "bst",
     "score": 0.96,
-    "patternOrder": 8
+    "patternOrder": 12
   },
   {
     "slug": "balance-a-binary-search-tree",
@@ -16496,7 +16354,7 @@
     "askedRecently": [],
     "patternSlug": "bst",
     "score": 0.86,
-    "patternOrder": 9
+    "patternOrder": 13
   },
   {
     "slug": "maximum-sum-bst-in-binary-tree",
@@ -16555,7 +16413,7 @@
     "askedRecently": [],
     "patternSlug": "bst",
     "score": 3.37,
-    "patternOrder": 10
+    "patternOrder": 14
   },
   {
     "slug": "kth-largest-element-in-a-stream",
@@ -17297,7 +17155,7 @@
     "askedRecently": [],
     "patternSlug": "heap",
     "score": 2.43,
-    "patternOrder": 8
+    "patternOrder": 11
   },
   {
     "slug": "find-k-pairs-with-smallest-sums",
@@ -17357,7 +17215,7 @@
     "askedRecently": [],
     "patternSlug": "heap",
     "score": 2.32,
-    "patternOrder": 9
+    "patternOrder": 12
   },
   {
     "slug": "sort-characters-by-frequency",
@@ -17419,7 +17277,7 @@
     "askedRecently": [],
     "patternSlug": "heap",
     "score": 2.21,
-    "patternOrder": 10
+    "patternOrder": 13
   },
   {
     "slug": "single-threaded-cpu",
@@ -17472,7 +17330,7 @@
     ],
     "patternSlug": "heap",
     "score": 1.79,
-    "patternOrder": 11
+    "patternOrder": 14
   },
   {
     "slug": "diagonal-traverse-ii",
@@ -17517,7 +17375,7 @@
     ],
     "patternSlug": "heap",
     "score": 1.08,
-    "patternOrder": 12
+    "patternOrder": 15
   },
   {
     "slug": "maximize-ysum-by-picking-a-triplet-of-distinct-xvalues",
@@ -17556,7 +17414,7 @@
     ],
     "patternSlug": "heap",
     "score": 0.65,
-    "patternOrder": 13
+    "patternOrder": 16
   },
   {
     "slug": "find-median-from-data-stream",
@@ -17667,7 +17525,7 @@
     ],
     "patternSlug": "heap",
     "score": 13.62,
-    "patternOrder": 14
+    "patternOrder": 17
   },
   {
     "slug": "the-skyline-problem",
@@ -17744,7 +17602,7 @@
     ],
     "patternSlug": "heap",
     "score": 3.18,
-    "patternOrder": 15
+    "patternOrder": 18
   },
   {
     "slug": "trapping-rain-water-ii",
@@ -17802,7 +17660,7 @@
     "askedRecently": [],
     "patternSlug": "heap",
     "score": 2.08,
-    "patternOrder": 16
+    "patternOrder": 19
   },
   {
     "slug": "ipo",
@@ -17856,7 +17714,7 @@
     "askedRecently": [],
     "patternSlug": "heap",
     "score": 2.03,
-    "patternOrder": 17
+    "patternOrder": 20
   },
   {
     "slug": "sliding-window-median",
@@ -17911,7 +17769,7 @@
     ],
     "patternSlug": "heap",
     "score": 1.98,
-    "patternOrder": 18
+    "patternOrder": 21
   },
   {
     "slug": "smallest-range-covering-elements-from-k-lists",
@@ -17967,7 +17825,7 @@
     "askedRecently": [],
     "patternSlug": "heap",
     "score": 1.7,
-    "patternOrder": 19
+    "patternOrder": 22
   },
   {
     "slug": "minimum-difference-in-sums-after-removal-of-elements",
@@ -18029,7 +17887,7 @@
     ],
     "patternSlug": "heap",
     "score": 1.2,
-    "patternOrder": 20
+    "patternOrder": 23
   },
   {
     "slug": "implement-trie-prefix-tree",
@@ -18428,7 +18286,7 @@
     ],
     "patternSlug": "tries",
     "score": 1.77,
-    "patternOrder": 4
+    "patternOrder": 5
   },
   {
     "slug": "longest-word-in-dictionary",
@@ -18471,7 +18329,7 @@
     ],
     "patternSlug": "tries",
     "score": 0.52,
-    "patternOrder": 5
+    "patternOrder": 6
   },
   {
     "slug": "word-search-ii",
@@ -18564,7 +18422,7 @@
     ],
     "patternSlug": "tries",
     "score": 9.04,
-    "patternOrder": 6
+    "patternOrder": 7
   },
   {
     "slug": "word-break-ii",
@@ -18638,7 +18496,7 @@
     ],
     "patternSlug": "tries",
     "score": 3.13,
-    "patternOrder": 7
+    "patternOrder": 8
   },
   {
     "slug": "maximum-xor-with-an-element-from-array",
@@ -18673,7 +18531,7 @@
     "askedRecently": [],
     "patternSlug": "tries",
     "score": 2.72,
-    "patternOrder": 8
+    "patternOrder": 9
   },
   {
     "slug": "palindrome-pairs",
@@ -18733,7 +18591,7 @@
     ],
     "patternSlug": "tries",
     "score": 1.03,
-    "patternOrder": 9
+    "patternOrder": 12
   },
   {
     "slug": "word-search",
@@ -19619,7 +19477,7 @@
     "askedRecently": [],
     "patternSlug": "backtracking",
     "score": 2.18,
-    "patternOrder": 10
+    "patternOrder": 13
   },
   {
     "slug": "partition-to-k-equal-sum-subsets",
@@ -19675,7 +19533,7 @@
     "askedRecently": [],
     "patternSlug": "backtracking",
     "score": 1.89,
-    "patternOrder": 11
+    "patternOrder": 14
   },
   {
     "slug": "n-queens",
@@ -19759,7 +19617,7 @@
     ],
     "patternSlug": "backtracking",
     "score": 9.73,
-    "patternOrder": 12
+    "patternOrder": 15
   },
   {
     "slug": "sudoku-solver",
@@ -19841,7 +19699,7 @@
     ],
     "patternSlug": "backtracking",
     "score": 5.83,
-    "patternOrder": 13
+    "patternOrder": 16
   },
   {
     "slug": "word-ladder-ii",
@@ -19912,7 +19770,7 @@
     ],
     "patternSlug": "backtracking",
     "score": 2.85,
-    "patternOrder": 14
+    "patternOrder": 17
   },
   {
     "slug": "expression-add-operators",
@@ -19970,7 +19828,7 @@
     ],
     "patternSlug": "backtracking",
     "score": 2.25,
-    "patternOrder": 15
+    "patternOrder": 19
   },
   {
     "slug": "remove-invalid-parentheses",
@@ -20036,7 +19894,7 @@
     ],
     "patternSlug": "backtracking",
     "score": 1.88,
-    "patternOrder": 16
+    "patternOrder": 20
   },
   {
     "slug": "n-queens-ii",
@@ -20080,7 +19938,7 @@
     "askedRecently": [],
     "patternSlug": "backtracking",
     "score": 1.67,
-    "patternOrder": 17
+    "patternOrder": 21
   },
   {
     "slug": "sliding-puzzle",
@@ -20143,7 +20001,79 @@
     ],
     "patternSlug": "backtracking",
     "score": 1.24,
-    "patternOrder": 18
+    "patternOrder": 22
+  },
+  {
+    "slug": "flood-fill",
+    "title": "Flood Fill",
+    "source": "leetcode",
+    "difficulty": "Easy",
+    "url": "https://leetcode.com/problems/flood-fill/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Depth-First Search",
+      "Breadth-First Search",
+      "Matrix"
+    ],
+    "companies": [
+      {
+        "name": "Amazon",
+        "freq": 53
+      },
+      {
+        "name": "Uber",
+        "freq": 47.5
+      },
+      {
+        "name": "Apple",
+        "freq": 46
+      },
+      {
+        "name": "Microsoft",
+        "freq": 41.5
+      },
+      {
+        "name": "Bloomberg",
+        "freq": 33.8
+      },
+      {
+        "name": "Google",
+        "freq": 31.8
+      },
+      {
+        "name": "Oracle",
+        "freq": 25.3
+      },
+      {
+        "name": "Meta",
+        "freq": 25.1
+      }
+    ],
+    "sheets": [
+      {
+        "sheet": "striver-sde",
+        "group": "Day 22: Binary Trees[Miscellaneous]",
+        "order": 5
+      },
+      {
+        "sheet": "faang-2026",
+        "group": "2 companies",
+        "order": 0
+      }
+    ],
+    "lcId": 733,
+    "likes": 9650,
+    "dislikes": 965,
+    "likeRatio": 90.9,
+    "videoId": "",
+    "askedRecently": [
+      "Apple",
+      "Palantir"
+    ],
+    "patternSlug": "graphs",
+    "score": 5.91,
+    "patternOrder": 0
   },
   {
     "slug": "island-perimeter",
@@ -20197,7 +20127,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 1.98,
-    "patternOrder": 0
+    "patternOrder": 1
   },
   {
     "slug": "verifying-an-alien-dictionary",
@@ -20246,7 +20176,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 1.67,
-    "patternOrder": 1
+    "patternOrder": 2
   },
   {
     "slug": "number-of-islands",
@@ -20384,7 +20314,7 @@
     ],
     "patternSlug": "graphs",
     "score": 18.07,
-    "patternOrder": 2
+    "patternOrder": 3
   },
   {
     "slug": "course-schedule",
@@ -20510,7 +20440,7 @@
     ],
     "patternSlug": "graphs",
     "score": 14.77,
-    "patternOrder": 3
+    "patternOrder": 4
   },
   {
     "slug": "rotting-oranges",
@@ -20609,7 +20539,7 @@
       {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
-        "order": 12
+        "order": 13
       }
     ],
     "lcId": 994,
@@ -20625,7 +20555,7 @@
     ],
     "patternSlug": "graphs",
     "score": 13.21,
-    "patternOrder": 4
+    "patternOrder": 5
   },
   {
     "slug": "course-schedule-ii",
@@ -20743,7 +20673,7 @@
     ],
     "patternSlug": "graphs",
     "score": 11.79,
-    "patternOrder": 5
+    "patternOrder": 6
   },
   {
     "slug": "clone-graph",
@@ -20837,7 +20767,7 @@
     ],
     "patternSlug": "graphs",
     "score": 11.37,
-    "patternOrder": 6
+    "patternOrder": 7
   },
   {
     "slug": "max-area-of-island",
@@ -20928,7 +20858,7 @@
     ],
     "patternSlug": "graphs",
     "score": 7.34,
-    "patternOrder": 7
+    "patternOrder": 8
   },
   {
     "slug": "pacific-atlantic-water-flow",
@@ -21013,7 +20943,7 @@
     ],
     "patternSlug": "graphs",
     "score": 7.01,
-    "patternOrder": 8
+    "patternOrder": 9
   },
   {
     "slug": "is-graph-bipartite",
@@ -21092,7 +21022,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 5.63,
-    "patternOrder": 9
+    "patternOrder": 10
   },
   {
     "slug": "surrounded-regions",
@@ -21151,11 +21081,6 @@
         "sheet": "neetcode-150",
         "group": "Graphs",
         "order": 0
-      },
-      {
-        "sheet": "ai-300",
-        "group": "Graphs (BFS / DFS)",
-        "order": 18
       }
     ],
     "lcId": 130,
@@ -21166,7 +21091,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 5.56,
-    "patternOrder": 10
+    "patternOrder": 11
   },
   {
     "slug": "evaluate-division",
@@ -21252,7 +21177,7 @@
     ],
     "patternSlug": "graphs",
     "score": 4.68,
-    "patternOrder": 11
+    "patternOrder": 12
   },
   {
     "slug": "redundant-connection",
@@ -21317,7 +21242,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 4.61,
-    "patternOrder": 12
+    "patternOrder": 13
   },
   {
     "slug": "shortest-path-in-binary-matrix",
@@ -21393,7 +21318,7 @@
     ],
     "patternSlug": "graphs",
     "score": 4.6,
-    "patternOrder": 13
+    "patternOrder": 14
   },
   {
     "slug": "accounts-merge",
@@ -21458,7 +21383,7 @@
       {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
-        "order": 11
+        "order": 12
       }
     ],
     "lcId": 721,
@@ -21472,7 +21397,7 @@
     ],
     "patternSlug": "graphs",
     "score": 4.09,
-    "patternOrder": 14
+    "patternOrder": 15
   },
   {
     "slug": "shortest-bridge",
@@ -21538,7 +21463,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 2.88,
-    "patternOrder": 15
+    "patternOrder": 16
   },
   {
     "slug": "open-the-lock",
@@ -21596,13 +21521,7 @@
         "freq": 12.6
       }
     ],
-    "sheets": [
-      {
-        "sheet": "ai-300",
-        "group": "Graphs (BFS / DFS)",
-        "order": 19
-      }
-    ],
+    "sheets": [],
     "lcId": 752,
     "likes": 5202,
     "dislikes": 240,
@@ -21611,7 +21530,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 2.73,
-    "patternOrder": 16
+    "patternOrder": 17
   },
   {
     "slug": "snakes-and-ladders",
@@ -21672,7 +21591,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 2.55,
-    "patternOrder": 17
+    "patternOrder": 18
   },
   {
     "slug": "find-eventual-safe-states",
@@ -21719,7 +21638,7 @@
       {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
-        "order": 15
+        "order": 16
       }
     ],
     "lcId": 802,
@@ -21730,7 +21649,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 2.03,
-    "patternOrder": 18
+    "patternOrder": 20
   },
   {
     "slug": "reorder-routes-to-make-all-paths-lead-to-the-city-zero",
@@ -21775,7 +21694,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 1.69,
-    "patternOrder": 19
+    "patternOrder": 21
   },
   {
     "slug": "keys-and-rooms",
@@ -21819,7 +21738,7 @@
       {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
-        "order": 14
+        "order": 15
       }
     ],
     "lcId": 841,
@@ -21830,53 +21749,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 1.5,
-    "patternOrder": 20
-  },
-  {
-    "slug": "course-schedule-iv",
-    "title": "Course Schedule IV",
-    "source": "leetcode",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/course-schedule-iv/",
-    "articleUrl": "",
-    "topicTags": [
-      "Depth-First Search",
-      "Breadth-First Search",
-      "Graph Theory",
-      "Topological Sort"
-    ],
-    "companies": [
-      {
-        "name": "Uber",
-        "freq": 47.5
-      },
-      {
-        "name": "TikTok",
-        "freq": 44
-      },
-      {
-        "name": "Amazon",
-        "freq": 20
-      },
-      {
-        "name": "Google",
-        "freq": 8.1
-      },
-      {
-        "name": "Meta",
-        "freq": 8
-      }
-    ],
-    "sheets": [],
-    "lcId": 1462,
-    "likes": 2179,
-    "dislikes": 94,
-    "likeRatio": 95.9,
-    "videoId": "cEW05ofxhn0",
-    "askedRecently": [],
-    "patternSlug": "graphs",
-    "score": 1.41,
-    "patternOrder": 21
+    "patternOrder": 22
   },
   {
     "slug": "maximize-amount-after-two-days-of-conversions",
@@ -21911,7 +21784,7 @@
       {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
-        "order": 16
+        "order": 17
       }
     ],
     "lcId": 3387,
@@ -21925,7 +21798,7 @@
     ],
     "patternSlug": "graphs",
     "score": 1.17,
-    "patternOrder": 22
+    "patternOrder": 23
   },
   {
     "slug": "word-ladder",
@@ -22039,7 +21912,140 @@
     ],
     "patternSlug": "graphs",
     "score": 10.92,
-    "patternOrder": 23
+    "patternOrder": 24
+  },
+  {
+    "slug": "bus-routes",
+    "title": "Bus Routes",
+    "source": "leetcode",
+    "difficulty": "Hard",
+    "url": "https://leetcode.com/problems/bus-routes/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Hash Table",
+      "Breadth-First Search"
+    ],
+    "companies": [
+      {
+        "name": "Uber",
+        "freq": 100
+      },
+      {
+        "name": "TikTok",
+        "freq": 54.4
+      },
+      {
+        "name": "Amazon",
+        "freq": 36.7
+      },
+      {
+        "name": "Google",
+        "freq": 33.7
+      },
+      {
+        "name": "Microsoft",
+        "freq": 29.3
+      },
+      {
+        "name": "Salesforce",
+        "freq": 27.7
+      },
+      {
+        "name": "Oracle",
+        "freq": 25.3
+      },
+      {
+        "name": "Bloomberg",
+        "freq": 24.6
+      },
+      {
+        "name": "Meta",
+        "freq": 5
+      }
+    ],
+    "sheets": [
+      {
+        "sheet": "faang-2026",
+        "group": "3 companies",
+        "order": 0
+      },
+      {
+        "sheet": "ai-300",
+        "group": "Graphs (BFS / DFS)",
+        "order": 11
+      }
+    ],
+    "lcId": 815,
+    "likes": 4781,
+    "dislikes": 137,
+    "likeRatio": 97.2,
+    "videoId": "",
+    "askedRecently": [
+      "Apple",
+      "Nvidia",
+      "Uber"
+    ],
+    "patternSlug": "graphs",
+    "score": 3.64,
+    "patternOrder": 25
+  },
+  {
+    "slug": "shortest-path-in-a-grid-with-obstacles-elimination",
+    "title": "Shortest Path in a Grid with Obstacles Elimination",
+    "source": "leetcode",
+    "difficulty": "Hard",
+    "url": "https://leetcode.com/problems/shortest-path-in-a-grid-with-obstacles-elimination/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Breadth-First Search",
+      "Matrix"
+    ],
+    "companies": [
+      {
+        "name": "Adobe",
+        "freq": 59.8
+      },
+      {
+        "name": "TikTok",
+        "freq": 54.4
+      },
+      {
+        "name": "Google",
+        "freq": 35.8
+      },
+      {
+        "name": "Cisco",
+        "freq": 35.7
+      },
+      {
+        "name": "Amazon",
+        "freq": 27.8
+      },
+      {
+        "name": "Uber",
+        "freq": 20.3
+      },
+      {
+        "name": "Meta",
+        "freq": 17
+      },
+      {
+        "name": "Bloomberg",
+        "freq": 13.4
+      }
+    ],
+    "sheets": [],
+    "lcId": 1293,
+    "likes": 4924,
+    "dislikes": 91,
+    "likeRatio": 98.2,
+    "videoId": "",
+    "askedRecently": [],
+    "patternSlug": "graphs",
+    "score": 1.91,
+    "patternOrder": 28
   },
   {
     "slug": "critical-connections-in-a-network",
@@ -22089,7 +22095,7 @@
       {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
-        "order": 13
+        "order": 14
       }
     ],
     "lcId": 1192,
@@ -22102,7 +22108,7 @@
     ],
     "patternSlug": "graphs",
     "score": 1.76,
-    "patternOrder": 24
+    "patternOrder": 29
   },
   {
     "slug": "minimum-edge-reversals-so-every-node-is-reachable",
@@ -22147,7 +22153,7 @@
       {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
-        "order": 17
+        "order": 18
       }
     ],
     "lcId": 2858,
@@ -22158,7 +22164,7 @@
     "askedRecently": [],
     "patternSlug": "graphs",
     "score": 1.51,
-    "patternOrder": 25
+    "patternOrder": 30
   },
   {
     "slug": "maximum-candies-you-can-get-from-boxes",
@@ -22199,7 +22205,7 @@
     ],
     "patternSlug": "graphs",
     "score": 0.5,
-    "patternOrder": 26
+    "patternOrder": 31
   },
   {
     "slug": "find-if-path-exists-in-graph",
@@ -23189,7 +23195,7 @@
     "askedRecently": [],
     "patternSlug": "advanced-graphs",
     "score": 1.49,
-    "patternOrder": 14
+    "patternOrder": 21
   },
   {
     "slug": "find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree",
@@ -23235,7 +23241,7 @@
     "askedRecently": [],
     "patternSlug": "advanced-graphs",
     "score": 1.03,
-    "patternOrder": 15
+    "patternOrder": 22
   },
   {
     "slug": "checking-existence-of-edge-length-limited-paths",
@@ -23282,7 +23288,7 @@
     ],
     "patternSlug": "advanced-graphs",
     "score": 0.82,
-    "patternOrder": 16
+    "patternOrder": 23
   },
   {
     "slug": "longest-palindrome",
@@ -24173,7 +24179,7 @@
     "askedRecently": [],
     "patternSlug": "greedy",
     "score": 2.15,
-    "patternOrder": 11
+    "patternOrder": 16
   },
   {
     "slug": "two-city-scheduling",
@@ -24229,7 +24235,7 @@
     ],
     "patternSlug": "greedy",
     "score": 1.55,
-    "patternOrder": 12
+    "patternOrder": 17
   },
   {
     "slug": "jump-game-vii",
@@ -24271,7 +24277,7 @@
     "askedRecently": [],
     "patternSlug": "greedy",
     "score": 1.09,
-    "patternOrder": 13
+    "patternOrder": 18
   },
   {
     "slug": "max-difference-you-can-get-from-changing-an-integer",
@@ -24319,7 +24325,7 @@
     ],
     "patternSlug": "greedy",
     "score": 0.74,
-    "patternOrder": 14
+    "patternOrder": 19
   },
   {
     "slug": "candy",
@@ -24387,7 +24393,7 @@
     "askedRecently": [],
     "patternSlug": "greedy",
     "score": 3.88,
-    "patternOrder": 15
+    "patternOrder": 20
   },
   {
     "slug": "maximum-number-of-non-overlapping-substrings",
@@ -24428,7 +24434,7 @@
     "askedRecently": [],
     "patternSlug": "greedy",
     "score": 2.72,
-    "patternOrder": 16
+    "patternOrder": 21
   },
   {
     "slug": "merge-intervals",
@@ -24979,7 +24985,7 @@
     "askedRecently": [],
     "patternSlug": "intervals",
     "score": 1.86,
-    "patternOrder": 6
+    "patternOrder": 7
   },
   {
     "slug": "minimum-interval-to-include-each-query",
@@ -25029,7 +25035,7 @@
     "askedRecently": [],
     "patternSlug": "intervals",
     "score": 3.4,
-    "patternOrder": 7
+    "patternOrder": 8
   },
   {
     "slug": "meeting-rooms-iii",
@@ -25100,7 +25106,7 @@
     ],
     "patternSlug": "intervals",
     "score": 2.49,
-    "patternOrder": 8
+    "patternOrder": 9
   },
   {
     "slug": "my-calendar-iii",
@@ -25139,7 +25145,7 @@
     ],
     "patternSlug": "intervals",
     "score": 0.6,
-    "patternOrder": 9
+    "patternOrder": 10
   },
   {
     "slug": "climbing-stairs",
@@ -25328,7 +25334,13 @@
         "freq": 42
       }
     ],
-    "sheets": [],
+    "sheets": [
+      {
+        "sheet": "ai-300",
+        "group": "1-D Dynamic Programming",
+        "order": 19
+      }
+    ],
     "lcId": 509,
     "likes": 9522,
     "dislikes": 417,
@@ -26321,81 +26333,6 @@
     "patternOrder": 12
   },
   {
-    "slug": "01-matrix",
-    "title": "01 Matrix",
-    "source": "leetcode",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/01-matrix/",
-    "articleUrl": "",
-    "topicTags": [
-      "Array",
-      "Dynamic Programming",
-      "Breadth-First Search",
-      "Matrix"
-    ],
-    "companies": [
-      {
-        "name": "Flipkart",
-        "freq": 43.2
-      },
-      {
-        "name": "Amazon",
-        "freq": 40.2
-      },
-      {
-        "name": "Google",
-        "freq": 36.3
-      },
-      {
-        "name": "Bloomberg",
-        "freq": 27.3
-      },
-      {
-        "name": "Microsoft",
-        "freq": 27.3
-      },
-      {
-        "name": "LinkedIn",
-        "freq": 26.9
-      },
-      {
-        "name": "Meta",
-        "freq": 26.7
-      },
-      {
-        "name": "Apple",
-        "freq": 22
-      },
-      {
-        "name": "Uber",
-        "freq": 20.3
-      }
-    ],
-    "sheets": [
-      {
-        "sheet": "faang-2026",
-        "group": "DoorDash",
-        "order": 0
-      },
-      {
-        "sheet": "ai-300",
-        "group": "1-D Dynamic Programming",
-        "order": 11
-      }
-    ],
-    "lcId": 542,
-    "likes": 10956,
-    "dislikes": 454,
-    "likeRatio": 96,
-    "videoId": "",
-    "askedRecently": [
-      "DoorDash"
-    ],
-    "patternSlug": "dp-1d",
-    "score": 2.63,
-    "patternOrder": 13
-  },
-  {
     "slug": "triangle",
     "title": "Triangle",
     "source": "leetcode",
@@ -26445,7 +26382,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 2.47,
-    "patternOrder": 14
+    "patternOrder": 13
   },
   {
     "slug": "minimum-cost-for-tickets",
@@ -26501,7 +26438,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 2.36,
-    "patternOrder": 15
+    "patternOrder": 14
   },
   {
     "slug": "minimum-operations-to-reduce-an-integer-to-0",
@@ -26554,7 +26491,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 2.04,
-    "patternOrder": 16
+    "patternOrder": 15
   },
   {
     "slug": "perfect-squares",
@@ -26600,7 +26537,7 @@
       {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
-        "order": 19
+        "order": 17
       }
     ],
     "lcId": 279,
@@ -26611,7 +26548,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 1.96,
-    "patternOrder": 17
+    "patternOrder": 16
   },
   {
     "slug": "delete-and-earn",
@@ -26664,7 +26601,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 1.92,
-    "patternOrder": 18
+    "patternOrder": 17
   },
   {
     "slug": "best-time-to-buy-and-sell-stock-with-transaction-fee",
@@ -26712,7 +26649,7 @@
       {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
-        "order": 16
+        "order": 14
       }
     ],
     "lcId": 714,
@@ -26723,60 +26660,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 1.72,
-    "patternOrder": 19
-  },
-  {
-    "slug": "minimum-falling-path-sum",
-    "title": "Minimum Falling Path Sum",
-    "source": "leetcode",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/minimum-falling-path-sum/",
-    "articleUrl": "",
-    "topicTags": [
-      "Array",
-      "Dynamic Programming",
-      "Matrix"
-    ],
-    "companies": [
-      {
-        "name": "Goldman Sachs",
-        "freq": 43.6
-      },
-      {
-        "name": "Amazon",
-        "freq": 34.2
-      },
-      {
-        "name": "Google",
-        "freq": 29.7
-      },
-      {
-        "name": "Microsoft",
-        "freq": 29.3
-      },
-      {
-        "name": "Apple",
-        "freq": 22
-      },
-      {
-        "name": "Meta",
-        "freq": 19.4
-      },
-      {
-        "name": "Bloomberg",
-        "freq": 13.4
-      }
-    ],
-    "sheets": [],
-    "lcId": 931,
-    "likes": 7063,
-    "dislikes": 175,
-    "likeRatio": 97.6,
-    "videoId": "",
-    "askedRecently": [],
-    "patternSlug": "dp-1d",
-    "score": 1.69,
-    "patternOrder": 20
+    "patternOrder": 18
   },
   {
     "slug": "combination-sum-iv",
@@ -26830,69 +26714,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 1.62,
-    "patternOrder": 21
-  },
-  {
-    "slug": "count-square-submatrices-with-all-ones",
-    "title": "Count Square Submatrices with All Ones",
-    "source": "leetcode",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/count-square-submatrices-with-all-ones/",
-    "articleUrl": "",
-    "topicTags": [
-      "Array",
-      "Dynamic Programming",
-      "Matrix"
-    ],
-    "companies": [
-      {
-        "name": "Google",
-        "freq": 37.3
-      },
-      {
-        "name": "Amazon",
-        "freq": 34.2
-      },
-      {
-        "name": "Goldman Sachs",
-        "freq": 20.4
-      },
-      {
-        "name": "Microsoft",
-        "freq": 16.1
-      },
-      {
-        "name": "Meta",
-        "freq": 14.4
-      },
-      {
-        "name": "Bloomberg",
-        "freq": 8.2
-      }
-    ],
-    "sheets": [
-      {
-        "sheet": "faang-2026",
-        "group": "Google",
-        "order": 0
-      },
-      {
-        "sheet": "ai-300",
-        "group": "1-D Dynamic Programming",
-        "order": 14
-      }
-    ],
-    "lcId": 1277,
-    "likes": 6014,
-    "dislikes": 117,
-    "likeRatio": 98.1,
-    "videoId": "",
-    "askedRecently": [
-      "Google"
-    ],
-    "patternSlug": "dp-1d",
-    "score": 1.59,
-    "patternOrder": 22
+    "patternOrder": 19
   },
   {
     "slug": "longest-string-chain",
@@ -26948,7 +26770,7 @@
       {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
-        "order": 13
+        "order": 12
       }
     ],
     "lcId": 1048,
@@ -26961,7 +26783,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 1.47,
-    "patternOrder": 23
+    "patternOrder": 20
   },
   {
     "slug": "maximum-frequency-after-subarray-operation",
@@ -27005,7 +26827,7 @@
       {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
-        "order": 18
+        "order": 16
       }
     ],
     "lcId": 3434,
@@ -27018,7 +26840,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 1.14,
-    "patternOrder": 24
+    "patternOrder": 21
   },
   {
     "slug": "longest-arithmetic-subsequence-of-given-difference",
@@ -27051,7 +26873,7 @@
       {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
-        "order": 15
+        "order": 13
       }
     ],
     "lcId": 1218,
@@ -27064,48 +26886,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 0.77,
-    "patternOrder": 25
-  },
-  {
-    "slug": "maximum-number-of-points-with-cost",
-    "title": "Maximum Number of Points with Cost",
-    "source": "leetcode",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/maximum-number-of-points-with-cost/",
-    "articleUrl": "",
-    "topicTags": [
-      "Array",
-      "Dynamic Programming",
-      "Matrix"
-    ],
-    "companies": [
-      {
-        "name": "Google",
-        "freq": 24.4
-      },
-      {
-        "name": "Microsoft",
-        "freq": 7.3
-      }
-    ],
-    "sheets": [
-      {
-        "sheet": "faang-2026",
-        "group": "Google",
-        "order": 0
-      }
-    ],
-    "lcId": 1937,
-    "likes": 3290,
-    "dislikes": 243,
-    "likeRatio": 93.1,
-    "videoId": "",
-    "askedRecently": [
-      "Google"
-    ],
-    "patternSlug": "dp-1d",
-    "score": 0.72,
-    "patternOrder": 26
+    "patternOrder": 22
   },
   {
     "slug": "maximum-profit-in-job-scheduling",
@@ -27167,7 +26948,7 @@
       {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
-        "order": 12
+        "order": 11
       }
     ],
     "lcId": 1235,
@@ -27182,7 +26963,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 3.43,
-    "patternOrder": 27
+    "patternOrder": 23
   },
   {
     "slug": "wildcard-matching",
@@ -27236,7 +27017,7 @@
       {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
-        "order": 17
+        "order": 15
       }
     ],
     "lcId": 44,
@@ -27249,7 +27030,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 2.7,
-    "patternOrder": 28
+    "patternOrder": 24
   },
   {
     "slug": "best-time-to-buy-and-sell-stock-iii",
@@ -27305,7 +27086,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 2.38,
-    "patternOrder": 29
+    "patternOrder": 26
   },
   {
     "slug": "russian-doll-envelopes",
@@ -27364,60 +27145,7 @@
     "askedRecently": [],
     "patternSlug": "dp-1d",
     "score": 2.33,
-    "patternOrder": 30
-  },
-  {
-    "slug": "dungeon-game",
-    "title": "Dungeon Game",
-    "source": "leetcode",
-    "difficulty": "Hard",
-    "url": "https://leetcode.com/problems/dungeon-game/",
-    "articleUrl": "",
-    "topicTags": [
-      "Array",
-      "Dynamic Programming",
-      "Matrix"
-    ],
-    "companies": [
-      {
-        "name": "Flipkart",
-        "freq": 52.9
-      },
-      {
-        "name": "Uber",
-        "freq": 41.6
-      },
-      {
-        "name": "Microsoft",
-        "freq": 32.8
-      },
-      {
-        "name": "Amazon",
-        "freq": 31.3
-      },
-      {
-        "name": "Google",
-        "freq": 24.4
-      },
-      {
-        "name": "Meta",
-        "freq": 14.4
-      },
-      {
-        "name": "Bloomberg",
-        "freq": 13.4
-      }
-    ],
-    "sheets": [],
-    "lcId": 174,
-    "likes": 6350,
-    "dislikes": 118,
-    "likeRatio": 98.2,
-    "videoId": "",
-    "askedRecently": [],
-    "patternSlug": "dp-1d",
-    "score": 1.68,
-    "patternOrder": 31
+    "patternOrder": 27
   },
   {
     "slug": "allocate-mailboxes",
@@ -27455,6 +27183,11 @@
         "sheet": "faang-2026",
         "group": "LinkedIn",
         "order": 0
+      },
+      {
+        "sheet": "ai-300",
+        "group": "1-D Dynamic Programming",
+        "order": 18
       }
     ],
     "lcId": 1478,
@@ -27467,7 +27200,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 1.17,
-    "patternOrder": 32
+    "patternOrder": 28
   },
   {
     "slug": "decode-ways-ii",
@@ -27507,7 +27240,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 0.7,
-    "patternOrder": 33
+    "patternOrder": 29
   },
   {
     "slug": "k-inverse-pairs-array",
@@ -27554,7 +27287,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 0.7,
-    "patternOrder": 34
+    "patternOrder": 30
   },
   {
     "slug": "paint-house-iii",
@@ -27594,7 +27327,7 @@
     ],
     "patternSlug": "dp-1d",
     "score": 0.67,
-    "patternOrder": 35
+    "patternOrder": 31
   },
   {
     "slug": "unique-paths",
@@ -27998,7 +27731,7 @@
       {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
-        "order": 14
+        "order": 15
       }
     ],
     "lcId": 97,
@@ -28252,13 +27985,7 @@
         "freq": 13.4
       }
     ],
-    "sheets": [
-      {
-        "sheet": "ai-300",
-        "group": "2-D Dynamic Programming",
-        "order": 16
-      }
-    ],
+    "sheets": [],
     "lcId": 221,
     "likes": 11113,
     "dislikes": 265,
@@ -28389,6 +28116,191 @@
     "patternOrder": 10
   },
   {
+    "slug": "01-matrix",
+    "title": "01 Matrix",
+    "source": "leetcode",
+    "difficulty": "Medium",
+    "url": "https://leetcode.com/problems/01-matrix/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Dynamic Programming",
+      "Breadth-First Search",
+      "Matrix"
+    ],
+    "companies": [
+      {
+        "name": "Flipkart",
+        "freq": 43.2
+      },
+      {
+        "name": "Amazon",
+        "freq": 40.2
+      },
+      {
+        "name": "Google",
+        "freq": 36.3
+      },
+      {
+        "name": "Bloomberg",
+        "freq": 27.3
+      },
+      {
+        "name": "Microsoft",
+        "freq": 27.3
+      },
+      {
+        "name": "LinkedIn",
+        "freq": 26.9
+      },
+      {
+        "name": "Meta",
+        "freq": 26.7
+      },
+      {
+        "name": "Apple",
+        "freq": 22
+      },
+      {
+        "name": "Uber",
+        "freq": 20.3
+      }
+    ],
+    "sheets": [
+      {
+        "sheet": "faang-2026",
+        "group": "DoorDash",
+        "order": 0
+      },
+      {
+        "sheet": "ai-300",
+        "group": "2-D Dynamic Programming",
+        "order": 12
+      }
+    ],
+    "lcId": 542,
+    "likes": 10956,
+    "dislikes": 454,
+    "likeRatio": 96,
+    "videoId": "",
+    "askedRecently": [
+      "DoorDash"
+    ],
+    "patternSlug": "dp-2d",
+    "score": 2.63,
+    "patternOrder": 11
+  },
+  {
+    "slug": "minimum-falling-path-sum",
+    "title": "Minimum Falling Path Sum",
+    "source": "leetcode",
+    "difficulty": "Medium",
+    "url": "https://leetcode.com/problems/minimum-falling-path-sum/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Dynamic Programming",
+      "Matrix"
+    ],
+    "companies": [
+      {
+        "name": "Goldman Sachs",
+        "freq": 43.6
+      },
+      {
+        "name": "Amazon",
+        "freq": 34.2
+      },
+      {
+        "name": "Google",
+        "freq": 29.7
+      },
+      {
+        "name": "Microsoft",
+        "freq": 29.3
+      },
+      {
+        "name": "Apple",
+        "freq": 22
+      },
+      {
+        "name": "Meta",
+        "freq": 19.4
+      },
+      {
+        "name": "Bloomberg",
+        "freq": 13.4
+      }
+    ],
+    "sheets": [],
+    "lcId": 931,
+    "likes": 7063,
+    "dislikes": 175,
+    "likeRatio": 97.6,
+    "videoId": "",
+    "askedRecently": [],
+    "patternSlug": "dp-2d",
+    "score": 1.69,
+    "patternOrder": 13
+  },
+  {
+    "slug": "count-square-submatrices-with-all-ones",
+    "title": "Count Square Submatrices with All Ones",
+    "source": "leetcode",
+    "difficulty": "Medium",
+    "url": "https://leetcode.com/problems/count-square-submatrices-with-all-ones/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Dynamic Programming",
+      "Matrix"
+    ],
+    "companies": [
+      {
+        "name": "Google",
+        "freq": 37.3
+      },
+      {
+        "name": "Amazon",
+        "freq": 34.2
+      },
+      {
+        "name": "Goldman Sachs",
+        "freq": 20.4
+      },
+      {
+        "name": "Microsoft",
+        "freq": 16.1
+      },
+      {
+        "name": "Meta",
+        "freq": 14.4
+      },
+      {
+        "name": "Bloomberg",
+        "freq": 8.2
+      }
+    ],
+    "sheets": [
+      {
+        "sheet": "faang-2026",
+        "group": "Google",
+        "order": 0
+      }
+    ],
+    "lcId": 1277,
+    "likes": 6014,
+    "dislikes": 117,
+    "likeRatio": 98.1,
+    "videoId": "",
+    "askedRecently": [
+      "Google"
+    ],
+    "patternSlug": "dp-2d",
+    "score": 1.59,
+    "patternOrder": 14
+  },
+  {
     "slug": "stone-game",
     "title": "Stone Game",
     "source": "leetcode",
@@ -28434,7 +28346,7 @@
     "askedRecently": [],
     "patternSlug": "dp-2d",
     "score": 1.35,
-    "patternOrder": 11
+    "patternOrder": 15
   },
   {
     "slug": "ones-and-zeroes",
@@ -28476,7 +28388,7 @@
       {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
-        "order": 12
+        "order": 13
       }
     ],
     "lcId": 474,
@@ -28487,7 +28399,7 @@
     "askedRecently": [],
     "patternSlug": "dp-2d",
     "score": 1.23,
-    "patternOrder": 12
+    "patternOrder": 16
   },
   {
     "slug": "stone-game-ii",
@@ -28536,43 +28448,48 @@
     "askedRecently": [],
     "patternSlug": "dp-2d",
     "score": 1.16,
-    "patternOrder": 13
+    "patternOrder": 17
   },
   {
-    "slug": "flip-string-to-monotone-increasing",
-    "title": "Flip String to Monotone Increasing",
+    "slug": "maximum-number-of-points-with-cost",
+    "title": "Maximum Number of Points with Cost",
     "source": "leetcode",
     "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/flip-string-to-monotone-increasing/",
+    "url": "https://leetcode.com/problems/maximum-number-of-points-with-cost/",
     "articleUrl": "",
     "topicTags": [
-      "String",
-      "Dynamic Programming"
+      "Array",
+      "Dynamic Programming",
+      "Matrix"
     ],
     "companies": [
       {
-        "name": "Amazon",
-        "freq": 30.2
-      },
-      {
         "name": "Google",
-        "freq": 23.3
+        "freq": 24.4
       },
       {
-        "name": "Meta",
-        "freq": 5
+        "name": "Microsoft",
+        "freq": 7.3
       }
     ],
-    "sheets": [],
-    "lcId": 926,
-    "likes": 4617,
-    "dislikes": 186,
-    "likeRatio": 96.1,
-    "videoId": "tMq9z5k3umQ",
-    "askedRecently": [],
+    "sheets": [
+      {
+        "sheet": "faang-2026",
+        "group": "Google",
+        "order": 0
+      }
+    ],
+    "lcId": 1937,
+    "likes": 3290,
+    "dislikes": 243,
+    "likeRatio": 93.1,
+    "videoId": "",
+    "askedRecently": [
+      "Google"
+    ],
     "patternSlug": "dp-2d",
-    "score": 1.09,
-    "patternOrder": 14
+    "score": 0.72,
+    "patternOrder": 18
   },
   {
     "slug": "regular-expression-matching",
@@ -28655,7 +28572,7 @@
     ],
     "patternSlug": "dp-2d",
     "score": 8.63,
-    "patternOrder": 15
+    "patternOrder": 19
   },
   {
     "slug": "longest-increasing-path-in-a-matrix",
@@ -28747,7 +28664,7 @@
     ],
     "patternSlug": "dp-2d",
     "score": 7.53,
-    "patternOrder": 16
+    "patternOrder": 20
   },
   {
     "slug": "burst-balloons",
@@ -28816,7 +28733,7 @@
       {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
-        "order": 13
+        "order": 14
       }
     ],
     "lcId": 312,
@@ -28830,7 +28747,7 @@
     ],
     "patternSlug": "dp-2d",
     "score": 6.55,
-    "patternOrder": 17
+    "patternOrder": 21
   },
   {
     "slug": "distinct-subsequences",
@@ -28884,7 +28801,7 @@
     "askedRecently": [],
     "patternSlug": "dp-2d",
     "score": 4.74,
-    "patternOrder": 18
+    "patternOrder": 22
   },
   {
     "slug": "minimum-cost-to-cut-a-stick",
@@ -28940,7 +28857,7 @@
     "askedRecently": [],
     "patternSlug": "dp-2d",
     "score": 4.01,
-    "patternOrder": 19
+    "patternOrder": 23
   },
   {
     "slug": "partition-array-into-two-arrays-to-minimize-sum-difference",
@@ -28994,7 +28911,7 @@
       {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
-        "order": 15
+        "order": 16
       }
     ],
     "lcId": 2035,
@@ -29005,7 +28922,113 @@
     "askedRecently": [],
     "patternSlug": "dp-2d",
     "score": 1.9,
-    "patternOrder": 20
+    "patternOrder": 27
+  },
+  {
+    "slug": "dungeon-game",
+    "title": "Dungeon Game",
+    "source": "leetcode",
+    "difficulty": "Hard",
+    "url": "https://leetcode.com/problems/dungeon-game/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Dynamic Programming",
+      "Matrix"
+    ],
+    "companies": [
+      {
+        "name": "Flipkart",
+        "freq": 52.9
+      },
+      {
+        "name": "Uber",
+        "freq": 41.6
+      },
+      {
+        "name": "Microsoft",
+        "freq": 32.8
+      },
+      {
+        "name": "Amazon",
+        "freq": 31.3
+      },
+      {
+        "name": "Google",
+        "freq": 24.4
+      },
+      {
+        "name": "Meta",
+        "freq": 14.4
+      },
+      {
+        "name": "Bloomberg",
+        "freq": 13.4
+      }
+    ],
+    "sheets": [],
+    "lcId": 174,
+    "likes": 6350,
+    "dislikes": 118,
+    "likeRatio": 98.2,
+    "videoId": "",
+    "askedRecently": [],
+    "patternSlug": "dp-2d",
+    "score": 1.68,
+    "patternOrder": 28
+  },
+  {
+    "slug": "cherry-pickup",
+    "title": "Cherry Pickup",
+    "source": "leetcode",
+    "difficulty": "Hard",
+    "url": "https://leetcode.com/problems/cherry-pickup/",
+    "articleUrl": "",
+    "topicTags": [
+      "Array",
+      "Dynamic Programming",
+      "Matrix"
+    ],
+    "companies": [
+      {
+        "name": "Uber",
+        "freq": 59.1
+      },
+      {
+        "name": "Flipkart",
+        "freq": 43.2
+      },
+      {
+        "name": "Goldman Sachs",
+        "freq": 20.4
+      },
+      {
+        "name": "Amazon",
+        "freq": 18
+      },
+      {
+        "name": "Google",
+        "freq": 18
+      },
+      {
+        "name": "Microsoft",
+        "freq": 16.1
+      },
+      {
+        "name": "Meta",
+        "freq": 5
+      }
+    ],
+    "sheets": [],
+    "lcId": 741,
+    "likes": 4753,
+    "dislikes": 173,
+    "likeRatio": 96.5,
+    "videoId": "",
+    "askedRecently": [],
+    "patternSlug": "dp-2d",
+    "score": 1.31,
+    "patternOrder": 29
   },
   {
     "slug": "shortest-common-supersequence",
@@ -29050,7 +29073,7 @@
     "askedRecently": [],
     "patternSlug": "dp-2d",
     "score": 1.19,
-    "patternOrder": 21
+    "patternOrder": 30
   },
   {
     "slug": "missing-number",
@@ -32149,7 +32172,7 @@
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 39
   },
   {
     "slug": "striver-inversion-of-array-pre-req-merge-sort",
@@ -32175,7 +32198,7 @@
     "videoId": "",
     "patternSlug": "arrays-hashing",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 40
   },
   {
     "slug": "striver-largest-subarray-with-k-sum",
@@ -32201,7 +32224,7 @@
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 5
   },
   {
     "slug": "striver-count-number-of-subarrays-with-given-xor-k",
@@ -32227,7 +32250,7 @@
     "videoId": "",
     "patternSlug": "prefix-sum",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 14
   },
   {
     "slug": "striver-flattening-of-a-linkedlist",
@@ -32253,7 +32276,7 @@
     "videoId": "",
     "patternSlug": "linked-list",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 20
   },
   {
     "slug": "striver-n-meetings-in-one-room",
@@ -32279,7 +32302,7 @@
     "videoId": "",
     "patternSlug": "intervals",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 6
   },
   {
     "slug": "striver-minimum-number-of-platforms-required-for-a-railway",
@@ -32305,7 +32328,7 @@
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 11
   },
   {
     "slug": "striver-job-sequencing-problem",
@@ -32331,7 +32354,7 @@
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 12
   },
   {
     "slug": "striver-fractional-knapsack-problem",
@@ -32357,7 +32380,7 @@
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 13
   },
   {
     "slug": "striver-greedy-algorithm-to-find-minimum-number-of-coins",
@@ -32383,7 +32406,7 @@
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 14
   },
   {
     "slug": "striver-subset-sums",
@@ -32409,7 +32432,7 @@
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 10
   },
   {
     "slug": "striver-m-coloring-problem",
@@ -32435,7 +32458,7 @@
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 18
   },
   {
     "slug": "striver-rat-in-a-maze",
@@ -32451,6 +32474,11 @@
         "sheet": "striver-sde",
         "group": "Day 10: Recursion and Backtracking",
         "order": 4
+      },
+      {
+        "sheet": "ai-300",
+        "group": "Graphs (BFS / DFS)",
+        "order": 19
       }
     ],
     "askedRecently": [],
@@ -32461,7 +32489,7 @@
     "videoId": "",
     "patternSlug": "graphs",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 26
   },
   {
     "slug": "striver-word-break-print-all-ways",
@@ -32487,7 +32515,7 @@
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 11
   },
   {
     "slug": "striver-the-n-th-root-of-an-integer",
@@ -32513,7 +32541,7 @@
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 4
   },
   {
     "slug": "striver-matrix-median",
@@ -32539,7 +32567,7 @@
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 23
   },
   {
     "slug": "striver-k-th-element-of-two-sorted-arrays",
@@ -32565,7 +32593,7 @@
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 19
   },
   {
     "slug": "striver-allocate-minimum-number-of-pages",
@@ -32591,7 +32619,7 @@
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 24
   },
   {
     "slug": "striver-aggressive-cows",
@@ -32617,7 +32645,7 @@
     "videoId": "",
     "patternSlug": "binary-search",
     "score": 2.5,
-    "patternOrder": 1005
+    "patternOrder": 25
   },
   {
     "slug": "striver-max-heap-min-heap-implementation-only-for-interviews",
@@ -32643,7 +32671,7 @@
     "videoId": "",
     "patternSlug": "heap",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 8
   },
   {
     "slug": "striver-maximum-sum-combination",
@@ -32669,7 +32697,7 @@
     "videoId": "",
     "patternSlug": "heap",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 9
   },
   {
     "slug": "striver-merge-k-sorted-arrays",
@@ -32695,7 +32723,7 @@
     "videoId": "",
     "patternSlug": "heap",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 10
   },
   {
     "slug": "striver-implement-stack-using-arrays",
@@ -32721,7 +32749,7 @@
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 4
   },
   {
     "slug": "striver-implement-queue-using-arrays",
@@ -32747,7 +32775,7 @@
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 5
   },
   {
     "slug": "striver-sort-a-stack",
@@ -32773,7 +32801,7 @@
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 6
   },
   {
     "slug": "striver-next-smaller-element",
@@ -32799,7 +32827,7 @@
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 7
   },
   {
     "slug": "striver-find-the-maximum-of-minimums-of-every-window-size",
@@ -32830,7 +32858,7 @@
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 12
   },
   {
     "slug": "striver-the-celebrity-problem",
@@ -32856,7 +32884,7 @@
     "videoId": "",
     "patternSlug": "stack",
     "score": 2.5,
-    "patternOrder": 1005
+    "patternOrder": 28
   },
   {
     "slug": "striver-minimum-characters-needed-to-be-inserted-in-the-beginning-to-make-it-palindromic",
@@ -32882,7 +32910,7 @@
     "videoId": "",
     "patternSlug": "strings",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 16
   },
   {
     "slug": "striver-morris-preorder-traversal",
@@ -32913,7 +32941,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 30
   },
   {
     "slug": "striver-leftview-of-binary-tree",
@@ -32939,7 +32967,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 11
   },
   {
     "slug": "striver-bottom-view-of-binary-tree",
@@ -32965,7 +32993,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 31
   },
   {
     "slug": "striver-top-view-of-binary-tree",
@@ -32991,7 +33019,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 12
   },
   {
     "slug": "striver-preorder-inorder-postorder-in-a-single-traversal",
@@ -33017,7 +33045,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1005
+    "patternOrder": 32
   },
   {
     "slug": "striver-root-to-node-path-in-binary-tree",
@@ -33043,7 +33071,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1006
+    "patternOrder": 33
   },
   {
     "slug": "striver-check-if-binary-tree-is-the-mirror-of-itself-or-not",
@@ -33069,7 +33097,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1007
+    "patternOrder": 34
   },
   {
     "slug": "striver-check-for-children-sum-property",
@@ -33095,7 +33123,7 @@
     "videoId": "",
     "patternSlug": "trees",
     "score": 2.5,
-    "patternOrder": 1008
+    "patternOrder": 42
   },
   {
     "slug": "striver-find-the-inorder-predecessor-successor-of-a-given-key-in-bst",
@@ -33121,7 +33149,7 @@
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 8
   },
   {
     "slug": "striver-floor-in-a-bst",
@@ -33147,7 +33175,7 @@
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 2
   },
   {
     "slug": "striver-ceil-in-a-bst",
@@ -33173,7 +33201,7 @@
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 3
   },
   {
     "slug": "striver-find-k-th-largest-element-in-bst",
@@ -33199,7 +33227,7 @@
     "videoId": "",
     "patternSlug": "bst",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 9
   },
   {
     "slug": "striver-distinct-numbers-in-window",
@@ -33225,7 +33253,7 @@
     "videoId": "",
     "patternSlug": "sliding-window",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 13
   },
   {
     "slug": "striver-dfs",
@@ -33251,7 +33279,7 @@
     "videoId": "",
     "patternSlug": "graphs",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 27
   },
   {
     "slug": "striver-bfs",
@@ -33277,7 +33305,7 @@
     "videoId": "",
     "patternSlug": "graphs",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 19
   },
   {
     "slug": "striver-topological-sort-bfs",
@@ -33303,7 +33331,7 @@
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 14
   },
   {
     "slug": "striver-topological-sort-dfs",
@@ -33329,7 +33357,7 @@
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 15
   },
   {
     "slug": "striver-dijkstra-s-algorithm",
@@ -33360,7 +33388,7 @@
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 16
   },
   {
     "slug": "striver-bellman-ford-algo",
@@ -33386,7 +33414,7 @@
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 17
   },
   {
     "slug": "striver-floyd-warshall-algorithm",
@@ -33417,7 +33445,7 @@
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
-    "patternOrder": 1005
+    "patternOrder": 18
   },
   {
     "slug": "striver-mst-using-prim-s-algo",
@@ -33443,7 +33471,7 @@
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
-    "patternOrder": 1006
+    "patternOrder": 19
   },
   {
     "slug": "striver-mst-using-kruskal-s-algo",
@@ -33469,7 +33497,7 @@
     "videoId": "",
     "patternSlug": "advanced-graphs",
     "score": 2.5,
-    "patternOrder": 1007
+    "patternOrder": 20
   },
   {
     "slug": "striver-0-1-knapsack",
@@ -33500,7 +33528,7 @@
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 12
   },
   {
     "slug": "striver-maximum-sum-increasing-subsequence",
@@ -33526,7 +33554,7 @@
     "videoId": "",
     "patternSlug": "dp-1d",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 25
   },
   {
     "slug": "striver-matrix-chain-multiplication",
@@ -33557,7 +33585,7 @@
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 24
   },
   {
     "slug": "striver-egg-dropping",
@@ -33583,7 +33611,7 @@
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 25
   },
   {
     "slug": "striver-palindrome-partitioning-mcm-variation",
@@ -33609,7 +33637,7 @@
     "videoId": "",
     "patternSlug": "dp-2d",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 26
   },
   {
     "slug": "striver-maximum-profit-in-job-scheduling",
@@ -33635,7 +33663,7 @@
     "videoId": "",
     "patternSlug": "greedy",
     "score": 2.5,
-    "patternOrder": 1005
+    "patternOrder": 15
   },
   {
     "slug": "striver-implement-trie-2-prefix-tree",
@@ -33661,7 +33689,7 @@
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.5,
-    "patternOrder": 1001
+    "patternOrder": 10
   },
   {
     "slug": "striver-longest-string-with-all-prefixes",
@@ -33687,7 +33715,7 @@
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.5,
-    "patternOrder": 1002
+    "patternOrder": 4
   },
   {
     "slug": "striver-number-of-distinct-substrings-in-a-string",
@@ -33713,7 +33741,7 @@
     "videoId": "",
     "patternSlug": "tries",
     "score": 2.5,
-    "patternOrder": 1003
+    "patternOrder": 11
   },
   {
     "slug": "striver-power-set-this-is-very-important",
@@ -33739,6 +33767,6 @@
     "videoId": "",
     "patternSlug": "backtracking",
     "score": 2.5,
-    "patternOrder": 1004
+    "patternOrder": 12
   }
 ]

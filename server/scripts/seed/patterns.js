@@ -17,11 +17,24 @@
  * — has to re-derive them again. The curation report prints "+n over quota" per
  * pattern, which is the signal that this has drifted.
  */
+/*
+  Re-derived a second time when eight problems were refiled — five grid DPs from
+  dp-1d to dp-2d, two grid traversals from arrays-hashing to graphs, and one tree
+  problem out of binary-search. A quota is an allowance, so moving a problem
+  across a boundary without moving its slot does not just refile it: the pattern
+  it left backfills the vacancy from its pool, and the pattern it joined pushes
+  its weakest filler out. The first run of that fix quietly swapped nine problems
+  in and eight out, one of which somebody had already solved.
+
+  So each delta below is paired: -5 dp-1d / +5 dp-2d, -2 arrays-hashing /
+  +2 graphs, -1 binary-search / +1 trees. Same 517 problems, eight of them in a
+  better place. Any future reclassification has to be paired the same way.
+*/
 export const PATTERNS = [
   {
     slug: 'arrays-hashing',
     name: 'Arrays & Hashing',
-    quota: 42,
+    quota: 40,
     blurb: 'Trade memory for time — a hash map turns a nested scan into a single pass.',
     keyTechniques: ['frequency map', 'set membership', 'index map', 'bucket by key'],
   },
@@ -56,7 +69,7 @@ export const PATTERNS = [
   {
     slug: 'binary-search',
     name: 'Binary Search',
-    quota: 24,
+    quota: 23,
     blurb: 'Not just for sorted arrays — binary search the answer whenever feasibility is monotonic.',
     keyTechniques: ['classic bounds', 'first/last occurrence', 'rotated array', 'search the answer'],
   },
@@ -77,7 +90,7 @@ export const PATTERNS = [
   {
     slug: 'trees',
     name: 'Binary Trees',
-    quota: 34,
+    quota: 35,
     blurb: 'Decide what each node needs from its children, then let recursion do the walking.',
     keyTechniques: ['DFS preorder/inorder/postorder', 'BFS by level', 'return-value recursion', 'path tracking'],
   },
@@ -112,7 +125,7 @@ export const PATTERNS = [
   {
     slug: 'graphs',
     name: 'Graphs (BFS / DFS)',
-    quota: 27,
+    quota: 29,
     blurb: 'Grids are graphs. BFS gives shortest unweighted paths, DFS gives connectivity.',
     keyTechniques: ['adjacency list', 'visited set', 'multi-source BFS', 'flood fill'],
   },
@@ -140,14 +153,14 @@ export const PATTERNS = [
   {
     slug: 'dp-1d',
     name: '1-D Dynamic Programming',
-    quota: 36,
+    quota: 31,
     blurb: 'Define what dp[i] means in one sentence. If you cannot, the recurrence will not come.',
     keyTechniques: ['recurrence + base case', 'memo to tabulation', 'rolling variables', 'house-robber shape'],
   },
   {
     slug: 'dp-2d',
     name: '2-D Dynamic Programming',
-    quota: 22,
+    quota: 27,
     blurb: 'Two changing inputs means a grid — strings against strings, items against capacity.',
     keyTechniques: ['knapsack', 'LCS / edit distance', 'grid paths', 'interval DP'],
   },

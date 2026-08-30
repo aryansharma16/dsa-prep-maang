@@ -31,6 +31,23 @@ const NEETCODE_PATTERN_MAP = {
   'Bit Manipulation': 'bit-manipulation',
 };
 
+/**
+ * Problems whose home is wrong in the *source*, not in the rules below.
+ *
+ * `classify` trusts NeetCode's hand-classification over tag guessing, which is
+ * right 449 times out of 450 — but `neetcode.json` files Populating Next Right
+ * Pointers under "Binary Search", and no rule downstream can out-vote a source
+ * we deliberately trust first. So the fix has to sit above it.
+ *
+ * Kept to genuine source errors. Anything that is merely awkward to classify
+ * belongs in the tag rules, where it stays a rule rather than a special case.
+ */
+const SLUG_OVERRIDES = {
+  // Tagged Tree, Binary Tree, DFS and BFS, and filed by NeetCode under Binary
+  // Search. It is a level-order traversal with a pointer rewire.
+  'populating-next-right-pointers-in-each-node': 'trees',
+};
+
 const INTERVAL_SLUG = /interval|meeting-rooms|merge-triplets|car-pooling|my-calendar|employee-free-time|minimum-number-of-arrows/;
 
 // First matching rule wins.
@@ -66,6 +83,15 @@ const TAG_RULES = [
   ['stack', ['Monotonic Stack', 'Stack', 'Monotonic Queue', 'Queue']],
   ['heap', ['Heap (Priority Queue)', 'Quickselect']],
   ['backtracking', ['Backtracking']],
+  /*
+    A DP problem on a grid is 2-D DP by definition — the second axis is the row.
+    Needs *both* tags, because 'Matrix' alone catches Spiral Matrix and Rotate
+    Image, and 'Dynamic Programming' alone is the dp-1d rule below.
+
+    It sits after `backtracking` on purpose: Sliding Puzzle carries both tags
+    and is a search problem, and backtracking claims it first.
+  */
+  ['dp-2d', [], ['Dynamic Programming', 'Matrix']],
   ['dp-2d', ['0-1 Knapsack', 'Knapsack Problem', 'Longest Common Subsequence', 'Bitmask']],
   ['dp-1d', ['Dynamic Programming', 'Memoization', 'Longest Increasing Subsequence']],
   ['sliding-window', ['Sliding Window']],
@@ -77,17 +103,30 @@ const TAG_RULES = [
   ['bit-manipulation', ['Bit Manipulation']],
   ['math-geometry', ['Math', 'Geometry', 'Number Theory', 'Combinatorics']],
   ['strings', ['String Matching', 'Rolling Hash', 'String']],
+  /*
+    Last, and that position is the whole rule. A traversal tag says almost
+    nothing on its own — trees, backtracking and linked lists all carry it — so
+    it cannot be asked early without stealing from every one of them. Asked
+    here, it only sees problems that matched nothing at all and were about to
+    fall through to the arrays-hashing default, where a grid flood fill and a
+    BFS over bus routes have no business sitting.
+  */
+  ['graphs', ['Breadth-First Search', 'Depth-First Search']],
 ];
 
 export function classify({ slug, topicTags = [], neetcodePattern }) {
+  if (SLUG_OVERRIDES[slug]) return SLUG_OVERRIDES[slug];
   if (INTERVAL_SLUG.test(slug || '')) return 'intervals';
 
   const fromNeetcode = NEETCODE_PATTERN_MAP[neetcodePattern];
   if (fromNeetcode) return fromNeetcode;
 
   const tags = new Set(topicTags);
-  for (const [pattern, keys] of TAG_RULES) {
-    if (keys.some((key) => tags.has(key))) return pattern;
+  // `all` is the compound form — every tag must be present. `any` is the usual
+  // one. A rule carrying both is satisfied by either, and only dp-2d does.
+  for (const [pattern, any, all] of TAG_RULES) {
+    if (all && all.every((key) => tags.has(key))) return pattern;
+    if (any.some((key) => tags.has(key))) return pattern;
   }
 
   return 'arrays-hashing';

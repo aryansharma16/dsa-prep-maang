@@ -271,13 +271,10 @@ function main() {
   // ---- Striver problems with no LeetCode equivalent ----
   // 61 of the 191 are GFG/CodeStudio only. Dropping them would silently truncate
   // the sheet, so they're seeded with their article link instead.
-  const orphanCounters = new Map();
   const orphans = striver
     .filter((p) => !p.slug)
     .map((p) => {
       const patternSlug = classifyByTitle(p.title);
-      const n = (orphanCounters.get(patternSlug) || 0) + 1;
-      orphanCounters.set(patternSlug, n);
       const difficulty = ['Easy', 'Medium', 'Hard'].includes(p.difficulty) ? p.difficulty : 'Medium';
       return {
         slug: `striver-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`,
@@ -301,8 +298,9 @@ function main() {
         videoId: '',
         patternSlug,
         score: 2.5,
-        // 1000+ keeps them after the curated LeetCode ramp in each pattern.
-        patternOrder: 1000 + n,
+        // Placeholder. Every row's real order is derived below, over the
+        // combined list, so that these sit inside the ramp rather than behind it.
+        patternOrder: 0,
       };
     });
 
@@ -312,6 +310,33 @@ function main() {
   const uniqueOrphans = orphans.filter((o) => !seen.has(o.slug) && seen.add(o.slug));
 
   const problems = [...selected, ...uniqueOrphans];
+
+  /*
+    The ramp, re-derived once over everything.
+
+    These 61 rows used to be stamped `1000 + n`, which parked them behind the
+    curated LeetCode problems in their pattern. That made the roadmap's own
+    promise false at the tail: `binary-search` ended H H H E H M H H, because
+    the ramp stopped and a second, unsorted list began. Anyone working top to
+    bottom hit Aggressive Cows after Median of Two Sorted Arrays.
+
+    Same sort key as the per-pattern pass above, so the LeetCode ordering is
+    untouched and the GFG rows simply interleave by difficulty. Their fixed
+    score of 2.5 puts them at the back of their own difficulty band, which is
+    the right place for a row carrying no votes and no company data.
+  */
+  const byPattern = new Map();
+  for (const p of problems) {
+    if (!byPattern.has(p.patternSlug)) byPattern.set(p.patternSlug, []);
+    byPattern.get(p.patternSlug).push(p);
+  }
+  for (const rows of byPattern.values()) {
+    rows
+      .sort((a, b) => rank[a.difficulty] - rank[b.difficulty] || b.score - a.score)
+      .forEach((p, i) => {
+        p.patternOrder = i;
+      });
+  }
 
   // ---- report ----
   console.log('\n  pattern            pool  core  taken');
