@@ -14,6 +14,16 @@ import { defineFilters } from './spec.js';
  */
 
 const SHEETS = [
+  /*
+    First, because it is the only one of the five that was built for this
+    roadmap rather than imported into it — 300 of the 517, chosen for coverage
+    per hour rather than by any outside author. See server/scripts/seed/ai-sheet.js.
+  */
+  {
+    value: 'ai-300',
+    label: 'AI-recommended 300',
+    note: 'Every pattern, least overlap — the shortest path',
+  },
   { value: 'striver-sde', label: "Striver's SDE Sheet", note: '191 problems, day by day' },
   { value: 'neetcode-150', label: 'NeetCode 150', note: 'The pattern-first 150' },
   { value: 'blind-75', label: 'Blind 75', note: 'The original short list' },

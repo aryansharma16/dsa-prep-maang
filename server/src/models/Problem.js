@@ -11,7 +11,14 @@ const companySchema = new mongoose.Schema(
 
 const sheetSchema = new mongoose.Schema(
   {
-    // 'striver-sde' | 'neetcode-150' | 'blind-75' | 'faang-2026'
+    /*
+      'striver-sde' | 'neetcode-150' | 'blind-75' | 'faang-2026' | 'ai-300'
+
+      Four are imported lists; `ai-300` is computed from the curated rows
+      themselves at seed time — see server/scripts/seed/ai-sheet.js. Not an enum,
+      deliberately: a sheet is a label the curation pass writes, and pinning the
+      set here would mean a schema change every time one is added.
+    */
     sheet: { type: String, required: true },
     // e.g. 'Day 5: Linked List' or 'Arrays & Hashing'
     group: { type: String, default: '' },

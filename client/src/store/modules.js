@@ -27,17 +27,18 @@ import {
 export const MODULE_NAV = [
   /*
     First, above every other module, because it is the one that says what to do
-    with them. It is also the only entry here that most sessions never see — the
-    server leaves `playbook` out of `visible` for everyone but the site owner,
-    so `moduleVisible` filters it out with no special case needed here.
+    with them. It used to be the only entry here that most sessions never saw —
+    the server left `playbook` out of `visible` for everyone but the site owner
+    — and it is an ordinary module now, in `visible` for every role unless a
+    super admin hides it. Nothing in this file changed either way: it never had
+    a special case for it, because `moduleVisible` only ever asked the server.
   */
   { key: 'playbook', to: '/playbook', label: 'Playbook', Icon: IconCalendar },
   /*
     Second, under the plan and above the rest, because it is the other
     curriculum. The roadmap and the ladder are the two lists you actually work
     through; everything below is something you do *about* them — revise, chart,
-    ask, read, drill, plan. Most sessions never see the playbook, so for them
-    this is the first row under the roadmap, which is the same statement.
+    ask, read, drill, plan.
   */
   { key: 'procoder', to: '/cp', label: 'Pro Coder', Icon: IconCode },
   /*

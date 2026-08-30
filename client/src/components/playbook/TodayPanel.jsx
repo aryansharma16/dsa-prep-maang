@@ -1,32 +1,40 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MILESTONES, PLAN_WEEKS, TIMETABLE, phaseOf, weekAt } from '../../playbook/plan.js';
+import { PLAN_WEEKS, SQL_WEEKS } from '../../playbook/plan.js';
 import { usePlaybook } from '../../store/PlaybookContext.jsx';
 import { IconCheck, IconChevronRight } from '../ui/Icons.jsx';
 
 /**
  * Which slots belong to today, and which one is running right now.
  *
- * The system-design hour only exists from week 13 and only on Tuesday and
- * Thursday, which is the sort of rule that is easy to write into prose and easy
- * to forget on a Tuesday — so it is computed rather than described.
+ * Two of the evening slots exist only on certain days of certain weeks — the
+ * design hour on Tuesday and Thursday from week 13, the SQL block on Friday for
+ * weeks 4 to 15. That is exactly the sort of rule that is easy to write into
+ * prose and easy to forget on a Friday, so it is computed here rather than
+ * described anywhere.
  */
-function slotsForToday(week) {
+function slotsForToday(timetable, week) {
   const now = new Date();
   const day = now.getDay();
   const hour = now.getHours() + now.getMinutes() / 60;
 
   const between = (from, to) => hour >= from && hour < to;
+  const slot = (id, live) => ({ ...timetable.find((s) => s.id === id), live });
 
-  if (day === 6) return [{ ...TIMETABLE.find((s) => s.id === 'sat'), live: between(10, 17) }];
-  if (day === 0) return [{ ...TIMETABLE.find((s) => s.id === 'sun'), live: between(10, 17) }];
+  if (day === 6) return [slot('sat', between(10, 17))];
+  if (day === 0) return [slot('sun', between(10, 17))];
 
-  const out = [
-    { ...TIMETABLE.find((s) => s.id === 'am'), live: between(7, 9) },
-    { ...TIMETABLE.find((s) => s.id === 'pm'), live: between(20, 23) },
-  ];
+  /*
+    Friday's SQL block replaces the evening rather than joining it, so it is
+    swapped in, not appended — showing both would advertise four hours on the
+    one night of the week that most needs to look finishable.
+  */
+  const evening =
+    day === 5 && week >= SQL_WEEKS.from && week <= SQL_WEEKS.to ? 'fri-sql' : 'pm';
+
+  const out = [slot('am', between(7, 9)), slot(evening, between(20, 23))];
   if (week >= 13 && (day === 2 || day === 4)) {
-    out.splice(2, 0, { ...TIMETABLE.find((s) => s.id === 'pm-sd'), live: between(20, 21) });
+    out.splice(2, 0, slot('pm-sd', between(20, 21)));
   }
   return out;
 }
@@ -112,11 +120,12 @@ function WeekCard({ week, patternProgress }) {
   );
 }
 
-export function TodayPanel({ week, patternProgress, leaks = [] }) {
-  const current = weekAt(week);
-  const slots = slotsForToday(week);
+export function TodayPanel({ doc, week, patternProgress, leaks = [] }) {
+  const { MILESTONES } = doc;
+  const current = doc.weekAt(week);
+  const slots = slotsForToday(doc.TIMETABLE, week);
   const today = DAY[new Date().getDay()];
-  const phase = phaseOf(week);
+  const phase = doc.phaseOf(week);
   // The next dated thing, or the last one once they are all behind you.
   const next =
     MILESTONES.find((m) => m.week >= week) ||

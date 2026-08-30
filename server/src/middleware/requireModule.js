@@ -1,4 +1,3 @@
-import { OWNER_MODULE_CAP, OWNER_MODULE_KEYS } from '../config/modules.js';
 import { can } from '../config/roles.js';
 import { User } from '../models/User.js';
 import { hiddenModules } from '../services/settings.service.js';
@@ -8,16 +7,14 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 /**
  * Locks the API behind a module this account may not reach.
  *
- * Two reasons a module can be out of reach, and one middleware answers both
- * because callers ask the same question either way — "is this mine to open":
+ * One reason a module can be out of reach: it is *hidden* — still being built,
+ * listed in the settings row a super admin edits in the panel, and reachable by
+ * anyone holding `module:preview`.
  *
- *   *hidden* — still being built, listed in the settings row a super admin
- *     edits in the panel, reachable by anyone holding `module:preview`.
- *   *owner*  — belongs to the account that owns the site, marked in
- *     config/modules.js, reachable only with the `playbook` capability. Not a
- *     setting, so no panel toggle can widen it.
- *
- * Everything below about 404s applies to both.
+ * There used to be a second, `owner`, which pinned the playbook to the account
+ * in SUPER_ADMIN_EMAIL and could not be widened by any panel toggle. The
+ * playbook is an ordinary module now — see config/modules.js for why — so that
+ * branch and the capability behind it are gone.
  *
  * This is the half of "hidden" that matters. The client not drawing a nav item
  * is a courtesy; anyone can read the bundle, keep a bookmark, or call the API
@@ -39,13 +36,16 @@ import { asyncHandler } from '../utils/asyncHandler.js';
  */
 export const requireModule = (key) =>
   asyncHandler(async (req, _res, next) => {
-    const owner = OWNER_MODULE_KEYS.includes(key);
-    // An owner module is always gated, so its check must not depend on the
-    // settings row at all — a database hiccup degrades `hiddenModules()` to
-    // "nothing hidden", which is the right failure for an unfinished feature
-    // and would be the wrong one for somebody's private page.
-    const hidden = owner ? [] : await hiddenModules();
-    if (!owner && !hidden.includes(key)) return next();
+    /*
+      A database hiccup degrades `hiddenModules()` to "nothing hidden", which is
+      the right failure for a module whose only reason to be locked is that it
+      is unfinished: the cost of getting it wrong is an early look at a rough
+      page, not a leak. It was the wrong failure for an owner module, which is
+      why that check used to bypass this call entirely — there is no longer one
+      to bypass it for.
+    */
+    const hidden = await hiddenModules();
+    if (!hidden.includes(key)) return next();
 
     const gone = () => ApiError.notFound(`Route not found: ${req.method} ${req.originalUrl}`);
 
@@ -55,7 +55,7 @@ export const requireModule = (key) =>
     if (!req.userId) throw gone();
 
     const actor = await User.findById(req.userId).select('role');
-    if (!can(actor?.role, owner ? OWNER_MODULE_CAP : 'module:preview')) throw gone();
+    if (!can(actor?.role, 'module:preview')) throw gone();
 
     next();
   });

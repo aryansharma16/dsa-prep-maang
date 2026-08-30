@@ -3,7 +3,12 @@ import { Playbook } from '../models/Playbook.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 /**
- * The owner's prep plan — the parts of it that are state rather than document.
+ * A prep plan — the parts of it that are state rather than document.
+ *
+ * One row per account, and always has been: every query here is keyed on
+ * `req.userId`, so opening the playbook module to every role (see
+ * config/modules.js) needed no change in this file and no migration. Two people
+ * running the plan see the same authored schedule and their own progress.
  *
  * Two handlers and almost no logic, like the saved-views controller it is
  * modelled on. The plan itself is authored in the client (see

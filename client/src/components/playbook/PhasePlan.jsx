@@ -1,5 +1,4 @@
-import { PHASES, PLAN_TOTALS, WEEKS } from '../../playbook/plan.js';
-import { expectedBy } from './PlanHeader.jsx';
+import { PLAN_TOTALS } from '../../playbook/plan.js';
 import { usePlaybook } from '../../store/PlaybookContext.jsx';
 import { IconCheck } from '../ui/Icons.jsx';
 
@@ -11,8 +10,9 @@ import { IconCheck } from '../ui/Icons.jsx';
  * between a plan that tracks itself and one you have to maintain: the only way
  * to move this bar is to actually solve the problems.
  */
-export function PhasePlan({ week, patternProgress }) {
+export function PhasePlan({ doc, week, patternProgress }) {
   const { doneCount } = usePlaybook();
+  const { PHASES, WEEKS, expectedBy } = doc;
 
   return (
     <div className="pb-phases">
@@ -85,8 +85,7 @@ export function PhasePlan({ week, patternProgress }) {
         Cumulative target by the end of each phase:{' '}
         {PHASES.map((p) => `${p.name} ${expectedBy(p.to)}`).join(' · ')} problems. The two weeks with
         no new patterns — 13 and 18 — are not slack. They are what stops the middle of a plan like
-        this from quietly falling apart, and they exist because you said you need revision to keep
-        what you learn.
+        this from quietly falling apart, and {doc.COPY.phaseFoot}.
       </p>
 
       {/* Says the quiet part, because the meter above divides by 517 and this

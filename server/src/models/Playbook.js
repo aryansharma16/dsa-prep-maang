@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 /**
- * The owner's prep plan, as it is actually being run.
+ * A prep plan, as it is actually being run.
  *
  * The *plan* is not in here. Its phases, weeks, sessions and reading list are
  * authored in the client bundle (`client/src/playbook/plan.js`) for the same
@@ -17,10 +17,16 @@ import mongoose from 'mongoose';
  * exist. That is the whole point: a plan that has to be told what you have done
  * is a plan you stop updating in week three.
  *
- * One document per account, though there is exactly one account that can hold
- * one. Keyed by owner rather than a fixed key like `Setting`, because "the
- * owner" is an account id that changes with SUPER_ADMIN_EMAIL, and a fixed key
- * would silently hand the previous owner's plan to the next one.
+ * One document per account. That was already true when the playbook was gated
+ * to the site owner — it was keyed by account id rather than a fixed key like
+ * `Setting`, because "the owner" is an id that moves with SUPER_ADMIN_EMAIL and
+ * a fixed key would have silently handed the previous owner's plan to the next
+ * one. Which is why opening the module to every role cost nothing here: the
+ * shape was right before the permission was.
+ *
+ * `owner` is the field name and it now means only "whose plan this is". Unique,
+ * so an account cannot end up with two, and immutable, so one cannot be handed
+ * to somebody else by a stray update.
  */
 
 /*

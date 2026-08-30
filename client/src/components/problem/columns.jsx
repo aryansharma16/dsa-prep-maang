@@ -14,11 +14,19 @@ import { EditorialLink } from './EditorialLink.jsx';
  * problem, the caller's progress on it, and the row's own handlers.
  */
 
+/*
+  The title-cell badge shows the *first* of these a problem belongs to, so the
+  order of this object is the priority order. `ai-300` is last on purpose: it
+  overlaps the other four heavily, and a problem that was reading SDE or B75
+  yesterday should not start reading AI today. It only ever shows on the 39
+  problems the AI sheet picked that are on no other list.
+*/
 const SHEET_LABEL = {
   'striver-sde': 'SDE',
   'neetcode-150': 'NC150',
   'blind-75': 'B75',
   'faang-2026': 'FAANG',
+  'ai-300': 'AI',
 };
 
 const STATUS_LABEL = {

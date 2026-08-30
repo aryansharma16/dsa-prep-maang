@@ -20,22 +20,36 @@
  */
 export const MODULES = Object.freeze([
   /*
-    Playbook — the site owner's own interview-prep plan.
+    Playbook — the interview-prep plan, and the module that says what to do with
+    every other one.
 
-    The one module in this list that is not for the people using the app. It is
-    a dated, phased schedule that reads the owner's roadmap and ladder progress
-    and says what to do this morning, so it is meaningless to anybody else: a
-    second account opening it would see somebody else's timetable with their own
-    zeroes under it.
+    It used to be marked `owner`: a third kind of hidden, pinned to the account
+    in SUPER_ADMIN_EMAIL and not toggleable from the panel at all. That flag is
+    gone, and with it the whole mechanism — `OWNER_MODULE_KEYS`, the
+    `playbook` capability in config/roles.js, and the branches both
+    `moduleAccess` and `requireModule` carried for it.
 
-    So it is marked `owner`, which is a different kind of hidden from the
-    `modules.hidden` list a super admin toggles in the panel. Hidden means "not
-    finished yet, show me anyway" and is a setting. Owner means "this belongs to
-    one account" and is not toggleable at all — see OWNER_MODULE_KEYS below,
-    moduleAccess() in services/settings.service.js, and the `playbook` capability
-    in config/roles.js. All three read the same flag.
+    The argument for owner-only was that the page is meaningless to a second
+    account, which turned out to be a claim about the *plan* rather than about
+    the module. `Playbook` in models/Playbook.js is already one document per
+    account, keyed by owner and unique: the start date, the ticks and the retro
+    lines have always been per-user, and every number on the page is derived at
+    render from that account's own roadmap and ladder rows. A second account
+    opening it does not see somebody else's timetable — it sees the same
+    authored schedule with its own progress under it, which is exactly what the
+    other curriculum modules do.
+
+    What is still one document for everybody is the plan text itself, authored
+    in `client/src/playbook/plan.js` and shipped in the bundle. It is written in
+    the second person to a specific starting point, so a reader who is not at
+    that starting point is reading advice sized for somebody else. That is a
+    content problem and not a permissions one, and hiding the module from them
+    was never the fix for it.
+
+    So it is an ordinary module now: in the side menu for every role, and
+    hideable from the admin panel like the eight below it.
   */
-  { key: 'playbook', label: 'Playbook', path: '/playbook', owner: true },
+  { key: 'playbook', label: 'Playbook', path: '/playbook' },
   { key: 'revision', label: 'Revision', path: '/revision' },
   { key: 'stats', label: 'Stats', path: '/stats' },
   { key: 'chat', label: 'AI Chat', path: '/chat' },
@@ -106,19 +120,5 @@ export const MODULES = Object.freeze([
 ]);
 
 export const MODULE_KEYS = MODULES.map((module) => module.key);
-
-/**
- * Modules that belong to the account that owns the site rather than to
- * everyone.
- *
- * Kept as a derived list rather than a second literal so a module can never be
- * marked `owner` here and forgotten there. Read by `moduleAccess` to keep the
- * key out of the side menu, and by `requireModule` to 404 the API behind it —
- * the same two halves every other module in this file moves in.
- */
-export const OWNER_MODULE_KEYS = MODULES.filter((module) => module.owner).map((m) => m.key);
-
-/** The capability that unlocks an owner module. One today, and one is enough. */
-export const OWNER_MODULE_CAP = 'playbook';
 
 export const moduleLabel = (key) => MODULES.find((module) => module.key === key)?.label || key;

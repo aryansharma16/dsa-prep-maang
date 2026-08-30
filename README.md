@@ -29,7 +29,7 @@ the sign-in page as well as from the sidebar.
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
 | **Learn** | Reference notes for the things around the algorithms. Five tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests; SQL, 53 topics from "what is a database" through ER models, normalisation, every join shown with its result, window functions, isolation levels and query plans; and Computer Networks, 35 topics from the OSI layers through subnets, TCP, DNS and TLS to load balancers, CDNs and a VPC drawn the way AWS draws it — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
-| **Playbook** | The site owner's own 24-week interview-prep plan — four phases targeting 396 of the 517 roadmap problems and the ≤Specialist half of the ladder, a weekly timetable built around real available hours, a system-design track from week 13, and a drift line that says how far ahead or behind the schedule you actually are. Owner-only: invisible to every other account, in the side menu and in the API |
+| **Playbook** | A 24-week interview-prep plan — four phases targeting 396 of the 517 roadmap problems and the ≤Specialist half of the ladder, all 117 SQL problems on the Friday evening block, a high-level design track from week 13 and a machine-coding/LLD track from week 14, a weekly timetable built around real available hours, and a drift line that says how far ahead or behind the schedule you actually are. One plan document per account; the schedule itself is authored prose, written to one specific starting point |
 | **SQL Lab** | 117 SQL problems in 8 categories, with two kinds of row and one rule between them: **72 run in your browser** — SQLite compiled to WASM, their own schema and rows, graded against a generated expected result — and **45 link out to LeetCode**, because a problem that already has a judge should be solved on it. Progressive hints, a reference solution behind the same 25-minute gate as every editorial, MySQL shims so the answers match what the Learn track teaches, and the same revision ladder as everything else |
 | **Pro Coder** | A competitive-programming ladder: 1,100 problems (800 Codeforces, 300 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own palette — the app's glass material, re-stepped darker and carrying Codeforces' rating ramp — following your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across both curriculums |
@@ -127,6 +127,7 @@ ordering *is* the ramp.
 | [Company tags](https://github.com/liquidslr/leetcode-company-wise-problems) | 20 companies, ask-frequency per problem |
 | [FAANG interview questions](https://github.com/ombharatiya/FAANG-Coding-Interview-Questions) | 271 problems reported asked at 22 companies in 2025-26 |
 | [LeetCode API](https://github.com/noworneverev/leetcode-api) | difficulty, topic tags, likes, statements on demand |
+| **AI-recommended 300** | computed here, not imported — see below |
 
 A problem's rank is `Σ(company weight × ask frequency)` plus a bonus for
 appearing on a curated sheet. Every problem on Striver's SDE Sheet, NeetCode 150
@@ -154,6 +155,80 @@ pattern so the next drift is visible rather than silent.
 
 Re-running the seed is safe: it upserts by slug, prunes retired problems, and
 never touches your progress or the problems you added yourself.
+
+### The AI-recommended 300
+
+Four of the five sheets on the roadmap are imported — somebody else's list,
+carried in whole. The fifth is computed from the curated rows themselves at seed
+time by `server/scripts/seed/ai-sheet.js`, and it answers the question none of
+the others do: **if you only have time for three hundred, which three hundred?**
+
+It is built on marginal value rather than absolute value. The eleventh
+sliding-window problem is not worth what the second one is, because by then you
+own the template and are only re-typing it. So the picker is a greedy pass with
+diminishing returns: each problem is scored, and every pick multiplies the score
+of everything sharing its *technique* by 0.55, so the third problem in a cluster
+has to be about three times as good as the first one in an untouched cluster to
+beat it. Technique is derived from the LeetCode topic tags with the pattern's own
+dominant tags removed — inside `sliding-window`, "Sliding Window" separates
+nothing while "Monotonic Queue" is exactly the distinction worth a slot.
+
+The score is four terms, and each is there for a different reason:
+
+| term | what it says | weight |
+|---|---|---|
+| canon | on a list that survived someone else's curation | Blind 75 **12** · NeetCode 150 **8** · Striver **4.5** · FAANG list **1** |
+| demand | how many companies ask it, and how many asked recently | `0.3 × companies` (cap 20) + `0.6 × recent` (cap 6) |
+| quality | LeetCode like ratio, as "well-posed or trick?" | `(ratio − 72) / 9`, clamped ±3, neutral when unknown |
+| shape | Medium is the interview currency | Medium **+1.5** · Easy **+0.6** · Hard **0** |
+
+The FAANG list is weighted at 1 on purpose: it holds 271 of the 517, so it
+barely discriminates, and its real signal — *who asked it recently* — is already
+counted in `demand`. Weighting it like a curated sheet double-counted it, and the
+first run put 91 problems on the sheet that were on no other list.
+
+**The per-pattern budgets are hand-set, and that is the point.** A proportional
+split would hand `arrays-hashing` 26 slots because the roadmap happens to hold 44
+of them. But `tries` is four techniques and `arrays-hashing` is closer to twelve,
+and neither number has anything to do with how many rows were curated. So the
+quota is a judgement about how many problems it takes to *own* a pattern:
+
+| trees | arrays | dp-1d | graphs | stack | binary-search | dp-2d | linked-list | heap · backtracking · advanced-graphs |
+|---|---|---|---|---|---|---|---|---|
+| 27 | 24 | 20 | 20 | 17 | 17 | 17 | 15 | 13 each |
+
+`strings` is cut to 9 and `design` to 4 — both pools are weak because the
+problems that matter under those names are filed elsewhere (LRU under
+linked-list, Min Stack under stack, Group Anagrams under arrays-hashing).
+`concurrency` gets **0**: six problems asked in a dedicated round at two
+companies not on most target lists, and not an algorithm pattern. The budgets sum
+to exactly 300.
+
+**Two hand-lists correct the score where it is confidently wrong.** `ALWAYS`
+carries problems whose importance is not in the data — Dijkstra and
+Floyd-Warshall exist here only as Striver's bare implementation exercises with no
+LeetCode id, no votes and no company tags, so they score near the floor while
+being the entire point of the pattern they sit in; same for 0-1 Knapsack and
+Matrix Chain Multiplication. `NEVER` drops rows that are not really problems
+(`striver-bfs` is a topic stub), rows the classifier filed under the wrong
+pattern, and exact re-runs of a template already covered — Sqrt(x), Valid Perfect
+Square and The N-th Root of an Integer are one problem written three times. Both
+lists are checked against the curated rows at build time, so a slug that stops
+existing fails the seed instead of silently shrinking the sheet.
+
+The result is **300 problems, 55 Easy / 192 Medium / 53 Hard**, covering 22 of
+the 23 patterns. It is a strict superset of Blind 75 — all 69 — and holds 139 of
+NeetCode's 150. The four it drops are the four that are covered by a neighbour:
+Min Cost Climbing Stairs (Climbing Stairs), Distinct Subsequences (Edit Distance
+and LCS), Count Good Nodes, and Buy and Sell Stock with Cooldown. The remaining
+~90 are pattern coverage and 2025-26 recency that neither short list carries.
+
+**It is purely additive.** The pass only ever pushes onto a problem's `sheets`,
+and it runs last, so no existing membership changes and the roadmap is the same
+517 either way. `ai-300` is deliberately last in `SHEET_LABEL` too: the title
+badge shows the first sheet it finds, so a row that read `SDE` yesterday still
+reads `SDE`, and `AI` only ever appears on the 39 picks that are on no other
+list.
 
 ## Pattern guides
 
@@ -885,14 +960,70 @@ two attempts on one problem is a bad afternoon, not a weakness — and until the
 the coverage view stands alone, which is the honest order. The Playbook shows the
 top two on its Today tab, as the one signal allowed to argue with the schedule.
 
-## Playbook — the owner's prep plan
+## Playbook — the prep plan
 
-A dated, phased schedule that turns 396 of the 517 roadmap problems and the
-≤Specialist half of the 1,100-problem ladder into a week-by-week timetable, and
-reads your actual progress back out of them. It is the one module in the app that is not for the people using it:
-`playbook` is marked `owner: true` in `server/src/config/modules.js`, which keeps
-it out of `visible` for every role but `super_admin` and 404s the API behind it.
-A second account never learns it exists.
+A dated, phased schedule that turns 396 of the 517 roadmap problems, the
+≤Specialist half of the 1,100-problem ladder and all 117 SQL Lab problems into a
+week-by-week timetable, and reads your actual progress back out of them.
+
+**It is an ordinary module, and it used to not be.** `playbook` was marked
+`owner: true` in `server/src/config/modules.js` — a third kind of hidden, pinned
+to the account in `SUPER_ADMIN_EMAIL`, invisible to every other role and not
+toggleable from the panel at all. That flag is gone and so is the mechanism
+behind it: `OWNER_MODULE_KEYS`, the `playbook` capability in `config/roles.js`,
+and the branch each of `moduleAccess` and `requireModule` carried for it. The
+key is now in `visible` for every role and hideable from **Admin → Modules**
+like the nine beside it.
+
+Nothing about the data had to move, because the data was already right. The
+`Playbook` collection is one document per account keyed on `owner`, unique and
+immutable, and both handlers query on `req.userId` — the start date, the ticks
+and the retro lines have always been per-user, and every number on the page is
+derived at render from *that* account's roadmap and ladder rows. A second
+account opening it sees the same authored schedule with its own zeroes under it,
+which is what the other curriculum modules do. The owner-only rule was a claim
+about the plan, not about the module, and it cost no migration to drop.
+
+**The plan text has two readings, and the account decides which one it gets.**
+It is written in the second person to a specific starting point — an
+average-pace learner two years out of college DSA, in a Node/React job, aiming
+at Swiggy/Razorpay-tier loops — and about twenty-five of its sentences lean on
+that person's CV: the systems they built, the stack they work in, the things
+they said while the plan was being written. Shown to everybody those read as a
+plan addressed to somebody else, which is the fastest way to stop trusting one,
+and they put one account's employment history in front of every other account.
+
+So those lines are authored twice, side by side in the same call:
+
+```js
+body: voiced(
+  'Reaching a brute force first is not a weakness to skip past — …',   // everyone
+  'You already do this — it is the habit you called a weakness. …',    // the author
+),
+```
+
+`speak()` walks the document and collapses every `voiced()` node to one reading;
+both are resolved once at module load, because there are exactly two possible
+documents and rebuilding either per render would be work spent on nothing.
+`planFor(own)` is the only way out of the module — the raw structures are
+deliberately **not** exported, so a component cannot import `WEEKS` directly and
+render `[object Object]` where a voiced line should be. Components take the
+resolved document as a `doc` prop from the page, which reads it once through
+`usePlan()`; one render can therefore never mix the two.
+
+Side by side rather than in a second file, because the only real risk is drift:
+a generic line reworded six months from now should have its personal twin on the
+next line, not in a module nobody remembers to open. 25 strings of 899 differ;
+ids never do, so a tick survives whichever reading you are shown.
+
+`usePlan()` keys off `user.role === 'super_admin'` rather than a capability. A
+capability answers "may this account *do* this", and this only decides which of
+two sentences renders — dressing it as a boundary would overclaim, because
+**both readings ship in the client bundle either way.** This is a presentation
+split, the same trade the Learn prose makes: whoever reads the bundle finds
+both. Anything that genuinely must not reach another account cannot be authored
+in `plan.js` at all — it would have to be served from the API for the accounts
+allowed to see it.
 
 **Twenty-four weeks, four phases.** Rebuild the base (weeks 1–5, the patterns you
 half-know, re-done for the optimal solution), the core machine (6–13, binary
@@ -949,11 +1080,52 @@ owns, read out of the roadmap, so the only way to move it is to solve something.
 problems solved against problems the schedule expected by now, stated as a count
 and not softened. Ahead, on track, or *n* behind with what to cut.
 
-**System design** starts in week 13, four hours a week rising to eight — 25
-topics in six blocks, ending in six full 45-minute designs run to the clock. It
-is deliberately shorter than a from-scratch syllabus: a working Node/React
-developer already has the objects, and what is missing is the scale vocabulary,
-the numbers and the shape of the conversation.
+**Four tracks, because the target loops are not only DSA.** The plan is aimed at
+MAANG-bar Indian product companies — Swiggy, Razorpay, Flipkart, Uber, CRED,
+PhonePe, Atlassian — alongside the MAANG loops themselves, and those loops run
+two DSA rounds, a machine-coding or LLD round, an HLD round and often a SQL
+screen. A plan that spent twenty-four weeks on algorithms alone would leave a
+candidate strong in the round he shares with everyone else and untested in the
+two rounds where three years of shipping backend code is an advantage.
+
+| Track | Weeks | Slot | Size |
+|---|---|---|---|
+| DSA | 1–24 | mornings, Saturday | 396 problems + 150 ladder |
+| SQL | 4–15 | Friday evening, 90 min | all 117 in the SQL Lab |
+| HLD | 13–24 | Tue/Thu evening + Sunday | 25 topics in six blocks |
+| LLD & machine coding | 14–22 | Sunday, 90 min | 24 topics, 8 of them built |
+
+**Nothing was added on top — both new tracks are funded.** 33 hours was already a
+full week beside a full-time job, and a plan that quietly asks for 38 is one you
+fail in week three. So SQL takes the Friday evening re-solve hour (the worst DSA
+hour in the schedule and the first one anyone skips; Friday morning's flagged
+problems roll into Saturday), and LLD takes the Sunday ladder session, halving
+the ladder from week 14 — 150 CP problems rather than 192. That second trade is
+the cheapest hour in the plan to move: rule 7 already says the ladder is bought
+for implementation speed and never for rating, and by week 14 that speed is
+bought. The honest version of "I added a design track" is always "I removed
+something else", so `plan.js` says which.
+
+A `TIMETABLE` slot carrying `replaces` takes over a block that already exists
+rather than adding one, and that flag is also what keeps
+`PLAN_TOTALS.hoursPerWeek` honest — a replacement counted as an addition would
+advertise a 38-hour week to someone who has 33.
+
+**The Method tab answers the questions a schedule cannot.** Six panels, ordered
+from the smallest unit of work outward: the week; the six-step loop for a single
+problem, every step on a clock; the five-stage ladder for getting comfortable
+with a whole pattern, with hours attached to each stage; what a pattern costs
+once you are confident (2 problems a month, ~30 min — and what re-opens it); the
+four revision intervals and their real price (4.5h/week, 14% of the budget); the
+four mental models that make 400 solved problems into 400 *available* ones; and
+the eleven rules last, because a summary read before the thing it summarises is
+just a list.
+
+**Company sets name the tags that exist.** The roadmap carries 20 company tags
+and Swiggy, Razorpay, CRED and PhonePe are not among them. Week 22 therefore
+drills Flipkart, Uber, Atlassian, Goldman Sachs and Amazon as the proxy — those
+loops draw from the same medium pool — and says so, rather than sending you
+looking for a filter that returns nothing.
 
 ## Tracking
 
@@ -2147,10 +2319,15 @@ lives in `main` instead of on a branch nobody merges.
 
 | module | route |
 |---|---|
+| Playbook | `/playbook` |
+| Pro Coder | `/cp` |
+| SQL Lab | `/sql` |
 | Revision | `/revision` |
 | Stats | `/stats` |
 | AI Chat | `/chat` |
+| Learn | `/learn` |
 | Tasks | `/tasks` |
+| Practice | `/practice` |
 | Feedback | `/feedback` |
 
 The roadmap is deliberately not eligible: it is where the catch-all route, the
@@ -2197,6 +2374,11 @@ Two capabilities, not one: `module:preview` is "an unfinished feature is safe in
 my hands", `module:write` is "I decide when it ships". Both are the super
 admin's today, and handing a dev_member the first later must not hand them the
 second.
+
+There was a third, `playbook`, which was not about unfinished work at all — it
+gated the owner-only prep plan. It came out with the `owner` flag rather than
+staying in the matrix as a power with no question attached to it, so the list is
+back to being about one thing: what is safe to see before it ships.
 
 The state lives in the `Setting` document as a list of what is *hidden*, so a
 module added to `server/src/config/modules.js` ships visible with no migration

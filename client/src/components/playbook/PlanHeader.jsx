@@ -1,9 +1,12 @@
-import { PHASES, PLAN_TOTALS, PLAN_WEEKS, WEEKS, phaseOf } from '../../playbook/plan.js';
+import { PLAN_TOTALS, PLAN_WEEKS } from '../../playbook/plan.js';
 import { usePlaybook } from '../../store/PlaybookContext.jsx';
 import { IconCalendar, IconRotate } from '../ui/Icons.jsx';
 
-/** Problems the plan expected to be finished by the end of week `n`. */
-export const expectedBy = (n) => WEEKS.filter((w) => w.n <= n).reduce((sum, w) => sum + w.target, 0);
+/*
+  `expectedBy` used to live here and be imported by PhasePlan. It reads the
+  week targets, and the weeks now come in two readings, so it moved onto the
+  resolved document in plan.js where it can only ever see one of them.
+*/
 
 const iso = (date) => (date ? new Date(date).toISOString().slice(0, 10) : '');
 const addWeeks = (date, weeks) => new Date(new Date(date).getTime() + weeks * 7 * 86_400_000);
@@ -35,9 +38,10 @@ function Meter({ label, value, total, note, hue }) {
  * is stated plainly rather than softened. A plan that cannot tell you it is
  * slipping is a wall poster.
  */
-export function PlanHeader({ week, roadmap, ladder, design, checklist }) {
+export function PlanHeader({ doc, week, roadmap, ladder, sql, design, checklist }) {
   const { plan, setDates } = usePlaybook();
-  const phase = week ? phaseOf(week) : null;
+  const { PHASES, expectedBy } = doc;
+  const phase = week ? doc.phaseOf(week) : null;
 
   if (!plan.startedAt) {
     return (
@@ -50,11 +54,7 @@ export function PlanHeader({ week, roadmap, ladder, design, checklist }) {
           </div>
         </div>
 
-        <p className="pb-start-copy">
-          Four phases, twenty-four weeks, built around your hours: two in the morning, two in the
-          evening, six and a half on each weekend day. Pick the day you start and the clock begins —
-          every week number, target and countdown on this page is measured from it.
-        </p>
+        <p className="pb-start-copy">{doc.COPY.start}</p>
 
         <div className="pb-start-row">
           <label className="field">
@@ -166,8 +166,23 @@ export function PlanHeader({ week, roadmap, ladder, design, checklist }) {
           note={`plan asks for ${PLAN_TOTALS.cp}`}
           hue="teal"
         />
+        {/*
+          Dropped entirely rather than shown at 0/117 when the stats request
+          fails or the SQL module is off — a meter that reads zero because it
+          could not ask is worse than no meter, because it looks like work you
+          have not done.
+        */}
+        {sql && (
+          <Meter
+            label="SQL bank"
+            value={sql.solved}
+            total={sql.total}
+            note="weeks 4–15, Fridays"
+            hue="teal"
+          />
+        )}
         <Meter
-          label="System design"
+          label="Design · HLD + LLD"
           value={design.done}
           total={design.total}
           note="from week 13"

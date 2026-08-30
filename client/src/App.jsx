@@ -91,13 +91,15 @@ export function App() {
                 */}
                 {/*
                   Playbook mounts its own provider on the route, like Pro Coder
-                  below and for the same reason: one account can see this page at
-                  all, and a fetch on every session for a module the server does
-                  not even list for anybody else would be a request spent on
-                  nothing. `has('playbook')` is false for everyone but the owner
-                  — the server leaves the key out of `visible` — so this route is
-                  not declared, and the URL falls through to the roadmap exactly
-                  as a hidden module's does.
+                  below and for the same reason: nothing outside this page reads
+                  the plan, so a fetch on every session for a page most of them
+                  never open would be a request spent on nothing.
+
+                  It used to be gated to one account. It is an ordinary module
+                  now — every role gets it unless a super admin hides it — so
+                  `has('playbook')` is the same hidden-module check as every
+                  other line here, and a deployment that hides it falls through
+                  to the roadmap exactly as the rest do.
                 */}
                 {has('playbook') && (
                   <Route

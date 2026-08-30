@@ -1,4 +1,4 @@
-import { MODULE_KEYS, OWNER_MODULE_CAP, OWNER_MODULE_KEYS } from '../config/modules.js';
+import { MODULE_KEYS } from '../config/modules.js';
 import { can } from '../config/roles.js';
 import { Setting } from '../models/Setting.js';
 import { DEFAULT_ORDER } from './ai/registry.js';
@@ -116,20 +116,14 @@ export async function moduleAccess(role) {
   const hidden = await hiddenModules();
 
   /*
-    Owner modules come off first, and for everyone the capability does not
-    cover. They are not "hidden" in the sense the rest of this function means —
-    nothing in the panel turns them back on — so they are removed before the
-    hidden list is consulted rather than folded into it. The response therefore
-    never mentions them to anyone else, the same way it never names a hidden
-    module to a learner.
+    Every module is on the table for every role now. There used to be a step
+    above this one that removed the owner-only playbook first — see
+    config/modules.js for why it went — and with it gone the hidden list is the
+    only thing that takes a key off anybody's menu.
   */
-  const mine = can(role, OWNER_MODULE_CAP)
-    ? MODULE_KEYS
-    : MODULE_KEYS.filter((key) => !OWNER_MODULE_KEYS.includes(key));
+  if (can(role, 'module:preview')) return { visible: [...MODULE_KEYS], preview: [...hidden] };
 
-  if (can(role, 'module:preview')) return { visible: [...mine], preview: [...hidden] };
-
-  return { visible: mine.filter((key) => !hidden.includes(key)), preview: [] };
+  return { visible: MODULE_KEYS.filter((key) => !hidden.includes(key)), preview: [] };
 }
 
 /** Milliseconds a conversation lives past its last message, from current settings. */

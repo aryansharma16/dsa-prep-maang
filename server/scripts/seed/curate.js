@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import { AI_SHEET, assignAiSheet } from './ai-sheet.js';
 import { classify, classifyByTitle } from './classify.js';
 import { cleanTitle } from './normalize.js';
 import { faangGroup, parseFaang } from './parse-faang.js';
@@ -335,6 +336,14 @@ function main() {
     );
   }
 
+  /*
+    The fifth sheet, and the only one not imported from somebody else's list.
+    Stamped last, after every other sheet is on the rows, because it is computed
+    *from* them — see ai-sheet.js. Additive: it only pushes onto `sheets`, so no
+    problem loses a membership and the roadmap is the same 517 either way.
+  */
+  const ai = assignAiSheet(problems);
+
   const byDifficulty = problems.reduce((acc, p) => {
     acc[p.difficulty] = (acc[p.difficulty] || 0) + 1;
     return acc;
@@ -348,6 +357,7 @@ function main() {
   console.log(
     `  striver-sde ${inSheet('striver-sde')} · neetcode-150 ${inSheet('neetcode-150')} · blind-75 ${inSheet('blind-75')} · ${FAANG_SHEET} ${inSheet(FAANG_SHEET)}`,
   );
+  console.log(`  ${AI_SHEET}: ${inSheet(AI_SHEET)} across ${ai.filter((r) => r.picked).length} patterns`);
   console.log(`  with company tags:      ${problems.filter((p) => p.companies.length).length}`);
   console.log(
     `  asked in 2025-26:       ${problems.filter((p) => p.askedRecently?.length).length}`,

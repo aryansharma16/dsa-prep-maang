@@ -35,7 +35,6 @@ export const DEFAULT_ROLE = 'user';
  *   feedback:write set a submission's status and leave the one reply on it
  *   module:preview reach a side-menu module that is still being built
  *   module:write   decide which modules are still being built
- *   playbook       open the owner's own prep plan
  *
  * `settings:write` is its own capability rather than a reuse of
  * `content:write`, even though only `super_admin` holds either one today. That
@@ -57,12 +56,11 @@ export const DEFAULT_ROLE = 'user';
  * name, in the product's voice. All three staff roles hold both today; that is
  * what the current matrix says, not a claim that the two are the same power.
  *
- * `playbook` is a capability rather than a bare `role === 'super_admin'` test
- * anywhere in the request path, for the reason every other line here is one: the
- * question the code asks should be "may this account do this thing", so the
- * answer lives in one table. It happens to be unreachable by any other role and
- * there is no endpoint that grants it — like `super_admin` itself, it is pinned
- * to the address in SUPER_ADMIN_EMAIL and nothing in the API can hand it out.
+ * There was a `playbook` capability here, held by `super_admin` alone, which
+ * gated the owner's prep plan. The playbook is an ordinary module now — every
+ * role gets it, and the admin panel hides it like any other — so the capability
+ * gated nothing and came out rather than sitting in the matrix as a power with
+ * no question attached to it. See config/modules.js.
  *
  * `module:preview` and `module:write` are split even though one role holds both
  * today, because they are answers to different questions. Preview is "an
@@ -113,7 +111,6 @@ const CAPS = {
     'feedback:write',
     'module:preview',
     'module:write',
-    'playbook',
   ],
 };
 

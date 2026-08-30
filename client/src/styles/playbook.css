@@ -374,6 +374,9 @@
 .pb-slot[data-kind='design'] {
   --pb-kind: var(--h-violet);
 }
+.pb-slot[data-kind='sql'] {
+  --pb-kind: var(--h-green);
+}
 
 /* The slot the clock is actually inside. */
 .pb-slot.live {
@@ -805,7 +808,65 @@
   max-width: 92ch;
 }
 
-/* -------------------------------------------------------- system design */
+/* --------------------------------------------------------- design tracks */
+
+/*
+  A track is a group of blocks with one lead paragraph — high-level design,
+  low-level design, and SQL all take this shape. Marked with a rule down the
+  left rather than a box, because a bordered group of bordered blocks is two
+  frames around the same content and the inner one is the useful frame.
+*/
+.pb-track {
+  padding-left: 14px;
+  border-left: 2px solid var(--pb-hair);
+  margin-bottom: 22px;
+}
+.pb-track.now {
+  border-left-color: var(--accent-line);
+}
+/* Legible but plainly not yet yours. Matches `.pb-block.ahead`, which is what
+   every block inside one of these will be while the track is still ahead. */
+.pb-track.ahead {
+  opacity: 0.72;
+}
+
+.pb-track-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.pb-track-head h2 {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+}
+.pb-track-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.pb-track-lead {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-3);
+  max-width: 92ch;
+}
+
+/*
+  The SQL rows are read, not ticked — the lab already tracks all 117 per
+  problem. So they reuse the item layout and drop the affordances: no hover,
+  no pointer, and the checkbox column is simply absent from the markup.
+*/
+.pb-sd-item.static {
+  cursor: default;
+}
+.pb-sd-item.static:hover {
+  background: none;
+}
 
 .pb-block {
   border: 1px solid var(--pb-hair);
@@ -827,7 +888,8 @@
   gap: 10px;
   margin-bottom: 8px;
 }
-.pb-block-head h2 {
+.pb-block-head h2,
+.pb-block-head h3 {
   margin: 0;
   font-size: 14.5px;
   font-weight: 620;
@@ -879,10 +941,18 @@
   border-radius: 13px;
   background: var(--pb-panel-2);
 }
+/*
+  A fixed column, not `auto`. These markers used to be two digits; they are now
+  "12 – 25 min", "D + 21" and "5 – 8 h" as well, and an auto-width column makes
+  every card in the grid start its title at a different x. 72px holds the common
+  ones on one line and wraps the two longest onto a second, which is tidier than
+  the ragged alternative.
+*/
 .pb-rule-n {
-  flex: 0 0 auto;
+  flex: 0 0 72px;
   font-size: 11px;
   font-weight: 700;
+  line-height: 1.45;
   color: var(--accent);
 }
 .pb-rules h3 {
@@ -895,6 +965,59 @@
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--text-3);
+}
+
+/*
+  The five questions about a pattern that have numeric answers — what it costs
+  to learn, when it is done, what it costs after that. A description list rather
+  than more cards: these are answers to questions, and the question is the half
+  worth scanning.
+*/
+.pb-budget {
+  margin: 14px 0 0;
+  display: grid;
+  gap: 1px;
+  background: var(--pb-hair);
+  border: 1px solid var(--pb-hair);
+  border-radius: 13px;
+  overflow: hidden;
+}
+.pb-budget > div {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 14px;
+  padding: 11px 15px;
+  background: var(--pb-panel-2);
+}
+.pb-budget dt {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.pb-budget dd {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-3);
+}
+@media (max-width: 720px) {
+  .pb-budget > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+}
+
+/* The two sentences under the revision intervals that carry the actual price. */
+.pb-note-line {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-3);
+  max-width: 92ch;
+}
+.pb-note-line b {
+  color: var(--text-2);
+  font-weight: 600;
 }
 
 /* -------------------------------------------------------------- loading */

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { cpApi, statsApi } from '../api/index.js';
+import { cpApi, sqlApi, statsApi } from '../api/index.js';
 import { DesignTrack } from '../components/playbook/DesignTrack.jsx';
 import { MethodPanel } from '../components/playbook/MethodPanel.jsx';
 import { PhasePlan } from '../components/playbook/PhasePlan.jsx';
 import { PlanHeader } from '../components/playbook/PlanHeader.jsx';
+import { SqlTrack } from '../components/playbook/SqlTrack.jsx';
 import { TodayPanel } from '../components/playbook/TodayPanel.jsx';
-import { PLAN_TOTALS, SYSTEM_DESIGN, WEEKS, weekOf } from '../playbook/plan.js';
+import { PLAN_TOTALS, weekOf } from '../playbook/plan.js';
+import { usePlan } from '../playbook/usePlan.js';
 import { usePlaybook } from '../store/PlaybookContext.jsx';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 
@@ -28,7 +30,8 @@ import { useRoadmap } from '../store/RoadmapContext.jsx';
 const TABS = [
   { id: 'today', label: 'Today' },
   { id: 'plan', label: 'The plan' },
-  { id: 'design', label: 'System design' },
+  { id: 'design', label: 'Design' },
+  { id: 'sql', label: 'SQL' },
   { id: 'method', label: 'Method' },
 ];
 
@@ -60,6 +63,37 @@ function useLadder() {
   }, []);
 
   return ladder;
+}
+
+/**
+ * The SQL bank, solved against total.
+ *
+ * Read from `/sql/stats` rather than mounting SqlProvider, which would pull the
+ * whole 117-problem bank and a WASM engine to add up two numbers. Same shape as
+ * `useLadder` above, and the same degradation: SQL hidden or never seeded 404s
+ * here, the meter drops out, and the twelve Fridays are still on the schedule.
+ */
+function useSqlBank() {
+  const [bank, setBank] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    sqlApi
+      .stats()
+      .then((data) => {
+        if (!live || !data?.categories) return;
+        setBank({
+          solved: data.categories.reduce((n, c) => n + c.solved, 0),
+          total: data.categories.reduce((n, c) => n + c.total, 0),
+        });
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  return bank;
 }
 
 /**
@@ -106,8 +140,15 @@ function useLeaks() {
 
 export function Playbook() {
   const { plan, loading, loadError, doneCount } = usePlaybook();
+  /*
+    Two readings of the same document — personal for the account it was written
+    for, generic for everyone else. Read here and passed down rather than
+    re-derived in each panel, so one render can never mix the two.
+  */
+  const doc = usePlan();
   const { groups } = useRoadmap();
   const ladder = useLadder();
+  const sql = useSqlBank();
   const leaks = useLeaks();
   const [tab, setTab] = useState('today');
 
@@ -129,15 +170,17 @@ export function Playbook() {
 
   const week = weekOf(plan.startedAt) || 1;
 
+  /* Both tracks in one number — the header has one design meter, and splitting
+     it would put two bars on the cockpit for one evening's worth of work. */
   const design = useMemo(() => {
-    const ids = SYSTEM_DESIGN.flatMap((b) => b.items.map((i) => i.id));
+    const ids = doc.DESIGN_TRACKS.flatMap((t) => t.blocks.flatMap((b) => b.items.map((i) => i.id)));
     return { done: doneCount(ids), total: ids.length };
-  }, [doneCount]);
+  }, [doc, doneCount]);
 
   const checklist = useMemo(() => {
-    const ids = WEEKS.flatMap((w) => w.tasks.map((t) => t.id));
+    const ids = doc.WEEKS.flatMap((w) => w.tasks.map((t) => t.id));
     return { done: doneCount(ids), total: ids.length };
-  }, [doneCount]);
+  }, [doc, doneCount]);
 
   /*
     Before day one there is no "today" to show, so that tab is not offered and
@@ -173,9 +216,11 @@ export function Playbook() {
   return (
     <div className="pb-root pb-page">
       <PlanHeader
+        doc={doc}
         week={started ? week : null}
         roadmap={{ ...roadmap, total: roadmap.total || PLAN_TOTALS.roadmap }}
         ladder={ladder}
+        sql={sql}
         design={design}
         checklist={checklist}
       />
@@ -198,13 +243,14 @@ export function Playbook() {
           what you are committing to before the clock starts. `week` is 0 then,
           which marks nothing as current. */}
       {activeTab === 'today' && (
-        <TodayPanel week={week} patternProgress={patternProgress} leaks={leaks} />
+        <TodayPanel doc={doc} week={week} patternProgress={patternProgress} leaks={leaks} />
       )}
       {activeTab === 'plan' && (
-        <PhasePlan week={started ? week : 0} patternProgress={patternProgress} />
+        <PhasePlan doc={doc} week={started ? week : 0} patternProgress={patternProgress} />
       )}
-      {activeTab === 'design' && <DesignTrack week={started ? week : 0} />}
-      {activeTab === 'method' && <MethodPanel />}
+      {activeTab === 'design' && <DesignTrack doc={doc} week={started ? week : 0} />}
+      {activeTab === 'sql' && <SqlTrack doc={doc} week={started ? week : 0} stats={sql} />}
+      {activeTab === 'method' && <MethodPanel doc={doc} />}
     </div>
   );
 }
