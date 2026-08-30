@@ -310,7 +310,7 @@ export function Roadmap() {
 
   if (loading) {
     return (
-      <>
+      <div className="roadmap-page">
         <div className="page-head">
           <h1>Roadmap</h1>
           <p>Loading your curriculum...</p>
@@ -318,24 +318,30 @@ export function Roadmap() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div className="skeleton" key={i} />
         ))}
-      </>
+      </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="empty">
-        <h3>Could not load problems</h3>
-        <p>{loadError}</p>
-        <button className="btn" style={{ marginTop: 12 }} onClick={reload}>
-          Try again
-        </button>
+      <div className="roadmap-page">
+        <div className="empty">
+          <h3>Could not load problems</h3>
+          <p>{loadError}</p>
+          <button className="btn" style={{ marginTop: 12 }} onClick={reload}>
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
+    /*
+      The page owns its own canvas rather than sitting inside the shell's
+      1500px well — see `.roadmap-page` for what that buys the table.
+    */
+    <div className="roadmap-page">
       <div className="page-head">
         <h1>Pattern Roadmap</h1>
         <p>
@@ -545,6 +551,6 @@ export function Roadmap() {
       {guidePattern && (
         <GuideReader pattern={guidePattern} onClose={() => setGuidePattern(null)} />
       )}
-    </>
+    </div>
   );
 }

@@ -943,6 +943,53 @@
   text-decoration: underline;
 }
 
+/* ------------------------------------------------------------ roadmap page */
+
+/*
+  Full bleed, the same `:has()` trick the ladder, the playbook and the SQL lab
+  use, and for the same reason: `.content` belongs to the app shell several
+  levels above any page, so a page cannot reach up to it.
+
+  The roadmap earns it more than any of them. Twelve columns — company logos,
+  topics, sheets, tries, the attempt chip and six track buttons — held to a
+  1500px well means the table starts scrolling sideways while the right-hand
+  third of a wide monitor sits empty. Every column but `title` takes its width
+  from the colgroup, so the pixels handed back here buy two things: columns that
+  no longer fall off the right edge, and the remainder to `title`, the one
+  column marked `grow`.
+*/
+.content:has(.roadmap-page) {
+  padding: 0;
+}
+.content:has(.roadmap-page) .content-inner {
+  max-width: none;
+  margin: 0;
+}
+
+/*
+  The gutters `.content` gave up, back on the page itself. Ten pixels wider than
+  the 16px it replaces: the pattern cards are the full width of the window now,
+  and a card whose border sits a hair off the glass reads as a page, while one
+  run flush into it reads as a spreadsheet that overflowed.
+*/
+.roadmap-page {
+  padding: 18px 26px 80px;
+}
+
+/* The rail is auto-collapsed below 1024 and gone below 760; both hand the page
+   width it should spend on the table, not on gutters. Mirrors what `.content`
+   does at the same two breakpoints, since this page no longer inherits it. */
+@media (max-width: 1024px) {
+  .roadmap-page {
+    padding: 16px 13px 72px;
+  }
+}
+@media (max-width: 760px) {
+  .roadmap-page {
+    padding: 12px 10px 60px;
+  }
+}
+
 /* --------------------------------------------------------- pattern section */
 .pattern {
   border: 1px solid var(--border);

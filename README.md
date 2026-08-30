@@ -1142,6 +1142,14 @@ that looks like it found nothing.
 
 ### The problems table
 
+The roadmap runs **full width**, the way Pro Coder, the Playbook and the SQL Lab
+do, rather than inside the shell's 1500px well. With a dozen columns showing —
+company logos, topics, sheets, tries, the attempt chip and the track strip — that
+well was making the table scroll sideways while the right-hand third of a wide
+monitor sat empty. Every column but the title is a fixed width you chose, so the
+width handed back goes two places: fewer columns pushed off the right edge, and
+the rest of it to the title, which is the one column that grows.
+
 Twenty-four columns exist; you choose which you see. **Columns** in the toolbar
 opens the editor — show/hide, reorder, five width presets (`XS`–`XL`, scaled off
 the width each column was designed at), and pinning.
