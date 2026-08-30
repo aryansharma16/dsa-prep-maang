@@ -732,6 +732,15 @@
   transform: scaleX(0);
 }
 
+/*
+  The contents rail, on the left of the prose.
+
+  Which side it lands on is decided in the JSX and nowhere here: `.learn-page`
+  is a plain flex row with no `order`, so the rail is on the left because it is
+  written first. Same arrangement as the field guide at /docs, and the same
+  reason — the list of sections is something you consult before the section, not
+  after scrolling past all of it.
+*/
 .learn-toc {
   position: sticky;
   /* Clears the top bar, which is what is above this on every page. */

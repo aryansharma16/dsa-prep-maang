@@ -872,8 +872,16 @@ card or the text on it; the 1px lift is a `transform`. Neither touches layout.
 
 ### Width
 
-`.learn-page` is a flex row of the column and the rail, capped at 1340px and
-centred. The column is 1000px — wider than the guide reader's 720px — and the
+`.learn-page` is a flex row of the rail and the column, capped at 1340px and
+centred. **The rail is first**, so it sits on the left — the row carries no
+`order`, so reading order is the only thing deciding the side, and it matches
+the field guide at `/docs` where the contents rail is also the first child. A
+list of sections is something you consult before the section, not after
+scrolling past all of it. Moving it was safe because `headings` is derived from
+the block data rather than read out of the DOM, and the scroll-spy resolves each
+heading by id, so neither cares which sibling renders first.
+
+The column is 1000px — wider than the guide reader's 720px — and the
 **measure is held on the prose blocks, not on the column**:
 
 ```css

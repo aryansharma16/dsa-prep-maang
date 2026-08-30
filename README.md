@@ -1777,9 +1777,18 @@ request fails the row rolls back and a toast says so.
 
 ## The guide
 
-`/docs` is the app explaining itself: what Ember is for, the first hour, the
-roadmap, logging an attempt, the revision ladder, and every shortcut — written
-for someone using it rather than building it.
+`/docs` is the app explaining itself, in thirteen sections and in the order you
+meet them: what Ember is for, the first hour, the roadmap, logging an attempt,
+the revision ladder, the guides and the five Learn tracks, the **SQL Lab**, Pro
+Coder, the **Playbook**, the assistant and Tasks, Stats, setup, every shortcut,
+and what to do when something looks wrong — written for someone using it rather
+than building it.
+
+Its numbers are the real ones and are checked against the seed data when they
+move: 517 problems, 23 patterns, 205 reference topics, 117 SQL problems, a
+1,100-problem ladder. It had drifted to 429 / 22 / 111 before the curriculum
+grew past it, which is the failure mode a self-documenting page has — the page
+that is supposed to tell the truth about the product is the one nobody re-reads.
 
 It is **the one route mounted on both sides of the auth branch** in `App.jsx`.
 The reader who most needs to know what this is has not signed up yet, and a page

@@ -184,7 +184,15 @@ const SECTIONS = [
   { id: 'attempts', label: 'Logging an attempt', hue: 'orange', eyebrow: 'The heart of it' },
   { id: 'revision', label: 'Revision', hue: 'violet', eyebrow: 'Not forgetting' },
   { id: 'reading', label: 'Guides & Learn', hue: 'teal', eyebrow: 'The material' },
+  { id: 'sql', label: 'SQL Lab', hue: 'pink', eyebrow: 'The other language' },
   { id: 'procoder', label: 'Pro Coder', hue: 'lime', eyebrow: 'Competitive programming' },
+  /*
+    Last of the five curriculum sections and first in importance, which is why
+    it is here rather than at the top: a plan is only readable once you know
+    what it is scheduling. Everything above this point is a thing you can do;
+    this is the answer to "in what order, for how long, starting when".
+  */
+  { id: 'playbook', label: 'The Playbook', hue: 'indigo', eyebrow: 'The plan' },
   { id: 'assistant', label: 'Assistant & Tasks', hue: 'fuchsia', eyebrow: 'Help and planning' },
   { id: 'stats', label: 'Stats', hue: 'green', eyebrow: 'The honest view' },
   { id: 'yours', label: 'Making it yours', hue: 'sky', eyebrow: 'Setup' },
@@ -723,19 +731,19 @@ export function Docs() {
             <div className="docs-stats">
               <div>
                 <b>
-                  <Counter to={429} />
+                  <Counter to={517} />
                 </b>
                 <span>problems</span>
               </div>
               <div>
                 <b>
-                  <Counter to={22} />
+                  <Counter to={23} />
                 </b>
                 <span>patterns, in teaching order</span>
               </div>
               <div>
                 <b>
-                  <Counter to={111} />
+                  <Counter to={205} />
                 </b>
                 <span>reference topics</span>
               </div>
@@ -802,7 +810,7 @@ export function Docs() {
         </header>
 
         <p className="docs-thesis">
-          The 429 problems here are not a list. They are <b>22 patterns in teaching order</b>, and
+          The 517 problems here are not a list. They are <b>23 patterns in teaching order</b>, and
           inside each one the problems run easy to hard. That order is the curriculum. Working top
           to bottom is the intended way to use it.
         </p>
@@ -886,6 +894,14 @@ export function Docs() {
                   </li>
                   <li>
                     <b>Filters</b> covers difficulty, status, sheet, topics and companies.
+                  </li>
+                  <li>
+                    <b>Five sheets to narrow to</b>, four of them imported — Striver&rsquo;s SDE
+                    Sheet, NeetCode 150, Blind 75, and everything reported asked at a named company
+                    in 2025-26. The fifth, <b>AI-recommended 300</b>, is built from the other four
+                    plus the company data and deduplicated by technique: it contains every Blind 75
+                    problem and almost all of NeetCode 150, and it is the one to pick if you want
+                    the shortest path rather than somebody else&rsquo;s list.
                   </li>
                   <li>
                     <b>Flagged</b>, <b>Needs revision</b> and <b>Added by me</b> stay out in the
@@ -1091,6 +1107,26 @@ export function Docs() {
                   </div>
                 </div>
 
+                <div className="docs-duo">
+                  <div className="docs-box" data-hue="pink">
+                    <span className="docs-box-label">SQL · 53 topics</span>
+                    <p>
+                      From &ldquo;what is a database&rdquo; through ER models and normalisation to
+                      every join shown with its result, window functions, isolation levels and query
+                      plans. Read alongside the <b>SQL Lab</b> below — the notes explain it, the Lab
+                      makes you write it.
+                    </p>
+                  </div>
+                  <div className="docs-box" data-hue="blue">
+                    <span className="docs-box-label">Computer Networks · 35 topics</span>
+                    <p>
+                      OSI layers through subnets, TCP, DNS and TLS, ending at load balancers, CDNs
+                      and a VPC drawn the way AWS draws it. The half of a system-design round that
+                      is not algorithms.
+                    </p>
+                  </div>
+                </div>
+
                 <ul className="docs-list">
                   <li>
                     <b>Every Node topic ends with an Interview table</b> — the questions that topic
@@ -1101,6 +1137,57 @@ export function Docs() {
                     <code>/tasks</code> API across topics rather than showing unrelated fragments.
                     You write the server by hand, rewrite it on Express, give it REST semantics and
                     pagination, put it on Postgres, add login, then attack it.
+                  </li>
+                </ul>
+              </Reveal>
+            </Section>
+
+            {/*
+              A curriculum rather than a chapter of Learn, and the section says
+              so: Learn is prose you read, this is 117 problems that grade you.
+              Placed directly after the SQL notes because that is the order they
+              are meant to be used in.
+            */}
+            <Section meta={byId.sql}>
+              <Reveal>
+                <p>
+                  <b>117 SQL problems in 8 categories</b>, on the same status circle, the same
+                  25-minute editorial gate and the same revision ladder as everything else. Most
+                  product-company loops put a SQL screen somewhere in them, and it is the cheapest
+                  round on the list to pass if you already write SQL at work.
+                </p>
+
+                <div className="docs-duo">
+                  <div className="docs-box" data-hue="pink">
+                    <span className="docs-box-label">72 run in your browser</span>
+                    <p>
+                      SQLite compiled to WebAssembly, with their own schema and rows. Your query is
+                      executed and diffed against a generated expected result — no account on
+                      anybody else&rsquo;s site, no network round trip, and it works offline.
+                    </p>
+                  </div>
+                  <div className="docs-box" data-hue="slate">
+                    <span className="docs-box-label">45 link out to LeetCode</span>
+                    <p>
+                      Because a problem that already has a judge should be solved on it. The rule
+                      between the two kinds is deliberate, not an accident of what was easy.
+                    </p>
+                  </div>
+                </div>
+
+                <ul className="docs-list">
+                  <li>
+                    <b>Joins is the block that matters.</b> 30 of the 117, and the two questions
+                    every SQL round asks live in it — rows the other table does not have, and a
+                    table joined to itself.
+                  </li>
+                  <li>
+                    <b>Window functions are the ones you have probably never needed.</b> 11
+                    problems, and they are what separates a passing SQL round from a strong one.
+                  </li>
+                  <li>
+                    <b>MySQL shims and dialect notes</b>, so the answers match what the Learn track
+                    teaches rather than drifting into SQLite-only syntax.
                   </li>
                 </ul>
               </Reveal>
@@ -1237,6 +1324,72 @@ export function Docs() {
 
             </Section>
 
+            {/*
+              Last of the curriculum sections, because it is the only one that
+              is about the others. Everything above is a thing you can do; this
+              answers in what order, for how long, and starting when — which is
+              the question people actually stall on once they have all four
+              lists open in front of them.
+            */}
+            <Section meta={byId.playbook}>
+              <Reveal>
+                <p>
+                  Four lists and a finite number of evenings is a planning problem, and the{' '}
+                  <b>Playbook</b> is the answer to it: a dated, phased schedule that turns the
+                  roadmap, the ladder and the SQL Lab into a week-by-week timetable — and then
+                  reads your real progress back out of them, so it never has to be told what you
+                  have done.
+                </p>
+
+                <div className="docs-duo">
+                  <div className="docs-box" data-hue="indigo">
+                    <span className="docs-box-label">24 weeks, four phases</span>
+                    <p>
+                      Rebuild the base (1&ndash;5), the core machine (6&ndash;13), hard mode
+                      (14&ndash;18), interview mode (19&ndash;24). Weeks 13 and 18 carry no new
+                      problems at all — they are what stops the middle of a plan like this from
+                      quietly falling apart.
+                    </p>
+                  </div>
+                  <div className="docs-box" data-hue="orange">
+                    <span className="docs-box-label">The drift line</span>
+                    <p>
+                      One number that governs the week: problems solved against problems the
+                      schedule expected by now, stated plainly and never softened. Ahead, on track,
+                      or <i>n</i> behind — with what to cut.
+                    </p>
+                  </div>
+                </div>
+
+                <ul className="docs-list">
+                  <li>
+                    <b>Four tracks, because interview loops are not only DSA.</b> DSA in the
+                    mornings, SQL on Friday evenings for twelve weeks, high-level design from week
+                    13, and low-level design and machine coding from week 14 — the round that asks
+                    you to build something that runs and then extend it live.
+                  </li>
+                  <li>
+                    <b>Nothing is added on top.</b> Every hour a new track needs is taken from one
+                    that was buying less, and the plan says which: SQL takes the Friday re-solve
+                    hour, low-level design takes the Sunday ladder session. A plan that quietly
+                    asks for more hours than you have is one you fail in week three.
+                  </li>
+                  <li>
+                    <b>The Method tab is the part to re-read on a bad week.</b> Six panels: where
+                    the hours go, the six-step loop for a single problem with a clock on every step,
+                    the five stages of getting comfortable with a whole pattern, what a pattern
+                    costs once you are confident, the four revision intervals and their real weekly
+                    price, and the four mental models that make solved problems <i>available</i>{' '}
+                    ones.
+                  </li>
+                  <li>
+                    <b>Tick boxes and a Sunday retro line, and nothing else stored.</b> The plan
+                    itself is a document, identical for everyone; what is yours is the start date,
+                    what you have ticked and one honest sentence a week.
+                  </li>
+                </ul>
+              </Reveal>
+            </Section>
 
             <Section meta={byId.assistant}>
               <Reveal>
@@ -1427,8 +1580,9 @@ export function Docs() {
             </Reveal>
 
             <p className="docs-colophon">
-              {BRAND.name} — {BRAND.tagline}. 429 problems across 22 patterns, plus 117 reference
-              topics across Complexity, React and Node.
+              {BRAND.name} — {BRAND.tagline}. 517 problems across 23 patterns, 117 SQL problems, a
+              1,100-problem CP ladder, and 205 reference topics across Complexity, React, Node,
+              SQL and Computer Networks.
             </p>
           </main>
         </div>

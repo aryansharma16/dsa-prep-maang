@@ -282,6 +282,20 @@ export function LearnTopic() {
       </div>
 
       <div className="learn-page" ref={pageRef}>
+        {/*
+          Before the prose, not after it, which puts it on the left — the rail is
+          a flex item and this row has no `order` on it, so reading order is the
+          only thing deciding the side. It matches the field guide at /docs,
+          where the contents rail is also the first child, and it means the list
+          of sections is reached before the section you are in rather than after
+          all of it.
+
+          Safe to move: `headings` is derived from the block data rather than
+          read out of the DOM, and the scroll-spy resolves each one by id, so
+          neither cares which sibling renders first.
+        */}
+        <LearnToc headings={headings} />
+
         <article className="learn-col">
           <div className="learn-crumb">
             <Link to={`/learn/${trackSlug}`}>
@@ -445,8 +459,6 @@ export function LearnTopic() {
             </nav>
           )}
         </article>
-
-        <LearnToc headings={headings} />
       </div>
     </div>
   );
