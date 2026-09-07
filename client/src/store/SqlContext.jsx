@@ -23,6 +23,11 @@ const emptyProgress = {
   status: 'todo',
   flagged: false,
   needsRevision: false,
+  /* Why the flag is up and your line about it — see components/problem/
+     revisionFlags.js. Empty strings rather than absent, so a row flagged before
+     these existed renders as a flag with nothing attached. */
+  revisionReason: '',
+  revisionNote: '',
   confidence: 3,
   notes: '',
   attemptCount: 0,
@@ -91,6 +96,8 @@ export function SqlProvider({ children }) {
           status: saved.status,
           flagged: saved.flagged,
           needsRevision: saved.needsRevision,
+          revisionReason: saved.revisionReason || '',
+          revisionNote: saved.revisionNote || '',
           confidence: saved.confidence,
           notes: saved.notes,
           nextReviewAt: saved.nextReviewAt,

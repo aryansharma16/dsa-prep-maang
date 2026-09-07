@@ -10,6 +10,11 @@ const emptyProgress = {
   status: 'todo',
   flagged: false,
   needsRevision: false,
+  /* Why the flag is up and your line about it — see components/problem/
+     revisionFlags.js. Empty strings rather than absent, so a row flagged before
+     these existed renders as a flag with nothing attached. */
+  revisionReason: '',
+  revisionNote: '',
   confidence: 3,
   notes: '',
   attemptCount: 0,
@@ -97,6 +102,8 @@ export function RoadmapProvider({ children }) {
           status: saved.status,
           flagged: saved.flagged,
           needsRevision: saved.needsRevision,
+          revisionReason: saved.revisionReason || '',
+          revisionNote: saved.revisionNote || '',
           confidence: saved.confidence,
           notes: saved.notes,
           nextReviewAt: saved.nextReviewAt,
@@ -206,16 +213,23 @@ export function RoadmapProvider({ children }) {
    *
    * Answers true/false like `setProgress`, because its caller drops the row on
    * the way out and has to be able to put it back. The roadmap is updated too:
-   * a recall moves the next-review date, and that is a column on the table.
+   * a review moves the next-review date, and that is a column on the table.
+   *
+   * Takes the whole body rather than four positional arguments. There are three
+   * results and a grade now — see the server's `reviewSchema` — and
+   * `review(id, 'recalled', undefined, undefined, 'easy')` is a call nobody can
+   * read.
    */
   const reviewProblem = useCallback(
-    async (problemId, result, confidence, recall) => {
+    async (problemId, body) => {
       const before = snapshot(problemId);
       try {
-        const saved = await progressApi.review(problemId, result, confidence, recall);
+        const saved = await progressApi.review(problemId, body);
         applyLocal(problemId, {
           status: saved.status,
           needsRevision: saved.needsRevision,
+          revisionReason: saved.revisionReason || '',
+          revisionNote: saved.revisionNote || '',
           confidence: saved.confidence,
           nextReviewAt: saved.nextReviewAt,
           solvedAt: saved.solvedAt,

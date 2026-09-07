@@ -76,6 +76,9 @@ const summariseProgress = (row) => {
     status: row.status,
     flagged: row.flagged,
     needsRevision: row.needsRevision,
+    /* Why the flag is up, and your line about it — see config/revision.js. */
+    revisionReason: row.revisionReason || '',
+    revisionNote: row.revisionNote || '',
     confidence: row.confidence,
     notes: row.notes,
     solvedAt: row.solvedAt,

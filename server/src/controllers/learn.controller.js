@@ -2,7 +2,17 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import { LearnProgress } from '../models/LearnProgress.js';
 import { LearnTopic } from '../models/LearnTopic.js';
-import { LADDER_RUNGS, nextReview } from '../services/review.service.js';
+import { UPCOMING_LIMIT } from '../config/revision.js';
+import {
+  DEFAULT_GRADE,
+  LADDER_RUNGS,
+  RECALL_GRADES,
+  nextReview,
+  reviewChoices,
+  reviewNumber,
+  reviewPlan,
+  scheduleReview,
+} from '../services/review.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
@@ -75,8 +85,12 @@ export const bulkReadSchema = z.object({
     .max(500),
 });
 
+/* The same three intentions and the same grades the problem queues take — see
+   the long note on `reviewSchema` in services/progress.kit.js. A topic answered
+   in the merged queue must move on the same ladder as the problem above it. */
 export const reviewSchema = z.object({
-  result: z.enum(['recalled', 'dismissed']),
+  result: z.enum(['recalled', 'missed', 'dismissed']),
+  grade: z.enum(RECALL_GRADES).optional(),
   confidence: z.number().int().min(1).max(5).optional(),
   recall: z.string().max(500).optional(),
 });
@@ -260,73 +274,123 @@ export const markTopic = asyncHandler(async (req, res) => {
  */
 export const learnRevisionQueue = asyncHandler(async (req, res) => {
   const now = new Date();
-  const rows = await LearnProgress.find({
-    user: oid(req.userId),
-    /*
-      `scheduledAt`, not `readAt`. This was `readAt` when that field meant "put
-      on the ladder"; read is a browsing fact now, set by a scroll handler, and
-      queueing off it would put every topic you have ever skimmed into Tuesday
-      morning — which is exactly what keeping read out of the database was
-      protecting against.
-    */
-    scheduledAt: { $ne: null },
-    $or: [{ needsRevision: true }, { nextReviewAt: { $ne: null, $lte: now } }],
-  })
-    .sort({ nextReviewAt: 1, updatedAt: -1 })
-    .lean();
+  const user = oid(req.userId);
+  /*
+    `scheduledAt`, not `readAt`. This was `readAt` when that field meant "put on
+    the ladder"; read is a browsing fact now, set by a scroll handler, and
+    queueing off it would put every topic you have ever skimmed into Tuesday
+    morning — which is exactly what keeping read out of the database was
+    protecting against.
+  */
+  const onTheLadder = { user, scheduledAt: { $ne: null } };
 
-  const items = rows.map((row) => ({
-    _id: String(row._id),
-    track: row.track,
-    topic: row.topic,
-    title: row.title || row.topic,
-    progress: {
-      status: 'solved',
-      needsRevision: row.needsRevision,
-      confidence: row.confidence,
-      notes: '',
-      nextReviewAt: row.nextReviewAt,
-      recentAttempts: [],
-      recentRecalls: (row.recalls || []).slice(-3),
-    },
-    dueReason: row.needsRevision ? 'marked' : 'scheduled',
-    review: {
-      stage: Math.min(row.reviewStage ?? 0, LADDER_RUNGS),
-      rungs: LADDER_RUNGS,
-      lastReviewedAt: row.lastReviewedAt || row.readAt || null,
-      nextGapDays: nextReview(row.reviewStage ?? 0, row.confidence ?? 3).days,
-    },
-  }));
+  const [rows, ahead] = await Promise.all([
+    LearnProgress.find({
+      ...onTheLadder,
+      $or: [{ needsRevision: true }, { nextReviewAt: { $ne: null, $lte: now } }],
+    })
+      .sort({ nextReviewAt: 1, updatedAt: -1 })
+      .lean(),
+    /* What is coming, on the same terms the three problem queues answer it —
+       see `findUpcoming` in services/progress.kit.js. */
+    LearnProgress.find({
+      ...onTheLadder,
+      needsRevision: { $ne: true },
+      nextReviewAt: { $ne: null, $gt: now },
+    })
+      .sort({ nextReviewAt: 1 })
+      .limit(UPCOMING_LIMIT)
+      .lean(),
+  ]);
 
-  res.json({ items, count: items.length });
+  const items = rows.map((row) => {
+    const stage = Math.min(row.reviewStage ?? 0, LADDER_RUNGS);
+    const good = scheduleReview(stage, DEFAULT_GRADE, now);
+    return {
+      _id: String(row._id),
+      track: row.track,
+      topic: row.topic,
+      title: row.title || row.topic,
+      progress: {
+        status: 'solved',
+        needsRevision: row.needsRevision,
+        revisionReason: row.revisionReason || '',
+        revisionNote: row.revisionNote || '',
+        confidence: row.confidence,
+        notes: '',
+        nextReviewAt: row.nextReviewAt,
+        recentAttempts: [],
+        recentRecalls: (row.recalls || []).slice(-3),
+      },
+      dueReason: row.needsRevision ? 'marked' : 'scheduled',
+      review: {
+        stage,
+        rungs: LADDER_RUNGS,
+        number: reviewNumber(stage),
+        lastReviewedAt: row.lastReviewedAt || row.readAt || null,
+        dueAt: row.nextReviewAt || null,
+        choices: reviewChoices(stage, now),
+        plan: reviewPlan(stage, now),
+        nextGapDays: good.days,
+      },
+    };
+  });
+
+  const upcoming = ahead.map((row) => {
+    const stage = Math.min(row.reviewStage ?? 0, LADDER_RUNGS);
+    return {
+      _id: String(row._id),
+      track: row.track,
+      topic: row.topic,
+      title: row.title || row.topic,
+      progress: { status: 'solved', confidence: row.confidence, nextReviewAt: row.nextReviewAt },
+      dueReason: 'scheduled',
+      review: {
+        stage,
+        rungs: LADDER_RUNGS,
+        number: reviewNumber(stage),
+        dueAt: row.nextReviewAt,
+        lastReviewedAt: row.lastReviewedAt || row.readAt || null,
+        plan: reviewPlan(stage, row.nextReviewAt),
+      },
+    };
+  });
+
+  res.json({ items, count: items.length, upcoming });
 });
 
 /**
  * POST /learn/progress/:track/:topic/review — working the queue.
  *
- * The same two intentions the problem queues have, with the same meanings:
- * `recalled` advances a rung, `dismissed` only clears what put the row in front
- * of you. The recall line is kept either way — a wrong one is the more useful
- * half.
+ * The same three intentions the problem queues have, with the same meanings:
+ * `recalled` climbs by the grade given, `missed` drops a rung and comes back
+ * tomorrow, `dismissed` only clears what put the row in front of you. The
+ * arithmetic is `scheduleReview`'s in every case, so a topic and a problem
+ * answered the same way move by the same amount. The recall line is kept either
+ * way — a wrong one is the more useful half.
  */
 export const reviewTopic = asyncHandler(async (req, res) => {
   const { track, topic } = req.params;
-  const { result, confidence, recall } = req.body;
+  const { result, grade, confidence, recall } = req.body;
   const user = oid(req.userId);
 
   const existing = await LearnProgress.findOne({ user, track, topic });
   if (!existing) throw ApiError.notFound('Nothing to review here', 'NO_PROGRESS');
 
-  const set = { needsRevision: false };
-  if (confidence) set.confidence = confidence;
+  const set = { needsRevision: false, revisionReason: '', revisionNote: '' };
 
-  if (result === 'recalled') {
-    const stage = existing.reviewStage ?? 0;
+  if (result === 'recalled' || result === 'missed') {
+    const step = scheduleReview(
+      existing.reviewStage ?? 0,
+      result === 'missed' ? 'missed' : grade || DEFAULT_GRADE,
+    );
     set.lastReviewedAt = new Date();
-    set.reviewStage = stage + 1;
-    set.nextReviewAt = nextReview(stage, confidence ?? existing.confidence ?? 3).nextReviewAt;
-  } else if (existing.nextReviewAt && existing.nextReviewAt <= new Date()) {
-    set.nextReviewAt = null;
+    set.reviewStage = step.stage;
+    set.nextReviewAt = step.nextReviewAt;
+    set.confidence = confidence ?? step.confidence;
+  } else {
+    if (confidence) set.confidence = confidence;
+    if (existing.nextReviewAt && existing.nextReviewAt <= new Date()) set.nextReviewAt = null;
   }
 
   const update = { $set: set };

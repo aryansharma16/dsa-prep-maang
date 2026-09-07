@@ -11,7 +11,16 @@ import {
   reasonAllowed,
 } from '../config/attempts.js';
 import { HUES } from '../config/hues.js';
-import { nextReview } from './review.service.js';
+import { REVISION_FLAGS, REVISION_NOTE_MAX, UPCOMING_LIMIT } from '../config/revision.js';
+import {
+  DEFAULT_GRADE,
+  RECALL_GRADES,
+  nextReview,
+  reviewChoices,
+  reviewNumber,
+  reviewPlan,
+  scheduleReview,
+} from './review.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { objectId } from '../utils/query.js';
@@ -48,6 +57,13 @@ export const patchSchema = z
     status: z.enum(['todo', 'attempted', 'solved']).optional(),
     flagged: z.boolean().optional(),
     needsRevision: z.boolean().optional(),
+    /*
+      Why you flagged it, and the line that says what you actually meant. Both
+      optional and both `''`-able: a flag raised by the keyboard shortcut carries
+      neither, and must still be a flag. See config/revision.js.
+    */
+    revisionReason: z.enum([...REVISION_FLAGS, '']).optional(),
+    revisionNote: z.string().max(REVISION_NOTE_MAX).optional(),
     confidence: z.number().int().min(1).max(5).optional(),
     notes: z.string().max(20000).optional(),
   })
@@ -111,11 +127,25 @@ export const attemptIdParam = z.object({ problemId: objectId, attemptId: objectI
 
 export const reviewSchema = z.object({
   /*
-    What the two buttons on the revision queue actually mean. They are different
-    intentions and only one of them is a review: `recalled` is "I came back to
-    this and got it", `dismissed` is "take it off the list".
+    What the buttons on the revision queue actually mean. Three intentions, and
+    only two of them are reviews:
+
+      recalled   I came back to this and got it — `grade` says how easily.
+      missed     I came back to this and could not do it.
+      dismissed  take it off the list; I am not claiming to have reviewed it.
+
+    `missed` is the one that was not expressible before. Test mode approximated
+    it by dismissing the row and then patching the flag back on from the client,
+    which left the problem standing on a rung it had just failed. See
+    services/review.service.js for what a lapse is supposed to do to a ladder.
   */
-  result: z.enum(['recalled', 'dismissed']),
+  result: z.enum(['recalled', 'missed', 'dismissed']),
+  /*
+    How easily, on a review that went well. Optional and defaulted rather than
+    required, because "I got it" is a complete answer and the plain queue is
+    allowed to be one click.
+  */
+  grade: z.enum(RECALL_GRADES).optional(),
   confidence: z.number().int().min(1).max(5).optional(),
   /*
     What you said the problem was before anything was revealed — test mode's
@@ -241,6 +271,17 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
 
     const existing = await Progress.findOne({ user: oid(req.userId), problem: problem._id });
     const update = { ...req.body };
+
+    /*
+      Taking the flag off takes its reason and its line with it. Left behind they
+      are an explanation of a flag that is not there any more, and the next time
+      you raise one by keyboard it would silently inherit whatever you wrote
+      about the problem in June.
+    */
+    if (update.needsRevision === false) {
+      update.revisionReason = '';
+      update.revisionNote = '';
+    }
 
     if (update.status === 'solved' && existing?.status !== 'solved') {
       const confidence = update.confidence ?? existing?.confidence ?? 3;
@@ -439,9 +480,13 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
     const existing = await Progress.findOne({ user: oid(req.userId), problem: problem._id });
     if (!existing) throw ApiError.notFound('Nothing to review here', 'NO_PROGRESS');
 
-    const { result, confidence, recall } = req.body;
-    const set = { needsRevision: false };
-    if (confidence) set.confidence = confidence;
+    const { result, grade, confidence, recall } = req.body;
+    /*
+      Every answer clears the hand-raised flag and everything hanging off it. The
+      flag means "bring this back", the row is in front of you, and the reason
+      you wrote in June is not an explanation of anything once you have answered.
+    */
+    const set = { needsRevision: false, revisionReason: '', revisionNote: '' };
 
     /*
       The recall line, kept whichever way the review went — and *especially* when
@@ -456,20 +501,40 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
       ? { recalls: { $each: [{ at: new Date(), text: recall.trim() }], $slice: -RECALL_KEEP } }
       : null;
 
-    if (result === 'recalled') {
-      // A successful review is exactly what the ladder is counting, so it moves
-      // on by a rung — the same arithmetic `logAttempt` does for a solve.
+    if (result === 'recalled' || result === 'missed') {
+      /*
+        The answer moves the ladder, and the ladder is the one in
+        review.service.js — the stage, the gap and the confidence all come back
+        from one call so no controller can move two of the three and forget the
+        other. A miss steps *down* a rung and comes back tomorrow; a hard recall
+        stands still; good and easy climb.
+      */
       const stage = existing.reviewStage ?? 0;
-      set.lastReviewedAt = new Date();
-      set.reviewStage = stage + 1;
-      set.nextReviewAt = nextReview(stage, confidence ?? existing.confidence ?? 3).nextReviewAt;
+      const answer = result === 'missed' ? 'missed' : grade || DEFAULT_GRADE;
+      const step = scheduleReview(stage, answer);
 
-      // You can only have recalled it if you can do it.
-      if (existing.status !== 'solved') {
+      set.lastReviewedAt = new Date();
+      set.reviewStage = step.stage;
+      set.nextReviewAt = step.nextReviewAt;
+      /*
+        The freshest reading of the problem there is. An explicit `confidence` in
+        the body still wins — the dots in test mode's older shape sent one — but
+        the answer itself is now what normally writes this field, which is the
+        whole reason the intervals stopped being multiplied by a number from
+        three months ago.
+      */
+      set.confidence = confidence ?? step.confidence;
+
+      // You can only have recalled it if you can do it. A miss says nothing
+      // about a status you already earned, so it leaves one alone.
+      if (result === 'recalled' && existing.status !== 'solved') {
         set.status = 'solved';
         set.solvedAt = existing.solvedAt || new Date();
       }
     } else {
+      // Not a review, so it moves no ladder — but a confidence sent alongside is
+      // still a statement about the problem and is honoured, as it always was.
+      if (confidence) set.confidence = confidence;
       /*
         Dismissing takes it off the queue and does nothing else — which means
         clearing only what was putting it there. A schedule still in the future
@@ -507,13 +572,26 @@ export function createProgressHandlers({ Problem, Progress, visibleTo, notFound 
  * with the same components — a `dueReason` that meant something different on
  * one of the two pages would be a bug nobody could see from either file.
  */
-export function toQueueItem(row, { rungs, problem }) {
+export function toQueueItem(row, { rungs, problem, now = new Date() }) {
+  const stage = Math.min(row.reviewStage ?? 0, rungs);
+  /*
+    The forecast runs from the day this review actually happens, which is today
+    for a row you are looking at — not from its due date, which on an overdue
+    row is in the past and would date the whole plan behind itself.
+  */
+  const good = scheduleReview(stage, DEFAULT_GRADE, now);
+
   return {
     ...problem,
     progress: {
       status: row.status,
       flagged: row.flagged,
       needsRevision: row.needsRevision,
+      /* Why you flagged it and what you said about it — see config/revision.js.
+         Both default to '' so a row flagged before this shipped renders as a
+         flag with nothing attached rather than as `undefined`. */
+      revisionReason: row.revisionReason || '',
+      revisionNote: row.revisionNote || '',
       confidence: row.confidence,
       notes: row.notes,
       solvedAt: row.solvedAt,
@@ -540,10 +618,78 @@ export function toQueueItem(row, { rungs, problem }) {
       eventually disagree with the date the server actually writes.
     */
     review: {
-      stage: Math.min(row.reviewStage ?? 0, rungs),
+      stage,
       rungs,
+      /** Which review this row is waiting for, 1-based — see `reviewNumber`. */
+      number: reviewNumber(stage),
       lastReviewedAt: row.lastReviewedAt || row.solvedAt || null,
-      nextGapDays: nextReview(row.reviewStage ?? 0, row.confidence ?? 3).days,
+      /** The date that put the row here, or null on one you flagged by hand. */
+      dueAt: row.nextReviewAt || null,
+      /** What each of the four buttons would schedule, so each can say so. */
+      choices: reviewChoices(stage, now),
+      /*
+        Every review still owed after the one you are about to do, dated. See
+        `reviewPlan` for why an approximate future beats no future at all.
+      */
+      plan: reviewPlan(stage, now),
+      nextGapDays: good.days,
     },
   };
+}
+
+/**
+ * A row that is scheduled but not yet due.
+ *
+ * Deliberately thinner than a queue item: this is a date and a title in a list
+ * you read, not a row you work, so it carries no attempts, no recalls and no
+ * per-button arithmetic. Thirty of these ship with every queue request — see
+ * `UPCOMING_LIMIT` — and the heaviest field on the full shape is the attempt
+ * tail nobody is going to read from a forecast.
+ *
+ * The problem document rides along whole because the client links these titles
+ * through the same `queueLink` the due rows use, and that reads `url`, `track`
+ * and `topic` off the problem rather than off a shape invented here.
+ */
+export function toUpcomingItem(row, { rungs, problem }) {
+  const stage = Math.min(row.reviewStage ?? 0, rungs);
+  return {
+    ...problem,
+    progress: {
+      status: row.status,
+      confidence: row.confidence,
+      nextReviewAt: row.nextReviewAt,
+    },
+    dueReason: 'scheduled',
+    review: {
+      stage,
+      rungs,
+      number: reviewNumber(stage),
+      dueAt: row.nextReviewAt,
+      lastReviewedAt: row.lastReviewedAt || row.solvedAt || null,
+      // Dated from the day it is actually due, not from today — this row is not
+      // in front of you, and its plan runs from when it will be.
+      plan: reviewPlan(stage, row.nextReviewAt),
+    },
+  };
+}
+
+/**
+ * The not-yet-due half of a queue request, for any of the four collections.
+ *
+ * Same query in four controllers otherwise, and the one clause that is easy to
+ * get wrong is `needsRevision: { $ne: true }`: a flagged row is already in the
+ * list above and must not be forecast as though it were merely scheduled.
+ */
+export async function findUpcoming(Progress, { user, extra = {}, populate, now = new Date() }) {
+  const query = Progress.find({
+    user,
+    needsRevision: { $ne: true },
+    nextReviewAt: { $ne: null, $gt: now },
+    ...extra,
+  })
+    .sort({ nextReviewAt: 1 })
+    .limit(UPCOMING_LIMIT);
+
+  if (populate) query.populate(...populate);
+  return query.lean();
 }

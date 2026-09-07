@@ -64,6 +64,10 @@ export const listGrouped = asyncHandler(async (req, res) => {
               status: 1,
               flagged: 1,
               needsRevision: 1,
+              /* Why the flag is up and what you said about it. `$ifNull`
+                 because the fields postdate most rows — see config/revision.js. */
+              revisionReason: { $ifNull: ['$revisionReason', ''] },
+              revisionNote: { $ifNull: ['$revisionNote', ''] },
               confidence: 1,
               notes: 1,
               solvedAt: 1,

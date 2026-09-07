@@ -221,6 +221,7 @@ wants it.
   readAt, lastViewedAt,             // the browsing fact
   scheduledAt,                      // the deliberate act — null means not on the ladder
   confidence, needsRevision,
+  revisionReason, revisionNote,     // why the flag is up, and your line about it
   lastReviewedAt, nextReviewAt, reviewStage,   // the 3/7/21/60 ladder
   recalls[],
 }
@@ -252,7 +253,7 @@ at all.
 | `PUT` | `/learn/progress/read` | bulk — the one-time localStorage hand-over |
 | `PUT` | `/learn/progress/:track/:topic/read` | the browsing fact; never touches the ladder |
 | `PUT` | `/learn/progress/:track/:topic` | schedule with a confidence |
-| `POST` | `/learn/progress/:track/:topic/review` | working the queue: `recalled` \| `dismissed` |
+| `POST` | `/learn/progress/:track/:topic/review` | working the queue: `recalled` (with a `grade` of `hard` \| `good` \| `easy`) \| `missed` \| `dismissed` |
 
 `/topics/:track/:topic` rather than `/:track/:topic` so it can never shadow
 `/progress`. `/progress/read` is two segments against the three of

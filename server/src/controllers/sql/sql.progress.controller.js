@@ -2,7 +2,12 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import { SqlProblem } from '../../models/SqlProblem.js';
 import { SqlProgress } from '../../models/SqlProgress.js';
-import { createProgressHandlers, toQueueItem } from '../../services/progress.kit.js';
+import {
+  createProgressHandlers,
+  findUpcoming,
+  toQueueItem,
+  toUpcomingItem,
+} from '../../services/progress.kit.js';
 import { LADDER_RUNGS, nextReview } from '../../services/review.service.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { visibleTo } from './sql.problem.controller.js';
@@ -137,19 +142,24 @@ export const markSolved = asyncHandler(async (req, res) => {
  */
 export const revisionQueue = asyncHandler(async (req, res) => {
   const now = new Date();
-  const rows = await SqlProgress.find({
-    user: oid(req.userId),
-    $or: [{ needsRevision: true }, { nextReviewAt: { $ne: null, $lte: now } }],
-  })
-    .populate('problem')
-    .sort({ nextReviewAt: 1, updatedAt: -1 })
-    .lean();
+  const user = oid(req.userId);
+
+  const [rows, ahead] = await Promise.all([
+    SqlProgress.find({
+      user,
+      $or: [{ needsRevision: true }, { nextReviewAt: { $ne: null, $lte: now } }],
+    })
+      .populate('problem')
+      .sort({ nextReviewAt: 1, updatedAt: -1 })
+      .lean(),
+    findUpcoming(SqlProgress, { user, now, populate: ['problem'] }),
+  ]);
 
   const items = rows
     /* A problem pruned by a re-seed leaves its progress row behind for a moment. */
     .filter((r) => r.problem)
     .map((r) => ({
-      ...toQueueItem(r, { rungs: LADDER_RUNGS, problem: r.problem }),
+      ...toQueueItem(r, { rungs: LADDER_RUNGS, problem: r.problem, now }),
       /*
         `source` is the queue's tag for which curriculum a row came from, and it
         overwrites the problem's own `source` object on the way past — so the
@@ -161,5 +171,14 @@ export const revisionQueue = asyncHandler(async (req, res) => {
       source: 'sql',
     }));
 
-  res.json({ items, count: items.length });
+  const upcoming = ahead
+    .filter((r) => r.problem)
+    .map((r) => ({
+      ...toUpcomingItem(r, { rungs: LADDER_RUNGS, problem: r.problem }),
+      /* The same lift the due rows need — see the note above. */
+      url: r.problem.mode === 'external' ? r.problem.source?.url || '' : '',
+      source: 'sql',
+    }));
+
+  res.json({ items, count: items.length, upcoming });
 });

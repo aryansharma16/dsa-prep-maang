@@ -1,6 +1,8 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useSql } from '../../store/SqlContext.jsx';
+import { RevisionFlagModal } from '../problem/RevisionFlagModal.jsx';
 import { cellProps } from '../problem/cellProps.js';
+import { revisionFlagOf } from '../problem/revisionFlags.js';
 import { IconFlag, IconRotate } from '../ui/Icons.jsx';
 
 /**
@@ -23,9 +25,11 @@ export const SqlProblemRow = memo(function SqlProblemRow({
   categoryLabel,
 }) {
   const { setProgress } = useSql();
+  const [flagging, setFlagging] = useState(false);
 
   const progress = problem.progress || {};
   const status = progress.status || 'todo';
+  const revisionFlag = revisionFlagOf(progress.revisionReason);
 
   const actions = (
     <span className="acts">
@@ -38,12 +42,19 @@ export const SqlProblemRow = memo(function SqlProblemRow({
       >
         <IconFlag size={12} />
       </button>
+      {/* The flag takes a reason and a line now — see RevisionFlagModal. */}
       <button
         type="button"
         className={`act ${progress.needsRevision ? 'on' : ''}`}
-        title={progress.needsRevision ? 'Not for revision' : 'Mark for revision'}
-        aria-label={progress.needsRevision ? 'Not for revision' : 'Mark for revision'}
-        onClick={() => setProgress(problem._id, { needsRevision: !progress.needsRevision })}
+        title={
+          progress.needsRevision
+            ? `Flagged${revisionFlag ? ` — ${revisionFlag.label}` : ''}${
+                progress.revisionNote ? `\n${progress.revisionNote}` : ''
+              }`
+            : 'Flag for revision'
+        }
+        aria-label={progress.needsRevision ? 'Edit revision flag' : 'Flag for revision'}
+        onClick={() => setFlagging(true)}
       >
         <IconRotate size={12} />
       </button>
@@ -55,22 +66,35 @@ export const SqlProblemRow = memo(function SqlProblemRow({
     .join(' ');
 
   return (
-    <tr data-row={problem._id} className={rowClass}>
-      {columns.map((column) => (
-        <td key={column.id} {...cellProps(column)}>
-          {column.cell({
-            problem,
-            index,
-            progress,
-            status,
-            width: column.px,
-            setProgress,
-            onOpen,
-            categoryLabel,
-            actions,
-          })}
-        </td>
-      ))}
-    </tr>
+    <>
+      <tr data-row={problem._id} className={rowClass}>
+        {columns.map((column) => (
+          <td key={column.id} {...cellProps(column)}>
+            {column.cell({
+              problem,
+              index,
+              progress,
+              status,
+              width: column.px,
+              setProgress,
+              onOpen,
+              categoryLabel,
+              actions,
+            })}
+          </td>
+        ))}
+      </tr>
+
+      {/* Beside the row rather than inside a cell, as the roadmap's and the
+          ladder's dialogs already are — an overlay is not a table cell. */}
+      {flagging && (
+        <RevisionFlagModal
+          title={problem.title}
+          progress={progress}
+          onSave={(patch) => setProgress(problem._id, patch)}
+          onClose={() => setFlagging(false)}
+        />
+      )}
+    </>
   );
 });

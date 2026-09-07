@@ -8835,6 +8835,18 @@ a.tile.attention:hover {
   color: var(--text-3);
   min-height: 16px;
 }
+/* What the dot you just picked actually means. Louder than the hint under it
+   because it is the ruler the number is measured against, and the dial had no
+   ruler at all before. */
+.att-conf-say {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.att-conf-say b {
+  color: var(--text);
+  font-weight: 600;
+}
 
 /* ----------------------------------------------------------------- clock */
 
@@ -11018,15 +11030,69 @@ a.tile.attention:hover {
   color: var(--accent);
 }
 
+/* --------------------------------------------------------- revision: a block
+   Three piles rather than one table — late, due, and the ones you flagged. They
+   are three different claims on the morning and a single list sorted by date
+   said nothing about which was which. */
+.rev-section {
+  margin-bottom: 14px;
+}
+.rev-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  flex-wrap: wrap;
+}
+.rev-section-head h2 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.rev-section-head h2 .mono {
+  margin-left: 4px;
+  font-size: 11px;
+}
+.rev-section-head p {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
 /* ----------------------------------------------------- revision: per problem
-   Which rung this one is on, and what a tick would buy it. Four pips beat a
-   sentence in a table cell, and the number beside them is the server's own —
-   see the `review` block on the queue endpoint. */
+   Which rung this one is on and every date it still owes you. The pips said
+   "review 2 of 4" and stopped, which is half a sentence — the dates are the
+   half that answers "when does this stop coming back". All of it is the
+   server's own arithmetic; see the `review` block on the queue endpoint. */
+.rev-when {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rev-when-date {
+  font-size: 11px;
+  color: var(--text-2);
+}
+.due.today {
+  color: var(--text);
+}
+.due.flagged {
+  color: var(--accent);
+}
+
 .rev-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 5px;
+}
+.rev-ladder-head {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-top: 4px;
 }
 .rev-pips {
   display: inline-flex;
@@ -11050,15 +11116,270 @@ a.tile.attention:hover {
   color: var(--text-3);
   white-space: nowrap;
 }
+/* How many are still owed. The one number on the line worth reading first — it
+   is the difference between a problem you are nearly done with and one you have
+   only just started. */
 .rev-ladder-say b {
-  color: var(--easy);
+  color: var(--text-2);
   font-weight: 600;
+}
+
+/* The forecast. Deliberately the quietest thing in the cell: it is true only if
+   you keep answering Good, and it must not out-shout the date that is not a
+   guess — the one above it. */
+.rev-plan {
+  font-size: 10.5px;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.rev-plan-lead {
+  margin-right: 4px;
+}
+.rev-plan-step {
   font-family: var(--mono);
+  white-space: nowrap;
+}
+.rev-plan-dot {
+  margin: 0 4px;
+  color: var(--border);
+}
+.rev-plan-rep {
+  /* Out of the mono its parent sets — this half is prose, not a date. */
+  font-family: var(--font);
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------ revision: the answer
+   Four buttons, worst to best, each labelled with what it would actually
+   schedule. The gap under the word is the whole argument for four buttons over
+   a tick: you can see what you are choosing before you choose it. */
+.rev-answers {
+  display: inline-flex;
+  gap: 3px;
+}
+.rev-ans {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 46px;
+  padding: 4px 6px 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  line-height: 1.2;
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease,
+    color 0.14s ease;
+}
+.rev-ans b {
+  font-size: 11px;
+  font-weight: 600;
+}
+.rev-ans i {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-style: normal;
+  color: var(--text-3);
+}
+.rev-ans:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.rev-ans.bad:hover {
+  border-color: var(--hard);
+  color: var(--hard);
+  background: var(--hard-bg);
+}
+.rev-ans.warn:hover {
+  border-color: var(--medium);
+  color: var(--medium);
+  background: var(--medium-bg);
+}
+.rev-ans.ok:hover {
+  border-color: var(--easy);
+  color: var(--easy);
+  background: var(--easy-bg);
+}
+.rev-ans.great:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+.rev-ans:hover i {
+  color: inherit;
+}
+
+.rev-row-acts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rev-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+.rev-card-foot .rev-ladder {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------------ revision: your flag
+   Why you flagged it and the line you left. Under the title rather than in a
+   tooltip: three weeks later it is the only thing that says what you meant. */
+.rev-flagnote {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+.rev-flag-chip {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  white-space: nowrap;
+}
+.rev-flag-line {
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1.45;
+}
+
+/* -------------------------------------------------------- revision: what next
+   The forecast panel. Wears the same shell as "how this queue works" because it
+   is the same kind of thing — a panel you open once and then mostly leave shut. */
+.rev-ahead .rev-how-toggle .mono {
+  margin-left: auto;
+  font-size: 10.5px;
+}
+.rev-ahead-days {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rev-ahead-days > li {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.rev-ahead-when {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-top: 1px;
+}
+.rev-ahead-when b {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text);
+  font-weight: 600;
+}
+.rev-ahead-when span {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+.rev-ahead-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 1px solid var(--border-soft);
+  padding-left: 12px;
+}
+/* Title on one line, the ladder and its dates under it — the same two lines a
+   due row carries, because "how many more times, and when" is the question the
+   forecast exists to answer and not a detail of the row that already landed. */
+.rev-ahead-rows > li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 12.5px;
+}
+.rev-ahead-rows .title-cell {
+  min-width: 0;
+}
+.rev-ahead-rows .rev-ladder {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------------- the flag, with a why
+   Six chips and a line. Deliberately the same furniture as the attempt dialog's
+   outcome chips — it is the same gesture (say which of these it was) and there
+   is no reason for it to look like a different kind of question. */
+.rf-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.rf-block h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.rf-reasons {
+  flex-wrap: wrap;
+}
+.rf-hint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+.rf-note {
+  width: 100%;
+  min-height: 68px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+.rf-note:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 @media (max-width: 700px) {
   .rev-how-grid {
     gap: 14px;
+  }
+  .rev-ahead-days > li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .rev-ahead-when {
+    flex-direction: row;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .rev-ahead-rows {
+    border-left: none;
+    padding-left: 0;
   }
 }
 

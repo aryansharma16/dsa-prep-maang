@@ -537,7 +537,9 @@ function TryLadder() {
       </div>
 
       <div className="docs-conf-row">
-        <span className="docs-conf-label">How confident did you feel?</span>
+        {/* On the *solve*, specifically. A review is answered with one of four
+            buttons now and does not read this dial — see the section below. */}
+        <span className="docs-conf-label">How confident did you feel solving it?</span>
         <span className="confidence">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
@@ -875,6 +877,15 @@ export function Docs() {
                   the problem statement inline — no tab switch to read it — with a notes box under
                   it.
                 </p>
+                <p>
+                  The circular arrow opens a small dialog: pick <i>why</i> it is coming back —{' '}
+                  <b>do it later</b>, <b>learn something first</b>, <b>got it barely</b>,{' '}
+                  <b>too slow</b>, <b>redo from scratch</b>, <b>keep it warm</b> — and leave one
+                  line saying what you meant. Both are optional and both show on the queue row three
+                  weeks later, which is the point: a bare flag is a title with nothing behind it.
+                  Pressing <kbd>r</kbd> on the focused row still raises a flag with neither, because
+                  at minute forty of a problem a dialog is not what you want.
+                </p>
               </Reveal>
 
               <Reveal>
@@ -959,8 +970,8 @@ export function Docs() {
                     <span className="docs-box-label">On the problem</span>
                     <p>
                       The note is what you <b>eventually understood</b>. The confidence is the
-                      current number the revision schedule uses, and it is overwritten every time
-                      you log.
+                      current reading of the problem — it sets the gap after a solve, and it is
+                      overwritten every time you log, and again by however you answer a review.
                     </p>
                   </div>
                   <div className="docs-box">
@@ -1034,21 +1045,44 @@ export function Docs() {
               <Reveal>
                 <p>
                   Solving something schedules it to come back, on a ladder that widens each time you
-                  get it right — and the confidence you gave it stretches or shrinks every gap.
+                  get it right — and the confidence you gave that solve stretches or shrinks the
+                  first gap.
                 </p>
                 <TryLadder />
                 <p>
                   <b>Revision</b> in the sidebar is everything the schedule says is due, plus
-                  anything you flagged by hand, each row marked <i>Due today</i>, <i>Due in 5d</i>,
-                  or overdue in red.
+                  anything you flagged by hand. It arrives in three piles — <i>late</i>,{' '}
+                  <i>due today</i>, and <i>the ones you flagged</i> — because those are three
+                  different claims on a morning and one list sorted by date said nothing about which
+                  was which.
                 </p>
 
+                <h3>Four answers, not a tick</h3>
                 <p>
-                  Two ways in, so two ways out. The <b>tick</b> means you came back to it and got
-                  it: the ladder moves on a rung and the next date is recomputed from today. The{' '}
-                  <b>arrow</b> just takes the row off the list — it clears the flag, and clears the
-                  schedule only if that schedule is what put the row in front of you. One still in
-                  the future is left alone.
+                  A review has four possible endings and the queue takes all of them.{' '}
+                  <b>Missed</b> drops the problem back a rung and books it for tomorrow.{' '}
+                  <b>Hard</b> leaves it where it is. <b>Good</b> moves it up one. <b>Easy</b> moves
+                  it up and doubles the gap. Every button is labelled with the gap it would
+                  schedule and names the date in its tooltip, so you can see what you are choosing
+                  before you choose it.
+                </p>
+                <p>
+                  That replaced a single tick whose interval was multiplied by a confidence number
+                  last written by some attempt months earlier — and a failure you could not express
+                  at all, which left a problem you had just missed standing on a rung it had
+                  plainly not earned. The <b>circular arrow</b> is still there and still means only
+                  &ldquo;off the list&rdquo;: it clears the flag, and clears the schedule only if
+                  that schedule is what put the row in front of you.
+                </p>
+
+                <h3>Every date, up front</h3>
+                <p>
+                  Each row carries its real date, not just <i>due in 5d</i>, and under it the whole
+                  remaining plan: <span className="mono">review 2 of 4 · then 14 Sep · 5 Oct · 4 Dec</span>.
+                  Dates past the next one assume you keep answering <b>Good</b> and move the moment
+                  you do not. Below the queue, <b>Coming up</b> lists the next thirty scheduled rows
+                  grouped by the day they land on — which is how you find out that Saturday has
+                  eleven reviews on it before Saturday does.
                 </p>
                 <div className="docs-box">
                   <span className="docs-box-label">Habit</span>

@@ -1,7 +1,12 @@
 import mongoose from 'mongoose';
 import { CPProblem } from '../../models/CPProblem.js';
 import { CPProgress } from '../../models/CPProgress.js';
-import { createProgressHandlers, toQueueItem } from '../../services/progress.kit.js';
+import {
+  createProgressHandlers,
+  findUpcoming,
+  toQueueItem,
+  toUpcomingItem,
+} from '../../services/progress.kit.js';
 import { LADDER_RUNGS } from '../../services/review.service.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { visibleTo } from './cp.problem.controller.js';
@@ -44,18 +49,25 @@ export const {
  */
 export const revisionQueue = asyncHandler(async (req, res) => {
   const now = new Date();
-  const rows = await CPProgress.find({
-    user: oid(req.userId),
-    $or: [{ needsRevision: true }, { nextReviewAt: { $ne: null, $lte: now } }],
-  })
-    .populate('problem')
-    .sort({ nextReviewAt: 1, updatedAt: -1 })
-    .lean();
+  const user = oid(req.userId);
+
+  const [rows, ahead] = await Promise.all([
+    CPProgress.find({
+      user,
+      $or: [{ needsRevision: true }, { nextReviewAt: { $ne: null, $lte: now } }],
+    })
+      .populate('problem')
+      .sort({ nextReviewAt: 1, updatedAt: -1 })
+      .lean(),
+    /* The scheduled-but-not-yet-due tail, so the page can show what is coming
+       rather than only what has arrived. See the roadmap's twin. */
+    findUpcoming(CPProgress, { user, now, populate: ['problem'] }),
+  ]);
 
   const items = rows
     .filter((r) => r.problem)
     .map((r) => ({
-      ...toQueueItem(r, { rungs: LADDER_RUNGS, problem: r.problem }),
+      ...toQueueItem(r, { rungs: LADDER_RUNGS, problem: r.problem, now }),
       /*
         Which curriculum this row came from.
 
@@ -67,5 +79,9 @@ export const revisionQueue = asyncHandler(async (req, res) => {
       source: 'cp',
     }));
 
-  res.json({ items, count: items.length });
+  const upcoming = ahead
+    .filter((r) => r.problem)
+    .map((r) => ({ ...toUpcomingItem(r, { rungs: LADDER_RUNGS, problem: r.problem }), source: 'cp' }));
+
+  res.json({ items, count: items.length, upcoming });
 });

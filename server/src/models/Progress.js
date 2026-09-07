@@ -23,6 +23,17 @@ const progressSchema = new mongoose.Schema(
     },
     flagged: { type: Boolean, default: false },
     needsRevision: { type: Boolean, default: false },
+    /**
+     * Why you raised the flag, and the line saying what you meant by it.
+     *
+     * Unvalidated at the schema level on purpose — the enum lives in
+     * config/revision.js and is enforced by the patch schema, which is where
+     * every write goes through. A `default: ''` rather than `null` because
+     * "flagged, reason not given" is a real state: the keyboard shortcut raises
+     * a flag without opening a dialog, and it has to stay that fast.
+     */
+    revisionReason: { type: String, default: '', maxlength: 32 },
+    revisionNote: { type: String, default: '', maxlength: 500 },
     // 1 = shaky, 5 = could teach it. Drives the spaced-repetition interval.
     confidence: { type: Number, min: 1, max: 5, default: 3 },
     notes: { type: String, default: '' },

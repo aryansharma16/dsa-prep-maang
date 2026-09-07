@@ -11,6 +11,11 @@ const emptyProgress = {
   status: 'todo',
   flagged: false,
   needsRevision: false,
+  /* Why the flag is up and your line about it — see components/problem/
+     revisionFlags.js. Empty strings rather than absent, so a row flagged before
+     these existed renders as a flag with nothing attached. */
+  revisionReason: '',
+  revisionNote: '',
   confidence: 3,
   notes: '',
   attemptCount: 0,
@@ -130,6 +135,8 @@ export function CPProvider({ children }) {
           status: saved.status,
           flagged: saved.flagged,
           needsRevision: saved.needsRevision,
+          revisionReason: saved.revisionReason || '',
+          revisionNote: saved.revisionNote || '',
           confidence: saved.confidence,
           notes: saved.notes,
           nextReviewAt: saved.nextReviewAt,
@@ -223,14 +230,17 @@ export function CPProvider({ children }) {
     [syncAttempts],
   );
 
+  /** The whole body, like the roadmap's — see RoadmapContext for why. */
   const reviewProblem = useCallback(
-    async (problemId, result, confidence) => {
+    async (problemId, body) => {
       const before = snapshot(problemId);
       try {
-        const saved = await cpApi.review(problemId, result, confidence);
+        const saved = await cpApi.review(problemId, body);
         applyLocal(problemId, {
           status: saved.status,
           needsRevision: saved.needsRevision,
+          revisionReason: saved.revisionReason || '',
+          revisionNote: saved.revisionNote || '',
           confidence: saved.confidence,
           nextReviewAt: saved.nextReviewAt,
           solvedAt: saved.solvedAt,

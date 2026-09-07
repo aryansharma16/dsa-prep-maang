@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cpApi, learnApi, progressApi, sqlApi } from '../api/index.js';
 import { errorMessage } from '../api/http.js';
@@ -6,7 +6,6 @@ import { CompanyChips } from '../components/problem/CompanyChips.jsx';
 import {
   IconCheck,
   IconChevronRight,
-  IconClose,
   IconExternal,
   IconEye,
   IconEyeOff,
@@ -14,6 +13,17 @@ import {
   IconRotate,
 } from '../components/ui/Icons.jsx';
 import { attemptDate } from '../components/problem/attempts.js';
+import { REVIEW_ANSWERS, answerBody } from '../components/problem/reviewAnswers.js';
+import {
+  dateLabel,
+  dayWord,
+  daysUntil,
+  dueHeadline,
+  dueTone,
+  gapLabel,
+  groupByDay,
+} from '../components/problem/reviewDates.js';
+import { revisionFlagOf } from '../components/problem/revisionFlags.js';
 import { SolutionBlock } from '../components/problem/SolutionEditor.jsx';
 import { useLocalState } from '../hooks/useLocalState.js';
 import { ratingKey } from '../theme/cfRating.js';
@@ -22,37 +32,6 @@ import { moduleVisible } from '../store/modules.js';
 import { useRoadmap } from '../store/RoadmapContext.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 
-const dayDiff = (date) =>
-  Math.round((new Date(date) - new Date()) / (1000 * 60 * 60 * 24));
-
-function dueLabel(item) {
-  if (item.dueReason === 'marked') return 'Marked for revision';
-  const days = dayDiff(item.progress.nextReviewAt);
-  if (days < 0) return `${Math.abs(days)}d overdue`;
-  if (days === 0) return 'Due today';
-  return `Due in ${days}d`;
-}
-
-/** `12 Aug` — a date read once, so no year unless it is not this one. */
-const shortDate = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    ...(sameYear ? {} : { year: 'numeric' }),
-  });
-};
-
-/**
- * How the queue works, said once, at the top.
- *
- * Collapsible and remembered, because this is a page you work rather than read:
- * the explanation earns its space the first week and is in the way by the
- * third. Open by default, so the first visit is not a queue with two unlabelled
- * icons on every row.
- */
 /**
  * Where a queue row's title goes when clicked.
  *
@@ -72,6 +51,50 @@ function queueLink(item) {
   return { href: item.url || item.articleUrl };
 }
 
+/** The title, linked wherever that row's title goes. Shared by both lists. */
+function QueueTitle({ item }) {
+  const link = queueLink(item);
+  return (
+    <div className="title-cell">
+      {link.to ? (
+        <Link className="title-link" to={link.to}>
+          {item.title}
+        </Link>
+      ) : (
+        <>
+          <a className="title-link" href={link.href} target="_blank" rel="noreferrer">
+            {item.title}
+          </a>
+          <span className="ext">
+            <IconExternal size={11} />
+          </span>
+        </>
+      )}
+      {/* Which curriculum this came from. Never on a roadmap row: that is the
+          default, and labelling every one would be noise on the common case. */}
+      {item.source === 'cp' && (
+        <span className="tag-mini" title="From the Pro Coder ladder">
+          CP
+        </span>
+      )}
+      {item.source === 'sql' && <span className="tag-mini">SQL</span>}
+      {item.source === 'learn' && (
+        <span className="tag-mini" title="A Learn topic you marked read">
+          LEARN
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * How the queue works, said once, at the top.
+ *
+ * Collapsible and remembered, because this is a page you work rather than read:
+ * the explanation earns its space the first week and is in the way by the
+ * third. Open by default, so the first visit is not a queue with four unlabelled
+ * buttons on every row.
+ */
 function HowItWorks() {
   const [open, setOpen] = useLocalState('revision-how-open', true);
 
@@ -96,39 +119,40 @@ function HowItWorks() {
             <div>
               <span className="rev-how-label">How things get here</span>
               <p>
-                Two ways, and a row can arrive by either. You <b>flagged</b> it by hand with the
-                circular arrow, or the <b>schedule</b> says it is due — every solve books the next
-                review.
+                Two ways. The <b>schedule</b> says it is due — every solve books the next review —
+                or you <b>flagged</b> it by hand with the circular arrow, with a reason and a line
+                saying what you meant.
+              </p>
+            </div>
+
+            <div>
+              <span className="rev-how-label">Answer with one of four</span>
+              <p>
+                <b>Missed</b> drops it back a rung and brings it round tomorrow. <b>Hard</b> keeps
+                it where it is. <b>Good</b> moves it up one. <b>Easy</b> moves it up and doubles
+                the gap. Each button says what it would schedule, and the date it lands on is on
+                the row.
               </p>
             </div>
 
             <div>
               <span className="rev-how-label">The ladder</span>
               <p>
-                Reviews widen as they keep going well: <b>3 → 7 → 21 → 60 days</b>, then it stays at
-                60. Each gap is multiplied by the confidence you gave the problem — a <b>1</b>{' '}
-                shrinks it to 0.4×, a <b>5</b> stretches it to 2×. So a shaky problem comes back
-                tomorrow and one you know gets out of your way for months.
-              </p>
-            </div>
-
-            <div>
-              <span className="rev-how-label">The two buttons</span>
-              <p>
-                <b>Tick</b> — you came back to it and got it. The ladder moves on a rung and the
-                next date is set from today.
+                Four reviews, widening as they keep going well: <b>3 → 7 → 21 → 60 days</b>, then
+                every 60. The whole remaining plan is dated on each row, so a problem is never a
+                surprise and you can see which ones you have nearly finished with.
               </p>
               <p>
-                <b>Arrow</b> — take it off the list without claiming a review. It clears the flag,
-                and clears the schedule only if that schedule is what put the row here; one still in
-                the future is left alone.
+                The <b>circular arrow</b> takes a row off the list without claiming a review — it
+                clears the flag and leaves a schedule that is still in the future alone.
               </p>
             </div>
           </div>
 
           <p className="rev-how-foot">
-            Each row shows where it is on the ladder and what a tick would buy it. The full guide is
-            in <Link to="/docs#revision">the field guide</Link>.
+            Dates past the next one are a forecast: they assume you keep answering <b>Good</b>, and
+            they move the moment you do not. The full guide is in{' '}
+            <Link to="/docs#revision">the field guide</Link>.
           </p>
         </div>
       )}
@@ -137,36 +161,138 @@ function HowItWorks() {
 }
 
 /**
- * Where one problem sits on the ladder, and what getting it right buys.
+ * Which review a row is waiting for, 1-based.
  *
- * The pips are the point: "review 2 of 4" is the fact that turns a queue of
- * identical-looking rows into a queue where you can see which ones you have
- * nearly finished with. `nextGapDays` is computed by the server so this cannot
- * quote a different number than the one the tick will actually write.
+ * The server sends this as `review.number` — see `reviewNumber` there, which is
+ * the same clamp. The fallback is here so a client running ahead of a server
+ * that has not restarted yet renders "review 2 of 4" rather than the literal
+ * word `undefined`, which is what a missing field looks like in a table cell.
  */
-function LadderPips({ review, marked }) {
+const reviewNumber = (review) =>
+  review?.number ?? Math.max(1, Math.min(review?.stage ?? 1, review?.rungs || 4));
+
+/**
+ * Where one problem sits on the ladder, and every date it still owes you.
+ *
+ * The pips were the whole of this before, and they said "review 2 of 4" and
+ * stopped — which is half a sentence. The rest is how many reviews are still
+ * owed and the day each one lands on, which is what turns "it will come back"
+ * into something you can put next to the week you are actually going to have.
+ *
+ * Every date is drawn, not the first few. Four is the whole ladder, so the list
+ * is short by construction, and truncating the one thing the row exists to say
+ * would be an odd economy.
+ */
+function LadderPlan({ review, marked }) {
   if (!review) return null;
-  const { stage, rungs, lastReviewedAt, nextGapDays } = review;
-  const seen = shortDate(lastReviewedAt);
+  const { rungs = 4, plan = [] } = review;
+  const number = reviewNumber(review);
+  // The stage a flagged-but-never-solved row is on is not a review number, and
+  // rendering "review 1 of 4" for it would be inventing a history.
+  const onLadder = (review.stage ?? 0) >= 1;
+  // The last entry repeating means the ladder has topped out — the problem
+  // keeps coming back at sixty days rather than being finished with.
+  const endless = plan.length > 0 && plan[plan.length - 1].repeats;
+  const left = plan.length;
 
   return (
-    <span
-      className="rev-ladder"
-      title={
-        `Review ${Math.min(stage + 1, rungs)} of ${rungs}` +
-        (seen ? ` · last seen ${seen}` : '') +
-        ` · getting it schedules the next one ${nextGapDays} days out`
-      }
-    >
-      <span className="rev-pips" aria-hidden="true">
-        {Array.from({ length: rungs }, (_, i) => (
-          <i key={i} className={i < stage ? 'done' : i === stage ? 'now' : ''} />
-        ))}
-      </span>
-      <span className="rev-ladder-say">
-        {marked ? 'flagged by you' : `review ${Math.min(stage + 1, rungs)}/${rungs}`}
-        <b> +{nextGapDays}d</b>
-      </span>
+    <div className="rev-ladder">
+      {onLadder && (
+        <span
+          className="rev-ladder-head"
+          title={`Review ${number} of ${rungs}${
+            review.lastReviewedAt ? ` · last seen ${dateLabel(review.lastReviewedAt)}` : ''
+          }`}
+        >
+          <span className="rev-pips" aria-hidden="true">
+            {Array.from({ length: rungs }, (_, i) => (
+              <i key={i} className={i < number - 1 ? 'done' : i === number - 1 ? 'now' : ''} />
+            ))}
+          </span>
+          <span className="rev-ladder-say">
+            {marked ? 'flagged' : `review ${number} of ${rungs}`}
+            {/* Not on a topped-out row: "1 more after this" would be a lie
+                about a problem that now repeats forever, and the plan line
+                underneath already says so in the only words that are true. */}
+            {left > 0 && !(endless && left === 1) && (
+              <>
+                {' · '}
+                <b>
+                  {left} more after this
+                </b>
+              </>
+            )}
+          </span>
+        </span>
+      )}
+
+      {plan.length > 0 && (
+        <span
+          className="rev-plan"
+          title={
+            'Every review still owed on this problem. They assume you answer Good ' +
+            'each time — any other answer moves the dates after it.'
+          }
+        >
+          <span className="rev-plan-lead">then</span>
+          {plan.map((step, i) => (
+            <span key={step.at} className="rev-plan-step">
+              {i > 0 && <span className="rev-plan-dot">·</span>}
+              {dateLabel(step.at, { weekday: false })}
+            </span>
+          ))}
+          {endless && <span className="rev-plan-rep"> and every {plan[plan.length - 1].days}d after</span>}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** Why you flagged it, and the line you left — shown wherever the row is. */
+function FlagNote({ progress }) {
+  const flag = revisionFlagOf(progress?.revisionReason);
+  if (!flag && !progress?.revisionNote) return null;
+
+  return (
+    <div className="rev-flagnote">
+      {flag && (
+        <span className="rev-flag-chip" title={flag.hint}>
+          {flag.label}
+        </span>
+      )}
+      {progress.revisionNote && <span className="rev-flag-line">{progress.revisionNote}</span>}
+    </div>
+  );
+}
+
+/**
+ * The four answers, each labelled with what it would actually schedule.
+ *
+ * The dates come from the server with the row — see `reviewChoices`. A client
+ * that worked them out itself would eventually disagree with the date the
+ * server writes, and the number on the button is the one thing here that has to
+ * be true.
+ */
+function ReviewAnswers({ review, onAnswer }) {
+  const choices = review?.choices || {};
+
+  return (
+    <span className="rev-answers">
+      {REVIEW_ANSWERS.map((answer) => {
+        const choice = choices[answer.value];
+        return (
+          <button
+            key={answer.value}
+            type="button"
+            className={`rev-ans ${answer.tone}`}
+            onClick={() => onAnswer(answer.value)}
+            title={`${answer.hint}${choice ? ` — back on ${dateLabel(choice.at)}` : ''}`}
+          >
+            <b>{answer.label}</b>
+            {choice && <i>{gapLabel(choice.days)}</i>}
+          </button>
+        );
+      })}
     </span>
   );
 }
@@ -175,15 +301,17 @@ function LadderPips({ review, marked }) {
  * One problem, tested rather than reviewed.
  *
  * The card shows a title and nothing else — no difficulty, no companies, no
- * tags, no note. Every one of those is a hint, and the whole question being
- * asked is whether the title alone is enough to bring the technique back.
+ * tags, no note, and not the reason you flagged it. Every one of those is a
+ * hint, and the whole question being asked is whether the title alone is enough
+ * to bring the technique back.
  *
  * The reveal is the payoff and the teaching moment: your own note, the last
- * solution you wrote, and what you said this problem was the last few times.
- * Reading "I said prefix sums" from two months ago next to what you just typed
- * is the clearest signal in the app that something has or has not stuck.
+ * solution you wrote, why you flagged it, and what you said this problem was the
+ * last few times. Reading "I said prefix sums" from two months ago next to what
+ * you just typed is the clearest signal in the app that something has or has not
+ * stuck.
  */
-function TestCard({ item, onRecalled, onMissed, onSkip }) {
+function TestCard({ item, onAnswer, onSkip }) {
   const [said, setSaid] = useState('');
   const [revealed, setRevealed] = useState(false);
 
@@ -200,6 +328,10 @@ function TestCard({ item, onRecalled, onMissed, onSkip }) {
         {item.source === 'cp' && <span className="tag-mini">CP</span>}
         {item.source === 'learn' && <span className="tag-mini">LEARN</span>}
         {item.source === 'sql' && <span className="tag-mini">SQL</span>}
+        <span className="spacer" />
+        {/* The one fact that is not a hint: when it was due. Knowing a problem
+            is nine days late is not knowing anything about the problem. */}
+        <span className={`due ${dueTone(item)}`}>{dueHeadline(item)}</span>
       </header>
 
       {!revealed ? (
@@ -235,6 +367,8 @@ function TestCard({ item, onRecalled, onMissed, onSkip }) {
             </p>
           )}
 
+          <FlagNote progress={progress} />
+
           {progress.notes ? (
             <p className="rev-note">
               <span className="rev-label">Your note</span>
@@ -267,18 +401,12 @@ function TestCard({ item, onRecalled, onMissed, onSkip }) {
             </div>
           )}
 
-          <div className="rev-card-acts">
-            {/* Both keep the line. A wrong recall is the most informative thing
-                this feature produces, and storing only the right ones would
-                throw away the half worth reading back. */}
-            <button type="button" className="btn primary" onClick={() => onRecalled(said)}>
-              <IconCheck size={13} /> I had it
-            </button>
-            <button type="button" className="btn" onClick={() => onMissed(said)}>
-              <IconClose size={13} /> I did not
-            </button>
-            <span className="spacer" />
-            <span className="hint">“I did not” keeps it flagged and does not advance the ladder.</span>
+          <div className="rev-card-foot">
+            {/* Every answer keeps the line, and a wrong recall keeps it most of
+                all — "I said prefix sums and it was a monotonic stack" is the
+                most useful sentence this feature produces. */}
+            <ReviewAnswers review={item.review} onAnswer={(value) => onAnswer(value, said)} />
+            <LadderPlan review={item.review} marked={item.dueReason === 'marked'} />
           </div>
         </>
       )}
@@ -286,21 +414,193 @@ function TestCard({ item, onRecalled, onMissed, onSkip }) {
   );
 }
 
+/** One block of the queue — the overdue, today's, or the ones you flagged. */
+function QueueSection({ title, hint, rows, onAnswer, onDismiss }) {
+  if (!rows.length) return null;
+
+  return (
+    <section className="pattern rev-section">
+      <header className="rev-section-head">
+        <h2>
+          {title} <span className="mono dim">{rows.length}</span>
+        </h2>
+        {hint && <p>{hint}</p>}
+      </header>
+
+      <div className="tablewrap">
+        <table className="problems revision">
+          <thead>
+            <tr>
+              <th className="col-status" />
+              <th>Problem</th>
+              <th className="col-diff">Difficulty</th>
+              <th className="col-cos">Asked at</th>
+              <th style={{ width: 210 }}>When</th>
+              <th style={{ width: 250 }}>How did it go?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item) => (
+              <tr key={item._id}>
+                <td className="col-status">
+                  <span className={`status-btn ${item.progress.status}`}>
+                    {item.progress.status === 'solved' && <IconCheck size={11} />}
+                  </span>
+                </td>
+                <td>
+                  <QueueTitle item={item} />
+                  <FlagNote progress={item.progress} />
+                </td>
+                <td className="col-diff">
+                  {/*
+                    A CP row has a Codeforces rating, not an Easy/Medium/Hard
+                    label — rendering `diff Easy` for it would be a class that
+                    means nothing and a word that is not true.
+                  */}
+                  {item.source === 'cp' ? (
+                    <span
+                      className="cf-rating rev-cf-rating"
+                      data-band={ratingKey(item.codeforces?.rating)}
+                      title={item.codeforces?.division || item.platform}
+                    >
+                      {item.codeforces?.rating || item.difficulty || '—'}
+                    </span>
+                  ) : item.source === 'learn' ? (
+                    /* Reference prose has no difficulty. An em dash is the
+                       honest answer; a made-up "Medium" would not be. */
+                    <span className="cell-empty">—</span>
+                  ) : (
+                    <span className={`diff ${item.difficulty}`}>{item.difficulty}</span>
+                  )}
+                </td>
+                <td className="col-cos">
+                  <CompanyChips companies={item.companies} />
+                </td>
+                <td>
+                  <div className="rev-when">
+                    <span className={`due ${dueTone(item)}`}>{dueHeadline(item)}</span>
+                    {/* The date itself, which the page never used to say. A
+                        relative day answers "is this urgent" and nothing else.
+
+                        A flagged row can carry a schedule that has not fired
+                        yet, and "You flagged it — Tue 27 Oct" reads as though
+                        October is why it is in front of you. It is not, so the
+                        date says which it is. */}
+                    {item.progress.nextReviewAt && (
+                      <span className="rev-when-date mono">
+                        {item.dueReason === 'marked' &&
+                          (daysUntil(item.progress.nextReviewAt) > 0 ? 'next ' : 'was due ')}
+                        {dateLabel(item.progress.nextReviewAt)}
+                      </span>
+                    )}
+                  </div>
+                  <LadderPlan review={item.review} marked={item.dueReason === 'marked'} />
+                </td>
+                <td>
+                  <div className="rev-row-acts">
+                    <ReviewAnswers review={item.review} onAnswer={(v) => onAnswer(item, v)} />
+                    <button
+                      className="act"
+                      title="Take it off the queue without answering — clears the flag, and leaves a schedule that is still in the future alone"
+                      onClick={() => onDismiss(item)}
+                    >
+                      <IconRotate size={13} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * What is coming, which this page could never say before.
+ *
+ * A row not yet due was simply absent: the schedule existed as a date on a
+ * problem you could not see until the morning it fired, so "when does this come
+ * back" and "what is next week like" were unanswerable from the one page whose
+ * whole subject is the schedule. Thirty rows arrive with every request — see
+ * `UPCOMING_LIMIT` on the server — grouped by the day they land on, because the
+ * useful shape of a forecast is days rather than rows.
+ */
+function ComingUp({ rows }) {
+  const [open, setOpen] = useLocalState('revision-upcoming-open', true);
+  const days = useMemo(() => groupByDay(rows, (r) => r.progress?.nextReviewAt), [rows]);
+  // `days` can be empty while `rows` is not — a row whose date failed to come
+  // back is grouped nowhere, and the header below reads `days[0]`.
+  if (!days.length) return null;
+
+  return (
+    <div className={`rev-how rev-ahead ${open ? 'open' : ''}`}>
+      <button
+        type="button"
+        className="rev-how-toggle"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className={`chev ${open ? 'open' : ''}`}>
+          <IconChevronRight size={11} />
+        </span>
+        Coming up
+        <span className="mono dim">
+          {rows.length} scheduled · next {dayWord(daysUntil(days[0].at))}
+        </span>
+      </button>
+
+      {open && (
+        <div className="rev-how-body">
+          <ol className="rev-ahead-days">
+            {days.map((day) => (
+              <li key={day.at}>
+                <div className="rev-ahead-when">
+                  <b>{dateLabel(day.at)}</b>
+                  <span>{dayWord(daysUntil(day.at))}</span>
+                </div>
+                <ul className="rev-ahead-rows">
+                  {day.rows.map((item) => (
+                    <li key={item._id}>
+                      <QueueTitle item={item} />
+                      {/* The same ladder line the due rows carry, so "how many
+                          more times does this one come back, and when" is
+                          answered in the forecast too and not only once a row
+                          has already landed on you. */}
+                      <LadderPlan review={item.review} />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+          <p className="rev-how-foot">
+            Nothing to do here — this is what the schedule has booked. Answering something today
+            moves its dates.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Revision() {
-  const { reviewProblem, setProgress } = useRoadmap();
+  const { reviewProblem } = useRoadmap();
   const { modules } = useAuth();
   const hasCp = moduleVisible(modules, 'procoder');
   const hasLearn = moduleVisible(modules, 'learn');
   const hasSql = moduleVisible(modules, 'sql');
 
   const [items, setItems] = useState([]);
+  const [ahead, setAhead] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   /*
-    Which curriculum's queue is on screen. There are two collections behind
+    Which curriculum's queue is on screen. There are four collections behind
     this page now and they are due independently — a CP problem coming back
     round has nothing to do with an interview problem doing the same — so the
-    default shows both and the toggle is for when you want to work one.
+    default shows everything and the toggle is for when you want to work one.
 
     Remembered, because it is a decision about how you study rather than a
     thing you re-pick every morning.
@@ -314,10 +614,10 @@ export function Revision() {
     setLoading(true);
     try {
       /*
-        Both queues, merged here rather than server-side. They read different
+        Four queues, merged here rather than server-side. They read different
         collections and populate different models, so a single endpoint would
         have to branch on a query string before it could decide what to join —
-        and the client is where the two lists have to end up interleaved anyway.
+        and the client is where the lists have to end up interleaved anyway.
 
         `allSettled`, so a CP module that is switched off (or a route that 404s
         because it is hidden) leaves the roadmap queue working rather than
@@ -340,15 +640,18 @@ export function Revision() {
 
       if (dsa.status === 'rejected' && cp.status === 'rejected') throw dsa.reason;
 
+      const tag = (result, name, key) =>
+        (result.value?.[key] || []).map((i) => ({ ...i, source: name }));
+
       const merged = [
-        ...(dsa.value?.items || []).map((i) => ({ ...i, source: 'dsa' })),
-        ...(cp.value?.items || []).map((i) => ({ ...i, source: 'cp' })),
-        ...(learn.value?.items || []).map((i) => ({ ...i, source: 'learn' })),
-        ...(sql.value?.items || []).map((i) => ({ ...i, source: 'sql' })),
+        ...tag(dsa, 'dsa', 'items'),
+        ...tag(cp, 'cp', 'items'),
+        ...tag(learn, 'learn', 'items'),
+        ...tag(sql, 'sql', 'items'),
       ];
 
       /*
-        Overdue first, then by how soon. Marked rows have no schedule at all, so
+        Overdue first, then by how soon. Flagged rows have no schedule at all, so
         they sort to the front — they are there because you put them there,
         which is the strongest claim on your attention on this page.
       */
@@ -358,7 +661,15 @@ export function Revision() {
         return at - bt;
       });
 
+      const upcoming = [
+        ...tag(dsa, 'dsa', 'upcoming'),
+        ...tag(cp, 'cp', 'upcoming'),
+        ...tag(learn, 'learn', 'upcoming'),
+        ...tag(sql, 'sql', 'upcoming'),
+      ].sort((a, b) => new Date(a.progress.nextReviewAt) - new Date(b.progress.nextReviewAt));
+
       setItems(merged);
+      setAhead(upcoming);
       setError('');
     } catch (err) {
       setError(errorMessage(err, 'Could not load your revision queue'));
@@ -375,13 +686,13 @@ export function Revision() {
     Drop the row immediately, but put it back if the write actually failed —
     otherwise the queue would quietly show fewer items than you really have.
 
-    Both actions go through the review endpoint rather than a status patch.
-    They used to send `{ needsRevision: false }`, which is a no-op on a row that
-    is in the queue because its *schedule* came due — so the row disappeared,
-    the write succeeded, and it was back on the next load. See the server for
-    why "I reviewed this" could not be expressed as a field.
+    Everything goes through the review endpoint rather than a status patch. The
+    page used to send `{ needsRevision: false }`, which is a no-op on a row that
+    is in the queue because its *schedule* came due — so the row disappeared, the
+    write succeeded, and it was back on the next load. See the server for why "I
+    reviewed this" could not be expressed as a field.
   */
-  const act = async (item, result, recallText = '') => {
+  const act = async (item, body) => {
     const index = items.findIndex((i) => i._id === item._id);
     setItems((prev) => prev.filter((i) => i._id !== item._id));
 
@@ -392,18 +703,17 @@ export function Revision() {
       which is the only thing the context would have bought.
     */
     const call = () => {
-      if (item.source === 'cp') return cpApi.review(item._id, result, undefined, recallText);
+      if (item.source === 'cp') return cpApi.review(item._id, body);
       // A topic is addressed by its two slugs, not by an id — it has no row in
       // any problem collection. See server/src/models/LearnProgress.js.
-      if (item.source === 'learn')
-        return learnApi.review(item.track, item.topic, result, undefined, recallText);
-      if (item.source === 'sql') return sqlApi.review(item._id, result, undefined, recallText);
+      if (item.source === 'learn') return learnApi.review(item.track, item.topic, body);
+      if (item.source === 'sql') return sqlApi.review(item._id, body);
       return null;
     };
 
     const ok =
       item.source === 'dsa'
-        ? await reviewProblem(item._id, result, undefined, recallText)
+        ? await reviewProblem(item._id, body)
         : await call()
             .then(() => true)
             .catch(() => false);
@@ -415,34 +725,63 @@ export function Revision() {
         return next;
       });
     }
+    return ok;
+  };
+
+  /**
+   * One of the four answers.
+   *
+   * `missed` is a first-class answer now rather than a dismissal with a flag
+   * patched back on from here in a second request — the server drops the row a
+   * rung and books it for tomorrow, which is what failing a review should do and
+   * never did.
+   *
+   * On success the row moves into "Coming up" under the date it just bought,
+   * rather than simply vanishing off the page. Answering is the one moment the
+   * forecast changes, and a row that disappeared at exactly that moment was the
+   * page telling you the least when you had just told it the most — you could
+   * not see what the answer had bought without reloading.
+   *
+   * The date and the stage are the server's own, out of `choices`. The plan is
+   * only carried over for `good`, and that is not a shortcut: `plan[0]` *is* the
+   * date `good` books, so the reviews after it are the rest of the list.
+   * `hard`, `easy` and `missed` change the whole curve, and rather than
+   * re-deriving it here — the one thing this page deliberately does not do — the
+   * row shows its date and waits for the next load for the rest.
+   */
+  const answer = async (item, value, recallText = '') => {
+    const choice = item.review?.choices?.[value];
+    const ok = await act(item, answerBody(value, recallText));
+    if (!ok || !choice) return;
+
+    const rungs = item.review?.rungs || 4;
+    setAhead((prev) =>
+      [
+        ...prev,
+        {
+          ...item,
+          progress: {
+            ...item.progress,
+            needsRevision: false,
+            revisionReason: '',
+            revisionNote: '',
+            nextReviewAt: choice.at,
+          },
+          dueReason: 'scheduled',
+          review: {
+            ...item.review,
+            stage: choice.stage,
+            number: Math.max(1, Math.min(choice.stage, rungs)),
+            dueAt: choice.at,
+            plan: value === 'good' ? (item.review.plan || []).slice(1) : [],
+          },
+        },
+      ].sort((a, b) => new Date(a.progress.nextReviewAt) - new Date(b.progress.nextReviewAt)),
+    );
   };
 
   /** Off the list, and nothing else — a schedule not yet due is left alone. */
-  const dismiss = (item) => act(item, 'dismissed');
-  /** A review that went well: the ladder moves on a rung. */
-  const recall = (item, recallText) => act(item, 'recalled', recallText);
-  /*
-    Test mode's third answer, and the reason it needs one.
-
-    Plain mode has two: it went well, or take it off the list. Test mode adds "I
-    could not do it", which is not the same as dismissing — the row should stay
-    due and the line you wrote should still be kept, because a wrong recall is
-    the most informative thing in the whole feature. It goes through `dismissed`
-    so the ladder is not advanced, and `needsRevision` is set so it comes back.
-  */
-  const missed = async (item, recallText) => {
-    await act(item, 'dismissed', recallText);
-    const flag = { needsRevision: true };
-    if (item.source === 'cp') cpApi.patch(item._id, flag).catch(() => {});
-    else if (item.source === 'sql') sqlApi.patch(item._id, flag).catch(() => {});
-    else if (item.source === 'learn') {
-      // Re-marking it read at the lowest confidence is how a topic goes back to
-      // the front of the ladder — there is no `needsRevision` patch route for
-      // Learn, and inventing one to say what `mark` already says would be a
-      // second way to express the same thing.
-      learnApi.mark(item.track, item.topic, { confidence: 1, read: true }).catch(() => {});
-    } else setProgress(item._id, flag);
-  };
+  const dismiss = (item) => act(item, { result: 'dismissed' });
 
   const counts = {
     all: items.length,
@@ -451,7 +790,22 @@ export function Revision() {
     learn: items.filter((i) => i.source === 'learn').length,
     sql: items.filter((i) => i.source === 'sql').length,
   };
-  const shown = source === 'all' ? items : items.filter((i) => (i.source || 'dsa') === source);
+
+  const inSource = (row) => source === 'all' || (row.source || 'dsa') === source;
+  const shown = items.filter(inSource);
+  const shownAhead = ahead.filter(inSource);
+
+  /*
+    Three piles rather than one list, because they are three different claims on
+    the morning: work that is late, work that is due, and things you asked to see
+    again with no date attached. One undifferentiated table sorted by date put
+    the second and third next to each other with nothing saying which was which.
+  */
+  const buckets = {
+    overdue: shown.filter((i) => dueTone(i) === 'overdue'),
+    today: shown.filter((i) => dueTone(i) === 'today'),
+    flagged: shown.filter((i) => dueTone(i) === 'flagged'),
+  };
 
   if (loading) return <div className="loading">Loading revision queue...</div>;
   if (error) {
@@ -468,8 +822,9 @@ export function Revision() {
       <div className="page-head">
         <h1>Revision Queue</h1>
         <p>
-          Problems you flagged, plus anything the spaced-repetition schedule says is due — worked
-          before you start anything new, which is the whole benefit of it.
+          Everything the schedule says is due, plus what you flagged — worked before you start
+          anything new, which is the whole benefit of it. Each row carries its dates: when it is
+          due, and when it comes back after that.
         </p>
       </div>
 
@@ -479,23 +834,18 @@ export function Revision() {
 
       {/* Only where there is a second queue to switch to. On a deployment with
           Pro Coder and Learn hidden, or an account that has never worked either,
-          a segmented control with one populated option is furniture. The label
-          on the first option follows how many sources are actually in play. */}
+          a segmented control with one populated option is furniture. */}
       {counts.all > counts.dsa && (
         <div className="filterbar">
           <div className="size-group filter-seg">
             {[
               { value: 'all', label: 'Everything', n: counts.all },
               { value: 'dsa', label: 'Roadmap', n: counts.dsa },
-              ...(hasCp && counts.cp > 0
-                ? [{ value: 'cp', label: 'Pro Coder', n: counts.cp }]
-                : []),
+              ...(hasCp && counts.cp > 0 ? [{ value: 'cp', label: 'Pro Coder', n: counts.cp }] : []),
               ...(hasLearn && counts.learn > 0
                 ? [{ value: 'learn', label: 'Learn', n: counts.learn }]
                 : []),
-              ...(hasSql && counts.sql > 0
-                ? [{ value: 'sql', label: 'SQL Lab', n: counts.sql }]
-                : []),
+              ...(hasSql && counts.sql > 0 ? [{ value: 'sql', label: 'SQL Lab', n: counts.sql }] : []),
             ].map((option) => (
               <button
                 key={option.value}
@@ -515,10 +865,10 @@ export function Revision() {
       {/*
         Test mode.
 
-        The queue's default is a list you look at and press "I got it" on — which
-        tests nothing, because the problem is in front of you while you decide
-        whether you remember it. This collapses each row to its title and asks
-        for the trigger and the approach before anything is revealed.
+        The queue's default is a list you look at and answer — which tests
+        nothing on its own, because the problem is in front of you while you
+        decide whether you remember it. This collapses each row to its title and
+        asks for the trigger and the approach before anything is revealed.
 
         A toggle rather than a replacement: the plain list is still the right
         tool for triaging forty due rows, and this is the right one for actually
@@ -553,7 +903,11 @@ export function Revision() {
             {source === 'sql' && ' in the SQL Lab'}
             {source === 'dsa' && ' in the roadmap'}
           </h3>
-          <p>Mark a problem for revision, or come back after your next solve schedules one.</p>
+          <p>
+            {shownAhead.length
+              ? 'The schedule is clear today. What it has booked is below.'
+              : 'Flag a problem for revision, or come back after your next solve schedules one.'}
+          </p>
         </div>
       ) : testMode ? (
         <div className="rev-test">
@@ -561,136 +915,38 @@ export function Revision() {
             <TestCard
               key={item._id}
               item={item}
-              onRecalled={(text) => recall(item, text)}
-              onMissed={(text) => missed(item, text)}
+              onAnswer={(value, text) => answer(item, value, text)}
               onSkip={() => dismiss(item)}
             />
           ))}
         </div>
       ) : (
-        <div className="pattern">
-          <div className="tablewrap">
-            <table className="problems revision">
-              <thead>
-                <tr>
-                  <th className="col-status" />
-                  <th>Problem</th>
-                  <th className="col-diff">Difficulty</th>
-                  <th className="col-cos">Asked at</th>
-                  <th style={{ width: 168 }}>Due</th>
-                  <th className="col-acts">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shown.map((item) => {
-                  const overdue =
-                    item.dueReason === 'scheduled' && dayDiff(item.progress.nextReviewAt) < 0;
-                  return (
-                    <tr key={item._id}>
-                      <td className="col-status">
-                        <span className={`status-btn ${item.progress.status}`}>
-                          {item.progress.status === 'solved' && <IconCheck size={11} />}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="title-cell">
-                          {/*
-                            A Learn topic — and a SQL Lab problem the Lab itself
-                            hosts — is a page in this app rather than a problem
-                            on somebody else's site, so it takes an internal link
-                            and no external-link mark. Everything else keeps the
-                            anchor it always had. See `queueLink`.
-                          */}
-                          {queueLink(item).to ? (
-                            <Link className="title-link" to={queueLink(item).to}>
-                              {item.title}
-                            </Link>
-                          ) : (
-                            <>
-                              <a
-                                className="title-link"
-                                href={queueLink(item).href}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {item.title}
-                              </a>
-                              <span className="ext">
-                                <IconExternal size={11} />
-                              </span>
-                            </>
-                          )}
-                          {/* Which curriculum this came from. Never on a roadmap
-                              row: that is the default, and labelling every one
-                              would be noise on the common case. */}
-                          {item.source === 'cp' && (
-                            <span className="tag-mini" title="From the Pro Coder ladder">
-                              CP
-                            </span>
-                          )}
-                          {item.source === 'sql' && <span className="tag-mini">SQL</span>}
-                          {item.source === 'learn' && (
-                            <span className="tag-mini" title="A Learn topic you marked read">
-                              LEARN
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="col-diff">
-                        {/*
-                          A CP row has a Codeforces rating, not an Easy/Medium/
-                          Hard label — rendering `diff Easy` for it would be a
-                          class that means nothing and a word that is not true.
-                        */}
-                        {item.source === 'cp' ? (
-                          <span
-                            className="cf-rating rev-cf-rating"
-                            data-band={ratingKey(item.codeforces?.rating)}
-                            title={item.codeforces?.division || item.platform}
-                          >
-                            {item.codeforces?.rating || item.difficulty || '—'}
-                          </span>
-                        ) : item.source === 'learn' ? (
-                          /* Reference prose has no difficulty. An em dash is the
-                             honest answer; a made-up "Medium" would not be. */
-                          <span className="cell-empty">—</span>
-                        ) : (
-                          <span className={`diff ${item.difficulty}`}>{item.difficulty}</span>
-                        )}
-                      </td>
-                      <td className="col-cos">
-                        <CompanyChips companies={item.companies} />
-                      </td>
-                      <td>
-                        <span className={`due ${overdue ? 'overdue' : ''}`}>{dueLabel(item)}</span>
-                        <LadderPips review={item.review} marked={item.dueReason === 'marked'} />
-                      </td>
-                      <td className="col-acts">
-                        <span className="acts">
-                          <button
-                            className="act"
-                            title="I got it — schedule the next review further out"
-                            onClick={() => recall(item)}
-                          >
-                            <IconCheck size={13} />
-                          </button>
-                          <button
-                            className="act"
-                            title="Take it off the queue without reviewing it"
-                            onClick={() => dismiss(item)}
-                          >
-                            <IconRotate size={13} />
-                          </button>
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <>
+          <QueueSection
+            title="Late"
+            hint="Past their date. These have decayed the most, so they are worth the most."
+            rows={buckets.overdue}
+            onAnswer={answer}
+            onDismiss={dismiss}
+          />
+          <QueueSection
+            title="Due today"
+            hint="What the schedule booked for this morning."
+            rows={buckets.today}
+            onAnswer={answer}
+            onDismiss={dismiss}
+          />
+          <QueueSection
+            title="You flagged these"
+            hint="No date on them — they are here because you asked. Answering one puts it back on the ladder."
+            rows={buckets.flagged}
+            onAnswer={answer}
+            onDismiss={dismiss}
+          />
+        </>
       )}
+
+      <ComingUp rows={shownAhead} />
     </>
   );
 }

@@ -29,6 +29,9 @@ const cpProgressSchema = new mongoose.Schema(
     status: { type: String, enum: ['todo', 'attempted', 'solved'], default: 'todo' },
     flagged: { type: Boolean, default: false },
     needsRevision: { type: Boolean, default: false },
+    /** Why the flag is up, and your line about it. See models/Progress.js. */
+    revisionReason: { type: String, default: '', maxlength: 32 },
+    revisionNote: { type: String, default: '', maxlength: 500 },
     confidence: { type: Number, min: 1, max: 5, default: 3 },
     notes: { type: String, default: '' },
 

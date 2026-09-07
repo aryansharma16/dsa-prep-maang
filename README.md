@@ -32,7 +32,7 @@ the sign-in page as well as from the sidebar.
 | **Playbook** | A 24-week interview-prep plan — four phases targeting 396 of the 517 roadmap problems and the ≤Specialist half of the ladder, all 117 SQL problems on the Friday evening block, a high-level design track from week 13 and a machine-coding/LLD track from week 14, a weekly timetable built around real available hours, and a drift line that says how far ahead or behind the schedule you actually are. One plan document per account; the schedule itself is authored prose, written to one specific starting point |
 | **SQL Lab** | 117 SQL problems in 8 categories, with two kinds of row and one rule between them: **72 run in your browser** — SQLite compiled to WASM, their own schema and rows, graded against a generated expected result — and **45 link out to LeetCode**, because a problem that already has a judge should be solved on it. Progressive hints, a reference solution behind the same 25-minute gate as every editorial, MySQL shims so the answers match what the Learn track teaches, and the same revision ladder as everything else |
 | **Pro Coder** | A competitive-programming ladder: 1,100 problems (800 Codeforces, 300 CodeChef) across 49 CP patterns and 7 rating tiers, full width and in its own palette — the app's glass material, re-stepped darker and carrying Codeforces' rating ramp — following your light/dark choice. Link your Codeforces handle and it marks what you have already solved and tells you which problems are a stretch for your rating |
-| **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across both curriculums |
+| **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across all four curriculums. Every row carries its real dates — when it is due and every review still owed after it — reviews are answered with four buttons that each say what date they would book, and a hand-raised flag carries a reason and a line saying what you meant by it |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
@@ -1177,7 +1177,12 @@ looking for a filter that returns nothing.
 ## Tracking
 
 - **Status** — click the circle to cycle not started → attempted → solved
-- **Flag** and **needs revision** — one click each
+- **Flag** — one click
+- **Needs revision** — the circular arrow, which asks *why*: *do it later · learn
+  something first · got it barely · too slow · redo from scratch · keep it warm*
+  — plus one line of your own. Both optional and both shown on the queue row
+  weeks later, which is the whole point; `r` on the focused row still raises a
+  bare flag for when you are mid-problem
 - **Statement** — expand a problem to read it inline, fetched from LeetCode on
   first open and cached in the DB afterwards
 - **Notes** — inline, autosaving, with a 1–5 confidence rating
@@ -1193,7 +1198,9 @@ looking for a filter that returns nothing.
   skills that used to be one word, and after two hundred problems the histogram
   of them is the most actionable thing in the app
 - **Revision queue** — solving schedules a review on a 3/7/21/60-day ladder,
-  stretched or compressed by your confidence
+  stretched or compressed by your confidence, and every review is answered with
+  one of four buttons that each say what date they would book — see
+  [Revision](#revision)
 
 ### Attempts
 
@@ -1413,19 +1420,48 @@ ones are spliced in at their default position rather than appended.
 
 ### Revision queue
 
-Everything you marked for revision, plus everything the schedule says is due,
-with `3d overdue` / `Due today` / `Due in 5d` and overdue in red. Clearing a row
-removes it immediately — and puts it back if the write actually failed, because
-a queue that quietly shows fewer items than you have is worse than a slow one.
+Everything you flagged for revision, plus everything the schedule says is due.
+Clearing a row removes it immediately — and puts it back if the write actually
+failed, because a queue that quietly shows fewer items than you have is worse
+than a slow one.
 
-**Three sources, one list.** The roadmap, the Pro Coder ladder and the Learn
-tracks keep separate collections and come due independently, so the page fetches
-all three queues and merges them, badges the non-roadmap rows, and offers a
-toggle once there is anything in a second one. Any request failing leaves the
-others rendering — a hidden module empties nothing.
+**Three piles, not one list.** *Late*, *due today*, and *the ones you flagged*.
+They are three different claims on a morning and a single table sorted by date
+said nothing about which was which — in particular a hand-raised flag has no
+date at all and was rendering as though it were a fourth kind of schedule.
 
-**Test mode.** The default queue is a list you look at and press *I got it* on,
-which tests nothing: the problem is in front of you while you decide whether you
+**Every row carries its dates.** The real date, not only `3d overdue`, and under
+it every review still owed and the day each one lands on:
+`review 2 of 4 · 2 more after this` over `then 28 Sep · 27 Nov`. A problem that
+has topped out says `and every 60d after` rather than implying you are finished
+with it. Dates past the next one are a forecast — they assume you keep answering
+**Good** and move the moment you do not — and the page says so. The projection
+is computed server-side by `reviewPlan()` for the same reason the intervals are:
+a client that re-derives the curve will eventually quote a different date from
+the one the server writes.
+
+**Coming up.** Under the queue, the next thirty *not yet due* rows, grouped by
+the day they land on, each carrying the same ladder line and the same list of
+dates. Until this existed the schedule lived entirely as a date on a row you
+could not see until the morning it fired, so the one page whose whole subject is
+the schedule could not answer "when does this come back" or "what is Saturday
+like". `UPCOMING_LIMIT` in `config/revision.js`.
+
+**Answering moves a row here, it does not delete it.** Press *Hard* and the
+problem leaves the queue and reappears under the date that answer just bought.
+A row vanishing at the exact moment you told the page the most was the page
+telling you the least — you could not see what the answer had cost without
+reloading. The date and the stage come from the server's own `choices`, shipped
+with the row.
+
+**Four sources, one list.** The roadmap, the Pro Coder ladder, the Learn tracks
+and the SQL Lab keep separate collections and come due independently, so the
+page fetches all four queues and merges them, badges the non-roadmap rows, and
+offers a toggle once there is anything in a second one. Any request failing
+leaves the others rendering — a hidden module empties nothing.
+
+**Test mode.** The default queue is a list you look at and answer, which tests
+nothing on its own: the problem is in front of you while you decide whether you
 remember it. Test mode collapses each row to its **title alone** — no difficulty,
 no companies, no tags, all of which are hints — and asks for the trigger and the
 approach before anything is revealed. The reveal then shows your note, the last
@@ -1434,32 +1470,66 @@ Reading "I said prefix sums" from two months ago next to what you just typed is
 the clearest signal in the app that something has or has not stuck. The line is
 kept whichever way the review went, and especially when it went badly.
 
-The ladder is 3 → 7 → 21 → 60 days, multiplied by confidence: 1 shrinks the gap
-to 0.4×, 5 stretches it to 2×. It caps at 60: `LADDER_DAYS[min(stage, 3)]`.
+The ladder is 3 → 7 → 21 → 60 days, and it caps at 60: `LADDER_DAYS[min(stage,
+3)]`. A **solve** enters the ladder at a gap multiplied by the confidence you
+gave that sitting — 1 shrinks it to 0.4×, 5 stretches it to 2×. A **review**
+does not read that number at all; it is answered directly.
 
-### Two ways in, so two ways out
-
-A row is in the queue because `needsRevision` is set **or** because
-`nextReviewAt` has passed, and the two actions on it mean different things:
+### Four answers, not a tick
 
 | | |
 |---|---|
-| **✓ I got it** | a review that went well. The ladder moves on a rung and the next date is recomputed from today |
-| **↻ Take it off** | clears the flag, and clears the schedule *only if that schedule is what put the row here*. One still in the future is left alone — dismissing a flag should not silently retire a problem from revision |
+| **Missed** | could not do it. Drops back a rung and comes round tomorrow |
+| **Hard** | got there by fighting for it. Stays on this rung, at 0.7× the gap |
+| **Good** | got it. Up a rung, the plain gap |
+| **Easy** | instant. Up a rung and twice the gap |
+| **↻ Take it off** | not a review at all: clears the flag, and clears the schedule *only if that schedule is what put the row here*. One still in the future is left alone — dismissing a flag should not silently retire a problem from revision |
 
-Both go to `POST /progress/:id/review` with `result: 'recalled' | 'dismissed'`,
-and **not** to the status patch. That is the fix for a real bug: both buttons
-used to send `{ needsRevision: false }`, which does nothing at all to a row that
-is due by schedule. `patchProgress` could not have helped either — it advances
-the ladder only when the status *transitions* to solved, and a row due for
-revision is already solved. So the row vanished optimistically, the write
-succeeded, no error showed, and it was back on the next load. Twenty-one of
-twenty-six rows in one real queue were stuck that way, some overdue by twelve
-days.
+Each button is labelled with the gap it would schedule and names the date in its
+tooltip, all computed by `reviewChoices()` and shipped with the row. Answering
+also writes the row's confidence, so the number the rest of the app reads is the
+freshest evidence there is.
+
+This replaced a single tick, and it fixed two things that were wrong with it.
+The tick advanced a rung and multiplied the gap by `confidence` — a field last
+written by whatever attempt you happened to log, possibly months earlier — so
+the interval was scaled by a stale opinion while the one moment you actually
+know how solid a problem is recorded nothing. And there was no way to say a
+review had **failed**: test mode faked one by dismissing the row and then
+patching `needsRevision` back on from the client, in two requests, which left a
+problem you had just missed flagged forever and still standing on a rung it had
+plainly not earned. A lapse now steps the ladder down, which is the whole point
+of having one.
+
+### Two ways in, and why the answer is a POST
+
+A row is in the queue because `needsRevision` is set **or** because
+`nextReviewAt` has passed. Every answer goes to `POST /progress/:id/review` with
+`result: 'recalled' | 'missed' | 'dismissed'` (plus a `grade` on a recall), and
+**not** to the status patch. That is the fix for a real bug: the buttons used to
+send `{ needsRevision: false }`, which does nothing at all to a row that is due
+by schedule. `patchProgress` could not have helped either — it advances the
+ladder only when the status *transitions* to solved, and a row due for revision
+is already solved. So the row vanished optimistically, the write succeeded, no
+error showed, and it was back on the next load. Twenty-one of twenty-six rows in
+one real queue were stuck that way, some overdue by twelve days.
 
 The lesson is in the route, not the patch: "set this field" and "I reviewed
 this" are different requests, and only the second one has any business moving a
 schedule.
+
+### The flag knows why
+
+`needsRevision` was a boolean, and by the time the row came back it was a title
+with nothing behind it — half of them meaning "I ran out of Tuesday" and half
+meaning "I do not know what a monotonic stack is", which are different mornings'
+work and looked identical. The circular arrow now opens a dialog carrying a
+category (`revisionReason`, from `config/revision.js`) and a line
+(`revisionNote`, 500 characters), both optional, both rendered under the title
+on the queue row. Every review answer clears all three together, since a reason
+for a flag that is no longer up is not an explanation of anything. `r` on the
+focused row still raises a bare flag: at minute forty of a problem, a dialog is
+not what you want.
 
 ## Tasks
 

@@ -6,7 +6,9 @@ import { ConfirmDialog } from '../ui/ConfirmDialog.jsx';
 import { IconClock, IconClose, IconFlag, IconNote, IconRotate } from '../ui/Icons.jsx';
 import { AttemptModal } from '../problem/AttemptModal.jsx';
 import { NotesPanel } from '../problem/NotesPanel.jsx';
+import { RevisionFlagModal } from '../problem/RevisionFlagModal.jsx';
 import { cellProps } from '../problem/cellProps.js';
+import { revisionFlagOf } from '../problem/revisionFlags.js';
 
 /**
  * One row of the ladder.
@@ -35,10 +37,12 @@ export function CPProblemRow({
   const timer = useAttemptTimer();
   const [logging, setLogging] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [flagging, setFlagging] = useState(false);
 
   const progress = problem.progress || {};
   const status = progress.status || 'todo';
   const mine = Boolean(problem.mine);
+  const revisionFlag = revisionFlagOf(progress.revisionReason);
 
   /*
     The attempt dialog writes through the CP store rather than the roadmap's.
@@ -65,10 +69,18 @@ export function CPProblemRow({
         <IconFlag size={13} filled={progress.flagged} />
       </button>
 
+      {/* The flag carries a reason and a line — see RevisionFlagModal. `r` on
+          the focused row is still the one-click version. */}
       <button
         className={`act rev ${progress.needsRevision ? 'on' : ''}`}
-        title={progress.needsRevision ? 'Clear revision flag' : 'Needs revision'}
-        onClick={() => setProgress(problem._id, { needsRevision: !progress.needsRevision })}
+        title={
+          progress.needsRevision
+            ? `Flagged${revisionFlag ? ` — ${revisionFlag.label}` : ''}${
+                progress.revisionNote ? `\n${progress.revisionNote}` : ''
+              }`
+            : 'Flag for revision'
+        }
+        onClick={() => setFlagging(true)}
       >
         <IconRotate size={13} />
       </button>
@@ -168,6 +180,15 @@ export function CPProblemRow({
 
       {logging && (
         <AttemptModal problem={problem} store={store} onClose={() => setLogging(false)} />
+      )}
+
+      {flagging && (
+        <RevisionFlagModal
+          title={problem.title}
+          progress={progress}
+          onSave={(patch) => setProgress(problem._id, patch)}
+          onClose={() => setFlagging(false)}
+        />
       )}
 
       {/* Confirmed, unlike the progress toggles above it. Those are one click to

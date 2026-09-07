@@ -193,6 +193,26 @@ export const EDITORIAL_GATE_MINUTES = 25;
 export const TIME_PRESETS = [5, 15, 30, 45, 60, 90];
 
 /**
+ * What each of the five dots means, in words.
+ *
+ * The dial had a heading, five dots and a sentence about what it *does*, and no
+ * statement anywhere of what the numbers themselves mean — so a 3 was whatever
+ * you felt a 3 was on the day, and the series the log is supposed to make out of
+ * them ("2 → 3 → 4 over three sittings") was measured against a moving ruler.
+ *
+ * The multiplier each one applies to the next gap is the server's — see
+ * `confidenceMultiplier` in services/review.service.js — and is quoted here so
+ * the dial can say what it is about to cost you.
+ */
+export const CONFIDENCE_WORDS = {
+  1: { word: 'Lost', say: 'Could not do this again tomorrow', mult: '0.4×' },
+  2: { word: 'Shaky', say: 'It went in, and it would not go in cold', mult: '0.7×' },
+  3: { word: 'Fine', say: 'Ordinary. I would get there again', mult: '1×' },
+  4: { word: 'Solid', say: 'Comfortable — I saw the approach quickly', mult: '1.4×' },
+  5: { word: 'Cold', say: 'I could write this from memory, or teach it', mult: '2×' },
+};
+
+/**
  * `23 Aug` / `23 Aug 2025` — an attempt's date, in a chip.
  *
  * The year appears only when it is not this one, which is the difference

@@ -99,6 +99,17 @@ const learnProgressSchema = new mongoose.Schema(
 
     confidence: { type: Number, min: 1, max: 5, default: 3 },
     needsRevision: { type: Boolean, default: false },
+    /**
+     * Why the flag is up, and your line about it — see models/Progress.js.
+     *
+     * Carried here for the reason the ladder fields are: the revision queue
+     * renders all four collections with one component, and a topic arriving
+     * without the fields the other three carry is a row that renders differently
+     * for no reason a reader could name. Nothing raises a topic's flag by hand
+     * today, so in practice these stay empty until something does.
+     */
+    revisionReason: { type: String, default: '', maxlength: 32 },
+    revisionNote: { type: String, default: '', maxlength: 500 },
 
     /* The same three fields the two problem curriculums carry, holding the same
        meanings, moved by the same function. */

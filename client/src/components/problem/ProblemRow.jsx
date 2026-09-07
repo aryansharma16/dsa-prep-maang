@@ -6,8 +6,10 @@ import { IconClock, IconClose, IconEdit, IconFlag, IconNote, IconRotate } from '
 import { AddProblemModal } from './AddProblemModal.jsx';
 import { AttemptModal } from './AttemptModal.jsx';
 import { NotesPanel } from './NotesPanel.jsx';
+import { RevisionFlagModal } from './RevisionFlagModal.jsx';
 import { Statement } from './Statement.jsx';
 import { cellProps } from './cellProps.js';
+import { revisionFlagOf } from './revisionFlags.js';
 
 export function ProblemRow({
   problem,
@@ -24,8 +26,10 @@ export function ProblemRow({
   const [logging, setLogging] = useState(false);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [flagging, setFlagging] = useState(false);
   const progress = problem.progress || {};
   const status = progress.status || 'todo';
+  const revisionFlag = revisionFlagOf(progress.revisionReason);
 
   /*
     Yours to change, as the server decided — not `source === 'custom'`, which is
@@ -48,10 +52,22 @@ export function ProblemRow({
         <IconFlag size={13} filled={progress.flagged} />
       </button>
 
+      {/*
+        Opens the dialog rather than toggling, because the flag carries a reason
+        and a line now and neither can be typed by a button. The one-click
+        version has not gone anywhere — `r` on the focused row still raises a
+        bare flag, which is what you want at minute forty of a problem.
+      */}
       <button
         className={`act rev ${progress.needsRevision ? 'on' : ''}`}
-        title={progress.needsRevision ? 'Clear revision flag' : 'Needs revision'}
-        onClick={() => setProgress(problem._id, { needsRevision: !progress.needsRevision })}
+        title={
+          progress.needsRevision
+            ? `Flagged${revisionFlag ? ` — ${revisionFlag.label}` : ''}${
+                progress.revisionNote ? `\n${progress.revisionNote}` : ''
+              }`
+            : 'Flag for revision'
+        }
+        onClick={() => setFlagging(true)}
       >
         <IconRotate size={13} />
       </button>
@@ -138,6 +154,15 @@ export function ProblemRow({
       )}
 
       {logging && <AttemptModal problem={problem} onClose={() => setLogging(false)} />}
+
+      {flagging && (
+        <RevisionFlagModal
+          title={problem.title}
+          progress={progress}
+          onSave={(patch) => setProgress(problem._id, patch)}
+          onClose={() => setFlagging(false)}
+        />
+      )}
 
       {editing && <AddProblemModal problem={problem} onClose={() => setEditing(false)} />}
 

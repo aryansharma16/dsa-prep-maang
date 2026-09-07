@@ -8,6 +8,7 @@ import { clock } from '../tasks/time.js';
 import { IconClock, IconPause, IconPlay, IconRotate, IconTrash } from '../ui/Icons.jsx';
 import { Modal } from '../ui/Modal.jsx';
 import {
+  CONFIDENCE_WORDS,
   DEFAULT_LANG,
   FAILURE_REASONS,
   OUTCOMES,
@@ -22,7 +23,7 @@ import {
   windowLabel,
 } from './attempts.js';
 import { CodeEditor, SolutionBlock } from './SolutionEditor.jsx';
-import { peekedOn } from './peeks.js';
+import { clearPeek, peekedOn } from './peeks.js';
 
 /** Whole minutes, and never zero once the clock has actually run. */
 const toMinutes = (seconds) => (seconds > 0 ? Math.max(1, Math.round(seconds / 60)) : 0);
@@ -230,16 +231,31 @@ export function AttemptModal({ problem, onClose, store }) {
             )}
           </section>
 
+          {/*
+            The dial that decides when this comes back.
+
+            It had a heading, five unlabelled dots and a sentence about what it
+            did to the schedule — and nowhere a statement of what the numbers
+            themselves mean, so a 3 was whatever a 3 felt like that morning and
+            the series the log is meant to build out of them was measured against
+            a moving ruler. The word under the dots is the ruler.
+          */}
           <section className="att-block">
-            <h4>How it feels now</h4>
+            <h4>How solid does it feel now?</h4>
             <ConfidenceDots value={confidence} onChange={setConfidence} />
+            <p className="att-conf-say">
+              <b>{CONFIDENCE_WORDS[confidence]?.word}</b> — {CONFIDENCE_WORDS[confidence]?.say}
+            </p>
             {/* It goes two places, and they are different facts. The row's copy
                 is the current one the ladder multiplies by and gets overwritten
                 every time; the attempt's stays where it was written, which is
                 what turns the log into a series. */}
             <p className="att-hint">
-              Kept on this attempt, and becomes the problem&rsquo;s — it is what
-              stretches or shrinks the gap before this comes back.
+              Not how the sitting went — how well you would do this cold tomorrow.
+              It rides on this attempt and becomes the problem&rsquo;s: a solve
+              logged at this number schedules the next review{' '}
+              <b>{CONFIDENCE_WORDS[confidence]?.mult}</b> the plain gap. Answering
+              the revision queue later overwrites it.
             </p>
           </section>
 
@@ -431,8 +447,10 @@ function ConfidenceDots({ value, onChange, clearable = false }) {
           type="button"
           className={`conf-dot ${value && n <= value ? 'on' : ''}`}
           onClick={() => onChange(clearable && value === n ? null : n)}
-          title={`${n} of 5${clearable && value === n ? ' — click again to clear' : ''}`}
-          aria-label={`Confidence ${n} of 5`}
+          title={`${n} of 5 — ${CONFIDENCE_WORDS[n].word}: ${CONFIDENCE_WORDS[n].say}${
+            clearable && value === n ? '\nClick again to clear' : ''
+          }`}
+          aria-label={`Confidence ${n} of 5 — ${CONFIDENCE_WORDS[n].word}`}
         />
       ))}
     </span>
@@ -443,7 +461,10 @@ function ConfidenceDots({ value, onChange, clearable = false }) {
 function ConfidenceRead({ value }) {
   if (!value) return null;
   return (
-    <span className="conf att-item-conf" title={`Felt ${value} of 5 at the time`}>
+    <span
+      className="conf att-item-conf"
+      title={`Felt ${value} of 5 at the time — ${CONFIDENCE_WORDS[value]?.word}`}
+    >
       {[1, 2, 3, 4, 5].map((n) => (
         <i key={n} className={n <= value ? 'on' : ''} />
       ))}

@@ -49,6 +49,22 @@ export const problemsApi = {
   remove: (id) => http.delete(`/problems/${id}`).then((r) => r.data),
 };
 
+/**
+ * The body of a review, with the optional halves left out when empty.
+ *
+ * Shared by all four queues because all four take the same shape, and because
+ * sending `grade: undefined` or `recall: ''` is the sort of thing a zod enum
+ * refuses for reasons that are then hard to see from the network tab.
+ */
+const reviewBody = ({ result, grade, confidence, recall } = {}) => ({
+  result,
+  ...(grade ? { grade } : {}),
+  ...(confidence ? { confidence } : {}),
+  // Test mode's line. Omitted entirely when there is none, so the plain queue's
+  // request is byte-for-byte the one it always sent.
+  ...(recall ? { recall } : {}),
+});
+
 export const progressApi = {
   patch: (problemId, body) => http.patch(`/progress/${problemId}`, body).then((r) => r.data.progress),
   attempt: (problemId, body) =>
@@ -69,23 +85,22 @@ export const progressApi = {
     http.patch(`/progress/${problemId}/attempts/${attemptId}`, body).then((r) => r.data.progress),
   deleteAttempt: (problemId, attemptId) =>
     http.delete(`/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
+  /** `{ items, upcoming }` — what is due, and the next thirty that are not. */
   revision: () => http.get('/progress/revision').then((r) => r.data),
   /*
-    Working the queue. `recalled` advances the spaced-repetition ladder;
-    `dismissed` only clears what was putting the row in front of you. Both are
-    posted rather than patched because "I reviewed this" is an event, not a
-    field — see the server for what the patch route could not do here.
+    Working the queue.
+
+    `{ result, grade, recall }`. `recalled` climbs the ladder by its grade,
+    `missed` drops a rung and comes back tomorrow, `dismissed` only clears what
+    was putting the row in front of you. Posted rather than patched because "I
+    reviewed this" is an event, not a field — see the server for what the patch
+    route could not do here.
+
+    A body rather than positional arguments, since there are four things to say
+    and three of them are optional.
   */
-  review: (problemId, result, confidence, recall) =>
-    http
-      .post(`/progress/${problemId}/review`, {
-        result,
-        ...(confidence ? { confidence } : {}),
-        // Test mode's line. Omitted entirely when there is none, so the plain
-        // queue's request is byte-for-byte the one it always sent.
-        ...(recall ? { recall } : {}),
-      })
-      .then((r) => r.data.progress),
+  review: (problemId, body) =>
+    http.post(`/progress/${problemId}/review`, reviewBody(body)).then((r) => r.data.progress),
 };
 
 export const statsApi = {
@@ -126,14 +141,8 @@ export const cpApi = {
     http.patch(`/cp/progress/${problemId}/attempts/${attemptId}`, body).then((r) => r.data.progress),
   deleteAttempt: (problemId, attemptId) =>
     http.delete(`/cp/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
-  review: (problemId, result, confidence, recall) =>
-    http
-      .post(`/cp/progress/${problemId}/review`, {
-        result,
-        ...(confidence ? { confidence } : {}),
-        ...(recall ? { recall } : {}),
-      })
-      .then((r) => r.data.progress),
+  review: (problemId, body) =>
+    http.post(`/cp/progress/${problemId}/review`, reviewBody(body)).then((r) => r.data.progress),
 
   /**
    * The linked Codeforces identity.
@@ -195,14 +204,8 @@ export const sqlApi = {
       .then((r) => r.data.progress),
   deleteAttempt: (problemId, attemptId) =>
     http.delete(`/sql/progress/${problemId}/attempts/${attemptId}`).then((r) => r.data.progress),
-  review: (problemId, result, confidence, recall) =>
-    http
-      .post(`/sql/progress/${problemId}/review`, {
-        result,
-        ...(confidence ? { confidence } : {}),
-        ...(recall ? { recall } : {}),
-      })
-      .then((r) => r.data.progress),
+  review: (problemId, body) =>
+    http.post(`/sql/progress/${problemId}/review`, reviewBody(body)).then((r) => r.data.progress),
 };
 
 /**
@@ -256,13 +259,9 @@ export const learnApi = {
 
   mark: (track, topic, body) =>
     http.put(`/learn/progress/${track}/${topic}`, body).then((r) => r.data.topic),
-  review: (track, topic, result, confidence, recall) =>
+  review: (track, topic, body) =>
     http
-      .post(`/learn/progress/${track}/${topic}/review`, {
-        result,
-        ...(confidence ? { confidence } : {}),
-        ...(recall ? { recall } : {}),
-      })
+      .post(`/learn/progress/${track}/${topic}/review`, reviewBody(body))
       .then((r) => r.data.topic),
 };
 
