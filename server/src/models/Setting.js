@@ -87,6 +87,23 @@ const settingSchema = new mongoose.Schema(
           message: 'Unknown or duplicated module',
         },
       },
+
+      /**
+       * Modules a super admin has toggled at least once, in either direction.
+       *
+       * Only consulted for modules marked `defaultHidden` in config/modules.js.
+       * Such a module is hidden until its key appears here, and from then on
+       * `hidden` alone decides — so showing it is permanent until someone hides
+       * it again, and no deploy re-hides it behind their back.
+       *
+       * A separate list rather than seeding `hidden` on boot, because a seed
+       * has to know whether it has already run, and "the key is not in hidden"
+       * cannot tell "never seeded" from "deliberately shown".
+       */
+      decided: {
+        type: [String],
+        default: () => [],
+      },
     },
 
     // Denormalised alongside the id for the same reason AuditLog keeps

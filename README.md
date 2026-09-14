@@ -35,6 +35,7 @@ the sign-in page as well as from the sidebar.
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across all four curriculums. Every row carries its real dates — when it is due and every review still owed after it — reviews are answered with four buttons that each say what date they would book, and a hand-raised flag carries a reason and a line saying what you meant by it |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
+| **System Design** | *In development, super admin only.* A whiteboard for designing systems: projects hold nested folders, folders hold boards. Canvas boards have frames, boxes, ellipses, diamonds, cylinders, connectors that route around shapes and can animate traffic, text, markdown paragraphs, sticky notes, a pressure-shaped pen, highlighter and eraser — with snapping, undo, copy/paste across boards and continuous autosave that survives going offline. Schema boards (DBML ⇄ diagram), rich components and scale/bottleneck analysis are the next phases — see [System Design](#system-design) |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
@@ -1766,6 +1767,40 @@ The full reference — every field, every endpoint with its request and response
 shapes, every error code, and how to verify the module end to end — is
 [docs/tasks.md](docs/tasks.md).
 
+## System Design
+
+**In development** — hidden behind the Modules toggle with `defaultHidden`, so only the super
+admin sees it until it is switched on (Admin → Modules). The full reference — decisions,
+phase-by-phase status, data model, API, the save protocol, the canvas engine, and the rules
+for whoever works on it next — is **[docs/design.md](docs/design.md)**.
+
+The shape of it: `/design` lists your projects (with optional starter HLD / LLD / Database
+folders); opening one takes the whole window — an explorer tree on the left, the board in the
+middle, properties on the right, tools floating at the bottom, like Figma or FigJam.
+
+Why it is built the way it is, briefly:
+
+- **Its own canvas engine, no diagram library.** React Flow, tldraw and Excalidraw were each
+  weighed and each fights this product somewhere — dependency weight, a licence, a hand-drawn
+  look, or schema tables that do not fit their model. The engine is a store of immutable
+  element records, one GPU-transformed world layer that React never re-renders for a pan, and a
+  screen-space overlay for handles, so shapes stay sharp at any zoom.
+- **One document per element, saved as batched ops.** A board is never one growing document;
+  a change is exactly as big as what changed. Saves are coalesced, retried with the same batch
+  id (so a retry cannot apply twice), serialised per board by a Mongo transaction, and mirrored
+  to localStorage so a closed tab loses nothing.
+- **Mounted above `writeLimiter`.** Autosave is a steady stream of small saves; it has its own
+  limiter (240 batches a minute per account) instead of spending the general write budget.
+- **Built for sharing without building sharing.** Every access check goes through one helper
+  that turns `project.owner` into a role; members, change requests and live editing are data
+  and endpoints added later, not a rewrite.
+
+| | |
+|---|---|
+| Unit tests | `cd client && npm test` · `cd server && npm test` |
+| API end to end | `server/scripts/design/e2e/design-api.test.mjs` (in-memory Mongo) |
+| Trash retention | `npm run design:purge-trash` — schedule it daily |
+
 ## Profile
 
 Your picture, name and email, then joined date, solved count, current and
@@ -2480,6 +2515,7 @@ lives in `main` instead of on a branch nobody merges.
 | Tasks | `/tasks` |
 | Practice | `/practice` |
 | Feedback | `/feedback` |
+| System Design | `/design` — ships hidden (`defaultHidden`) until first toggled |
 
 The roadmap is deliberately not eligible: it is where the catch-all route, the
 admin redirect and every other redirect land, so hiding it would mean inventing

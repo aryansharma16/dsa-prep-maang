@@ -61,7 +61,27 @@ export function createApp() {
   */
   app.use(compression());
 
-  app.use(express.json({ limit: '1mb' }));
+  /*
+    Every body is parsed here at one megabyte — except the system design
+    module's, which parses its own inside routes/design.routes.js.
+
+    Two reasons it cannot simply share this one. A board save can legitimately
+    be larger than a megabyte (a pasted diagram, a long stretch offline), and the
+    fix is not to raise the ceiling for every route in the app. And this parser
+    runs before authentication, so raising it here would let an anonymous caller
+    make the process read two megabytes to be told 401. Inside the router, the
+    body is read only after auth, the module gate, the rate limiter and the access
+    check have all said yes — the same "refuse before reading" argument the rate
+    limiter above makes about its own position.
+
+    If the pattern and the mount ever disagree, it fails safe: a design route
+    that skipped parsing has no body and fails validation with a 400, and a
+    route parsed twice is a no-op because body-parser marks what it has read.
+    Case-insensitive because Express routing is.
+  */
+  const json = express.json({ limit: '1mb' });
+  const parsesOwnBody = /^\/api\/design(\/|$)/i;
+  app.use((req, res, next) => (parsesOwnBody.test(req.path) ? next() : json(req, res, next)));
   app.use(cookieParser());
   if (!env.isProd) app.use(morgan('dev'));
 

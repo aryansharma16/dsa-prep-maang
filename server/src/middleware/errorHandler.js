@@ -51,6 +51,24 @@ export function errorHandler(err, _req, res, _next) {
     message = `Invalid ${err.path}: ${String(err.value).slice(0, 60)}`;
   }
 
+  /*
+    body-parser's own failures. Without these a body over the route's limit
+    reads as a generic 413 with no code, and malformed JSON as a 400 the client
+    cannot tell apart from a validation error. The design module's autosave acts
+    on the difference: too large means split the batch and resend, bad JSON
+    means stop retrying.
+  */
+  if (err.type === 'entity.too.large') {
+    status = 413;
+    code = 'PAYLOAD_TOO_LARGE';
+    message = 'That is more than can be sent in one request';
+  }
+  if (err.type === 'entity.parse.failed') {
+    status = 400;
+    code = 'BAD_JSON';
+    message = 'The request body is not valid JSON';
+  }
+
   if (status >= 500) console.error('[error]', err);
 
   // `meta` is opt-in — only errors that attach it get it, and only ever

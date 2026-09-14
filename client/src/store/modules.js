@@ -8,6 +8,7 @@ import {
   IconDatabase,
   IconDice,
   IconRotate,
+  IconShapes,
 } from '../components/ui/Icons.jsx';
 
 /**
@@ -57,6 +58,12 @@ export const MODULE_NAV = [
      ladder draws its problems from its own list. */
   { key: 'practice', to: '/practice', label: 'Practice', Icon: IconDice },
   { key: 'tasks', to: '/tasks', label: 'Tasks', Icon: IconBoard },
+  /*
+    Last, because it is the one module where you make something rather than
+    work through or look back at something. It opens into a full-screen
+    workspace of its own, so its place in this list only matters for getting in.
+  */
+  { key: 'design', to: '/design', label: 'System Design', Icon: IconShapes },
   /*
     Feedback is deliberately absent. It is a module like the rest — the server
     still gates /feedback on it, and `moduleVisible(modules, 'feedback')` still

@@ -231,6 +231,27 @@ export const uploadLimiter = limiter({
 });
 
 /**
+ * Board saves in the system design module.
+ *
+ * Autosave is the one writer in this app whose ordinary use is a steady stream:
+ * a tab sends a batch at most every second or so for as long as someone is
+ * drawing. Under `writeLimiter` that is 120 writes spent in two minutes and a
+ * board that stops saving mid-thought, so the save routes are mounted above it
+ * (see routes/index.js) and counted here instead.
+ *
+ * Sized in batches, not edits — a tab coalesces a burst of changes into one
+ * request and sends one at a time — so 240 a minute covers three tabs open on
+ * boards at once with room for retries. A loop still stops within the minute.
+ */
+export const designSyncLimiter = limiter({
+  name: 'design-sync',
+  windowMs: MINUTE,
+  limit: 240,
+  key: byUser,
+  message: 'Saving faster than the server can keep up. Your changes are kept and will retry.',
+});
+
+/**
  * Everything that changes something, for signed-in callers.
  *
  * Reads are already covered by `apiLimiter` and cost a query. Writes cost a

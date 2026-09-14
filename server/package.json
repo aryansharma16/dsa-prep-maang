@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
+    "test": "node --test \"src/**/__tests__/*.test.js\"",
+    "design:purge-trash": "node scripts/design/purge-trash.js",
     "seed:fetch": "node scripts/seed/fetch-sources.js",
     "seed:curate": "node scripts/seed/curate.js",
     "seed:db": "node scripts/seed/seed.js",

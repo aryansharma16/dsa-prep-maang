@@ -1,4 +1,4 @@
-import { MODULE_KEYS } from '../config/modules.js';
+import { DEFAULT_HIDDEN_KEYS, MODULE_KEYS } from '../config/modules.js';
 import { can } from '../config/roles.js';
 import { Setting } from '../models/Setting.js';
 import { DEFAULT_ORDER } from './ai/registry.js';
@@ -74,6 +74,8 @@ async function appSettings() {
   }
 
   const chat = stored?.chat || {};
+  const storedHidden = (stored?.modules?.hidden || []).filter((key) => MODULE_KEYS.includes(key));
+  const decided = stored?.modules?.decided || [];
   cache = {
     chat: {
       ...CHAT_DEFAULTS,
@@ -87,7 +89,16 @@ async function appSettings() {
       // from config/modules.js while it was hidden leaves a dead key in the
       // database that hides nothing and shows up nowhere, instead of an entry
       // the admin panel cannot render and nobody can clear.
-      hidden: (stored?.modules?.hidden || []).filter((key) => MODULE_KEYS.includes(key)),
+      //
+      // A `defaultHidden` module joins the list until a super admin has toggled
+      // it once (see `modules.decided` on the Setting model). That includes the
+      // outage fallback above, where `decided` is empty — which is the right
+      // way round for a module that only ships hidden because it is not done.
+      hidden: [
+        ...storedHidden,
+        ...DEFAULT_HIDDEN_KEYS.filter((key) => !decided.includes(key) && !storedHidden.includes(key)),
+      ],
+      decided,
     },
   };
   cachedAt = Date.now();

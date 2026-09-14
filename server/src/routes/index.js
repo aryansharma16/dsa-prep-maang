@@ -63,6 +63,7 @@ import { adminRouter } from './admin.routes.js';
 import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { cpRouter } from './cp.routes.js';
+import { designRouter } from './design.routes.js';
 import { feedbackRouter } from './feedback.routes.js';
 import { learnRouter } from './learn.routes.js';
 import { sqlRouter } from './sql.routes.js';
@@ -121,6 +122,18 @@ router.use(requireAuth);
   adminRouter.
 */
 router.use('/admin', adminRouter);
+
+/*
+  System Design, above `writeLimiter` on purpose — the one module that is.
+
+  Its autosave is a steady stream of small saves for as long as someone draws,
+  and under the limiter below that stream runs out of budget in about two
+  minutes. The router carries its own sync limiter for saves and re-applies
+  `writeLimiter` to everything else, so nothing in it is uncounted — see
+  routes/design.routes.js. Below `requireAuth` and behind its module gate like
+  every learner module.
+*/
+router.use('/design', requireModule('design'), designRouter);
 
 /*
   Positional, like the gate above it, and placed here for two reasons.

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Admin } from './pages/Admin.jsx';
 import { AppShell } from './components/layout/AppShell.jsx';
@@ -27,6 +28,22 @@ import { CPProvider } from './store/CPContext.jsx';
 import { SqlProvider } from './store/SqlContext.jsx';
 import { PlaybookProvider } from './store/PlaybookContext.jsx';
 import { TasksProvider } from './store/TasksContext.jsx';
+
+/*
+  The first route-level code split in the app, and the reason is size rather
+  than principle. Every other page is a list, a form or a chart built from the
+  same handful of shared components; System Design ships a canvas engine, a DBML
+  parser and its own stylesheet, and none of that should be downloaded by
+  someone who opens the roadmap. Both pages share one chunk family, and the
+  project cards warm the workspace chunk on hover (see DesignHome).
+*/
+const DesignHome = lazy(() => import('./pages/DesignHome.jsx').then((m) => ({ default: m.DesignHome })));
+const DesignWorkspace = lazy(() =>
+  import('./pages/DesignWorkspace.jsx').then((m) => ({ default: m.DesignWorkspace })),
+);
+const lazyPage = (element) => (
+  <Suspense fallback={<div className="loading">Loading…</div>}>{element}</Suspense>
+);
 
 export function App() {
   const { user, ready, modules } = useAuth();
@@ -160,6 +177,7 @@ export function App() {
                     already in memory, and a run is one POST when you stop. */}
                 {has('practice') && <Route path="/practice" element={<Practice />} />}
                 {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
+                {has('design') && <Route path="/design" element={lazyPage(<DesignHome />)} />}
                 <Route path="/docs" element={<Docs />} />
                 <Route path="/profile" element={<Profile />} />
                 {/* Guards itself. A learner who types /admin is redirected home, so
@@ -167,6 +185,15 @@ export function App() {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/:section" element={<Admin />} />
               </Route>
+              {/*
+                Outside the shell on purpose: a board wants the whole window, the
+                way Figma's editor does, so there is no sidebar, top bar or chat
+                bubble to share it with. Still inside the providers, so the
+                session and toasts behave exactly as they do everywhere else.
+              */}
+              {has('design') && (
+                <Route path="/design/:projectId/:boardId?" element={lazyPage(<DesignWorkspace />)} />
+              )}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AttemptTimerProvider>

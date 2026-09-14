@@ -13,6 +13,17 @@ const Svg = ({ size = 14, children, ...rest }) => (
   </svg>
 );
 
+/* System Design's side-menu glyph: two nodes and a wire — a diagram, not a
+   drawing tool. The canvas's own icons live in components/design/icons.jsx,
+   inside that module's lazy chunk. */
+export const IconShapes = (p) => (
+  <Svg {...p}>
+    <rect x="1.8" y="2" width="5" height="4.2" rx="1" />
+    <circle cx="11.6" cy="11.4" r="2.6" />
+    <path d="M4.3 6.2v3.3a1.9 1.9 0 001.9 1.9H9" />
+  </Svg>
+);
+
 export const IconMenu = (p) => (
   <Svg {...p}>
     <path d="M2 4h12M2 8h12M2 12h12" />

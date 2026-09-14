@@ -354,6 +354,42 @@ export const chatApi = {
  * The timer calls are the exception: they also carry the server's `now`, which
  * is what the elapsed counter is measured against. See TasksContext.
  */
+/**
+ * System Design — projects, their folder trees, and boards.
+ *
+ * Tree writes return `{ node, treeRev }` or similar, unwrapped no further: the
+ * explorer uses `treeRev` to notice that another tab changed the tree.
+ *
+ * `commit` is the board save. It is called by the autosave queue in
+ * design/sync/, never directly by a component — the queue owns ordering,
+ * retries and batch ids, and a second caller would break all three.
+ */
+export const designApi = {
+  projects: (params) => http.get('/design/projects', { params }).then((r) => r.data.projects),
+  createProject: (body) => http.post('/design/projects', body).then((r) => r.data),
+  project: (id) => http.get(`/design/projects/${id}`).then((r) => r.data),
+  updateProject: (id, body) => http.patch(`/design/projects/${id}`, body).then((r) => r.data.project),
+  removeProject: (id) => http.delete(`/design/projects/${id}`).then((r) => r.data),
+  restoreProject: (id) => http.post(`/design/projects/${id}/restore`).then((r) => r.data.project),
+  purgeProject: (id) => http.delete(`/design/projects/${id}/permanent`).then((r) => r.data),
+
+  createNode: (projectId, body) => http.post(`/design/projects/${projectId}/nodes`, body).then((r) => r.data),
+  renameNode: (id, name) => http.patch(`/design/nodes/${id}`, { name }).then((r) => r.data),
+  /** `after` undefined appends, null puts it first, an id puts it after that sibling. */
+  moveNode: (id, body) => http.post(`/design/nodes/${id}/move`, body).then((r) => r.data),
+  duplicateNode: (id, body = {}) => http.post(`/design/nodes/${id}/duplicate`, body).then((r) => r.data),
+  removeNode: (id) => http.delete(`/design/nodes/${id}`).then((r) => r.data),
+  restoreNode: (id) => http.post(`/design/nodes/${id}/restore`).then((r) => r.data),
+  purgeNode: (id) => http.delete(`/design/nodes/${id}/permanent`).then((r) => r.data),
+
+  board: (id) => http.get(`/design/boards/${id}`).then((r) => r.data),
+  changes: (id, since) => http.get(`/design/boards/${id}/changes`, { params: { since } }).then((r) => r.data),
+  commit: (id, batch, config) => http.post(`/design/boards/${id}/ops`, batch, config).then((r) => r.data),
+
+  trash: () => http.get('/design/trash').then((r) => r.data),
+  recent: (limit = 8) => http.get('/design/recent', { params: { limit } }).then((r) => r.data.boards),
+};
+
 export const tasksApi = {
   /** Board and tasks together — one request paints the page. */
   board: () => http.get('/tasks').then((r) => r.data),

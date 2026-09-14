@@ -117,8 +117,30 @@ export const MODULES = Object.freeze([
     what has already been submitted stays answerable either way.
   */
   { key: 'feedback', label: 'Feedback', path: '/feedback' },
+  /*
+    System Design — a whiteboard for HLD, LLD and database schemas, organised as
+    projects holding folders holding boards.
+
+    A module rather than part of Learn or the Playbook, because it is the one
+    place in the app where the learner writes the content: its own collections,
+    its own autosave, its own sync limiter. Hideable for the reason every key
+    here is, and gated with `requireModule('design')` on the mount.
+
+    `defaultHidden` is the one thing this entry does that no other does. Every
+    module before it shipped visible and was hidden afterwards if needed — which
+    cannot work for a feature that lands in `main` in pieces, because the first
+    deploy would show a half-built page to everyone for as long as it took
+    someone to open the panel. See `appSettings()` in services/settings.service.js
+    for how the default is honoured until a super admin decides otherwise.
+  */
+  { key: 'design', label: 'System Design', path: '/design', defaultHidden: true },
 ]);
 
 export const MODULE_KEYS = MODULES.map((module) => module.key);
+
+/** Modules that start out hidden until a super admin has made a decision about them. */
+export const DEFAULT_HIDDEN_KEYS = MODULES.filter((module) => module.defaultHidden).map(
+  (module) => module.key,
+);
 
 export const moduleLabel = (key) => MODULES.find((module) => module.key === key)?.label || key;

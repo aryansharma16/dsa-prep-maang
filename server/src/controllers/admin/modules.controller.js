@@ -58,6 +58,9 @@ export const setModuleHidden = asyncHandler(async (req, res) => {
         updatedBy: req.actor._id,
         updatedByEmail: req.actor.email,
       },
+      // Any toggle is a decision, so a `defaultHidden` module stops falling back
+      // to its default from here on — see `modules.decided` on the model.
+      $addToSet: { 'modules.decided': key },
     },
     { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
   );
