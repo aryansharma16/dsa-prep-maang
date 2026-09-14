@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { boxCorners } from '../../../design/core/geometry.js';
+import { boxCorners, pointAlongPolyline } from '../../../design/core/geometry.js';
 import { worldToScreen } from '../../../design/engine/camera.js';
 import { SIDES, sidePoint } from '../../../design/engine/connectors/route.js';
 import { handlePositions, selectionFrame, HANDLE_RADIUS } from '../../../design/engine/handles.js';
@@ -60,7 +60,7 @@ export const OverlayLayer = memo(function OverlayLayer() {
 
       {selection.length > 1 && selection.map((id) => outline(id, 'sd-selected-member'))}
 
-      {frame && frame.kind !== 'connector' && (
+      {frame && frame.kind !== 'connector' && !(editingId && frame.record?.id === editingId && ['structure', 'sqltable'].includes(frame.record.type)) && (
         <polygon
           className={`sd-selection ${frame.record?.data.locked ? 'locked' : ''}`}
           points={boxCorners(frame.box.x, frame.box.y, frame.box.w, frame.box.h, frame.box.rot)
@@ -124,6 +124,23 @@ function SizeBadge({ frame, camera }) {
 }
 
 function BindHints({ editor, camera, target }) {
+  const record = editor.store.get(target.eid);
+  if (record?.type === 'connector') {
+    // On a line: highlight it, and mark where the end will attach.
+    const geo = editor.connectorGeo(record);
+    const d = geo.points.map(([x, y], i) => {
+      const p = worldToScreen(camera, x, y);
+      return `${i ? 'L' : 'M'}${p.x},${p.y}`;
+    });
+    const at = pointAlongPolyline(geo.points, target.t ?? 0.5);
+    const p = worldToScreen(camera, at.x, at.y);
+    return (
+      <g>
+        <path className="sd-bind-line" d={d.join(' ')} />
+        <circle cx={p.x} cy={p.y} r={5} className="sd-anchor on" />
+      </g>
+    );
+  }
   const box = editor.worldBox(target.eid);
   if (!box) return null;
   const corners = boxCorners(box.x, box.y, box.w, box.h, box.rot).map((c) => worldToScreen(camera, c.x, c.y));

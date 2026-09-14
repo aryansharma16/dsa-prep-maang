@@ -220,7 +220,12 @@ export function Explorer({
       if (!state || event.pointerId !== state.pointerId) return;
       document.documentElement.classList.remove('sd-dragging');
       if (state.dragging) {
+        // The click that follows a drop lands on the row under the pointer — or on the tree, when
+        // the drag ended elsewhere. Either way it belongs to the drag, and only this one click.
         suppressClick.current = true;
+        setTimeout(() => {
+          suppressClick.current = false;
+        }, 0);
         const target = targetAt(event.clientX, event.clientY, state.id);
         if (target?.drop) onMove(state.id, target.drop);
       }

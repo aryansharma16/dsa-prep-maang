@@ -17,8 +17,10 @@ import {
  * which is both fewer saves and, later, one less thing two people can conflict
  * over.
  *
- * Pure: everything about the board arrives through `lookup(eid)`, which
- * returns a world box `{ x, y, w, h, rot, outline }` or null.
+ * Pure: everything about the board arrives through `lookup(eid, end)`, which
+ * returns a world box `{ x, y, w, h, rot, outline }` for a shape, a point
+ * `{ point: [x, y], axis: 'h'|'v'|null }` for an end attached to another
+ * connector (`{ eid, t }`, `t` of the way along it), or null.
  *
  * The elbow router is a candidate router, not a path search. It tries the
  * handful of orthogonal paths that could sensibly join two sides — through the
@@ -79,14 +81,28 @@ const worldAabb = (box) => {
   return aabbOfPoints(corners);
 };
 
-/** Resolves one end to a box (if bound) and a fixed point (if free or pinned to a side). */
+/**
+ * Resolves one end to a box (bound to a shape) or a fixed point (free, or on
+ * another connector — then `axis` is that line's direction there, if it is
+ * axis-aligned, so routes can meet it square).
+ */
 function resolveEnd(end, lookup) {
   if (end?.eid) {
-    const box = lookup(end.eid);
-    if (box) return { box, anchor: end.anchor || 'auto' };
+    const target = lookup(end.eid, end);
+    if (target?.point) return { box: null, point: [target.point[0], target.point[1]], axis: target.axis || null };
+    if (target) return { box: target, anchor: end.anchor || 'auto' };
   }
   const point = end?.point || [0, 0];
-  return { box: null, point: [point[0], point[1]] };
+  return { box: null, point: [point[0], point[1]], axis: null };
+}
+
+/** The side a free end leaves from: across the line it sits on, else along the dominant axis toward `target`. */
+function freeSide(end, target) {
+  const dx = target[0] - end.point[0];
+  const dy = target[1] - end.point[1];
+  if (end.axis === 'h') return dy >= 0 ? 'bottom' : 'top';
+  if (end.axis === 'v') return dx >= 0 ? 'right' : 'left';
+  return dominantSide(end.point, target);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -114,10 +130,7 @@ function dominantSide(from, to) {
 
 function curveEnd(end, other) {
   const target = other.box ? center(other.box) : other.point;
-  if (!end.box) {
-    const side = dominantSide(end.point, target);
-    return { p: end.point, d: DIR[side] };
-  }
+  if (!end.box) return { p: end.point, d: DIR[freeSide(end, target)] };
   const side = end.anchor !== 'auto' && SIDES.includes(end.anchor) ? end.anchor : dominantSide(center(end.box), target);
   return { p: sidePoint(end.box, side), d: sideDir(end.box, side) };
 }
@@ -225,11 +238,13 @@ function routeElbow(a, b, id) {
     for (const sideB of sidesFor(b)) {
       const pa = sideA ? sidePoint(a.box, sideA) : a.point;
       const pb = sideB ? sidePoint(b.box, sideB) : b.point;
-      // A free end has no side: aim it along the dominant axis toward the other end.
-      const da = sideA ? DIR[sideA] : DIR[dominantSide(pa, pb)];
-      const db = sideB ? DIR[sideB] : DIR[dominantSide(pb, pa)];
+      // A free end has no side: aim it across the line it sits on, or toward the other end.
+      const da = sideA ? DIR[sideA] : DIR[freeSide(a, pb)];
+      const db = sideB ? DIR[sideB] : DIR[freeSide(b, pa)];
       if (!sideA && !sideB) {
-        const direct = simplify([pa, [pb[0], pa[1]], pb]);
+        // One bend, meeting a line an end sits on square; when both ends want it, the arrowhead end wins.
+        const verticalFirst = b.axis === 'v' || (a.axis === 'h' && b.axis !== 'h');
+        const direct = simplify([pa, verticalFirst ? [pa[0], pb[1]] : [pb[0], pa[1]], pb]);
         return { points: direct };
       }
       for (const raw of candidates(pa, da, pb, db, boxA, boxB)) {

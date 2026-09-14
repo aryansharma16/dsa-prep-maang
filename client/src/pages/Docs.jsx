@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BRAND } from '../brand.js';
 import { useAuth } from '../store/AuthContext.jsx';
+import { moduleVisible } from '../store/modules.js';
 import { ParticleWeb } from '../components/layout/ParticleWeb.jsx';
 import { clock } from '../components/tasks/time.js';
 import {
@@ -194,6 +195,11 @@ const SECTIONS = [
   */
   { id: 'playbook', label: 'The Playbook', hue: 'indigo', eyebrow: 'The plan' },
   { id: 'assistant', label: 'Assistant & Tasks', hue: 'fuchsia', eyebrow: 'Help and planning' },
+  /*
+    Only listed for accounts that can see the module (it ships hidden while it is
+    being built), so a learner never reads about a page they cannot open.
+  */
+  { id: 'design', label: 'System Design', hue: 'teal', eyebrow: 'Whiteboard', module: 'design' },
   { id: 'stats', label: 'Stats', hue: 'green', eyebrow: 'The honest view' },
   { id: 'yours', label: 'Making it yours', hue: 'sky', eyebrow: 'Setup' },
   { id: 'keys', label: 'Shortcuts', hue: 'slate', eyebrow: 'Faster' },
@@ -665,8 +671,9 @@ function Section({ meta, children }) {
 const byId = Object.fromEntries(SECTIONS.map((s) => [s.id, s]));
 
 export function Docs() {
-  const { user } = useAuth();
-  const ids = useMemo(() => SECTIONS.map((s) => s.id), []);
+  const { user, modules } = useAuth();
+  const sections = useMemo(() => SECTIONS.filter((s) => !s.module || moduleVisible(modules, s.module)), [modules]);
+  const ids = useMemo(() => sections.map((s) => s.id), [sections]);
   const current = useCurrentSection(ids);
   const progress = useScrollProgress();
 
@@ -821,7 +828,7 @@ export function Docs() {
           <aside className="docs-rail">
             <div className="docs-rail-label">Contents</div>
             <nav aria-label="Sections of this guide">
-              {SECTIONS.map((s) => (
+              {sections.map((s) => (
                 <a
                   key={s.id}
                   href={`#${s.id}`}
@@ -1465,6 +1472,64 @@ export function Docs() {
                 </ul>
               </Reveal>
             </Section>
+
+            {moduleVisible(modules, 'design') && (
+              <Section meta={byId.design}>
+                <Reveal>
+                  <p>
+                    A whiteboard for designing systems — the half of a Swiggy- or Razorpay-style loop
+                    that LeetCode does not cover. A <b>project</b> is one system (&ldquo;WhatsApp&rdquo;);
+                    inside it, <b>folders</b> nest as deep as you like and hold <b>boards</b>. Start a
+                    project with HLD, LLD and Database folders and you have somewhere to put each
+                    layer of the answer.
+                  </p>
+
+                  <h3>Drawing</h3>
+                  <ul className="docs-list">
+                    <li>
+                      <b>Shapes:</b> <kbd>R</kbd> box, <kbd>O</kbd> ellipse, <kbd>D</kbd> diamond, and a
+                      cylinder for databases in the shapes menu. Click for a default size or drag to
+                      size one; double-click to give it a label.
+                    </li>
+                    <li>
+                      <b>Words:</b> <kbd>T</kbd> text, <kbd>Shift</kbd> <kbd>T</kbd> a markdown
+                      paragraph for requirements and trade-offs, <kbd>S</kbd> a sticky note. Or
+                      double-click empty space and start typing.
+                    </li>
+                    <li>
+                      <b>Marker:</b> <kbd>P</kbd> pen, <kbd>Shift</kbd> <kbd>P</kbd> highlighter,{' '}
+                      <kbd>E</kbd> eraser. These stay on until you pick another tool; everything
+                      else goes back to Select after one use (<kbd>Q</kbd> keeps a tool on).
+                    </li>
+                    <li>
+                      <b>Frames</b> (<kbd>F</kbd>) group a region — &ldquo;Write path&rdquo;,
+                      &ldquo;us-east-1&rdquo; — and carry what is inside when they move. Draw one around
+                      things to pull them in, or select things and press <kbd>Ctrl</kbd> <kbd>Alt</kbd>{' '}
+                      <kbd>G</kbd>.
+                    </li>
+                  </ul>
+
+                  <h3>Arrows</h3>
+                  <p>
+                    <kbd>A</kbd> and drag from one thing to another. An arrow attaches to shapes — to a
+                    side if you let go on its dot — and to other arrows&rsquo; lines, so &ldquo;client to
+                    server&rdquo; can point at the request itself. Attached ends follow when anything
+                    moves. Elbow, straight or curved, with an optional label and an animated flow to
+                    show which way traffic runs; the pause button in the top bar freezes every flow.
+                  </p>
+
+                  <h3>Saving</h3>
+                  <p>
+                    There is no save button. Every change goes to the server within a second or two
+                    and the top bar says so. Offline, changes wait on this device and go when the
+                    connection is back; if the tab closes first, opening the board again restores
+                    them — and asks, if someone changed the board in between. A board is edited in
+                    one tab at a time: open it in a second tab and the first becomes view-only, with
+                    a button to take it back.
+                  </p>
+                </Reveal>
+              </Section>
+            )}
 
             <Section meta={byId.stats}>
               <Reveal>

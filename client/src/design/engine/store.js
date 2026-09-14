@@ -172,6 +172,8 @@ export function createStore({ sideEffects = {} } = {}) {
       drop(id) {
         if (get(id)) draft.set(id, null);
       },
+      /** Ids created, changed or removed so far in this transaction. */
+      changedIds: () => [...draft.keys()],
     };
     return tx;
   }

@@ -29,17 +29,23 @@ export function createShapeTool(editor, type) {
   /** Top-level elements wholly inside a new frame move into it, like drawing a frame in Figma. */
   function adopt(tx, frameId) {
     const frame = tx.get(frameId);
-    const fx = frame.data.x;
-    const fy = frame.data.y;
+    const origin = editor.worldOrigin(frame.parent, tx);
+    const fx = frame.data.x + origin.x;
+    const fy = frame.data.y + origin.y;
+    const adopted = [];
     for (const id of tx.childIds(frame.parent ?? null)) {
       if (id === frameId) continue;
       const record = tx.get(id);
       if (!record || record.type === 'connector') continue;
       const b = editor.boundsOf(record);
-      const origin = editor.worldOrigin(frame.parent);
-      const inside = b && b.minX >= fx + origin.x && b.minY >= fy + origin.y && b.maxX <= fx + origin.x + frame.data.w && b.maxY <= fy + origin.y + frame.data.h;
-      if (inside) editor.reparent(tx, id, frameId);
+      const inside = b && b.minX >= fx && b.minY >= fy && b.maxX <= fx + frame.data.w && b.maxY <= fy + frame.data.h;
+      if (inside) {
+        editor.reparent(tx, id, frameId);
+        adopted.push(id);
+      }
     }
+    const siblingConnectors = tx.childIds(frame.parent ?? null).filter((id) => tx.get(id)?.type === 'connector');
+    editor.settleConnectors(tx, [...editor.connectorsTouching(adopted), ...siblingConnectors]);
   }
 
   return {
@@ -47,7 +53,8 @@ export function createShapeTool(editor, type) {
     cursor: type === 'text' || type === 'paragraph' ? 'text' : 'crosshair',
 
     onPointerDown(ctx) {
-      state = { start: ctx, gesture: null, id: null, parent: type === 'frame' ? null : editor.frameAt(ctx.wx, ctx.wy) };
+      // Frames nest too: a frame drawn inside a frame belongs to it.
+      state = { start: ctx, gesture: null, id: null, parent: editor.frameAt(ctx.wx, ctx.wy) };
     },
 
     onPointerMove(ctx) {

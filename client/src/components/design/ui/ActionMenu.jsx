@@ -12,6 +12,8 @@ import { createPortal } from 'react-dom';
  *
  *   <ActionMenu anchor={{ x, y }} items={[{ label, icon, onSelect, danger, disabled, shortcut }, 'sep']} onClose={…} />
  */
+let openMenus = 0;
+
 export function ActionMenu({ anchor, items, onClose, label = 'Actions', returnFocus }) {
   const ref = useRef(null);
   const [pos, setPos] = useState(null);
@@ -36,8 +38,13 @@ export function ActionMenu({ anchor, items, onClose, label = 'Actions', returnFo
 
   useEffect(() => {
     ref.current?.querySelector('.sd-menu-item:not(:disabled)')?.focus();
+    // The canvas leaves keys alone while any menu is open (editor.js).
+    openMenus += 1;
+    document.documentElement.classList.add('sd-menu-open');
 
     const onDown = (event) => {
+      // A press on the button that opened the menu is left to that button, which toggles it shut.
+      if (anchor instanceof Element && anchor.contains(event.target)) return;
       if (ref.current && !ref.current.contains(event.target)) onClose();
     };
     const onKey = (event) => {
@@ -56,8 +63,10 @@ export function ActionMenu({ anchor, items, onClose, label = 'Actions', returnFo
       document.removeEventListener('keydown', onKey, true);
       window.removeEventListener('blur', onClose);
       window.removeEventListener('resize', onClose);
+      openMenus -= 1;
+      if (!openMenus) document.documentElement.classList.remove('sd-menu-open');
     };
-  }, [onClose, returnFocus]);
+  }, [onClose, returnFocus, anchor]);
 
   const onKeyDown = (event) => {
     const step = { ArrowDown: 1, ArrowUp: -1 }[event.key];

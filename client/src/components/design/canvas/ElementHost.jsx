@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { shapeFor } from '../../../design/shapes/registry.js';
-import { useChildIds, useElement, useUi } from './hooks.js';
+import { useChildIds, useElement, useUi, useVisibleIds } from './hooks.js';
 import { ConnectorView } from '../shapes/ConnectorView.jsx';
 import { VIEWS, UnknownView } from '../shapes/views.jsx';
 
@@ -15,7 +15,9 @@ import { VIEWS, UnknownView } from '../shapes/views.jsx';
 
 export const ElementList = memo(function ElementList({ parent }) {
   const ids = useChildIds(parent);
-  return ids.map((id) => <ElementHost key={id} id={id} />);
+  const visible = useVisibleIds();
+  // Off-screen elements on a big board are not mounted at all.
+  return (visible ? ids.filter((id) => visible.has(id)) : ids).map((id) => <ElementHost key={id} id={id} />);
 });
 
 export const ElementHost = memo(function ElementHost({ id }) {

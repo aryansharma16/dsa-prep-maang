@@ -1,19 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { errorMessage } from '../../../api/http.js';
+import { baseURL, errorMessage } from '../../../api/http.js';
 import { designApi } from '../../../api/index.js';
 import { recordFromWire } from '../../../design/engine/diff.js';
 import { createCommands } from '../../../design/engine/commands.js';
 import { createEditor } from '../../../design/engine/editor.js';
+import { measurePan, stressBoard } from '../../../design/engine/stress.js';
+import { mergeText } from '../../../design/schema/merge.js';
+import { createSchemaSync, META_PARENT, SOURCE_ID, sourceRecord } from '../../../design/schema/schemaSync.js';
+import { SchemaPanel } from '../schema/SchemaPanel.jsx';
 import { isKnownType } from '../../../design/shapes/registry.js';
-import { clearMirror, createAutosave, readMirror } from '../../../design/sync/autosave.js';
+import { createAutosave, planRestore, readMirrors, removeMirrors } from '../../../design/sync/autosave.js';
 import { createTabLock } from '../../../design/sync/tabLock.js';
 import { newId } from '../../../design/core/ids.js';
 import { useToast } from '../../../store/ToastContext.jsx';
 import { ConfirmDialog } from '../../ui/ConfirmDialog.jsx';
 import { Inspector } from '../inspector/Inspector.jsx';
+import { LibraryPanel } from '../library/LibraryPanel.jsx';
 import { CanvasContextMenu } from './CanvasContextMenu.jsx';
 import { Canvas } from './Canvas.jsx';
-import { EditorContext } from './hooks.js';
+import { EditorContext, useUi } from './hooks.js';
 import { ShortcutsDialog } from './ShortcutsDialog.jsx';
 import { Toolbar } from './Toolbar.jsx';
 import { ZoomControls } from './ZoomControls.jsx';
@@ -49,6 +54,35 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
   const [gone, setGone] = useState(null);
   const [restore, setRestore] = useState(null);
   const syncRef = useRef(null);
+  // The schema text as the server last acknowledged it: the base of the next compare-and-set save.
+  const sourceRef = useRef({ rev: 0, text: '' });
+  const [sourceConflict, setSourceConflict] = useState(null);
+
+  /** Remote schema text: taken as is unless this tab has its own unsaved text, then merged. */
+  const receiveSource = useCallback(
+    ({ source, sourceRev }) => {
+      if (typeof source !== 'string') return;
+      const local = editor.store.get(SOURCE_ID)?.data.text ?? '';
+      const base = sourceRef.current.text;
+      sourceRef.current = { rev: sourceRev, text: source };
+      if (local === source) return;
+      if (!syncRef.current?.hasPendingSource && local === base) {
+        editor.store.applyRemote((tx) => tx.put(sourceRecord(source, sourceRev)));
+        return;
+      }
+      const merged = mergeText(base, local, source);
+      if (merged.text === null) {
+        setSourceConflict({ mine: local, theirs: source, conflicts: merged.conflicts });
+      } else if (merged.text === source) {
+        editor.store.applyRemote((tx) => tx.put(sourceRecord(source, sourceRev)));
+      } else {
+        // Saved again on top of theirs, under their revision.
+        editor.store.transact((tx) => tx.update(SOURCE_ID, { data: { text: merged.text } }), { label: 'Merge schema', history: false });
+        toastRef.current.toast('Merged schema changes from another device');
+      }
+    },
+    [editor],
+  );
 
   const applyServerResult = useCallback(
     (result) => {
@@ -58,13 +92,15 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
           const pending = sync?.pendingIds() || new Set();
           editor.store.applyRemote((tx) => {
             const incoming = new Map(data.elements.map((el) => [el.eid, recordFromWire(el)]));
-            for (const record of editor.store.all()) if (!incoming.has(record.id) && !pending.has(record.id)) tx.drop(record.id);
+            for (const record of editor.store.all()) if (record.parent !== META_PARENT && !incoming.has(record.id) && !pending.has(record.id)) tx.drop(record.id);
             for (const [id, record] of incoming) if (!pending.has(id)) tx.put(record);
           });
+          if (data.board.kind === 'schema') receiveSource(data.board);
           if (sync) sync.rev = data.board.rev;
         });
         return;
       }
+      if (result.board) receiveSource(result.board);
       if (!result.changes?.length) return;
       const pending = sync?.pendingIds() || new Set();
       editor.store.applyRemote((tx) => {
@@ -75,7 +111,7 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
         }
       });
     },
-    [editor, node.id],
+    [editor, node.id, receiveSource],
   );
 
   useEffect(() => {
@@ -85,6 +121,7 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
     let lock = null;
     let offCommit = null;
     let pollTimer = 0;
+    let restoreTimer = 0;
     const disposers = [];
 
     editor.commands = createCommands(editor);
@@ -93,17 +130,32 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
       .board(node.id)
       .then((data) => {
         if (!alive) return;
-        editor.store.load(data.elements.map(recordFromWire));
+        const records = data.elements.map(recordFromWire);
+        if (data.board.kind === 'schema') {
+          sourceRef.current = { rev: data.board.sourceRev ?? 0, text: data.board.source ?? '' };
+          records.push(sourceRecord(data.board.source ?? '', data.board.sourceRev ?? 0));
+        }
+        editor.store.load(records);
         const readOnly = projectReadOnly || !['owner', 'editor'].includes(data.role);
         editor.setReadOnly(readOnly);
+        if (data.board.kind === 'schema') editor.schema = createSchemaSync(editor);
 
         sync = createAutosave({
           boardId: node.id,
           baseRev: data.board.rev,
           send: (batch) => designApi.commit(node.id, batch),
+          keepaliveUrl: `${baseURL}/design/boards/${node.id}/ops`,
+          getSourceBase: () => sourceRef.current.rev,
+          onSourceSaved: (rev, text) => {
+            sourceRef.current = { rev, text };
+          },
           onStatus: (save) => editor.setSaveStatus(save),
           onResult: applyServerResult,
           onRejected: (rejected) => {
+            const conflict = rejected.find((r) => r.op === 'source' && r.code === 'SOURCE_CONFLICT');
+            if (conflict?.current) receiveSource(conflict.current);
+            rejected = rejected.filter((r) => r.op !== 'source');
+            if (!rejected.length) return;
             editor.store.applyRemote((tx) => {
               for (const entry of rejected) {
                 if (!entry.eid) continue;
@@ -151,16 +203,29 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
         });
         if (!readOnly) lock.claim();
 
-        // Unsaved changes from a previous session on this device.
-        const mirror = readMirror(node.id);
-        if (mirror && !readOnly) {
-          if (mirror.baseRev === data.board.rev) {
-            reapply(mirror.ops);
+        // Unsaved changes left by a tab that closed or crashed before saving them.
+        const restoreOrphans = (board, allowWait) => {
+          if (!alive || readOnly) return;
+          const plan = planRestore(readMirrors(node.id, sync.clientId), board);
+          removeMirrors(plan.remove);
+          if (plan.silent.ops.length) {
+            reapply(plan.silent.ops);
+            removeMirrors(plan.silent.keys);
             toastRef.current.toast('Restored changes that had not been saved');
-          } else {
-            setRestore(mirror);
           }
-        }
+          if (plan.ask) setRestore(plan.ask);
+          // A mirror refreshed moments ago may belong to a tab that is still open — or one that just
+          // crashed. Look once more after it would have been refreshed again.
+          if (plan.waitFor && allowWait) {
+            restoreTimer = setTimeout(() => {
+              designApi
+                .board(node.id)
+                .then((fresh) => restoreOrphans(fresh.board, false))
+                .catch(() => {});
+            }, plan.waitFor);
+          }
+        };
+        restoreOrphans(data.board, true);
 
         // Other devices: pick up their changes when this tab comes back into view.
         const poll = () => {
@@ -203,6 +268,8 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
               tx.update(op.eid, { ...(op.parent !== undefined ? { parent: op.parent } : {}), ...(op.z !== undefined ? { z: op.z } : {}), data });
             } else if (op.op === 'del') {
               tx.drop(op.eid);
+            } else if (op.op === 'source' && tx.get(SOURCE_ID)) {
+              tx.update(SOURCE_ID, { data: { text: op.text } });
             }
           }
         },
@@ -214,15 +281,39 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
     return () => {
       alive = false;
       clearInterval(pollTimer);
+      clearTimeout(restoreTimer);
       disposers.forEach((fn) => fn());
       offCommit?.();
       sync?.dispose();
       lock?.dispose();
       syncRef.current = null;
+      editor.schema?.dispose();
+      editor.schema = null;
       onReady?.(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one editor per mount
   }, [editor]);
+
+  // ?sdperf: performance tooling on window.__sd (see design/engine/stress.js).
+  useEffect(() => {
+    // Remembered for the tab: the workspace rewrites the URL (and drops the query) as boards open.
+    try {
+      if (new URLSearchParams(window.location.search).has('sdperf')) sessionStorage.setItem('sd-perf', '1');
+    } catch {
+      /* private mode */
+    }
+    let enabled = false;
+    try {
+      enabled = sessionStorage.getItem('sd-perf') === '1';
+    } catch {
+      enabled = new URLSearchParams(window.location.search).has('sdperf');
+    }
+    if (phase !== 'ready' || !enabled) return undefined;
+    window.__sd = { editor, stress: (n) => stressBoard(editor, n), measurePan: (options) => measurePan(editor, options) };
+    return () => {
+      delete window.__sd;
+    };
+  }, [editor, phase]);
 
   useEffect(() => {
     if (phase === 'ready') editor.setReadOnly(projectReadOnly || lockLost || Boolean(gone));
@@ -242,6 +333,7 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
   return (
     <EditorContext.Provider value={editor}>
       <div className="sd-editor">
+        {phase === 'ready' && node.boardKind === 'schema' && <SchemaPanel boardName={node.name} />}
         <div className="sd-editor-main">
           {phase === 'loading' ? <div className="sd-stage-note">Opening board…</div> : <Canvas />}
 
@@ -271,6 +363,7 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
                     : 'This board was moved to the trash. Changes are no longer being saved.'}
                 </div>
               )}
+              <LibraryHost editor={editor} />
               <Toolbar boardKind={node.boardKind} />
               <ZoomControls />
               <CanvasContextMenu />
@@ -282,6 +375,26 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
 
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
 
+      {sourceConflict && (
+        <ConfirmDialog
+          title="The schema changed on another device"
+          message={`Someone saved changes to this schema's text while you were editing it, and ${sourceConflict.conflicts === 1 ? 'one part' : `${sourceConflict.conflicts} parts`} of your changes overlap theirs.`}
+          detail="Keep yours to save your text over theirs, or take theirs to discard your unsaved text changes."
+          confirmLabel="Keep mine"
+          cancelLabel="Take theirs"
+          onConfirm={() => {
+            const mine = sourceConflict.mine;
+            setSourceConflict(null);
+            editor.store.transact((tx) => tx.update(SOURCE_ID, { data: { text: mine } }), { label: 'Keep my schema', history: false });
+          }}
+          onCancel={() => {
+            const { theirs } = sourceConflict;
+            setSourceConflict(null);
+            editor.store.applyRemote((tx) => tx.put(sourceRecord(theirs, sourceRef.current.rev)));
+          }}
+        />
+      )}
+
       {restore && (
         <ConfirmDialog
           title="Restore unsaved changes?"
@@ -290,15 +403,25 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
           confirmLabel="Restore"
           cancelLabel="Discard"
           onConfirm={() => {
+            // Reapplied ops join this tab's queue (and its own mirror) before the old copies go.
             editor.reapplyOps(restore.ops);
+            removeMirrors(restore.keys);
             setRestore(null);
           }}
           onCancel={() => {
-            clearMirror(node.id);
+            removeMirrors(restore.keys);
             setRestore(null);
           }}
         />
       )}
     </EditorContext.Provider>
   );
+}
+
+/** The component library, while it is open (I, or the toolbar button). */
+function LibraryHost({ editor }) {
+  const open = useUi((s) => s.libraryOpen);
+  const readOnly = useUi((s) => s.readOnly);
+  if (!open || readOnly) return null;
+  return <LibraryPanel onClose={() => editor.ui.set({ libraryOpen: false })} />;
 }

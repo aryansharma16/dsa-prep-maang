@@ -94,3 +94,9 @@ export function useGeometryVersion(ids) {
   );
   return useSyncExternalStore(subscribe, () => version.current);
 }
+
+/** The ids the editor wants mounted, or null for all (see culling in editor.js). */
+export function useVisibleIds() {
+  const editor = useEditor();
+  return useSyncExternalStore(editor.subscribeVisibility, editor.getVisibleIds);
+}

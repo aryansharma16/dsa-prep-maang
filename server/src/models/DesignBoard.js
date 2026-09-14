@@ -84,6 +84,7 @@ export const publicBoard = (board) => ({
   meta: board.meta || {},
   ...(board.kind === 'schema' ? { source: board.source ?? '', sourceRev: board.sourceRev ?? 0 } : {}),
   lastWriteAt: board.lastWriteAt ?? null,
+  ...(board.recentBatches ? { recentBatches: board.recentBatches } : {}),
 });
 
 export const DesignBoard = mongoose.model('DesignBoard', designBoardSchema);

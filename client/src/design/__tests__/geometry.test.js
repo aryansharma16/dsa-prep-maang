@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {
   aabbUnion,
   boxCorners,
+  closestOnPolyline,
   distToPolyline,
   distToSegment,
   inDiamond,
@@ -107,4 +108,18 @@ test('time', () => {
   assert.equal(timeAgo('2026-09-14T09:00:00Z', now), '3 hours ago');
   assert.equal(timeAgo('2026-09-13T12:00:00Z', now), '1 day ago');
   assert.equal(daysLeft('2026-09-20T12:00:00Z', now), 6);
+});
+
+test('closestOnPolyline: nearest point and how far along the line it is', () => {
+  const elbow = [[0, 0], [100, 0], [100, 100]];
+  const onFirst = closestOnPolyline(50, 10, elbow);
+  assert.deepEqual([onFirst.x, onFirst.y, onFirst.distance], [50, 0, 10]);
+  assert.equal(onFirst.t, 0.25);
+  const onSecond = closestOnPolyline(130, 50, elbow);
+  assert.deepEqual([onSecond.x, onSecond.y, onSecond.t], [100, 50, 0.75]);
+  const past = closestOnPolyline(100, 400, elbow);
+  assert.equal(past.t, 1);
+  // Round-trips with pointAlongPolyline.
+  const at = pointAlongPolyline(elbow, onSecond.t);
+  assert.deepEqual([at.x, at.y], [100, 50]);
 });

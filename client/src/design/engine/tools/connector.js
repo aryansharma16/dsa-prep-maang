@@ -7,8 +7,9 @@ import { SIDES, sidePoint } from '../connectors/route.js';
  *
  * Hovering a shape shows where an arrow would attach — its four side anchors,
  * or anywhere on it for "whichever side is best". Release over a shape to bind
- * the end to it; release on empty canvas to leave that end free. Hold ⌘/Ctrl to
- * refuse binding and place the end exactly.
+ * the end to it; over another connector to attach at that point on its line
+ * (and follow it when it moves); on empty canvas to leave that end free. Hold
+ * ⌘/Ctrl to refuse binding and place the end exactly.
  */
 
 const DRAG_PX = 4;
@@ -23,7 +24,7 @@ export function createConnectorTool(editor) {
     const target = editor.hitTest(ctx.wx, ctx.wy, {
       filter: (r) => r.id !== excludeId && r.type !== 'connector' && r.type !== 'stroke' && shapeFor(r.type).caps.bindable,
     });
-    if (!target) return null;
+    if (!target) return editor.lineBindingAt(ctx.wx, ctx.wy, excludeId);
     const box = editor.worldBox(target);
     let anchor = 'auto';
     for (const side of SIDES) {
@@ -78,6 +79,7 @@ export function createConnectorTool(editor) {
         current.gesture.cancel();
         return;
       }
+      current.gesture.frame((tx) => editor.settleConnectors(tx, [current.id]));
       current.gesture.commit({ selectionAfter: [current.id] });
       editor.select([current.id]);
       if (!ui.get().toolLocked) editor.setTool('select');

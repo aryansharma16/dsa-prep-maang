@@ -29,6 +29,10 @@ export const INITIAL_UI = Object.freeze({
   cursor: 'default',
   contextMenu: null,
   shortcutsOpen: false,
+  libraryOpen: false,
+  schemaFocus: null, // { table, column } under the DBML editor's caret
+  schemaReveal: null, // a text span the DBML editor should select and scroll to
+  schemaRelation: null, // id of the relation line selected on a schema board
   toolStyle: Object.freeze({}), // last-used style per tool, applied to new elements
 });
 

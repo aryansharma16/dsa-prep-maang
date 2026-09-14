@@ -37,17 +37,6 @@ export function createSelectTool(editor) {
   const moved = (ctx) =>
     state.start && Math.hypot(ctx.sx - state.start.sx, ctx.sy - state.start.sy) >= (DRAG_PX[ctx.pointerType] || 3);
 
-  function descendantsOf(id) {
-    const out = [];
-    const stack = [...store.childIds(id)];
-    while (stack.length) {
-      const child = stack.pop();
-      out.push(child);
-      stack.push(...store.childIds(child));
-    }
-    return out;
-  }
-
   /* ------------------------------------------------------------ hover */
 
   function onHover(ctx) {
@@ -79,14 +68,19 @@ export function createSelectTool(editor) {
     const hit = editor.hitTest(ctx.wx, ctx.wy);
     if (hit) {
       const wasSelected = selection.includes(hit);
-      if (ctx.shift) editor.select(wasSelected ? selection.filter((id) => id !== hit) : [...selection, hit]);
-      else if (!wasSelected) editor.select([hit]);
-      state = { mode: 'pointing-element', hit, wasSelected, start: ctx };
+      if (ui.get().schemaRelation) ui.set({ schemaRelation: null });
+      // Shift adds straight away; Shift on something already selected removes it only on a click
+      // (see onPointerUp), so Shift-dragging a selection still moves it along one axis.
+      if (ctx.shift && !wasSelected) editor.select([...selection, hit]);
+      else if (!ctx.shift && !wasSelected) editor.select([hit]);
+      state = { mode: 'pointing-element', hit, wasSelected, shift: ctx.shift, start: ctx, selectionAtDown: selection };
       return;
     }
 
     if (!ctx.shift) editor.select([]);
-    state = { mode: 'pointing-canvas', start: ctx, base: ctx.shift ? selection : [] };
+    // On a schema board, empty canvas may be a relation line.
+    if (editor.schema) ui.set({ schemaRelation: editor.schema.relationAt(ctx.wx, ctx.wy, 6 / editor.camera.z)?.id ?? null });
+    state = { mode: 'pointing-canvas', start: ctx, base: ctx.shift ? selection : [], selectionAtDown: selection };
   }
 
   /* ------------------------------------------------------------ move */
@@ -138,17 +132,12 @@ export function createSelectTool(editor) {
       editor.select(ids);
     }
 
+    // Connectors inside a moving frame travel with it: their free points are relative to the frame.
     const originals = new Map(ids.map((id) => [id, store.get(id)]));
-    // Connectors inside moving frames whose ends are free points must travel too.
-    for (const id of ids) {
-      if (store.get(id).type !== 'frame') continue;
-      for (const child of descendantsOf(id)) {
-        const record = store.get(child);
-        if (record?.type === 'connector') originals.set(child, record);
-      }
-    }
     const exclude = new Set(ids);
+    const selectionAtDown = state.selectionAtDown;
     state = {
+      selectionAtDown,
       mode: 'translating',
       gesture,
       ids,
@@ -174,9 +163,12 @@ export function createSelectTool(editor) {
     if (!ctx.mod && state.startBounds) {
       const b = state.startBounds;
       const snap = snapMove(state.targets, { minX: b.minX + dx, minY: b.minY + dy, maxX: b.maxX + dx, maxY: b.maxY + dy }, SNAP_PX / editor.camera.z);
-      if (!ctx.shift || dy === 0) dx += snap.dx;
-      if (!ctx.shift || dx === 0) dy += snap.dy;
-      lines = snap.lines;
+      const keepX = !ctx.shift || dy === 0;
+      const keepY = !ctx.shift || dx === 0;
+      if (keepX) dx += snap.dx;
+      if (keepY) dy += snap.dy;
+      // A guide along x comes from snapping x; drop the guides of a snap Shift threw away.
+      lines = snap.lines.filter((line) => (line.axis === 'x' ? keepX : keepY));
     }
     state.dx = dx;
     state.dy = dy;
@@ -207,6 +199,7 @@ export function createSelectTool(editor) {
         tx.update(id, { data: { x: Math.round(record.data.x || 0), y: Math.round(record.data.y || 0) } });
         if ((record.parent ?? null) !== (dropTarget ?? null)) editor.reparent(tx, id, dropTarget ?? null);
       }
+      editor.settleConnectors(tx, editor.connectorsTouching(state.ids));
     });
     state.gesture.commit({ selectionAfter: state.ids });
   }
@@ -310,18 +303,16 @@ export function createSelectTool(editor) {
         else w = h * ratio;
       } else if (has('e') || has('w')) h = w / ratio;
       else w = h * ratio;
-      if (has('w')) l = r - w;
-      else if (has('e')) r = l + w;
-      else {
+      if (ctx.alt || !(has('w') || has('e'))) {
         l = (box0.w - w) / 2;
         r = l + w;
-      }
-      if (has('n')) t = b - h;
-      else if (has('s')) b = t + h;
-      else {
+      } else if (has('w')) l = r - w;
+      else r = l + w;
+      if (ctx.alt || !(has('n') || has('s'))) {
         t = (box0.h - h) / 2;
         b = t + h;
-      }
+      } else if (has('n')) t = b - h;
+      else b = t + h;
     }
 
     if (r - l < minW) {
@@ -347,10 +338,14 @@ export function createSelectTool(editor) {
         const record = o.record;
         const origin = editor.worldOrigin(record.parent);
         if (record.type === 'connector') {
+          // Scale in world space, store relative to the connector's frame.
           const data = {};
           for (const key of ['start', 'end']) {
             const end = record.data[key];
-            if (end?.point) data[key] = { point: [nx + (end.point[0] - box0.x) * sx, ny + (end.point[1] - box0.y) * sy] };
+            if (!end?.point) continue;
+            const wx = end.point[0] + origin.x;
+            const wy = end.point[1] + origin.y;
+            data[key] = { point: [nx + (wx - box0.x) * sx - origin.x, ny + (wy - box0.y) * sy - origin.y] };
           }
           tx.update(id, { data });
           continue;
@@ -361,9 +356,13 @@ export function createSelectTool(editor) {
           box = {
             x: nx + (o.box.x - box0.x) * sx,
             y: ny + (o.box.y - box0.y) * sy,
-            w: Math.max(1, o.box.w * sx),
-            h: Math.max(1, o.box.h * sy),
+            w: Math.max(shapeFor(record.type).minW, o.box.w * sx),
+            h: Math.max(shapeFor(record.type).minH, o.box.h * sy),
           };
+          // Blocks that size themselves keep their size and move with the group instead.
+          if (shapeFor(record.type).caps.resize === 'none') {
+            box = { x: box.x + (box.w - o.box.w) / 2, y: box.y + (box.h - o.box.h) / 2, w: o.box.w, h: o.box.h };
+          }
         }
         const patch = { x: box.x - origin.x, y: box.y - origin.y, w: box.w, h: box.h };
 
@@ -379,7 +378,9 @@ export function createSelectTool(editor) {
           }
           patch.points = next;
         }
-        if (shapeFor(record.type).caps.resize === 'width' && record.data.text !== undefined) {
+        if (shapeFor(record.type).fit) {
+          Object.assign(patch, { h: shapeFor(record.type).fit({ ...record.data, w: box.w }).h });
+        } else if (shapeFor(record.type).caps.resize === 'width' && record.data.text !== undefined) {
           patch.autoWidth = undefined;
           patch.h = measureTextBox(record, box.w).h;
         }
@@ -391,7 +392,15 @@ export function createSelectTool(editor) {
           const shiftY = box.y - o.box.y;
           if (shiftX || shiftY) {
             for (const child of o.children) {
-              if (!child || child.type === 'connector') continue;
+              if (!child) continue;
+              if (child.type === 'connector') {
+                const data = {};
+                for (const key of ['start', 'end']) {
+                  if (child.data[key]?.point) data[key] = { point: [child.data[key].point[0] - shiftX, child.data[key].point[1] - shiftY] };
+                }
+                tx.update(child.id, { data });
+                continue;
+              }
               tx.update(child.id, { data: { x: (child.data.x || 0) - shiftX, y: (child.data.y || 0) - shiftY } });
             }
           }
@@ -407,7 +416,26 @@ export function createSelectTool(editor) {
         const record = tx.get(id);
         if (!record || record.type === 'connector' || record.type === 'stroke') continue;
         const round = (v) => (v === undefined ? undefined : Math.round(v));
-        tx.update(id, { data: { x: round(record.data.x), y: round(record.data.y), w: round(record.data.w), h: round(record.data.h) } });
+        const x = round(record.data.x);
+        const y = round(record.data.y);
+        tx.update(id, { data: { x, y, w: round(record.data.w), h: round(record.data.h) } });
+        // Children are relative to the frame: rounding its corner would nudge them on screen.
+        if (record.type === 'frame' && (x !== record.data.x || y !== record.data.y)) {
+          const dx = record.data.x - x;
+          const dy = record.data.y - y;
+          for (const childId of tx.childIds(id)) {
+            const child = tx.get(childId);
+            if (child.type === 'connector') {
+              const data = {};
+              for (const key of ['start', 'end']) {
+                if (child.data[key]?.point) data[key] = { point: [child.data[key].point[0] + dx, child.data[key].point[1] + dy] };
+              }
+              tx.update(childId, { data });
+              continue;
+            }
+            tx.update(childId, { data: { x: (child.data.x || 0) + dx, y: (child.data.y || 0) + dy } });
+          }
+        }
       }
     });
     state.gesture.commit();
@@ -432,7 +460,7 @@ export function createSelectTool(editor) {
     const target = editor.hitTest(ctx.wx, ctx.wy, {
       filter: (r) => r.id !== excludeId && r.type !== 'connector' && r.type !== 'stroke' && shapeFor(r.type).caps.bindable,
     });
-    if (!target) return null;
+    if (!target) return editor.lineBindingAt(ctx.wx, ctx.wy, excludeId);
     const box = editor.worldBox(target);
     let anchor = 'auto';
     for (const side of SIDES) {
@@ -445,7 +473,7 @@ export function createSelectTool(editor) {
 
   function dragEnd(ctx) {
     const binding = ctx.mod ? null : bindingAt(ctx, state.record.id);
-    const end = binding || { point: [Math.round(ctx.wx), Math.round(ctx.wy)] };
+    const end = binding || { point: editor.toLocalPoint(state.record.parent, ctx.wx, ctx.wy) };
     state.gesture.frame((tx) => tx.update(state.record.id, { data: { [state.which]: end } }));
     ui.set({ bindTarget: binding });
   }
@@ -513,7 +541,8 @@ export function createSelectTool(editor) {
     switch (state.mode) {
       case 'pointing-element':
         // A plain click on one member of a multi-selection narrows to it — on release, so dragging the group still works.
-        if (!ctx.shift && state.wasSelected && ui.get().selection.length > 1) editor.select([state.hit]);
+        if (state.shift && state.wasSelected) editor.select(ui.get().selection.filter((id) => id !== state.hit));
+        else if (!state.shift && state.wasSelected && ui.get().selection.length > 1) editor.select([state.hit]);
         break;
       case 'translating':
         finishTranslate();
@@ -521,8 +550,11 @@ export function createSelectTool(editor) {
       case 'resizing':
         finishResize();
         break;
-      case 'rotating':
       case 'dragging-end':
+        state.gesture.frame((tx) => editor.settleConnectors(tx, [state.record.id]));
+        state.gesture.commit();
+        break;
+      case 'rotating':
         state.gesture.commit();
         break;
       default:
@@ -534,6 +566,8 @@ export function createSelectTool(editor) {
 
   function cancel() {
     state.gesture?.cancel();
+    // Escape puts the selection back as it was before the gesture (Alt-drag copies, a marquee).
+    if (state.selectionAtDown && state.mode !== 'idle' && state.mode !== 'pointing-element' && state.mode !== 'pointing-canvas') editor.select(state.selectionAtDown);
     state = { mode: 'idle' };
     clearTransient();
   }
@@ -541,15 +575,31 @@ export function createSelectTool(editor) {
   function onDoubleClick(ctx) {
     if (ui.get().readOnly) return;
     const hit = editor.hitTest(ctx.wx, ctx.wy);
+    const hitRecord = hit && store.get(hit);
+    if (hitRecord?.type === 'dbtable' && editor.schema) {
+      // A table's text is in the DBML: jump there — to the column under the pointer, or the table's name.
+      const table = editor.schema.getModel().byKey.get(hitRecord.data.name);
+      if (table) {
+        const box = editor.worldBox(hitRecord);
+        const row = Math.floor((ctx.wy - box.y - 36) / 28);
+        const column = row >= 0 ? table.columns[row] : null;
+        ui.set({ schemaReveal: column ? column.span : table.nameSpan, schemaFocus: { table: table.key, column: column?.name || null } });
+      }
+      return;
+    }
     if (hit) {
       const record = store.get(hit);
-      if (shapeFor(record.type).caps.text && !record.data.locked) {
+      if (shapeFor(record.type).caps.text && !record.data.locked && !(record.type === 'tech' && record.data.hideLabel)) {
         editor.select([hit]);
         ui.set({ editingId: hit });
       }
       return;
     }
-    // Double-click on empty canvas: start typing there, the way FigJam does.
+    // Double-click on empty canvas: start typing there, the way FigJam does — or, on a schema board, add a table.
+    if (editor.schema) {
+      editor.schema.addTable({ x: ctx.wx, y: ctx.wy });
+      return;
+    }
     const parent = editor.frameAt(ctx.wx, ctx.wy);
     const origin = editor.worldOrigin(parent);
     let id = null;

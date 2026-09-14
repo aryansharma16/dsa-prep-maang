@@ -27,6 +27,7 @@ export const SHORTCUTS = [
   { keys: 'p', action: 'toolPen', label: 'Pen', group: 'Tools' },
   { keys: 'shift+p', action: 'toolHighlighter', label: 'Highlighter', group: 'Tools' },
   { keys: 'e', action: 'toolEraser', label: 'Eraser', group: 'Tools' },
+  { keys: 'i', action: 'library', label: 'Component library', group: 'Tools' },
   { keys: 't', action: 'toolText', label: 'Text', group: 'Tools' },
   { keys: 'shift+t', action: 'toolParagraph', label: 'Paragraph', group: 'Tools' },
   { keys: 's', action: 'toolSticky', label: 'Sticky note', group: 'Tools' },
@@ -98,6 +99,8 @@ function eventKey(event) {
   const code = (event.code || '').toLowerCase();
   if (code.startsWith('digit')) return code;
   if (CODE_KEYS.has(code)) return code;
+  // Option+A types "å" on a Mac; with Alt held, read the letter from the physical key.
+  if (event.altKey && /^key[a-z]$/.test(code)) return code.slice(3);
   return (event.key || '').toLowerCase();
 }
 

@@ -235,6 +235,30 @@ export function pointAlongPolyline(points, t) {
   return { x: last[0], y: last[1], angle: 0 };
 }
 
+/** The nearest point on a polyline, and how far along it (0…1 by length) that point is. */
+export function closestOnPolyline(px, py, points) {
+  if (!points.length) return { x: px, y: py, t: 0, distance: Infinity };
+  if (points.length === 1) return { x: points[0][0], y: points[0][1], t: 0, distance: Math.hypot(px - points[0][0], py - points[0][1]) };
+  const total = polylineLength(points);
+  let best = null;
+  let walked = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    const [ax, ay] = points[i - 1];
+    const [bx, by] = points[i];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lengthSq = dx * dx + dy * dy;
+    const k = lengthSq < EPSILON ? 0 : clamp(((px - ax) * dx + (py - ay) * dy) / lengthSq, 0, 1);
+    const x = ax + k * dx;
+    const y = ay + k * dy;
+    const distance = Math.hypot(px - x, py - y);
+    const seg = Math.sqrt(lengthSq);
+    if (!best || distance < best.distance) best = { x, y, distance, t: total < EPSILON ? 0 : (walked + k * seg) / total };
+    walked += seg;
+  }
+  return best;
+}
+
 /* -------------------------------------------------------------------------- */
 /* curves                                                                      */
 /* -------------------------------------------------------------------------- */

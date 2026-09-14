@@ -5,6 +5,8 @@ import { ElementList } from './ElementHost.jsx';
 import { useEditor, useUi } from './hooks.js';
 import { OverlayLayer } from './OverlayLayer.jsx';
 import { TextEditor } from './TextEditor.jsx';
+import { COMPONENT_MIME } from '../library/LibraryPanel.jsx';
+import { SchemaRelations } from '../schema/SchemaRelations.jsx';
 
 /**
  * The canvas: a viewport, a dot grid, the world layer everything is drawn in,
@@ -42,9 +44,27 @@ export function Canvas() {
         tabIndex={0}
         role="application"
         aria-label="Board canvas. Press ? for keyboard shortcuts."
+        onDragOver={(event) => {
+          if (!event.dataTransfer.types.includes(COMPONENT_MIME)) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+        }}
+        onDrop={(event) => {
+          const raw = event.dataTransfer.getData(COMPONENT_MIME);
+          if (!raw) return;
+          event.preventDefault();
+          try {
+            const at = editor.clientToWorld(event.clientX, event.clientY);
+            editor.runAction('insertComponent', { ...JSON.parse(raw), at });
+            editor.dom?.viewport.focus({ preventScroll: true });
+          } catch {
+            /* not a component we know */
+          }
+        }}
       >
         <div ref={gridRef} className="sd-dots" aria-hidden="true" />
         <div ref={worldRef} className="sd-world">
+          {editor.boardKind === 'schema' && <SchemaRelations />}
           <ElementList parent={null} />
           <TextEditor />
           <DraftStroke />
@@ -113,10 +133,17 @@ let lastPaste = { signature: '', count: 0 };
 
 function pasteRecords(editor, payload) {
   const roots = payload.records.filter((r) => !r.parent);
-  const xs = roots.filter((r) => r.type !== 'connector').map((r) => r.data.x || 0);
-  const ys = roots.filter((r) => r.type !== 'connector').map((r) => r.data.y || 0);
-  const minX = xs.length ? Math.min(...xs) : 0;
-  const minY = ys.length ? Math.min(...ys) : 0;
+  // Where the copied things are: boxes by their corners, connectors by their free end points.
+  const corners = [];
+  for (const r of roots) {
+    if (r.type === 'connector') {
+      for (const end of [r.data.start, r.data.end]) if (end?.point) corners.push(end.point);
+    } else {
+      corners.push([r.data.x || 0, r.data.y || 0], [(r.data.x || 0) + (r.data.w || 0), (r.data.y || 0) + (r.data.h || 0)]);
+    }
+  }
+  const minX = corners.length ? Math.min(...corners.map((c) => c[0])) : 0;
+  const minY = corners.length ? Math.min(...corners.map((c) => c[1])) : 0;
 
   // Pasting what is still on screen nudges each copy along; otherwise it lands in the middle of the view.
   const view = editor.visibleWorld();
@@ -129,8 +156,8 @@ function pasteRecords(editor, payload) {
     offsetX = 24 * lastPaste.count;
     offsetY = 24 * lastPaste.count;
   } else {
-    const maxX = Math.max(...roots.map((r) => (r.data.x || 0) + (r.data.w || 0)), minX);
-    const maxY = Math.max(...roots.map((r) => (r.data.y || 0) + (r.data.h || 0)), minY);
+    const maxX = Math.max(...corners.map((c) => c[0]), minX);
+    const maxY = Math.max(...corners.map((c) => c[1]), minY);
     offsetX = Math.round((view.minX + view.maxX) / 2 - (minX + maxX) / 2);
     offsetY = Math.round((view.minY + view.maxY) / 2 - (minY + maxY) / 2);
   }

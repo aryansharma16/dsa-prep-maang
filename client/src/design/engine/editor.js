@@ -4,11 +4,14 @@ import {
   aabbContainsPoint,
   aabbIntersects,
   aabbUnion,
+  closestOnPolyline,
   distToPolyline,
+  pointAlongPolyline,
   rotatedBounds,
   toBoxLocal,
 } from '../core/geometry.js';
 import { newId } from '../core/ids.js';
+import { createSpatialIndex } from '../core/spatial.js';
 import { hitOutline, hitOutlineEdge, isKnownType, shapeFor } from '../shapes/registry.js';
 import '../shapes/shapes.js';
 import { PEN_SIZES, STROKE_WIDTHS } from '../shapes/shapes.js';
@@ -55,6 +58,8 @@ import { createUiState, sameIds } from './uiState.js';
  */
 
 const SETTLE_MS = 150;
+/** Records under this parent (a schema board's text) are data, not things on the board. */
+const META_PARENT = '__meta';
 const DRAG_THRESHOLD = { mouse: 3, pen: 6, touch: 6 };
 const FRAME_TITLE_H = 24;
 
@@ -72,10 +77,12 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
           const connector = tx.get(connectorId);
           if (!connector) continue;
           // Let go at the point the line currently touches, so the arrow stays where it was drawn.
-          const geo = connectorGeometry(store.get(connectorId) || connector, lookupBox);
+          const geo = connectorGeo(store.get(connectorId) || connector);
+          // Free points are stored relative to the connector's frame, like any child position.
+          const origin = worldOrigin(connector.parent, tx);
           const patch = {};
-          if (connector.data.start?.eid === record.id) patch.start = { point: [geo.start.x, geo.start.y] };
-          if (connector.data.end?.eid === record.id) patch.end = { point: [geo.end.x, geo.end.y] };
+          if (connector.data.start?.eid === record.id) patch.start = { point: [Math.round(geo.start.x - origin.x), Math.round(geo.start.y - origin.y)] };
+          if (connector.data.end?.eid === record.id) patch.end = { point: [Math.round(geo.end.x - origin.x), Math.round(geo.end.y - origin.y)] };
           if (Object.keys(patch).length) tx.update(connectorId, { data: patch });
         }
       },
@@ -102,7 +109,114 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
 
   const bindingsOf = (record) => [record?.data?.start?.eid, record?.data?.end?.eid].filter(Boolean);
 
-  const paintCache = { order: null };
+  const paintCache = { order: null, index: null, indexFor: null };
+
+  /*
+    Where things are, for hit-testing, marquee and culling without visiting every
+    element. Entries hold each element's world bounds and are refreshed lazily:
+    a change marks ids dirty, and the next query recomputes those — plus what a
+    change moves along with them (a frame's contents, the connectors attached).
+  */
+  const spatial = createSpatialIndex(512);
+  const spatialDirty = new Set();
+  let spatialBuilt = false;
+
+  function ensureSpatial() {
+    if (!spatialBuilt) {
+      spatial.clear();
+      for (const record of store.all()) if (record.parent !== META_PARENT) spatial.set(record.id, boundsOf(record));
+      spatialBuilt = true;
+      spatialDirty.clear();
+      return;
+    }
+    if (!spatialDirty.size) return;
+    const affected = new Set();
+    const visit = (id) => {
+      if (affected.has(id)) return;
+      affected.add(id);
+      if (store.get(id)?.type === 'frame') for (const child of store.childIds(id)) visit(child);
+      for (const connectorId of bindings.get(id) || []) visit(connectorId);
+    };
+    for (const id of spatialDirty) visit(id);
+    spatialDirty.clear();
+    for (const id of affected) {
+      const record = store.get(id);
+      if (record && record.parent !== META_PARENT) spatial.set(id, boundsOf(record));
+      else spatial.remove(id);
+    }
+  }
+
+  /** id → position in paint order, for sorting spatial candidates. */
+  function paintIndex() {
+    const order = paintOrder();
+    if (paintCache.indexFor !== order) {
+      paintCache.index = new Map(order.map((id, i) => [id, i]));
+      paintCache.indexFor = order;
+    }
+    return paintCache.index;
+  }
+
+  /*
+    Culling. On a big board only elements near the view are mounted: the view
+    padded by half a screen each side, plus everything selected or being edited,
+    plus the frames those sit in (a frame's children render inside it). React
+    hears about it only when that set changes.
+  */
+  const CULL_FROM = 300;
+  let visibleIds = null; // null means "everything"
+  let visibleWindow = null;
+  let visibilityFrame = 0;
+  const visibilityListeners = new Set();
+
+  function scheduleVisibility() {
+    if (!visibilityFrame && typeof requestAnimationFrame !== 'undefined') visibilityFrame = requestAnimationFrame(updateVisibility);
+  }
+
+  function updateVisibility() {
+    visibilityFrame = 0;
+    if (!dom || store.size < CULL_FROM) {
+      if (visibleIds !== null) {
+        visibleIds = null;
+        visibleWindow = null;
+        for (const fn of visibilityListeners) fn();
+      }
+      return;
+    }
+    ensureSpatial();
+    const view = visibleWorld();
+    const padX = (view.maxX - view.minX) / 2;
+    const padY = (view.maxY - view.minY) / 2;
+    const area = { minX: view.minX - padX, minY: view.minY - padY, maxX: view.maxX + padX, maxY: view.maxY + padY };
+    const next = new Set();
+    const keep = (id) => {
+      if (next.has(id)) return;
+      next.add(id);
+      for (const a of ancestors(id)) next.add(a);
+    };
+    for (const id of spatial.query(area)) keep(id);
+    const { selection, editingId } = ui.get();
+    for (const id of selection) keep(id);
+    if (editingId) keep(editingId);
+    visibleWindow = area;
+    if (visibleIds && visibleIds.size === next.size && [...next].every((id) => visibleIds.has(id))) return;
+    visibleIds = next;
+    for (const fn of visibilityListeners) fn();
+  }
+
+  /** The camera moved: recompute only once the view nears the edge of the padded window. */
+  function checkVisibilityForCamera() {
+    if (!visibleWindow) {
+      if (store.size >= CULL_FROM) scheduleVisibility();
+      return;
+    }
+    const view = visibleWorld();
+    const marginX = (view.maxX - view.minX) / 4;
+    const marginY = (view.maxY - view.minY) / 4;
+    const inside = view.minX - marginX >= visibleWindow.minX && view.maxX + marginX <= visibleWindow.maxX && view.minY - marginY >= visibleWindow.minY && view.maxY + marginY <= visibleWindow.maxY;
+    // Zooming out past the window's size, or in far enough that it is wastefully large, also recomputes.
+    const tooBig = visibleWindow.maxX - visibleWindow.minX > (view.maxX - view.minX) * 4;
+    if (!inside || tooBig) scheduleVisibility();
+  }
   store.onChange((changes) => {
     for (const [id, [before, after]] of changes) {
       if (before?.type === 'connector') {
@@ -116,8 +230,10 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
       }
       if (!after && before?.type === 'connector') forgetConnector(id);
       if (!before || !after || before.parent !== after.parent || before.z !== after.z) paintCache.order = null;
+      spatialDirty.add(id);
     }
     bumpGeometry(changes);
+    scheduleVisibility();
   });
 
   /*
@@ -165,16 +281,21 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     return out;
   }
 
-  /** World position of a parent's origin — where its children's (0, 0) is. */
-  function worldOrigin(parentId) {
+  /**
+   * World position of a parent's origin — where its children's (0, 0) is. Pass the
+   * transaction when the parent may have been created or moved inside it: the store
+   * does not know about a frame until its transaction commits.
+   */
+  function worldOrigin(parentId, tx = null) {
+    const read = (id) => (tx ? tx.get(id) : store.get(id));
     let x = 0;
     let y = 0;
-    let current = parentId ? store.get(parentId) : null;
+    let current = parentId ? read(parentId) : null;
     let guard = 0;
     while (current && guard < 16) {
       x += current.data.x || 0;
       y += current.data.y || 0;
-      current = current.parent ? store.get(current.parent) : null;
+      current = current.parent ? read(current.parent) : null;
       guard += 1;
     }
     return { x, y };
@@ -194,16 +315,79 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     return worldBox(record);
   }
 
+  /** What a connector end is attached to: a shape's world box, or a point `t` of the way along another connector. */
+  const resolving = new Set();
+  function lookupTarget(eid, end) {
+    const record = store.get(eid);
+    if (record?.type !== 'connector') return lookupBox(eid);
+    // Binding refuses loops, but one could still arrive from elsewhere; that end falls back to a free point.
+    if (resolving.has(eid)) return null;
+    resolving.add(eid);
+    try {
+      const geo = connectorGeo(record);
+      const at = pointAlongPolyline(geo.points, end?.t ?? 0.5);
+      const axis = geo.curve ? null : Math.abs(Math.sin(at.angle)) < 1e-3 ? 'h' : Math.abs(Math.cos(at.angle)) < 1e-3 ? 'v' : null;
+      return { point: [at.x, at.y], axis };
+    } finally {
+      resolving.delete(eid);
+    }
+  }
+
+  const targetSignature = (t) => (!t ? '' : t.point ? `${t.point[0]},${t.point[1]},${t.axis}` : `${t.x},${t.y},${t.w},${t.h},${t.rot}`);
+
   const geoCache = new WeakMap();
   function connectorGeo(record) {
-    const start = record.data.start?.eid ? lookupBox(record.data.start.eid) : null;
-    const end = record.data.end?.eid ? lookupBox(record.data.end.eid) : null;
-    const signature = `${start ? `${start.x},${start.y},${start.w},${start.h},${start.rot}` : ''}|${end ? `${end.x},${end.y},${end.w},${end.h},${end.rot}` : ''}`;
+    const origin = worldOrigin(record.parent);
+    // Free points are relative to the connector's frame; routing works in world space.
+    const toWorld = (e) => (e?.point && (origin.x || origin.y) ? { ...e, point: [e.point[0] + origin.x, e.point[1] + origin.y] } : e);
+    const startEnd = toWorld(record.data.start);
+    const endEnd = toWorld(record.data.end);
+    const start = startEnd?.eid ? lookupTarget(startEnd.eid, startEnd) : null;
+    const end = endEnd?.eid ? lookupTarget(endEnd.eid, endEnd) : null;
+    const signature = `${origin.x},${origin.y}|${targetSignature(start)}|${targetSignature(end)}`;
     const cached = geoCache.get(record);
     if (cached && cached.signature === signature) return cached.geo;
-    const geo = connectorGeometry(record, lookupBox);
+    const world = startEnd === record.data.start && endEnd === record.data.end ? record : { ...record, data: { ...record.data, start: startEnd, end: endEnd } };
+    const geo = connectorGeometry(world, (eid, which) => (which === startEnd ? start : which === endEnd ? end : lookupTarget(eid, which)));
     geoCache.set(record, { signature, geo });
     return geo;
+  }
+
+  /** A world point as a position inside `parentId` — how free connector points are stored. */
+  function toLocalPoint(parentId, wx, wy, tx = null) {
+    const origin = worldOrigin(parentId, tx);
+    return [Math.round(wx - origin.x), Math.round(wy - origin.y)];
+  }
+
+  /**
+   * Ids whose changes can move a connector: what its ends attach to and the
+   * frames those sit in — and, for an end on another connector, everything that
+   * connector depends on in turn.
+   */
+  function geometryDeps(record) {
+    const ids = new Set();
+    const visit = (connector) => {
+      for (const eid of bindingsOf(connector)) {
+        if (ids.has(eid)) continue;
+        ids.add(eid);
+        for (const a of ancestors(eid)) ids.add(a);
+        const target = store.get(eid);
+        if (target?.type === 'connector') visit(target);
+      }
+    };
+    visit(record);
+    return [...ids];
+  }
+
+  /** A connector under a world point that the end of `excludeId` may attach to, as `{ eid, t }`. */
+  function lineBindingAt(wx, wy, excludeId) {
+    const target = hitTest(wx, wy, { tolerancePx: 8, filter: (r) => r.type === 'connector' && r.id !== excludeId });
+    if (!target) return null;
+    const record = store.get(target);
+    // Attaching to a line that already hangs off this connector would make a loop.
+    if (excludeId && geometryDeps(record).includes(excludeId)) return null;
+    const { t } = closestOnPolyline(wx, wy, connectorGeo(record).points);
+    return { eid: target, t: Math.round(t * 10000) / 10000 };
   }
 
   /** World bounds of anything on the board. */
@@ -257,7 +441,8 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     const local = toBoxLocal(wx, wy, box.x, box.y, box.w, box.h, box.rot);
     if (record.type === 'frame') {
       const titleH = FRAME_TITLE_H / camera.z;
-      const titleW = Math.max(80 / camera.z, Math.min(box.w, 240 / camera.z));
+      // The title is drawn at a constant screen size: about 7px a character plus padding, up to 240px.
+      const titleW = Math.min(box.w, Math.min(240, 16 + (record.data.name || 'Frame').length * 7.2) / camera.z);
       const titleHit = local.y >= -titleH && local.y <= 0 && local.x >= 0 && local.x <= titleW;
       return titleHit || hitOutlineEdge('rect', local.x, local.y, box.w, box.h, tol);
     }
@@ -265,14 +450,35 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     return hitOutline(def.outline, local.x, local.y, box.w, box.h, tol);
   }
 
+  /** False when a clipping frame above the element hides the point. */
+  function visibleThroughClip(record, wx, wy) {
+    let parentId = record.parent;
+    let guard = 0;
+    while (parentId && guard < 16) {
+      const frame = store.get(parentId);
+      if (!frame) break;
+      if (frame.data.clip) {
+        const box = worldBox(frame);
+        if (wx < box.x || wy < box.y || wx > box.x + box.w || wy > box.y + box.h) return false;
+      }
+      parentId = frame.parent;
+      guard += 1;
+    }
+    return true;
+  }
+
   /** The topmost element under a world point, or null. */
   function hitTest(wx, wy, { filter, tolerancePx = 4 } = {}) {
     const tol = tolerancePx / camera.z;
-    const order = paintOrder();
-    for (let i = order.length - 1; i >= 0; i -= 1) {
-      const record = store.get(order[i]);
+    ensureSpatial();
+    const index = paintIndex();
+    // Wide enough for stroke widths and for frame titles, which sit above the box at a constant screen size.
+    const margin = tol + 4 + FRAME_TITLE_H / camera.z;
+    const candidates = [...spatial.queryPoint(wx, wy, margin)].filter((id) => index.has(id)).sort((a, b) => index.get(b) - index.get(a));
+    for (const id of candidates) {
+      const record = store.get(id);
       if (!record || (filter && !filter(record))) continue;
-      if (hitElement(record, wx, wy, tol)) return record.id;
+      if (hitElement(record, wx, wy, tol) && visibleThroughClip(record, wx, wy)) return record.id;
     }
     return null;
   }
@@ -280,9 +486,12 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
   /** Everything a world rectangle touches (or fully contains, for frames). */
   function queryRect(rect) {
     const hits = [];
-    for (const id of paintOrder()) {
+    ensureSpatial();
+    const index = paintIndex();
+    const ids = [...spatial.query(rect)].filter((id) => index.has(id)).sort((a, b) => index.get(a) - index.get(b));
+    for (const id of ids) {
       const record = store.get(id);
-      const b = boundsOf(record);
+      const b = spatial.boxOf(id);
       if (!b || !aabbIntersects(rect, b)) continue;
       if (record.type === 'frame') {
         if (b.minX >= rect.minX && b.maxX <= rect.maxX && b.minY >= rect.minY && b.maxY <= rect.maxY) hits.push(id);
@@ -293,11 +502,40 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     return hits;
   }
 
+  /**
+   * `frameAt` as a transaction sees the board: frames created or moved in `tx` count,
+   * and the deepest containing frame wins (paint order does not know new frames yet).
+   */
+  function frameAtIn(tx, wx, wy) {
+    const candidates = new Set();
+    for (const id of paintOrder()) if (store.get(id)?.type === 'frame') candidates.add(id);
+    for (const id of tx.changedIds()) if (tx.get(id)?.type === 'frame') candidates.add(id);
+    let best = null;
+    let bestDepth = -1;
+    for (const id of candidates) {
+      const frame = tx.get(id);
+      if (!frame) continue;
+      const origin = worldOrigin(frame.parent, tx);
+      const x = origin.x + (frame.data.x || 0);
+      const y = origin.y + (frame.data.y || 0);
+      if (wx < x || wy < y || wx > x + (frame.data.w || 0) || wy > y + (frame.data.h || 0)) continue;
+      let depth = 0;
+      for (let p = frame.parent; p && depth < 16; p = tx.get(p)?.parent) depth += 1;
+      if (depth >= bestDepth) {
+        best = id;
+        bestDepth = depth;
+      }
+    }
+    return best;
+  }
+
   /** The deepest frame whose body contains a world point, skipping `exclude` and anything inside it. */
   function frameAt(wx, wy, exclude = new Set()) {
-    const order = paintOrder();
-    for (let i = order.length - 1; i >= 0; i -= 1) {
-      const record = store.get(order[i]);
+    ensureSpatial();
+    const index = paintIndex();
+    const candidates = [...spatial.queryPoint(wx, wy, 0)].filter((id) => index.has(id) && store.get(id)?.type === 'frame').sort((a, b) => index.get(b) - index.get(a));
+    for (const id of candidates) {
+      const record = store.get(id);
       if (record?.type !== 'frame' || exclude.has(record.id)) continue;
       if (ancestors(record.id).some((id) => exclude.has(id))) continue;
       const box = worldBox(record);
@@ -329,6 +567,37 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
         editingId: editingId && store.has(editingId) ? editingId : null,
         hovered: hovered && store.has(hovered) ? hovered : null,
       });
+    }
+  });
+
+  // Undoing the typing in a text element that is no longer being edited leaves it empty: tidy it away.
+  store.onCommit((commit) => {
+    if (commit.origin !== 'undo') return;
+    const empty = [];
+    for (const [id, [, after]] of commit.changes) {
+      if (after?.type === 'text' && !(after.data.text || '').trim() && ui.get().editingId !== id) empty.push(id);
+    }
+    if (empty.length) {
+      queueMicrotask(() => store.transact((tx) => empty.forEach((id) => tx.get(id) && tx.remove(id)), { label: 'Remove empty text', history: false }));
+    }
+  });
+
+  ui.subscribe(() => {
+    if (visibleIds) scheduleVisibility();
+  });
+
+  // When a text session ends: seal its undo run, and remove a text element left empty.
+  // This lives here, not in the TextEditor's unmount: StrictMode runs effect cleanups
+  // right after mount, which deleted every new text element before it could be typed in.
+  let lastEditingId = null;
+  ui.subscribe(() => {
+    const ended = lastEditingId;
+    lastEditingId = ui.get().editingId;
+    if (!ended || ended === lastEditingId) return;
+    history.seal();
+    const record = store.get(ended);
+    if (record?.type === 'text' && !(record.data.text || '').trim()) {
+      store.transact((tx) => tx.remove(ended), { label: 'Remove empty text', history: false });
     }
   });
 
@@ -379,16 +648,77 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     };
   }
 
+  /**
+   * The frame a connector belongs in: the deepest frame containing both of its ends
+   * (a bound end counts as being where its element is), or null. Connectors whose
+   * ends are in the same frame move with it; clipping hides them with it too.
+   */
+  function connectorHome(tx, record) {
+    const chainOf = (frameId) => {
+      const chain = [];
+      let current = frameId;
+      let guard = 0;
+      while (current && guard < 16) {
+        chain.unshift(current);
+        current = tx.get(current)?.parent ?? null;
+        guard += 1;
+      }
+      return chain;
+    };
+    const frameOfEnd = (end) => {
+      if (end?.eid) {
+        const target = tx.get(end.eid);
+        if (!target) return null;
+        // Attached to a frame's edge is outside that frame; on a line, wherever the line lives.
+        return target.parent ?? null;
+      }
+      if (!end?.point) return null;
+      const origin = worldOrigin(record.parent, tx);
+      return frameAtIn(tx, end.point[0] + origin.x, end.point[1] + origin.y);
+    };
+    const a = chainOf(frameOfEnd(record.data.start));
+    const b = chainOf(frameOfEnd(record.data.end));
+    let home = null;
+    for (let i = 0; i < Math.min(a.length, b.length) && a[i] === b[i]; i += 1) home = a[i];
+    return home;
+  }
+
+  /** Re-homes connectors after their ends moved between frames. */
+  function settleConnectors(tx, ids) {
+    for (const id of ids) {
+      const record = tx.get(id);
+      if (record?.type !== 'connector') continue;
+      const home = connectorHome(tx, record);
+      // Through reparent: free points are relative to the frame and must be converted.
+      if ((record.parent ?? null) !== home) reparent(tx, id, home);
+    }
+  }
+
+  /** Connectors attached to any of `ids` (or inside them), for settling after a move. */
+  function connectorsTouching(ids) {
+    const out = new Set();
+    for (const id of ids) {
+      for (const c of bindings.get(id) || []) out.add(c);
+      if (store.get(id)?.type === 'connector') out.add(id);
+    }
+    return [...out];
+  }
+
   /** Moves a record under a new parent, keeping its position on screen. */
   function reparent(tx, id, parentId) {
     const record = tx.get(id);
     if (!record || (record.parent ?? null) === (parentId ?? null)) return;
+    const from = worldOrigin(record.parent, tx);
+    const to = worldOrigin(parentId, tx);
     if (record.type === 'connector') {
-      tx.update(id, { parent: parentId ?? null, z: zOnTop(parentId, tx) });
+      const data = {};
+      for (const key of ['start', 'end']) {
+        const end = record.data[key];
+        if (end?.point) data[key] = { point: [end.point[0] + from.x - to.x, end.point[1] + from.y - to.y] };
+      }
+      tx.update(id, { parent: parentId ?? null, z: zOnTop(parentId, tx), data });
       return;
     }
-    const from = worldOrigin(record.parent);
-    const to = worldOrigin(parentId);
     tx.update(id, {
       parent: parentId ?? null,
       z: zOnTop(parentId, tx),
@@ -419,6 +749,7 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     dom.grid.style.backgroundPosition = `${x % step}px ${y % step}px`;
 
     for (const fn of cameraListeners) fn(camera);
+    checkVisibilityForCamera();
   }
 
   function scheduleCameraWrite() {
@@ -768,8 +1099,24 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
   const typing = (target) =>
     target instanceof HTMLElement && (/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) || target.isContentEditable);
 
+  /**
+   * Keys a focused control answers itself, which must not also reach the board. Everything else —
+   * ⌘Z, Delete, tool letters — still works after clicking a button in the explorer, top bar or inspector.
+   */
+  const keysBelongElsewhere = (event) => {
+    if (event.defaultPrevented) return true;
+    const target = event.target;
+    if (!target?.closest) return false;
+    if (target.closest('[role="menu"], [role="dialog"], [role="alertdialog"], [role="listbox"]')) return true;
+    // Composite widgets move with the arrow keys.
+    if (/^(Arrow|Home$|End$|Page)/.test(event.key) && target.closest('[role="tree"], [role="radiogroup"], [role="tablist"], [role="slider"], [role="separator"], select')) return true;
+    // A focused button, row, tab or link is activated by Enter and Space.
+    if ((event.key === 'Enter' || event.key === ' ') && target.closest('button, a[href], [role="button"], [role="treeitem"], [role="tab"], select, summary')) return true;
+    return false;
+  };
+
   function onKeyDown(event) {
-    if (!dom) return;
+    if (!dom || keysBelongElsewhere(event)) return;
     if (event.key === ' ' && !typing(event.target) && !event.repeat) {
       if (!ui.get().editingId) {
         spaceHeld = true;
@@ -924,6 +1271,14 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     contentBounds,
     connectorGeo,
     lookupBox,
+    geometryDeps,
+    lineBindingAt,
+    /** Ids to mount, or null for all of them (small boards). */
+    getVisibleIds: () => visibleIds,
+    subscribeVisibility(fn) {
+      visibilityListeners.add(fn);
+      return () => visibilityListeners.delete(fn);
+    },
     watchGeometry,
     ancestors,
     paintOrder,
@@ -937,8 +1292,12 @@ export function createEditor({ boardId, boardKind = 'canvas', readOnly = false, 
     commit,
     newRecord,
     reparent,
+    settleConnectors,
+    connectorsTouching,
+    toLocalPoint,
     zOnTop,
     zAtBottom,
+    zOnTop,
 
     setTool,
     currentTool,

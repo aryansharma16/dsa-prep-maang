@@ -1,7 +1,9 @@
 import { memo, useMemo, useRef, useState } from 'react';
 import { shapeFor } from '../../../design/shapes/registry.js';
 import { COLORS, STICKY_COLORS } from '../../../design/shapes/shapes.js';
+import { TECH, TECH_BY_ID, TECH_CATEGORIES } from '../../../design/library/tech.js';
 import { shortcutFor } from '../../../design/engine/shortcuts.js';
+import { measureTextBox } from '../../../design/text/measure.js';
 import { useLocalState } from '../../../hooks/useLocalState.js';
 import {
   IconAlignBottom,
@@ -22,6 +24,7 @@ import {
 } from '../icons.jsx';
 import { shallowArray, useEditor, useStoreValue, useUi } from '../canvas/hooks.js';
 import { PanelSplitter } from '../workspace/PanelSplitter.jsx';
+import { RelationInspector, SchemaInspector } from '../schema/SchemaInspector.jsx';
 
 /**
  * The panel on the right: what is selected, and everything about it you can change.
@@ -45,6 +48,9 @@ const ICONS = {
 };
 
 const MIXED = Symbol('mixed');
+// Arrowheads, then crow's-foot ends for entity-relationship lines.
+const CAPS = ['none', 'arrow', 'triangle', 'circle', 'diamond', 'bar', 'one', 'onlyOne', 'zeroOrOne', 'many', 'oneOrMany', 'zeroOrMany'];
+const CAP_TITLES = { onlyOne: 'exactly one', zeroOrOne: 'zero or one', oneOrMany: 'one or many', zeroOrMany: 'zero or many' };
 
 export const Inspector = memo(function Inspector({ node }) {
   const editor = useEditor();
@@ -78,7 +84,15 @@ export const Inspector = memo(function Inspector({ node }) {
         </div>
         <div className="sd-inspector-body">
           {records.length === 0 ? (
-            <BoardInfo node={node} />
+            <>
+              <SchemaRelationSection />
+              <BoardInfo node={node} />
+            </>
+          ) : records.length === 1 && records[0].type === 'dbtable' ? (
+            <>
+              <SchemaInspector record={records[0]} />
+              <PositionFields editor={editor} record={records[0]} disabled={readOnly} />
+            </>
           ) : (
             <SelectionFields editor={editor} records={records} ids={selection} readOnly={readOnly} />
           )}
@@ -88,9 +102,15 @@ export const Inspector = memo(function Inspector({ node }) {
   );
 });
 
+function SchemaRelationSection() {
+  const relationId = useUi((s) => s.schemaRelation);
+  return relationId ? <RelationInspector relationId={relationId} /> : null;
+}
+
 function BoardInfo({ node }) {
   const editor = useEditor();
-  const count = useStoreValue((e) => e.store.size);
+  // A schema board's text is a record too; it is not an element anyone placed.
+  const count = useStoreValue((e) => e.store.size - (e.store.has('__source') ? 1 : 0));
   const Icon = node.boardKind === 'schema' ? IconSchemaBoard : IconCanvasBoard;
   return (
     <>
@@ -105,6 +125,19 @@ function BoardInfo({ node }) {
           </div>
         </div>
       </section>
+      {node.boardKind === 'schema' ? (
+        <section className="sd-section-block">
+          <h5>Schema board</h5>
+          <ul className="sd-tips">
+            <li>Write DBML on the left — tables appear here as you type</li>
+            <li>
+              <kbd>Ref: orders.user_id &gt; users.id</kbd> draws a relation
+            </li>
+            <li>Double-click a table to jump to its text; double-click empty space to add a table</li>
+            <li>Import SQL, export DDL, or try the schema in SQL Lab from the panel</li>
+          </ul>
+        </section>
+      ) : (
       <section className="sd-section-block">
         <h5>Get started</h5>
         <ul className="sd-tips">
@@ -126,6 +159,7 @@ function BoardInfo({ node }) {
           Zoom to fit
         </button>
       </section>
+      )}
     </>
   );
 }
@@ -164,7 +198,21 @@ function SelectionFields({ editor, records, ids, readOnly }) {
     editor.commit(
       'Change style',
       (tx) => {
-        for (const id of ids) tx.update(id, { data: { [key]: value } });
+        for (const id of ids) {
+          const record = tx.get(id);
+          const patch = { [key]: value };
+          // Text and paragraphs size themselves to their content: a new size or weight changes the box.
+          if ((key === 'fontSize' || key === 'weight') && (record?.type === 'text' || record?.type === 'paragraph')) {
+            const next = { ...record, data: { ...record.data, [key]: value } };
+            const auto = record.type === 'text' && record.data.autoWidth;
+            const size = measureTextBox(next, auto ? undefined : record.data.w);
+            if (auto) patch.w = size.w;
+            patch.h = Math.max(record.type === 'paragraph' ? 24 : 16, size.h);
+          }
+          const fit = record && shapeFor(record.type).fit;
+          if (fit) Object.assign(patch, fit({ ...record.data, [key]: value }));
+          tx.update(id, { data: patch });
+        }
       },
       { mergeKey: merge ? `style:${key}:${ids.join(',')}` : null },
     );
@@ -192,9 +240,14 @@ function SelectionFields({ editor, records, ids, readOnly }) {
       {sections.map((section) => (
         <section key={section.title} className="sd-section-block">
           <h5>{section.title}</h5>
-          {section.fields.map((field) => (
-            <Field key={field.key} field={field} value={commonValue(records, field.key)} onChange={apply} disabled={disabled} record={single} />
-          ))}
+          {section.fields
+            .filter((field) => !field.when || records.every((r) => field.when(r.data)))
+            .map((field) => {
+              const common = commonValue(records, field.key);
+              // A field may show the value in effect when none is stored (a default that depends on other fields).
+              const shown = field.current && common === undefined && single ? field.current(single.data) : common;
+              return <Field key={field.key} field={field} value={shown} onChange={apply} disabled={disabled} record={single} />;
+            })}
         </section>
       ))}
 
@@ -347,6 +400,44 @@ function Field({ field, value, onChange, disabled, record }) {
           <input className="sd-input" value={mixed ? '' : value || ''} placeholder={mixed ? 'Mixed' : ''} disabled={disabled} maxLength={200} onChange={(e) => onChange(field.key, e.target.value, { merge: true })} />
         </label>
       );
+    case 'select':
+      return (
+        <label className="sd-field">
+          <span className="sd-field-label">{field.label}</span>
+          <select className="sd-input" value={mixed ? '' : value ?? ''} disabled={disabled} onChange={(e) => onChange(field.key, e.target.value)}>
+            {mixed && <option value="">Mixed</option>}
+            {field.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      );
+    case 'tech': {
+      const entry = mixed ? null : TECH_BY_ID[value];
+      return (
+        <div className="sd-field">
+          <label className="sd-field">
+            <span className="sd-field-label">{field.label}</span>
+            <select className="sd-input" value={mixed ? '' : value ?? ''} disabled={disabled} onChange={(e) => onChange(field.key, e.target.value)}>
+              {mixed && <option value="">Mixed</option>}
+              {!mixed && value && !TECH_BY_ID[value] && <option value={value}>Unknown ({value})</option>}
+              {TECH_CATEGORIES.map((category) => (
+                <optgroup key={category.id} label={category.label}>
+                  {TECH.filter((t) => t.category === category.id).map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          {entry && <p className="sd-field-about">{entry.about}</p>}
+        </div>
+      );
+    }
     case 'toggle':
       return (
         <label className="sd-field sd-toggle-row">
@@ -359,8 +450,8 @@ function Field({ field, value, onChange, disabled, record }) {
         <div className="sd-field">
           <span className="sd-field-label">{field.label}</span>
           <div className={`sd-segmented caps ${mixed ? 'mixed' : ''}`}>
-            {['none', 'arrow', 'triangle', 'circle', 'diamond', 'bar'].map((cap) => (
-              <button key={cap} type="button" className={(value ?? (field.key === 'endCap' ? 'arrow' : 'none')) === cap ? 'on' : ''} disabled={disabled} onClick={() => onChange(field.key, cap)} title={cap}>
+            {CAPS.map((cap) => (
+              <button key={cap} type="button" className={(value ?? (field.key === 'endCap' ? 'arrow' : 'none')) === cap ? 'on' : ''} disabled={disabled} onClick={() => onChange(field.key, cap)} title={CAP_TITLES[cap] || cap}>
                 <CapGlyph cap={cap} flip={field.key === 'startCap'} />
               </button>
             ))}
@@ -428,6 +519,22 @@ function CapGlyph({ cap, flip }) {
       </>
     ),
     bar: <path d="M3 8h18M21 3.5v9" />,
+    one: <path d="M3 8h18M16 3.5v9" />,
+    onlyOne: <path d="M3 8h18M13 3.5v9M17 3.5v9" />,
+    zeroOrOne: (
+      <>
+        <path d="M3 8h6M15 8h6M18 3.5v9" />
+        <circle cx="12" cy="8" r="2.6" />
+      </>
+    ),
+    many: <path d="M3 8h18M15 8l6-4.5M15 8l6 4.5" />,
+    oneOrMany: <path d="M3 8h18M15 8l6-4.5M15 8l6 4.5M12 3.5v9" />,
+    zeroOrMany: (
+      <>
+        <path d="M3 8h4M13 8h8M15 8l6-4.5M15 8l6 4.5" />
+        <circle cx="10" cy="8" r="2.6" />
+      </>
+    ),
   };
   return (
     <svg width="24" height="16" viewBox="0 0 24 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -465,7 +572,8 @@ function NumberField({ label, value, onChange, min = -1e6, max = 1e6, disabled, 
 
   return (
     <label className={`sd-number ${wide ? 'wide' : ''} ${disabled ? 'disabled' : ''}`}>
-      <span className="sd-number-label" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} title="Drag to adjust">
+      {/* preventDefault on click: the span sits in a <label>, whose click would focus the input and keep keys from the board. */}
+      <span className="sd-number-label" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onClick={(event) => event.preventDefault()} title="Drag to adjust">
         {label}
       </span>
       <input

@@ -27,12 +27,14 @@ class DuplicateBatch extends Error {
 
 /** A board as the editor opens it: every live element, plus the board's state. */
 export async function loadBoard(node) {
-  const board = await DesignBoard.findById(node._id).select('-batches').lean();
+  const board = await DesignBoard.findById(node._id).lean();
   if (!board) throw gone('Board not found');
   const elements = await DesignElement.find({ board: board._id, deletedAt: null })
     .select('eid type parent z data rev')
     .lean();
-  return { board, elements: elements.map(publicElement) };
+  // Only the ids of recent batches: a client reopening after a crash asks "did my last save land?".
+  const { batches = [], ...rest } = board;
+  return { board: { ...rest, recentBatches: batches.map((entry) => entry.id) }, elements: elements.map(publicElement) };
 }
 
 /** The validator for a board load: changes when anything on the board or the board's node does. */
@@ -114,6 +116,9 @@ export async function commitOps({ project, node, userId }, batch) {
         ? await DesignElement.find({ board: board._id, eid: { $in: eids } }).session(session).lean()
         : [];
       const stored = new Map(docs.map((doc) => [doc.eid, doc]));
+      // Elements this batch touches that someone else wrote after the client's baseRev: their merged
+      // result must go back to the client, or a field the other writer changed is never seen.
+      const contested = docs.filter((doc) => doc.rev > batch.baseRev).map((doc) => doc.eid);
 
       const folded = foldOps(stored, elementOps, { boardKind: board.kind });
       const totals = applyBoardLimits(folded, board, stored);
@@ -176,6 +181,7 @@ export async function commitOps({ project, node, userId }, batch) {
       return {
         rev,
         rejected,
+        contested,
         sourceSaved,
         kind: board.kind,
         sourceRevBefore: board.sourceRev,
@@ -189,7 +195,7 @@ export async function commitOps({ project, node, userId }, batch) {
     throw error;
   }
 
-  const { rev, rejected, sourceSaved, kind, sourceRevBefore, tombFloorRev } = committed;
+  const { rev, rejected, contested, sourceSaved, kind, sourceRevBefore, tombFloorRev } = committed;
 
   // Outside the transaction and throttled, so busy boards do not contend with
   // tree changes on the project document once a second.
@@ -213,7 +219,10 @@ export async function commitOps({ project, node, userId }, batch) {
     if (batch.baseRev > rev || batch.baseRev < tombFloorRev) {
       response.reset = true;
     } else {
-      const docs = await DesignElement.find({ board: node._id, rev: { $gt: batch.baseRev, $lt: rev } })
+      const docs = await DesignElement.find({
+        board: node._id,
+        $or: [{ rev: { $gt: batch.baseRev, $lt: rev } }, ...(contested.length ? [{ eid: { $in: contested }, rev }] : [])],
+      })
         .select('eid type parent z data rev deletedAt')
         .limit(DESIGN_LIMITS.changesPerResponse + 1)
         .lean();

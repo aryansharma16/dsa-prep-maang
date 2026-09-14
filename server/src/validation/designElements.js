@@ -245,6 +245,8 @@ export const TYPE_SCHEMAS = Object.freeze({
   paragraph: box,
   sticky: box,
   tech: box,
+  structure: box,
+  sqltable: box,
   connector,
   stroke,
   image,

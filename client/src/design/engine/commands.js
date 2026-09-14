@@ -1,5 +1,8 @@
-import { keyBetween } from '../core/fractional.js';
+import { keyBetween, keysBetween } from '../core/fractional.js';
 import { aabbUnion } from '../core/geometry.js';
+import { DEFAULT_SQL_TABLE_TEXT } from '../library/sqlTable.js';
+import { STRUCTURE_BY_ID } from '../library/structures.js';
+import { TECH_BY_ID } from '../library/tech.js';
 import { shapeFor } from '../shapes/registry.js';
 import { instantiate, serializeSelection } from './clipboard.js';
 
@@ -47,7 +50,7 @@ export function createCommands(editor) {
   }
 
   function reorder(mode) {
-    const ids = topSelection();
+    const ids = unlocked(topSelection());
     if (!ids.length) return false;
     editor.commit(`Reorder`, (tx) => {
       const byParent = new Map();
@@ -160,13 +163,22 @@ export function createCommands(editor) {
   function remove() {
     const ids = unlocked(topSelection());
     if (!ids.length) return false;
+    const tableKeys = ids.map((id) => store.get(id)).filter((r) => r?.type === 'dbtable').map((r) => r.data.name);
+    if (tableKeys.length && editor.schema) {
+      editor.schema.deleteTables(tableKeys);
+      const rest = ids.filter((id) => store.get(id)?.type !== 'dbtable');
+      if (rest.length) editor.commit('Delete', (tx) => rest.forEach((id) => tx.remove(id)));
+      editor.select([]);
+      return true;
+    }
     editor.commit('Delete', (tx) => ids.forEach((id) => tx.remove(id)), { selectAfter: [] });
     return true;
   }
 
   function frameSelection() {
-    const ids = unlocked(topSelection()).filter((id) => store.get(id).type !== 'connector');
-    if (!ids.length) return false;
+    // Selected connectors go in too (and count towards the frame's size); a selection of only connectors frames nothing.
+    const ids = unlocked(topSelection());
+    if (!ids.some((id) => store.get(id).type !== 'connector')) return false;
     const bounds = aabbUnion(ids.map((id) => editor.boundsOf(id)));
     const pad = 32;
     const parents = new Set(ids.map((id) => store.get(id).parent ?? null));
@@ -192,6 +204,8 @@ export function createCommands(editor) {
       tx.create(frame);
       frameId = frame.id;
       for (const id of ids) editor.reparent(tx, id, frameId);
+      const siblingConnectors = tx.childIds(parent).filter((id) => tx.get(id)?.type === 'connector');
+      editor.settleConnectors(tx, [...editor.connectorsTouching(ids), ...siblingConnectors]);
     });
     editor.select([frameId]);
     return true;
@@ -204,11 +218,20 @@ export function createCommands(editor) {
     editor.commit('Remove frame', (tx) => {
       for (const frameId of frames) {
         const frame = tx.get(frameId);
-        for (const child of tx.childIds(frameId)) {
-          editor.reparent(tx, child, frame.parent ?? null);
+        const parent = frame.parent ?? null;
+        const children = tx.childIds(frameId);
+        // The children take the frame's place in the layer order, keeping their own order.
+        const siblings = tx.childIds(parent);
+        const next = siblings[siblings.indexOf(frameId) + 1];
+        const keys = children.length ? keysBetween(frame.z, next ? tx.get(next).z : null, children.length) : [];
+        children.forEach((child, i) => {
+          editor.reparent(tx, child, parent);
+          tx.update(child, { z: keys[i] });
           released.push(child);
-        }
-        tx.drop(frameId);
+        });
+        // remove, not drop: connectors attached to the frame's edge let go rather than point at nothing.
+        tx.remove(frameId);
+        editor.settleConnectors(tx, editor.connectorsTouching(children));
       }
     });
     editor.select(released);
@@ -224,10 +247,71 @@ export function createCommands(editor) {
   }
 
   function setOpacity(value) {
-    const ids = topSelection();
+    const ids = unlocked(topSelection());
     if (!ids.length) return false;
     editor.commit('Opacity', (tx) => ids.forEach((id) => tx.update(id, { data: { opacity: value >= 1 ? undefined : value } })));
     return true;
+  }
+
+  /**
+   * Adds a library component — `{ type: 'tech'|'structure'|'sqltable', tech?, kind?, text?, at? }` —
+   * centred on `at` (a world point) or on the middle of the view, inside whatever frame is there.
+   */
+  function insertComponent(spec) {
+    if (!spec || !['tech', 'structure', 'sqltable'].includes(spec.type)) return false;
+    if (spec.type === 'tech' && !TECH_BY_ID[spec.tech]) return false;
+    if (spec.type === 'structure' && !STRUCTURE_BY_ID[spec.kind]) return false;
+    const def = shapeFor(spec.type);
+    const view = editor.visibleWorld();
+    const at = spec.at && Number.isFinite(spec.at.x) && Number.isFinite(spec.at.y) ? spec.at : { x: (view.minX + view.maxX) / 2, y: (view.minY + view.maxY) / 2 };
+    let id = null;
+    editor.commit(`Add ${def.label.toLowerCase()}`, (tx) => {
+      const extra =
+        spec.type === 'tech'
+          ? { tech: spec.tech }
+          : spec.type === 'structure'
+            ? { kind: spec.kind, text: STRUCTURE_BY_ID[spec.kind].example }
+            : { text: typeof spec.text === 'string' ? spec.text : DEFAULT_SQL_TABLE_TEXT };
+      const record = editor.newRecord(spec.type, extra, { parent: null, tx });
+      if (def.fit) Object.assign(record.data, def.fit({ ...record.data, w: undefined }));
+      const { w, h } = record.data;
+      let wx = at.x - w / 2;
+      let wy = at.y - h / 2;
+      // Added from the panel (no drop point): the free spot nearest the middle of the view, still on screen.
+      if (!spec.at) {
+        const free = (x, y) => !editor.queryRect({ minX: x - 8, minY: y - 8, maxX: x + w + 8, maxY: y + h + 8 }).some((other) => store.get(other)?.type !== 'frame');
+        const inView = (x, y) => x >= view.minX && y >= view.minY && x + w <= view.maxX && y + h <= view.maxY;
+        const step = 32 / Math.max(0.25, editor.camera.z);
+        search: for (let ring = 0; ring < 40; ring += 1) {
+          for (let dx = -ring; dx <= ring; dx += 1) {
+            for (let dy = -ring; dy <= ring; dy += 1) {
+              if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+              const x = at.x - w / 2 + dx * step;
+              const y = at.y - h / 2 + dy * step;
+              if (inView(x, y) && free(x, y)) {
+                wx = x;
+                wy = y;
+                break search;
+              }
+            }
+          }
+        }
+      }
+      // The frame it lands in is decided by where it ends up, not where the search started.
+      const parent = editor.frameAt(wx + w / 2, wy + h / 2);
+      const origin = editor.worldOrigin(parent);
+      record.parent = parent;
+      record.z = editor.zOnTop(parent, tx);
+      record.data.x = Math.round(wx - origin.x);
+      record.data.y = Math.round(wy - origin.y);
+      tx.create(record);
+      id = record.id;
+    });
+    if (id) {
+      editor.setTool('select');
+      editor.select([id]);
+    }
+    return Boolean(id);
   }
 
   const tool = (name) => () => {
@@ -250,6 +334,11 @@ export function createCommands(editor) {
     toolText: tool('text'),
     toolParagraph: tool('paragraph'),
     toolSticky: tool('sticky'),
+    insertComponent,
+    library: () => {
+      ui.set({ libraryOpen: !ui.get().libraryOpen });
+      return true;
+    },
     toolLock: () => {
       ui.set({ toolLocked: !ui.get().toolLocked });
       return true;

@@ -47,7 +47,8 @@ export function createDrawTool(editor, kind) {
     if (points.length === 1) points = [points[0], [points[0][0] + 0.01, points[0][1], points[0][2]]];
     const size = PEN_SIZES[current.style.size] || 4;
     const chunks = [];
-    for (let i = 0; i < points.length; i += MAX_POINTS - 1) chunks.push(points.slice(i, i + MAX_POINTS));
+    // Consecutive chunks share their joining point; stop before a chunk would hold only that point.
+    for (let i = 0; i === 0 || i < points.length - 1; i += MAX_POINTS - 1) chunks.push(points.slice(i, i + MAX_POINTS));
 
     editor.commit(kind === 'highlighter' ? 'Highlight' : 'Draw', (tx) => {
       for (const chunk of chunks) {

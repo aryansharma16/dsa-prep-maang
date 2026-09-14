@@ -68,3 +68,27 @@ test('straight and curve routes; free ends', () => {
   const dangling = connectorGeometry(connector('d', { start: { eid: 'gone' }, end: { point: [10, 10] } }), () => null);
   assert.equal(dangling.points.length >= 2, true);
 });
+
+test('an end attached to another connector meets that line square', () => {
+  // A line running horizontally at y = 300, and a vertical one at x = 600.
+  const targets = { A: box(0, 0), H: { point: [200, 300], axis: 'h' }, V: { point: [600, 100], axis: 'v' } };
+  const lookup = (eid) => targets[eid];
+
+  const fromBox = connectorGeometry(connector('bh', { start: { eid: 'A' }, end: { eid: 'H', t: 0.5 } }), lookup);
+  assert.deepEqual(fromBox.points.at(-1), [200, 300]);
+  const [bx, by] = fromBox.points.at(-2);
+  assert.ok(Math.abs(bx - 200) < 0.01 && by < 300, 'arrives from above, vertically');
+
+  const fromPoint = connectorGeometry(connector('ph', { start: { point: [0, 200] }, end: { eid: 'H', t: 0.5 } }), lookup);
+  assert.deepEqual(fromPoint.points, [[0, 200], [200, 200], [200, 300]]);
+
+  const intoVertical = connectorGeometry(connector('pv', { start: { point: [300, 0] }, end: { eid: 'V', t: 0.5 } }), lookup);
+  assert.deepEqual(intoVertical.points, [[300, 0], [300, 100], [600, 100]]);
+
+  const curve = connectorGeometry(connector('ch', { route: 'curve', start: { point: [0, 0] }, end: { eid: 'H', t: 0.5 } }), lookup);
+  const [, , c2] = curve.curve;
+  assert.ok(Math.abs(c2[0] - 200) < 0.01 && c2[1] < 300, 'curve comes in perpendicular to the line');
+
+  const straight = connectorGeometry(connector('sh', { route: 'straight', start: { eid: 'A' }, end: { eid: 'H', t: 0.5 } }), lookup);
+  assert.deepEqual(straight.points.at(-1), [200, 300]);
+});

@@ -16,7 +16,13 @@ export function opsFromCommit(commit) {
   return ops;
 }
 
+/** The schema board's DBML text lives in a store record under this id (see schema/schemaSync.js). */
+const SOURCE_ID = '__source';
+
 export function opForChange(id, before, after) {
+  // Schema text is not an element: it saves as the board's compare-and-set `source` op.
+  // `base` (the server's source revision this edit starts from) is added when the batch is sent.
+  if (id === SOURCE_ID) return after && after.data.text !== before?.data.text ? { op: 'source', text: after.data.text ?? '' } : null;
   if (!after) return before ? { op: 'del', eid: id } : null;
   if (!before || before.type !== after.type) {
     return { op: 'put', el: { eid: id, type: after.type, parent: after.parent ?? null, z: after.z, data: after.data } };

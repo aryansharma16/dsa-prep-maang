@@ -1,3 +1,5 @@
+import { DEFAULT_SQL_TABLE_TEXT, parseSqlTable, sqlTableSize } from '../library/sqlTable.js';
+import { layoutStructure, STRUCTURE_KINDS } from '../library/structures.js';
 import { defineShape } from './registry.js';
 
 /**
@@ -302,4 +304,141 @@ export const stroke = defineShape({
       ],
     },
   ],
+});
+
+/* -------------------------------------------------------------------------- */
+/* component library                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A technology from the catalogue (design/library/tech.js) — Redis, Kafka, a
+ * load balancer — drawn as a card with its logo or glyph. The record stores only
+ * the catalogue id, so logos and names can improve without touching boards.
+ */
+export const tech = defineShape({
+  type: 'tech',
+  label: 'Component',
+  outline: 'rect',
+  minW: 44,
+  minH: 44,
+  defaults: () => ({ w: 112, h: 96, tech: 'server', appearance: 'card' }),
+  caps: { text: 'label', rotate: false },
+  inspector: [
+    {
+      title: 'Component',
+      fields: [
+        { key: 'tech', kind: 'tech', label: 'Technology' },
+        {
+          key: 'appearance',
+          kind: 'segmented',
+          label: 'Look',
+          options: [
+            { value: 'card', label: 'Card' },
+            { value: 'plain', label: 'Icon only' },
+          ],
+        },
+        { key: 'mono', kind: 'toggle', label: 'Monochrome' },
+        { key: 'hideLabel', kind: 'toggle', label: 'Hide name' },
+      ],
+    },
+  ],
+});
+
+const ORIENTED_KINDS = new Set(['array', 'stack', 'queue', 'linkedlist', 'doublylinkedlist']);
+
+const sizeField = {
+  key: 'size',
+  kind: 'segmented',
+  label: 'Size',
+  options: [
+    { value: 's', label: 'S' },
+    { value: 'm', label: 'M' },
+    { value: 'l', label: 'L' },
+  ],
+};
+
+/**
+ * An editable data-structure block: array, stack, queue, linked list, call
+ * stack, hash map, binary tree, matrix, shards, hash ring. Its text is the
+ * content (one item per line); its size always follows the drawing (`fit`).
+ */
+export const structure = defineShape({
+  type: 'structure',
+  label: 'Data structure',
+  outline: 'rect',
+  minW: 16,
+  minH: 16,
+  defaults: () => ({ kind: 'array', text: '', size: 'm', color: 'blue', title: '' }),
+  fit: (data) => {
+    const { w, h } = layoutStructure(data);
+    return { w, h };
+  },
+  caps: { resize: 'none', rotate: false, text: 'text' },
+  inspector: [
+    {
+      title: 'Structure',
+      fields: [
+        { key: 'kind', kind: 'select', label: 'Kind', options: STRUCTURE_KINDS.map((k) => ({ value: k.id, label: k.label })) },
+        {
+          key: 'orientation',
+          kind: 'segmented',
+          label: 'Direction',
+          when: (data) => ORIENTED_KINDS.has(data.kind),
+          current: (data) => (data.kind === 'stack' ? 'v' : 'h'),
+          options: [
+            { value: 'h', label: 'Across' },
+            { value: 'v', label: 'Down' },
+          ],
+        },
+        sizeField,
+        colorField,
+        { key: 'title', kind: 'text', label: 'Title' },
+      ],
+    },
+  ],
+});
+
+/**
+ * A SQL table on a canvas board: one DBML `Table` block as its text, so it can be
+ * pasted into a schema board or dbdiagram.io as it is. Height follows the columns;
+ * width is the user's.
+ */
+export const sqltable = defineShape({
+  type: 'sqltable',
+  label: 'SQL table',
+  outline: 'rect',
+  minW: 180,
+  minH: 64,
+  defaults: () => ({ w: 220, h: 148, text: DEFAULT_SQL_TABLE_TEXT, color: 'blue' }),
+  fit: (data) => sqlTableSize(parseSqlTable(data.text).table, data.w),
+  caps: { resize: 'width', rotate: false, text: 'text' },
+  inspector: [{ title: 'Table', fields: [colorField] }],
+});
+
+/* -------------------------------------------------------------------------- */
+/* schema boards                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Where a table sits on a schema board. What the table is — its columns and
+ * keys — lives in the board's DBML text (design/schema/schemaSync.js).
+ */
+export const dbtable = defineShape({
+  type: 'dbtable',
+  label: 'Table',
+  outline: 'rect',
+  minW: 180,
+  minH: 64,
+  defaults: () => ({ name: 'public.table', w: 180, h: 64 }),
+  caps: { resize: 'none', rotate: false, erasable: false, text: null },
+  inspector: [],
+});
+
+/** The DBML text of a schema board, held as a record so it shares undo and saving. Never drawn. */
+export const dbsource = defineShape({
+  type: 'dbsource',
+  label: 'Schema text',
+  defaults: () => ({ text: '' }),
+  caps: { resize: 'none', rotate: false, bindable: false, erasable: false, snaps: false, hitInterior: false },
+  inspector: [],
 });

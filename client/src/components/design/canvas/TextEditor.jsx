@@ -1,6 +1,9 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
+import { shapeFor } from '../../../design/shapes/registry.js';
 import { FONT_SIZES } from '../../../design/shapes/shapes.js';
+import { applyIndent } from '../../../design/text/indent.js';
 import { measureTextBox, stickyFontSize } from '../../../design/text/measure.js';
+import { TECH_BY_ID } from '../../../design/library/tech.js';
 import { useEditor, useElement, useUi } from './hooks.js';
 
 /**
@@ -21,7 +24,8 @@ export function TextEditor() {
   return <TextEditorFor key={editingId} id={editingId} />;
 }
 
-const FIELD = { text: 'text', paragraph: 'text', sticky: 'text', frame: 'name' };
+const FIELD = { text: 'text', paragraph: 'text', sticky: 'text', frame: 'name', structure: 'text', sqltable: 'text' };
+const CODE = new Set(['structure', 'sqltable']);
 
 function TextEditorFor({ id }) {
   const editor = useEditor();
@@ -31,7 +35,8 @@ function TextEditorFor({ id }) {
 
   const type = record?.type;
   const field = FIELD[type] || 'label';
-  const value = record?.data[field] ?? '';
+  const catalogueName = type === 'tech' ? TECH_BY_ID[record?.data.tech]?.name : undefined;
+  const value = (type === 'tech' ? record?.data.label ?? catalogueName : record?.data[field]) ?? '';
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -43,17 +48,6 @@ function TextEditorFor({ id }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per session
   }, []);
 
-  useEffect(() => {
-    return () => {
-      editor.history.seal();
-      // Leaving an empty text element behind is leaving litter; remove it.
-      const current = editor.store.get(id);
-      if (current?.type === 'text' && !(current.data.text || '').trim()) {
-        editor.store.transact((tx) => tx.remove(id), { label: 'Remove empty text', history: false });
-      }
-    };
-  }, [editor, id]);
-
   if (!record) return null;
   const box = editor.worldBox(record);
   const origin = { x: box.x, y: box.y };
@@ -63,13 +57,16 @@ function TextEditorFor({ id }) {
     editor.commit(
       'Edit text',
       (tx) => {
-        const patch = { [field]: text };
+        const patch = { [field]: type === 'tech' && (!text.trim() || text === catalogueName) ? undefined : text };
         if (type === 'text' || type === 'paragraph') {
           const draft = { ...record, data: { ...record.data, text } };
           const size = measureTextBox(draft, type === 'text' && data.autoWidth ? undefined : data.w);
           if (type === 'text' && data.autoWidth) patch.w = size.w;
           patch.h = Math.max(type === 'paragraph' ? 24 : 16, size.h);
         }
+        // Blocks and tables size themselves from their content.
+        const fit = shapeFor(type).fit;
+        if (fit) Object.assign(patch, fit({ ...record.data, [field]: text }));
         tx.update(id, { data: patch });
       },
       { mergeKey: session.current },
@@ -84,6 +81,11 @@ function TextEditorFor({ id }) {
       event.preventDefault();
       stop();
       editor.dom?.viewport.focus({ preventScroll: true });
+    }
+    if (CODE.has(type) && event.key === 'Tab' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      // Indent rather than leave the editor: DBML columns are indented.
+      event.preventDefault();
+      applyIndent(event.currentTarget, event.shiftKey);
     }
     if (field === 'name' && event.key === 'Enter') {
       event.preventDefault();
@@ -103,6 +105,13 @@ function TextEditorFor({ id }) {
   } else if (type === 'sticky') {
     style = { left: origin.x + 14, top: origin.y + 14, width: data.w - 28, height: data.h - 28, fontSize: stickyFontSize(value, data.w, data.h), textAlign: data.align || 'center' };
     className += ' as-sticky';
+  } else if (type === 'tech') {
+    // Where the name is drawn: along the bottom of the card.
+    style = { left: origin.x + 6, top: origin.y + data.h - 30, width: Math.max(40, data.w - 12), height: 24, fontSize: 13, textAlign: 'center' };
+    className += ' as-label as-tech';
+  } else if (CODE.has(type)) {
+    style = { left: origin.x, top: origin.y, width: Math.max(data.w || 0, 280), height: Math.max(data.h || 0, type === 'sqltable' ? 200 : 160) };
+    className += ' as-code';
   } else if (type === 'frame') {
     style = { left: origin.x, top: origin.y - 22, width: Math.max(160, Math.min(data.w, 320)), height: 20 };
     className += ' as-frame';
@@ -123,7 +132,7 @@ function TextEditorFor({ id }) {
       style={style}
       value={value}
       spellCheck={type !== 'frame'}
-      placeholder={type === 'paragraph' ? 'Notes, requirements, trade-offs…' : type === 'frame' ? 'Frame name' : ''}
+      placeholder={type === 'paragraph' ? 'Notes, requirements, trade-offs…' : type === 'frame' ? 'Frame name' : type === 'structure' ? 'One item per line — *item highlights it' : type === 'sqltable' ? 'Table name {\n  id int [pk]\n}' : ''}
       onChange={(event) => update(event.target.value)}
       onKeyDown={onKeyDown}
       onBlur={stop}

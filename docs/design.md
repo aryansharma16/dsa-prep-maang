@@ -66,6 +66,9 @@ Agreed in planning (2026-09-14). Change them only deliberately.
 | Phase 3 extras | Version snapshots, templates, present mode, personal component library, link-to-board drill-down, quick actions | Asked for all; last two recommended |
 | Phase 4 traffic | Source nodes (DAU × actions) → QPS propagates along arrows by % split, cache hit ratio cuts reads, node load ÷ capacity | Chosen over hand-typed QPS per arrow |
 | Phase 4 checks | Over capacity, single point of failure, read-heavy path without cache, latency budget + queue backlog | All four |
+| Build order, revised (2026-09-14) | Finish P1 → **component library pulled forward from P3** → P2 schema boards → rest of P3 → P4 | The library shows up on HLD/LLD boards soonest and reuses the finished engine |
+| Data-structure blocks | Stack, queue, linked list, call stack, array, hash map… as **editable static blocks** (type into cells, add/remove items, orientation); no animated operations | Twice the work for animation; static blocks cover diagrams and explanations |
+| SQL tables | In schema boards (DBML) **and** as a library component on canvas boards, columns edited in the inspector | Tables belong in HLD boards too |
 | AI | **None for now** | |
 | Realtime (future) | **SSE**, not WebSocket | Vercel's `/api` rewrite cannot proxy WebSocket upgrades; chat SSE already works through it |
 
@@ -75,30 +78,62 @@ Legend: ✅ built and verified · 🟡 built, not yet verified in a browser · �
 
 ### Phase 1 — core canvas
 
+Browser-verified on 2026-09-15: four parallel QA passes (select & arrange; frames & drawing;
+saving & syncing; explorer, shell, text & connectors) found ~30 bugs; every fix was re-verified
+in the browser by the pass that found it.
+
 | # | Step | Status |
 |---|---|---|
-| 1 | Server: models, fractional keys, validation, access, tree/board services, routes, limits, hidden-by-default module, purge script | ✅ 21 unit tests + 18 end-to-end API checks |
+| 1 | Server: models, fractional keys, validation, access, tree/board services, routes, limits, hidden-by-default module, purge script | ✅ 21 unit tests + 19 end-to-end API checks |
 | 2 | Client scaffold: `designApi`, nav item, lazy routes, projects home (create with starter folders, edit, archive, trash, restore, purge), recent boards | ✅ |
-| 3 | Pure foundations: ids, fractional keys (same vectors as server), geometry, camera math | ✅ tests |
-| 4 | Workspace shell: top bar, breadcrumb rename, explorer tree (keyboard, context menu, inline rename, create, duplicate, delete, copy link), resizable panels | ✅ renders · 🟡 drag-to-move not browser-tested |
-| 5 | Store, registry, render pipeline, camera (wheel/pinch/Safari gestures, pan, dot grid, zoom controls, fit, persistence, crisp-on-settle) | ✅ · ⬜ spatial index + culling (hit-testing is linear today) · ⬜ `?sdperf` / stress seeder |
-| 6 | Autosave: op queue, status pill, localStorage mirror + restore dialog, keepalive flush, backoff, rejection handling; tab lock (BroadcastChannel) | ✅ save + reload verified · 🟡 offline/restore/tab-lock paths |
-| 7 | Select tool: click, shift-click, marquee, move (Alt duplicates), resize (rotated boxes, aspect, from-centre), rotate, connector end re-binding, Escape cancels, undo/redo | 🟡 |
-| 8 | Shapes (rect, ellipse, diamond, cylinder) + inspector (swatches, segmented, numbers with scrub, opacity, lock, arrange, align/distribute) | ✅ renders |
-| 9 | Text (auto-width), paragraph (markdown), sticky note (fit-to-size font), shape labels, frame names — textarea overlay editing | ✅ sticky typing verified |
-| 10 | Arrange: snapping + guides, z-order, duplicate, clipboard (copy/cut/paste across boards and tabs), lock, align, distribute, canvas context menu, opacity keys | 🟡 |
-| 11 | Frames: relative child coordinates, clip, drop-into on move, adopt on draw, frame selection (⌘⌥G), remove frame, cascade delete, constant-size titles | 🟡 |
-| 12 | Connectors: binding with side anchors, straight/elbow/curve, 6 cap styles, labels, animated flow | ✅ elbow router property-tested (0 diagonal fallbacks in 2,747 random pairs) |
-| 13 | Pen, highlighter, eraser (own freehand outline algorithm, RDP simplification, coalesced events) | 🟡 |
-| 14 | Shortcuts dialog ✅ · LOD (CSS) ✅ · culling ⬜ · perf + memory pass ⬜ | |
-| 15 | Docs: this file ✅ · README section ✅ · in-app `/docs` section ⬜ | |
+| 3 | Pure foundations: ids, fractional keys (same vectors as server), geometry, camera math, spatial grid index | ✅ tests |
+| 4 | Workspace shell: top bar, breadcrumb rename, explorer tree (keyboard, context menu, inline rename, create, duplicate, delete, copy link, drag-to-move), resizable panels, ⌘\ toggles the explorer | ✅ browser-verified |
+| 5 | Store, registry, render pipeline, camera; spatial index for hit-testing, marquee and frame lookup; culling on boards of 300+ elements; `?sdperf` tooling (`__sd.stress(n)`, `__sd.measurePan()`) | ✅ 2,400 elements: 60fps pan at 100% (104 mounted), 0.5ms main-thread per camera frame, 1,000 hit-tests in 21ms · zoomed out to everything, painting bottlenecks on software-GPU headless Chrome (58fps with content hidden) — check on a real GPU |
+| 6 | Autosave: op queue, status pill, per-tab crash copies + restore plan, keepalive flush, backoff, rejection handling; tab lock (BroadcastChannel) | ✅ browser-verified incl. offline, restore, retries under one batch id, close-then-reopen, two tabs, other devices |
+| 7 | Select tool: click, shift-click (and Shift-drag), marquee, move (Alt duplicates), resize (rotated boxes, aspect, from-centre), rotate, connector end re-binding, Escape restores, undo/redo | ✅ browser-verified |
+| 8 | Shapes (rect, ellipse, diamond, cylinder) + inspector (swatches, segmented, numbers with scrub, opacity, lock, arrange, align/distribute) | ✅ |
+| 9 | Text (auto-width), paragraph (markdown), sticky note (fit-to-size font), shape labels, frame names — textarea overlay editing | ✅ browser-verified · paragraph height measures raw markdown (can be short by a line) |
+| 10 | Arrange: snapping + guides, z-order, duplicate, clipboard (copy/cut/paste across boards and tabs), lock, align, distribute, canvas context menu, opacity keys | ✅ browser-verified (Mac Option shortcuts matched by physical key — simulated, not on a real Mac) |
+| 11 | Frames: relative child coordinates (connector free points too), clip (also for hit-testing), drop-into, adopt on draw/click/⌘⌥G, nesting, remove frame, cascade delete, constant-size titles | ✅ browser-verified |
+| 12 | Connectors: binding with side anchors, ends on other connectors' lines, parented to the deepest frame holding both ends, straight/elbow/curve, 12 caps incl. crow's feet, labels, animated flow | ✅ browser-verified; elbow router property-tested |
+| 13 | Pen, highlighter, eraser (own freehand outline algorithm, RDP simplification, coalesced events; they stay on until another tool is picked) | ✅ browser-verified |
+| 14 | Shortcuts dialog · LOD (CSS) · culling · perf pass | ✅ (memory: heap after 10 board switches not measured) |
+| 15 | Docs: this file · README section · in-app `/docs` section (shown to accounts that can see the module) | ✅ |
 
 Not yet built inside Phase 1: board-level settings in the inspector (background/grid/
-snap toggle — the server's `meta` op is ready), connector re-parenting to the lowest
-common frame, equal-spacing snaps.
+snap toggle — the server's `meta` op is ready), equal-spacing snaps.
 
-### Phase 2 — schema boards ⬜
-### Phase 3 — rich components ⬜
+### Component library (pulled forward from Phase 3) ✅ built · browser QA done, fixes being re-verified
+
+- **Panel** (`I`, or the toolbar's grid button): Tech / Data structures / Database tabs, search
+  over names, keywords and descriptions, click to add at the nearest free spot in view, drag to
+  drop anywhere (into frames too).
+- **Tech** (`tech`): 173 catalogue entries in 16 categories — 111 brand logos from Simple Icons
+  (CC0, generated into a lazily loaded chunk by `client/scripts/build-brand-icons.mjs`) and 53
+  hand-drawn glyphs for generic parts (load balancer, cache, queue…) and brands Simple Icons no
+  longer carries (AWS, Azure, Oracle, Memcached…). Each has a one-line "what it is and when to
+  reach for it". Card or icon-only look, monochrome, hide name; colours too dark or light for a
+  theme are mixed with the text colour.
+- **Data structures** (`structure`): array, stack, queue, linked list, doubly linked list, call
+  stack, hash map, binary tree (LeetCode level order), matrix, shards, hash ring — editable as
+  text (one item per line, `*` highlights), auto-sized, S/M/L, direction for linear kinds, title.
+- **SQL table** (`sqltable`): a DBML `Table` block as its text, rendered with key / reference
+  markers, unique and enum badges, auto height, width that grows with its columns.
+
+### Phase 2 — schema boards ✅ built · browser QA in progress
+
+DBML text on the left, the diagram on the right, one source of truth — see
+[Schema boards](#schema-boards). Parser with recovery, resolution and diagnostics, two-way
+editing (text ⇄ diagram actions as precise text edits), positions that follow the text without
+thrashing, crow's-foot relations, inspector column grid, auto-arrange, Postgres/MySQL/SQLite
+export, SQL import, SQL Lab (SQLite in the browser, foreign keys enforced), three-way merge of
+concurrent text saves.
+
+Not yet: dragging from a column to another to create a relation (relations come from the text
+or the inspector), TableGroup rendering behind tables, enum lists on the diagram, virtualised
+editor lines for very large schemas.
+
+### Phase 3 — rich components ⬜ (the library above is already taken out of it)
 ### Phase 4 — design intelligence ⬜
 ### Future — collaboration ⬜
 
@@ -155,7 +190,7 @@ server/src/
   middleware/errorHandler.js    PAYLOAD_TOO_LARGE / BAD_JSON codes
 server/scripts/design/
   purge-trash.js                npm run design:purge-trash -- --days=30 --dry-run [--files]
-  e2e/design-api.test.mjs       18 end-to-end API checks on in-memory Mongo
+  e2e/design-api.test.mjs       19 end-to-end API checks on in-memory Mongo
   e2e/devserver.mjs             isolated API on :4100 with seeded data, for UI testing
 
 client/src/
@@ -165,7 +200,7 @@ client/src/
   pages/DesignHome.jsx  pages/DesignWorkspace.jsx
   styles/design.css             everything, scoped under .sd-*
   design/
-    core/       ids.js  fractional.js  geometry.js  simplify.js  time.js
+    core/       ids.js  fractional.js  geometry.js  simplify.js  time.js  spatial.js (grid index)
     tree/       tree.js                    explorer tree helpers + resolveDrop
     engine/
       store.js       records, transactions, gestures, subscriptions
@@ -184,8 +219,13 @@ client/src/
     shapes/     registry.js  shapes.js       type definitions (defaults, caps, inspector fields)
     draw/       freehand.js                  pressure-shaped stroke outline (own implementation)
     text/       measure.js (DOM)             auto-size text, sticky font fitting
-    sync/       opQueue.js  autosave.js (DOM)  tabLock.js (DOM)
-    __tests__/  fractional geometry tree engine route tests
+    sync/       opQueue.js  autosave.js  mirror.js (crash copies + planRestore)  tabLock.js (DOM)
+    library/    tech.js (catalogue: 173 entries)  brandPaths.generated.js (lazy, Simple Icons CC0)
+                structures.js (data-structure block layouts)
+    schema/     dbml.js (parser)  analyze.js (resolution, relations)  ddl.js (Postgres/MySQL/SQLite)
+                sqlImport.js (DDL → DBML)  layout.js (table sizes, relation paths, auto-arrange)
+    __tests__/  fractional geometry tree engine route spatial structures dbml ddl sqlImport
+                schemaLayout sync
   components/design/
     icons.jsx                   design-only glyphs
     ui/ActionMenu.jsx           portalled menu (cards, tree, canvas context menu)
@@ -195,6 +235,8 @@ client/src/
              DraftStroke  Toolbar  ZoomControls  CanvasContextMenu  ShortcutsDialog  hooks.js
     shapes/  views.jsx  ConnectorView.jsx
     inspector/Inspector.jsx
+    library/glyphs.jsx          generic tech glyphs (24-unit, currentColor)
+client/scripts/build-brand-icons.mjs   regenerates brandPaths.generated.js from simple-icons
 client/public/fonts/inter-latin-var.woff2 (+ Inter-LICENSE.txt, OFL)   the canvas font
 ```
 
@@ -224,8 +266,9 @@ per element: no 16MB board ceiling, per-element saves, delta sync, future confli
 
 **Element wire shape** — `{ eid, type, parent, z, data }` with `data` flat:
 `{ x, y, w, h, rot, opacity, locked, …type fields }`. Nested values (`start`, `end`, `label`,
-`flow`) are whole objects. Free connector points are **world** coordinates; box positions are
-**relative to the parent frame**.
+`flow`) are whole objects. Box positions **and free connector points** are **relative to the
+parent frame** (world coordinates at the top level), so moving a frame by any means — drag, nudge,
+align, the inspector, paste — carries everything inside it without special cases.
 
 **Limits** (`config/design.js`): 100 projects and 1,000 boards per owner · 2,000 nodes, depth 12,
 200MB assets per project · 5,000 live elements and 5MB per board · 64KB per element · 1,000 ops /
@@ -284,22 +327,39 @@ POST /api/design/boards/:id/ops
 batches per board) → a known `batchId` returns the earlier rev (retry-safe) → read touched
 elements → fold ops (`ops.js`) → validate **per element** (a bad element is rejected with its
 stored copy; the rest saves) → board limits refuse growth only → `bulkWrite` → counts, meta,
-source, batch record. After commit, if `baseRev` is stale the other writers' changes are
-returned; more than 2,000 means `reset`.
+source, batch record (last 50 ids). After commit, if `baseRev` is stale the response carries the
+other writers' changes **and the merged result of every element this batch touched that someone
+else wrote after `baseRev`** (otherwise a field the other device changed would never reach this
+client); more than 2,000 means `reset`. `GET /boards/:id` returns `board.recentBatches` — the ids of
+the last 50 batches — so a reopening client can ask "did my last save land?".
 
 **Client (`sync/autosave.js`)**: every local commit becomes ops, coalesced per element
 (`opQueue.js`), sent 800ms after the last edit or every 3s at most, one request at a time.
-Failures requeue under newer edits; 5xx/network back off to 30s; 429 waits `retryAfterSeconds`;
-413 halves the batch; 400 stops that batch (kept in `localStorage sd-failed:*`); 404/410/409
-archived → read-only banner. Pending ops are mirrored to `localStorage['sd-pending:<boardId>']`
-and restored on next open (silently if the rev matches, otherwise a Restore/Discard dialog). On
-`pagehide` a `keepalive` fetch sends ≤60KB. Rejected elements are reverted locally with a toast.
+
+- **A batch keeps its id until it is settled.** A failure with no clear answer (network, 5xx,
+  429) may have been applied, so that exact batch — same id, same ops — is *held* and retried,
+  and the server's duplicate check stops it being applied twice over someone's newer edit. Newer
+  edits wait behind it in their own batch. 5xx/network back off to 30s; 429 waits
+  `retryAfterSeconds`. 413 never reached the handler, so it splits the batch under new ids. 400
+  stops that batch (a copy goes to `localStorage sd-failed:*`); 404/410/409 archived → read-only
+  banner. Rejected elements are reverted locally with a toast.
+- **Crash copies are per tab** (`sync/mirror.js`): `localStorage['sd-pending:<board>:<client>']` =
+  `{v:2, clientId, baseRev, at, sent:[{batchId, ops}], ops}` — `sent` are batches that may have
+  landed, `ops` were never sent. A tab refreshes `at` every 4s while anything is pending and only
+  ever removes its own key.
+- **Restoring** (`planRestore`, on open): copies refreshed within 12s belong to a live tab — left
+  alone and looked at once more later. For the rest, sent batches whose id is in
+  `recentBatches` are dropped; nothing left → removed silently; board rev = copy's `baseRev` +
+  landed batches → restored silently; otherwise a Restore/Discard dialog (restoring would write
+  over newer edits). Leaving with the dialog open loses nothing.
+- **Closing the tab**: `visibilitychange`/`pagehide` send the pending batch as a `keepalive`
+  fetch (≤60KB, once per batch) under the id it would be retried with, and the copy records it.
 
 **Other tabs, other devices**: `sync/tabLock.js` — the newest tab on a board claims it over
 BroadcastChannel; others flush, go read-only, mirror its commits live, and offer "Edit here".
-Other devices: `GET /changes` on focus and every 20s while idle; elements with pending local ops
-are not overwritten. Known v1 gap: a field changed on another device in the same second as a
-local patch to the same element can be missed until the next change to it.
+Other devices: `GET /changes` on focus and every 20s while nothing is pending (a poll while edits
+are pending would move `baseRev` past remote changes to those elements); elements with pending
+local ops are not overwritten, and the save response brings their merged state back.
 
 ## The canvas engine
 
@@ -326,7 +386,9 @@ screen size.
 a shape; one tool update per animation frame; drawing tools receive coalesced samples; wheel is
 non-passive (ctrl/⌘ or pinch zooms at the cursor, otherwise pans); Safari `gesture*`; two-finger
 touch pinch+pan; Space / middle button / Hand tool pan; once a stylus is seen, fingers pan.
-Events from textareas, inputs, buttons and `[data-sd-control]` are ignored by the canvas.
+Events from textareas, inputs, buttons and `[data-sd-control]` are ignored by the canvas. Keys
+reach the board only when nothing else owns them: not already `defaultPrevented`, not inside the
+explorer, top bar, inspector, a `[role=tree|menu|dialog]`, and no menu is open (`sd-menu-open`).
 
 **Hit-testing**: reverse paint order (siblings by z, a frame's children above it), per-type
 geometry in the element's rotated local frame. Frames are hit by their title or edge only, so
@@ -338,12 +400,31 @@ hand, create (rect, ellipse, diamond, cylinder, frame, text, paragraph, sticky: 
 default size, drag to size, Shift square; frames adopt what they enclose), connector (hover
 shows anchors; ⌘/Ctrl refuses binding), pen/highlighter (draft outside the store, RDP on
 release, 2,000-point chunks), eraser (marks, deletes on release, Escape restores; never frames).
-Tools return to Select after one use unless the lock (Q) is on.
+Shape, text, frame and connector tools return to Select after one use unless the lock (Q) is on;
+pen, highlighter and eraser stay on until another tool is picked, as a marker does.
+
+**Connectors and frames**: a connector's `parent` is the deepest frame containing both ends (a
+bound end is where its element is; a free end is `frameAt` its point), so it moves, clips and
+copies with that frame. `editor.settleConnectors(tx, ids)` re-homes them after anything that can
+change it: drawing a connector, dragging an end, moving elements, adopting, framing, unframing.
+`reparent` converts free points like box positions. Removing a frame (⌘⇧G) re-homes its children at the frame's
+place in the layer order and lets go of connectors bound to its edge.
 
 **Connector routing** (`connectors/route.js`): bound ends store `{eid, anchor: auto|side}`,
 never coordinates. Elbow routes try orthogonal candidates between side stubs (through the gap,
 around either side), reject any that cut through either shape, score length + 40·bends, keep the
-previous side pair unless a new one is 15% better (no flip-flop while dragging).
+previous side pair unless a new one is 15% better (no flip-flop while dragging). That memory is
+in-process, so after a reload an equally short route can come back different.
+
+**Ends on other connectors**: dropping an end on a line (when no shape is under the pointer) stores
+`{eid, t}` — `t` is the fraction along that connector's routed length (`closestOnPolyline`).
+`editor.lookupTarget` resolves it to a point plus the line's axis there, and elbow/curve routes meet
+an axis-aligned line square. Binding refuses a line that already depends on the connector being
+bound (`lineBindingAt`), and resolving guards against a loop arriving from elsewhere (that end falls
+back to a free point). A connector's view watches `editor.geometryDeps(record)` — its targets,
+their frames, and transitively whatever a target connector depends on. Deleting a line lets its
+attached ends go at the point they touched, like deleting a shape. Because `t` is by length, an
+attached end slides along when its line's route changes shape.
 
 **Selection overlay**: screen-space SVG — hover outline, selection box and handles (resize on
 corners/edges, rotate in zones just outside corners), marquee, red snap guides, drop-target frame,
@@ -367,7 +448,7 @@ Defined in `design/shapes/shapes.js`, drawn in `components/design/shapes/`.
 | paragraph | `text` (markdown via ChatMarkdown), `color, fontSize, align` | width-resize |
 | sticky | `text, color (yellow…grey), align` | aspect resize, fitted font |
 | frame | `name, color, fillStyle, clip` | container, no rotate, title-hit |
-| connector | `start, end, route, startCap, endCap, color, strokeStyle, strokeWidth, label{text,t}, flow{on,speed,reverse}` | no box |
+| connector | `start, end` (each `{eid, anchor}` on a shape, `{eid, t}` on another connector, or `{point}`), `route, startCap, endCap, color, strokeStyle, strokeWidth, label{text,t}, flow{on,speed,reverse}` | no box |
 | stroke | `kind pen|highlighter, points [x,y,p…] relative, color, size, simulate` | scale on resize |
 
 Colours are names rendered through the app's `[data-hue]` palette plus `ink`, so boards follow
@@ -395,10 +476,12 @@ measures the same on every OS.
 ## Verifying it
 
 ```bash
-cd client && npm test          # 29 tests: fractional keys, geometry, camera, tree, store, history, diff, queue, routing
+cd client && npm test          # 56 tests: fractional keys, geometry, camera, tree, store, history, diff, queue,
+                               # routing, spatial index, autosave retries + restore plans, structure layouts,
+                               # DBML parser/analyzer, DDL export (SQLite run in sql.js), SQL import, schema layout
 cd server && npm test          # 21 tests: fractional keys, op folding, validation, tree helpers
 cd server && npm i --no-save mongodb-memory-server@10
-cd server/scripts/design/e2e && node --test design-api.test.mjs   # 18 end-to-end API checks
+cd server/scripts/design/e2e && node --test design-api.test.mjs   # 19 end-to-end API checks
 ```
 
 UI without touching a real database: run `e2e/devserver.mjs` (API on :4100 with a seeded
@@ -433,16 +516,26 @@ performance.
 4. **Element `data` validation stays passthrough** (client and server deploy separately). Type
    only what the server relies on; bound everything with `assertBoundedJson`.
 5. **Add element types server-first.**
-6. **All parent-coordinate math goes through `editor.worldOrigin / reparent`.**
+6. **All parent-coordinate math goes through `editor.worldOrigin / reparent`**, and inside a
+   transaction pass it: `worldOrigin(parent, tx)`. A frame created in the same transaction is
+   invisible to the store, and reading the store there moved shapes on ⌘⌥G.
 7. **`editor.setTool()` clears `editingId`** — set the tool first, then start editing (this bit
    the sticky note once).
 8. **Hot reload does not refresh an open editor's tools** (they are closures created once per
    board) — reload the page after editing engine/tool files.
 9. **Views never read the editor for data**, only records; geometry that depends on other
    elements subscribes with `useGeometryVersion`.
+   Nor do they **change the board from an effect cleanup**: the app runs under StrictMode,
+   which calls cleanups right after mount. Removing empty text on the TextEditor's unmount
+   deleted every new text element before it could be typed in; that rule now lives in
+   `editor.js`, keyed on `editingId` changing.
 10. **Scope CSS under `.sd-`**, and do not reuse a class name between the home page and the
     canvas (`.sd-grid` vs `.sd-dots` was a real collision).
-11. Keep this file, the README section and the in-app guide in step with the code.
+11. **Dialogs stack** (`components/ui/useDialog.js`): each checks it is the top one before
+    handling Escape/Tab — `stopPropagation` does not stop listeners on the same node.
+12. **A batch id is for life** (`sync/autosave.js`): never re-send ops that may have landed under a
+    new id; hold the batch and retry it as is.
+13. Keep this file, the README section and the in-app guide in step with the code.
 
 ## Future phases in detail
 

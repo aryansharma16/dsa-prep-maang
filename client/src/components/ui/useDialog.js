@@ -12,8 +12,8 @@ const FOCUSABLE =
  * panel that renders its own markup without registering here stays invisible to
  * the guard.
  */
-let openCount = 0;
-export const isAnyModalOpen = () => openCount > 0;
+const stack = [];
+export const isAnyModalOpen = () => stack.length > 0;
 
 /**
  * Shared modal behaviour: shortcut suppression, Escape, a Tab loop that keeps
@@ -23,7 +23,10 @@ export const isAnyModalOpen = () => openCount > 0;
  */
 export function useDialog(ref, { onClose, initialFocus } = {}) {
   useEffect(() => {
-    openCount += 1;
+    // Dialogs can stack (a confirm over a panel). All their capture listeners see every key, and
+    // stopPropagation cannot stop listeners on the same node — so each checks it is the top one.
+    const token = {};
+    stack.push(token);
     const restoreTo = document.activeElement;
     const node = ref.current;
 
@@ -31,6 +34,7 @@ export function useDialog(ref, { onClose, initialFocus } = {}) {
     (initialFocus?.current || focusables()[0] || node).focus();
 
     const onKey = (event) => {
+      if (stack.at(-1) !== token) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
@@ -58,7 +62,7 @@ export function useDialog(ref, { onClose, initialFocus } = {}) {
     document.addEventListener('keydown', onKey, true);
     return () => {
       document.removeEventListener('keydown', onKey, true);
-      openCount -= 1;
+      stack.splice(stack.indexOf(token), 1);
       restoreTo?.focus?.();
     };
   }, [ref, onClose, initialFocus]);

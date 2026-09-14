@@ -1,0 +1,187 @@
+import { analyzeDbml } from './analyze.js';
+
+/**
+ * DDL from a schema: PostgreSQL, MySQL, and SQLite (the dialect "Try in SQL Lab"
+ * runs, via sql.js).
+ *
+ * Input is DBML text or an analyzed model. Output is one script: types/enums,
+ * tables (columns, primary keys incl. composite, NOT NULL, UNIQUE, defaults,
+ * auto-increment), indexes, comments, then foreign keys — added after every
+ * table exists, so creation order never matters. A many-to-many relation (`<>`)
+ * becomes a junction table with a composite key, as dbdiagram exports it.
+ *
+ * Deliberately faithful rather than clever: types pass through as written (DBML
+ * allows any), except where a dialect cannot express them (arrays and enums in
+ * SQLite/MySQL), which get the closest equivalent and a comment saying so.
+ *
+ * Pure.
+ */
+
+const DIALECTS = {
+  postgres: { quote: (n) => `"${n.replace(/"/g, '""')}"` },
+  mysql: { quote: (n) => `\`${n.replace(/`/g, '``')}\`` },
+  sqlite: { quote: (n) => `"${n.replace(/"/g, '""')}"` },
+};
+
+const sqlString = (s) => `'${String(s).replace(/'/g, "''")}'`;
+
+export function toDdl(sourceOrModel, dialect = 'postgres') {
+  const model = typeof sourceOrModel === 'string' ? analyzeDbml(sourceOrModel) : sourceOrModel;
+  const { quote } = DIALECTS[dialect] || DIALECTS.postgres;
+  const out = [];
+  const qualified = (key) => {
+    const [schema, ...rest] = key.split('.');
+    const name = rest.join('.');
+    return dialect === 'postgres' && schema !== 'public' ? `${quote(schema)}.${quote(name)}` : dialect === 'mysql' && schema !== 'public' ? `${quote(schema)}.${quote(name)}` : quote(name);
+  };
+  const tableByKey = model.byKey;
+
+  if (model.project?.databaseType) out.push(`-- Database: ${model.project.databaseType}`);
+  out.push(`-- Generated from DBML for ${dialect === 'postgres' ? 'PostgreSQL' : dialect === 'mysql' ? 'MySQL' : 'SQLite'}`, '');
+
+  // Schemas.
+  const schemas = new Set(model.tables.map((t) => t.key.split('.')[0]).filter((s) => s !== 'public'));
+  if (dialect === 'postgres') for (const s of schemas) out.push(`CREATE SCHEMA IF NOT EXISTS ${quote(s)};`);
+  if (dialect === 'mysql') for (const s of schemas) out.push(`CREATE DATABASE IF NOT EXISTS ${quote(s)};`);
+  if (schemas.size && dialect !== 'sqlite') out.push('');
+
+  // Enums (Postgres types; others inline them per column).
+  if (dialect === 'postgres') {
+    for (const [key, e] of model.enums) {
+      out.push(`CREATE TYPE ${qualified(key)} AS ENUM (${e.values.map((v) => sqlString(v.name)).join(', ')});`);
+    }
+    if (model.enums.size) out.push('');
+  }
+
+  const typeOf = (column) => {
+    const e = column.enum ? model.enums.get(column.enum) : null;
+    if (e) {
+      if (dialect === 'postgres') return qualified(column.enum);
+      if (dialect === 'mysql') return `ENUM(${e.values.map((v) => sqlString(v.name)).join(', ')})`;
+      return 'TEXT';
+    }
+    let type = column.type.name;
+    if (column.type.args?.length) type += `(${column.type.args.join(',')})`;
+    if (column.type.array) {
+      if (dialect === 'postgres') type += '[]';
+      else type = dialect === 'mysql' ? 'JSON' : 'TEXT';
+    }
+    return type;
+  };
+
+  const defaultOf = (d) => {
+    if (!d) return null;
+    if (d.kind === 'number') return d.value;
+    if (d.kind === 'expr') {
+      if (dialect === 'mysql') return `(${d.value})`;
+      if (dialect === 'sqlite') {
+        // SQLite has its own names for "now" and no uuid function; anything else must at least be parenthesised.
+        const expr = d.value.trim();
+        if (/^(now\(\)|current_timestamp(\(\))?|localtimestamp|transaction_timestamp\(\)|getdate\(\))$/i.test(expr)) return 'CURRENT_TIMESTAMP';
+        if (/^current_date$/i.test(expr)) return 'CURRENT_DATE';
+        if (/^(gen_random_uuid|uuid_generate_v4|uuid)\(\)$/i.test(expr)) return '(lower(hex(randomblob(16))))';
+        return `(${expr})`;
+      }
+      return d.value;
+    }
+    if (d.kind === 'word') return /^(true|false|null)$/i.test(d.value) ? d.value.toUpperCase() : sqlString(d.value);
+    return sqlString(d.value);
+  };
+
+  const isIntegerType = (column) => /^(int|integer|bigint|smallint|serial|bigserial|int2|int4|int8|tinyint|mediumint)$/i.test(column.type.name);
+  const foreignKeys = [];
+  const indexes = [];
+  const comments = [];
+
+  const emitTable = (key, columns, { pkColumns = null, note = null } = {}) => {
+    const lines = [];
+    const tablePk = pkColumns || columns.filter((c) => c.pk).map((c) => c.name);
+    const inlinePk = tablePk.length === 1;
+    for (const column of columns) {
+      let line = `  ${quote(column.name)} ${typeOf(column)}`;
+      const sqliteAutoPk = dialect === 'sqlite' && column.increment && inlinePk && column.pk && isIntegerType(column);
+      if (sqliteAutoPk) line = `  ${quote(column.name)} INTEGER PRIMARY KEY AUTOINCREMENT`;
+      else if (column.pk && inlinePk) line += ' PRIMARY KEY';
+      if (column.increment && !sqliteAutoPk) {
+        if (dialect === 'postgres') line += ' GENERATED BY DEFAULT AS IDENTITY';
+        else if (dialect === 'mysql') line += ' AUTO_INCREMENT';
+      }
+      if (column.notNull && !column.pk) line += ' NOT NULL';
+      if (column.unique && !column.pk) line += ' UNIQUE';
+      const def = defaultOf(column.default);
+      if (def != null) line += ` DEFAULT ${def}`;
+      if (column.enum && dialect === 'sqlite') {
+        const e = model.enums.get(column.enum);
+        line += ` CHECK (${quote(column.name)} IN (${e.values.map((v) => sqlString(v.name)).join(', ')}))`;
+      }
+      if (column.type.array && dialect !== 'postgres') line += dialect === 'mysql' ? ' /* array stored as JSON */' : ' /* array stored as text */';
+      if (column.note && dialect === 'mysql') line += ` COMMENT ${sqlString(column.note)}`;
+      if (column.note && dialect === 'postgres') comments.push(`COMMENT ON COLUMN ${qualified(key)}.${quote(column.name)} IS ${sqlString(column.note)};`);
+      lines.push(line);
+    }
+    if (tablePk.length > 1) lines.push(`  PRIMARY KEY (${tablePk.map(quote).join(', ')})`);
+    // SQLite cannot ALTER TABLE ADD FOREIGN KEY, but may name tables that do not exist yet here.
+    if (dialect === 'sqlite') for (const f of foreignKeys.filter((f) => f.child === key)) lines.push(`  FOREIGN KEY (${f.childCols.map(quote).join(', ')}) REFERENCES ${qualified(f.parent)} (${f.parentCols.map(quote).join(', ')})${f.action}`);
+    let statement = `CREATE TABLE ${qualified(key)} (\n${lines.join(',\n')}\n)`;
+    if (note && dialect === 'mysql') statement += ` COMMENT=${sqlString(note)}`;
+    out.push(`${statement};`, '');
+    if (note && dialect === 'postgres') comments.push(`COMMENT ON TABLE ${qualified(key)} IS ${sqlString(note)};`);
+  };
+
+  // A named Ref block can hold several refs; MySQL wants constraint names unique per database.
+  const usedNames = new Map();
+  const uniqueName = (name) => {
+    const count = (usedNames.get(name) || 0) + 1;
+    usedNames.set(name, count);
+    return count === 1 ? name : `${name}_${count}`;
+  };
+  const junctions = [];
+  for (const relation of model.relations) {
+    const action = [relation.onDelete ? ` ON DELETE ${relation.onDelete.toUpperCase()}` : '', relation.onUpdate ? ` ON UPDATE ${relation.onUpdate.toUpperCase()}` : ''].join('');
+    const fk = (child, childCols, parent, parentCols, name = null) => foreignKeys.push({ child, childCols, parent, parentCols, action, name: name && uniqueName(name) });
+    if (relation.op === '<>') {
+      // Junction table: one column per side, named table_column, composite primary key.
+      const a = tableByKey.get(relation.from.table);
+      const b = tableByKey.get(relation.to.table);
+      const key = `${relation.from.table.split('.')[0]}.${a.name}_${b.name}`;
+      const col = (table, name) => ({ ...table.columns.find((c) => c.name === name), name: `${table.name}_${name}`, pk: false, increment: false, unique: false, notNull: true, default: null, note: null });
+      const aCols = relation.from.columns.map((n) => col(a, n));
+      const bCols = relation.to.columns.map((n) => col(b, n));
+      junctions.push({ key, columns: [...aCols, ...bCols] });
+      fk(key, aCols.map((c) => c.name), relation.from.table, relation.from.columns);
+      fk(key, bCols.map((c) => c.name), relation.to.table, relation.to.columns);
+    } else if (relation.op === '<') {
+      fk(relation.to.table, relation.to.columns, relation.from.table, relation.from.columns, relation.name);
+    } else {
+      fk(relation.from.table, relation.from.columns, relation.to.table, relation.to.columns, relation.name);
+    }
+  }
+
+  for (const table of model.tables) {
+    const compositePk = table.indexes.find((i) => i.pk)?.columns.filter((c) => c.name).map((c) => c.name);
+    emitTable(table.key, table.columns, { pkColumns: compositePk?.length ? compositePk : null, note: table.note });
+    table.indexes
+      .filter((i) => !i.pk)
+      .forEach((index) => {
+        const name = uniqueName(index.name || `${table.name}_${index.columns.map((c) => c.name || 'expr').join('_')}_idx`);
+        const cols = index.columns.map((c) => (c.expr ? (dialect === 'mysql' ? `(${c.expr})` : `(${c.expr})`) : quote(c.name))).join(', ');
+        const using = index.type && dialect === 'postgres' ? ` USING ${index.type.toUpperCase()}` : '';
+        const mysqlUsing = index.type && dialect === 'mysql' ? ` USING ${index.type.toUpperCase()}` : '';
+        indexes.push(`CREATE ${index.unique ? 'UNIQUE ' : ''}INDEX ${quote(name)} ON ${qualified(table.key)}${using} (${cols})${mysqlUsing};`);
+      });
+  }
+
+  for (const junction of junctions) emitTable(junction.key, junction.columns, { pkColumns: junction.columns.map((c) => c.name) });
+
+  if (indexes.length) out.push(...indexes, '');
+  if (comments.length) out.push(...comments, '');
+  if (dialect !== 'sqlite' && foreignKeys.length) {
+    out.push(
+      ...foreignKeys.map(
+        (f) => `ALTER TABLE ${qualified(f.child)} ADD ${f.name ? `CONSTRAINT ${quote(f.name)} ` : ''}FOREIGN KEY (${f.childCols.map(quote).join(', ')}) REFERENCES ${qualified(f.parent)} (${f.parentCols.map(quote).join(', ')})${f.action};`,
+      ),
+      '',
+    );
+  }
+  return `${out.join('\n').replace(/\n{3,}/g, '\n\n').trim()}\n`;
+}

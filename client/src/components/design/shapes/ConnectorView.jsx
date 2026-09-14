@@ -19,10 +19,17 @@ import { useEditor, useGeometryVersion } from '../canvas/hooks.js';
 
 const CAP_SIZE = { s: 9, m: 11, l: 14 };
 
-function capPath(cap, x, y, angle, size) {
+export function capPath(cap, x, y, angle, size) {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   const at = (dx, dy) => `${x + dx * cos - dy * sin},${y + dx * sin + dy * cos}`;
+  const bar = (dx) => `M${at(dx, -size * 0.55)} L${at(dx, size * 0.55)}`;
+  const fan = () => `M${at(-size * 0.9, 0)} L${at(0, -size * 0.6)} M${at(-size * 0.9, 0)} L${at(0, 0)} M${at(-size * 0.9, 0)} L${at(0, size * 0.6)}`;
+  const ring = (dx) => {
+    const r = Math.max(3.5, size * 0.38);
+    const [cx, cy] = at(dx, 0).split(',').map(Number);
+    return `M${cx - r},${cy} a${r},${r} 0 1,0 ${r * 2},0 a${r},${r} 0 1,0 ${-r * 2},0`;
+  };
   switch (cap) {
     case 'arrow':
       return { d: `M${at(-size, -size * 0.55)} L${at(0, 0)} L${at(-size, size * 0.55)}`, fill: false };
@@ -37,6 +44,19 @@ function capPath(cap, x, y, angle, size) {
       return { d: `M${at(0, 0)} L${at(-size * 0.5, -size * 0.4)} L${at(-size, 0)} L${at(-size * 0.5, size * 0.4)} Z`, fill: true };
     case 'bar':
       return { d: `M${at(0, -size * 0.55)} L${at(0, size * 0.55)}`, fill: false };
+    // Crow's-foot ends: bars mean one, the fan means many, a ring means optional.
+    case 'one':
+      return { d: bar(-size * 0.55), fill: false };
+    case 'onlyOne':
+      return { d: `${bar(-size * 0.4)} ${bar(-size * 0.8)}`, fill: false };
+    case 'zeroOrOne':
+      return { d: `${bar(-size * 0.4)} ${ring(-size * 1.05)}`, fill: false };
+    case 'many':
+      return { d: fan(), fill: false };
+    case 'oneOrMany':
+      return { d: `${fan()} ${bar(-size * 1.15)}`, fill: false };
+    case 'zeroOrMany':
+      return { d: `${fan()} ${ring(-size * 1.4)}`, fill: false };
     default:
       return null;
   }
@@ -69,18 +89,16 @@ function curvePath([p0, c1, c2, p1]) {
 export const ConnectorView = memo(function ConnectorView({ record, erasing }) {
   const editor = useEditor();
   const { data } = record;
-  const bound = [data.start?.eid, data.end?.eid].filter(Boolean);
-  const watched = useMemo(() => {
-    const ids = new Set(bound);
-    for (const id of bound) for (const a of editor.ancestors(id)) ids.add(a);
-    if (record.parent) {
-      ids.add(record.parent);
-      for (const a of editor.ancestors(record.parent)) ids.add(a);
-    }
-    return [...ids];
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- recomputed when the ends change
-  }, [editor, bound.join('|'), record.parent]);
-  const version = useGeometryVersion(watched);
+  // Recomputed every render, not memoised: an end on another connector depends on
+  // that connector's own ends, which can change without this record changing. Any
+  // such change bumps `version` and re-renders, and the hook resubscribes only when
+  // the list itself differs.
+  const ids = new Set(editor.geometryDeps(record));
+  if (record.parent) {
+    ids.add(record.parent);
+    for (const a of editor.ancestors(record.parent)) ids.add(a);
+  }
+  const version = useGeometryVersion([...ids]);
 
   const geo = useMemo(() => editor.connectorGeo(record), [editor, record, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const origin = useMemo(() => editor.worldOrigin(record.parent), [editor, record.parent, version]); // eslint-disable-line react-hooks/exhaustive-deps

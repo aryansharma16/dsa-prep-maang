@@ -35,6 +35,10 @@ export function serializeSelection(editor, ids = editor.ui.get().selection) {
       if (record.type !== 'connector') {
         data.x = (data.x || 0) + origin.x;
         data.y = (data.y || 0) + origin.y;
+      } else {
+        for (const key of ['start', 'end']) {
+          if (data[key]?.point) data[key] = { point: [data[key].point[0] + origin.x, data[key].point[1] + origin.y] };
+        }
       }
       records.push({ id: record.id, type: record.type, parent: null, z: record.z, data });
     } else {
@@ -50,10 +54,13 @@ export function serializeSelection(editor, ids = editor.ui.get().selection) {
   for (const record of records) {
     if (record.type !== 'connector') continue;
     const inSet = (eid) => records.some((r) => r.id === eid);
-    const geo = editor.connectorGeo(store.get(record.id));
+    const original = store.get(record.id);
+    const geo = editor.connectorGeo(original);
+    // Top-level copies are in world space; a connector copied inside its frame stays relative to it.
+    const origin = record.parent ? editor.worldOrigin(original.parent) : { x: 0, y: 0 };
     const data = { ...record.data };
-    if (data.start?.eid && !inSet(data.start.eid)) data.start = { point: [geo.start.x, geo.start.y] };
-    if (data.end?.eid && !inSet(data.end.eid)) data.end = { point: [geo.end.x, geo.end.y] };
+    if (data.start?.eid && !inSet(data.start.eid)) data.start = { point: [geo.start.x - origin.x, geo.start.y - origin.y] };
+    if (data.end?.eid && !inSet(data.end.eid)) data.end = { point: [geo.end.x - origin.x, geo.end.y - origin.y] };
     record.data = data;
   }
   return { [MARKER]: VERSION, records };

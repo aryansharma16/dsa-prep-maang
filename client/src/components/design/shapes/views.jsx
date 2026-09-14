@@ -3,6 +3,8 @@ import { outlineToPath, strokeOutline } from '../../../design/draw/freehand.js';
 import { FONT_SIZES, PEN_SIZES, STROKE_WIDTHS } from '../../../design/shapes/shapes.js';
 import { stickyFontSize } from '../../../design/text/measure.js';
 import { ChatMarkdown } from '../../chat/ChatMarkdown.jsx';
+import { SqlTableView, StructureView, TechView } from '../library/LibraryViews.jsx';
+import { DbTableView } from '../schema/DbTableView.jsx';
 
 /**
  * How each element type is drawn, given its record.
@@ -165,4 +167,8 @@ export const VIEWS = {
   paragraph: ParagraphView,
   sticky: StickyView,
   stroke: StrokeView,
+  tech: TechView,
+  structure: StructureView,
+  sqltable: SqlTableView,
+  dbtable: DbTableView,
 };

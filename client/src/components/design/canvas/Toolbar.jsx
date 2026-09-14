@@ -9,6 +9,7 @@ import {
   IconFrame,
   IconHand,
   IconHighlighter,
+  IconLibrary,
   IconParagraph,
   IconPen,
   IconRect,
@@ -71,6 +72,7 @@ export function Toolbar() {
   const tool = useUi((s) => s.tool);
   const locked = useUi((s) => s.toolLocked);
   const readOnly = useUi((s) => s.readOnly);
+  const libraryOpen = useUi((s) => s.libraryOpen);
   const [lastShape, setLastShape] = useState('rect');
   const [lastDraw, setLastDraw] = useState('pen');
   const [lastWrite, setLastWrite] = useState('text');
@@ -127,6 +129,16 @@ export function Toolbar() {
       <Group items={DRAW} last={lastDraw} tool={tool} open={flyout === 'draw'} onToggle={() => setFlyout(flyout === 'draw' ? null : 'draw')} onPick={pick} label="Draw" />
       <Group items={WRITE} last={lastWrite} tool={tool} open={flyout === 'write'} onToggle={() => setFlyout(flyout === 'write' ? null : 'write')} onPick={pick} label="Text" />
       {button('sticky', 'Sticky note', IconSticky)}
+      <button
+        type="button"
+        className={`sd-tool ${libraryOpen ? 'on' : ''}`}
+        onClick={() => editor.runAction('library')}
+        title={`Components — tech, data structures, SQL tables (${shortcutFor('library')})`}
+        aria-label="Component library"
+        aria-pressed={libraryOpen}
+      >
+        <IconLibrary size={18} />
+      </button>
       <span className="sd-tool-sep" />
       <button
         type="button"

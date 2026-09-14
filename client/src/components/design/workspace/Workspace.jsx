@@ -89,9 +89,12 @@ export function Workspace() {
     if (target) navigate(`/design/${projectId}/${target.id}`, { replace: true });
   }, [data, boardId, byId, tree, projectId, navigate]);
 
-  // Remember it, and make sure its folders are open.
+  // Remember it, and make sure its folders are open — once per board opened, so a folder on the
+  // path can still be collapsed afterwards.
+  const revealed = useRef(null);
   useEffect(() => {
-    if (!node) return;
+    if (!node || revealed.current === node.id) return;
+    revealed.current = node.id;
     try {
       localStorage.setItem(`sd-last:${projectId}`, node.id);
     } catch {
@@ -100,6 +103,17 @@ export function Workspace() {
     const closed = pathTo(byId, node.id).filter((n) => n.kind === 'folder' && !expanded.has(n.id));
     if (closed.length) setExpanded(new Set([...expanded, ...closed.map((n) => n.id)]));
   }, [node, byId, expanded, projectId, setExpanded]);
+
+  // ⌘\ / Ctrl+\ shows and hides the explorer, as the top bar's tooltip promises.
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key !== '\\' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+      event.preventDefault();
+      setExplorerOpen((open) => !open);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [setExplorerOpen]);
 
   useEffect(() => {
     if (data?.project) document.title = `${node ? `${node.name} · ` : ''}${data.project.name} · System Design`;

@@ -85,6 +85,9 @@ export const ELEMENT_TYPES = Object.freeze([
   'stroke',
   // Phase 2
   'dbtable',
+  // Component library (pulled forward from Phase 3)
+  'structure',
+  'sqltable',
   // Phase 3
   'group',
   'image',

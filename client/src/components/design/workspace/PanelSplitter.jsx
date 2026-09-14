@@ -41,8 +41,9 @@ export function PanelSplitter({ value, min, max, onChange, onCollapse, side = 'r
 
   const onKeyDown = (event) => {
     const step = event.shiftKey ? 40 : 10;
-    if (event.key === 'ArrowLeft') onChange(Math.max(min, value - step * sign));
-    else if (event.key === 'ArrowRight') onChange(Math.min(max, value + step * sign));
+    const clamp = (v) => Math.min(max, Math.max(min, v));
+    if (event.key === 'ArrowLeft') onChange(clamp(value - step * sign));
+    else if (event.key === 'ArrowRight') onChange(clamp(value + step * sign));
     else return;
     event.preventDefault();
   };

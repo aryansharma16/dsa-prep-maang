@@ -259,8 +259,24 @@ test('a stale tab gets the other writes back, and delta sync agrees', async () =
   assert.equal(board.body.board.elementCount, 4);
 });
 
-test('concurrent saves to one board serialise into distinct revs', async () => {
+test('a board load lists recent batch ids, and a contested element comes back merged', async () => {
   const start = (await admin.get(`/design/boards/${boardId}`)).body.board.rev;
+  const mine = batch(start, [rect('contest1', { x: 1, color: 'green' })]);
+  await admin.post(`/design/boards/${boardId}/ops`, mine);
+  const loaded = await admin.get(`/design/boards/${boardId}`);
+  assert.ok(loaded.body.board.recentBatches.includes(mine.batchId), 'a reopening client can tell its save landed');
+
+  // Another device recolours it; this tab, still at the old rev, moves it.
+  await admin.post(`/design/boards/${boardId}/ops`, batch(start + 1, [{ op: 'patch', eid: 'contest1', set: { color: 'red' } }], { clientId: 'phone' }));
+  const r = await admin.post(`/design/boards/${boardId}/ops`, batch(start + 1, [{ op: 'patch', eid: 'contest1', set: { y: 50 } }]));
+  const back = r.body.changes.find((c) => c.eid === 'contest1');
+  assert.ok(back, 'the element this batch touched, which someone else also changed, is returned');
+  assert.deepEqual([back.data.color, back.data.y, back.rev], ['red', 50, r.body.rev]);
+});
+
+test('concurrent saves to one board serialise into distinct revs', async () => {
+  const before = (await admin.get(`/design/boards/${boardId}`)).body.board;
+  const start = before.rev;
   const results = await Promise.all(
     Array.from({ length: 12 }, (_, i) =>
       admin.post(`/design/boards/${boardId}/ops`, batch(start, [rect(`concur${String(i).padStart(2, '0')}`, { x: i * 10 })])),
@@ -270,7 +286,7 @@ test('concurrent saves to one board serialise into distinct revs', async () => {
   const revs = results.map((r) => r.body.rev).sort((a, b) => a - b);
   assert.deepEqual(revs, Array.from({ length: 12 }, (_, i) => start + i + 1));
   const board = await admin.get(`/design/boards/${boardId}`);
-  assert.equal(board.body.board.elementCount, 16);
+  assert.equal(board.body.board.elementCount, before.elementCount + 12);
 });
 
 test('conditional GET answers 304 until the board changes', async () => {
