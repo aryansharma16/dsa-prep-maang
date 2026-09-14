@@ -374,6 +374,7 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
       </div>
 
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
+      <ConfirmHost editor={editor} />
 
       {sourceConflict && (
         <ConfirmDialog
@@ -415,6 +416,30 @@ export function BoardEditor({ project, node, readOnly: projectReadOnly, onReady 
         />
       )}
     </EditorContext.Provider>
+  );
+}
+
+/** A question the board is waiting on (`ui.confirm`), such as "Delete table orders?". */
+function ConfirmHost({ editor }) {
+  const confirm = useUi((s) => s.confirm);
+  if (!confirm) return null;
+  const close = () => {
+    editor.ui.set({ confirm: null });
+    editor.dom?.viewport.focus({ preventScroll: true });
+  };
+  return (
+    <ConfirmDialog
+      title={confirm.title}
+      message={confirm.message}
+      detail={confirm.detail}
+      confirmLabel={confirm.confirmLabel || 'Delete'}
+      tone="danger"
+      onConfirm={() => {
+        close();
+        confirm.onConfirm();
+      }}
+      onCancel={close}
+    />
   );
 }
 

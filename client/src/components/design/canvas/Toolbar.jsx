@@ -180,7 +180,7 @@ function Group({ items, last, tool, open, onToggle, onPick, label }) {
       >
         <current.Icon size={18} />
       </button>
-      <button type="button" className="sd-tool-more" onClick={onToggle} aria-label={`More ${label.toLowerCase()} tools`} aria-expanded={open}>
+      <button type="button" className="sd-tool-more" onClick={onToggle} aria-label={`More ${label.toLowerCase()} tools`} aria-expanded={open} title={`More ${label.toLowerCase()} tools`}>
         <svg width="7" height="5" viewBox="0 0 7 5" aria-hidden="true">
           <path d="M.8 1l2.7 2.6L6.2 1" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>

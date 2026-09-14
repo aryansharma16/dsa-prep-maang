@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { analyzeDbml } from '../schema/analyze.js';
-import { autoArrange, relationEnds, relationPath, SCHEMA_METRICS, tableSize } from '../schema/layout.js';
+import { autoArrange, relationEnds, relationHighlight, relationPath, SCHEMA_METRICS, tableSize } from '../schema/layout.js';
 
 function randomSchema(seed, tables = 40) {
   let s = seed;
@@ -74,4 +74,37 @@ test('relation ends attach at column rows on facing sides, and paths are orthogo
       assert.ok(path[i][0] === path[i - 1][0] || path[i][1] === path[i - 1][1], `diagonal segment in ${JSON.stringify(path)}`);
     }
   }
+});
+
+test('relationHighlight lights the relations of the picked tables and the columns on both ends', () => {
+  const model = analyzeDbml(`
+Table users {
+  id int [pk]
+}
+Table orders {
+  id int [pk]
+  user_id int [ref: > users.id]
+}
+Table items {
+  id int [pk]
+  order_id int [ref: > orders.id]
+}
+Table notes {
+  id int [pk]
+}
+`);
+  const byOrders = relationHighlight(model, new Set(['public.orders']));
+  assert.equal(byOrders.relations.size, 2);
+  assert.deepEqual([...byOrders.tables.get('public.orders')].sort(), ['id', 'user_id']);
+  assert.deepEqual([...byOrders.tables.get('public.users')], ['id']);
+  assert.deepEqual([...byOrders.tables.get('public.items')], ['order_id']);
+  assert.ok(!byOrders.tables.has('public.notes'));
+
+  const lonely = relationHighlight(model, new Set(['public.notes']));
+  assert.equal(lonely.relations.size, 0);
+  assert.deepEqual([...lonely.tables.keys()], ['public.notes'], 'a table with no relations is still picked out');
+
+  const oneLine = relationHighlight(model, new Set(), model.relations[0].id);
+  assert.equal(oneLine.relations.size, 1);
+  assert.deepEqual([...oneLine.tables.keys()].sort(), ['public.orders', 'public.users']);
 });

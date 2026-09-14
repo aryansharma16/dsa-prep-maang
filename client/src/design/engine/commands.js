@@ -4,7 +4,9 @@ import { DEFAULT_SQL_TABLE_TEXT } from '../library/sqlTable.js';
 import { STRUCTURE_BY_ID } from '../library/structures.js';
 import { TECH_BY_ID } from '../library/tech.js';
 import { shapeFor } from '../shapes/registry.js';
+import { tableDeletionSummary } from '../schema/assist.js';
 import { instantiate, serializeSelection } from './clipboard.js';
+import { shortcutFor } from './shortcuts.js';
 
 /**
  * Everything the board can be asked to do by name — from a shortcut, the
@@ -160,10 +162,24 @@ export function createCommands(editor) {
     return true;
   }
 
-  function remove() {
+  /** `{ confirmed: true }` skips the question tables get first (cut passes it: the tables are on the clipboard). */
+  function remove(options) {
     const ids = unlocked(topSelection());
     if (!ids.length) return false;
     const tableKeys = ids.map((id) => store.get(id)).filter((r) => r?.type === 'dbtable').map((r) => r.data.name);
+    if (tableKeys.length && editor.schema && !options?.confirmed) {
+      // Deleting a table takes its relations and other tables' references with it: ask first.
+      const undo = shortcutFor('undo');
+      ui.set({
+        confirm: {
+          ...tableDeletionSummary(editor.schema.getModel(), tableKeys),
+          detail: `Undo (${undo}) brings it all back.`,
+          confirmLabel: tableKeys.length === 1 ? 'Delete table' : 'Delete tables',
+          onConfirm: () => remove({ confirmed: true }),
+        },
+      });
+      return true;
+    }
     if (tableKeys.length && editor.schema) {
       editor.schema.deleteTables(tableKeys);
       const rest = ids.filter((id) => store.get(id)?.type !== 'dbtable');

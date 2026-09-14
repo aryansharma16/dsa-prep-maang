@@ -140,6 +140,30 @@ export function replaceColumn(source, key, columnName, line) {
   return applyEdits(source, [{ start: column.span.start, end: column.span.end, text: line }]);
 }
 
+/**
+ * Sets a table's header colour (`[headercolor: #3b82f6]`, as dbdiagram writes it), or removes it
+ * with `null`. The table's other settings (its note) stay as they were.
+ */
+export function setTableColor(source, key, color) {
+  const table = findTable(parseDbml(source), key);
+  if (!table) return source;
+  const value = color ? `headercolor: ${color}` : null;
+  if (table.settingsSpan) {
+    const others = table.settings.filter((s) => s.key !== 'headercolor').map((s) => source.slice(s.span.start, s.span.end));
+    const parts = value ? [...others, value] : others;
+    if (parts.length) return applyEdits(source, [{ start: table.settingsSpan.start, end: table.settingsSpan.end, text: `[${parts.join(', ')}]` }]);
+    // Nothing left: the brackets and the space before them go.
+    const start = source[table.settingsSpan.start - 1] === ' ' ? table.settingsSpan.start - 1 : table.settingsSpan.start;
+    return applyEdits(source, [{ start, end: table.settingsSpan.end, text: '' }]);
+  }
+  if (!value) return source;
+  // After the name (and any alias), before the brace.
+  let at = source.indexOf('{', table.nameSpan.end);
+  if (at < 0) return source;
+  while (at > table.nameSpan.end && /\s/.test(source[at - 1])) at -= 1;
+  return applyEdits(source, [{ start: at, end: at, text: ` [${value}]` }]);
+}
+
 /** Appends a new table block. */
 export function addTable(source, name, columns = ['id bigint [pk, increment]']) {
   const block = `Table ${quoteName(name)} {\n${columns.map((c) => `  ${c}`).join('\n')}\n}\n`;

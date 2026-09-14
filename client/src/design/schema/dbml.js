@@ -501,6 +501,8 @@ export function parseDbml(source) {
       alias: null,
       headerColor: null,
       note: null,
+      settingsSpan: null, // the [ … ] after the name, and each setting in it — for editing one without retyping the rest
+      settings: [],
       columns: [],
       indexes: [],
       span: null,
@@ -511,7 +513,10 @@ export function parseDbml(source) {
       result.alias = name('an alias').value;
     }
     if (at('punct', '[')) {
-      for (const entry of settings().list) {
+      const s = settings();
+      result.settingsSpan = s.span;
+      result.settings = s.list.map((entry) => ({ key: entry.key, span: entry.span }));
+      for (const entry of s.list) {
         if (entry.key === 'headercolor') result.headerColor = entry.value?.value ?? null;
         else if (entry.key === 'note') result.note = entry.value?.value ?? null;
         else error(`Unknown table setting "${entry.key}"`, entry.span.start, entry.span.end, 'warning');

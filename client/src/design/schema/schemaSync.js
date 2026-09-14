@@ -2,7 +2,7 @@ import { analyzeDbml, tableKey } from './analyze.js';
 import * as edits from './edits.js';
 import { distToPolyline } from '../core/geometry.js';
 import { autoArrange, relationEnds, relationPath, tableSize } from './layout.js';
-import { placeNewTables, reconcileTables } from './reconcile.js';
+import { freeSpot, placeNewTables, reconcileTables } from './reconcile.js';
 import { sqlToDbml } from './sqlImport.js';
 
 /**
@@ -236,17 +236,27 @@ export function createSchemaSync(editor) {
       const size = tableSize(table);
       const view = editor.visibleWorld();
       const point = at || { x: (view.minX + view.maxX) / 2, y: (view.minY + view.maxY) / 2 };
+      const corner = { x: Math.round(point.x - size.w / 2), y: Math.round(point.y - size.h / 2) };
+      // A double-click puts it where you clicked; the button finds room near the middle of the view.
+      const spot = at ? corner : freeSpot(tables().map((r) => ({ x: r.data.x || 0, y: r.data.y || 0, w: r.data.w || 180, h: r.data.h || 64 })), size, corner);
       let id = null;
       commitText('Add table', next, (tx) => {
-        const record = editor.newRecord('dbtable', { name: key, x: Math.round(point.x - size.w / 2), y: Math.round(point.y - size.h / 2), w: size.w, h: size.h }, { parent: null, tx });
+        const record = editor.newRecord('dbtable', { name: key, x: spot.x, y: spot.y, w: size.w, h: size.h }, { parent: null, tx });
         tx.create(record);
         id = record.id;
       });
-      if (id) editor.select([id]);
+      if (id) {
+        editor.select([id]);
+        ui.set({ schemaNewTable: key });
+      }
       return key;
     },
 
+    /** `merge` folds a run of changes (dragging in a colour picker) into one undo step. */
+    setTableColor: (key, color, merge = false) => commitText('Table colour', edits.setTableColor(text, key, color), null, merge ? { mergeKey: `table-color:${key}` } : undefined),
     addColumn: (key, line) => commitText('Add column', edits.addColumn(text, key, line)),
+    /** Several column lines as one undo step (the inspector's "timestamps" adds two). */
+    addColumns: (key, lines) => commitText(lines.length === 1 ? 'Add column' : 'Add columns', lines.reduce((src, line) => edits.addColumn(src, key, line), text)),
     replaceColumn: (key, column, line) => commitText('Edit column', edits.replaceColumn(text, key, column, line)),
     removeColumn: (key, column) => commitText('Delete column', edits.removeColumn(text, key, column)),
     renameColumn: (key, column, name) => commitText('Rename column', edits.renameColumn(text, key, column, name)),
@@ -267,6 +277,11 @@ export function createSchemaSync(editor) {
           if (p) tx.update(element.id, { data: { x: Math.round(origin.x + p.x), y: Math.round(origin.y + p.y) } });
         }
       });
+    },
+
+    /** Adds a block of DBML after what is there (the example schema), as one undo step. */
+    appendText(label, block) {
+      return commitText(label, text.trim() ? `${text.replace(/\s*$/, '')}\n\n${block}` : block);
     },
 
     /** SQL DDL in; `replace` swaps the whole text, otherwise it is appended. Returns the importer's warnings. */

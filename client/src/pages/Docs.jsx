@@ -1518,6 +1518,44 @@ export function Docs() {
                     show which way traffic runs; the pause button in the top bar freezes every flow.
                   </p>
 
+                  <h3>Schema boards</h3>
+                  <p>
+                    A schema board is a database drawn the way dbdiagram draws it: DBML text on the left,
+                    tables on the right, and changing either changes both. You do not need to know DBML
+                    to use one — select a table and build it in the panel on the right.
+                  </p>
+                  <ul className="docs-list">
+                    <li>
+                      <b>Column types</b> come from a list that says what each is for — <code>bigint</code>{' '}
+                      for ids, <code>decimal</code> for money, <code>timestamptz</code> for when something
+                      happened. You can still type any type, like <code>varchar(100)</code>.
+                    </li>
+                    <li>
+                      <b>Type a column name and press Enter.</b> The type is guessed from the name:{' '}
+                      <code>user_id</code> next to a <code>users</code> table becomes a foreign key by
+                      itself, <code>created_at</code> a timestamp that fills in on insert.
+                    </li>
+                    <li>
+                      <b>One click</b> adds an id, timestamps, a soft-delete column or an email; &ldquo;Link to
+                      table&rdquo; adds a foreign key. The arrow beside a column opens its default,
+                      auto-increment, reference and note.
+                    </li>
+                    <li>
+                      <b>Rest the pointer</b> on a column, a relation line or any word in the text to see
+                      what it means. An empty board can start from an example schema to learn from.
+                    </li>
+                    <li>
+                      <b>Click a table</b> to see what it is connected to: its relations light up with
+                      moving dots, the joined columns are highlighted and every other line fades. The
+                      same works for arrows on a canvas board. Give a table its own header colour from
+                      the panel.
+                    </li>
+                    <li>
+                      Deleting a table, a column or a relation <b>asks first</b> and says what goes with
+                      it — and undo still brings it back.
+                    </li>
+                  </ul>
+
                   <h3>Saving</h3>
                   <p>
                     There is no save button. Every change goes to the server within a second or two

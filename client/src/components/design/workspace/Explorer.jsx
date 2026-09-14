@@ -405,6 +405,7 @@ export function Explorer({
                       tabIndex={-1}
                       className="sd-icon-btn sm"
                       aria-label={`Add to ${node.name}`}
+                      title={`Add to ${node.name} — A canvas board, a schema board or a folder`}
                       onClick={(event) => {
                         event.stopPropagation();
                         setMenu({ anchor: event.currentTarget, items: createItems(node.id) });
@@ -418,6 +419,7 @@ export function Explorer({
                     tabIndex={-1}
                     className="sd-icon-btn sm"
                     aria-label={`Actions for ${node.name}`}
+                    title="Rename, duplicate, copy link, delete"
                     onClick={(event) => {
                       event.stopPropagation();
                       setMenu({ anchor: event.currentTarget, items: nodeItems(node) });

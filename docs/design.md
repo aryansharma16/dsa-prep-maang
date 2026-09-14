@@ -129,6 +129,38 @@ thrashing, crow's-foot relations, inspector column grid, auto-arrange, Postgres/
 export, SQL import, SQL Lab (SQLite in the browser, foreign keys enforced), three-way merge of
 concurrent text saves.
 
+**Building a schema without writing DBML** (`schema/assist.js`, pure and tested): the inspector's
+column grid has a type picker — a combobox over the usual types, grouped, each with a line on what
+it is for, the schema's own enums first, searchable by description ("money" finds `decimal`),
+free text still allowed and half-typed types refused. Types follow the dialect: PostgreSQL by
+default, MySQL's when `Project { database_type: 'MySQL' }`. Typing a new column's name guesses its
+type and settings (`user_id` → the key type of `users` plus `ref: > users.id`, `created_at` →
+`timestamptz [not null, default: now()]`, `status` → a matching enum); Enter adds it and keeps the
+field for the next. Each row opens to default (with suggestions per type), auto-increment,
+reference and note. One-click columns (id, uuid id, timestamps, deleted_at, email, name, status,
+is_active), "Link to table" adds a foreign key to another table's key, a new table's name field is
+focused with Enter moving on to its first column, "Add table" finds free space instead of stacking
+tables, and an empty board offers an example schema (users, products, orders, order items).
+
+**Seeing and changing connections**: selecting a table lights up its relations (blue, with dots
+running from the referencing column to the referenced one), outlines the tables at their other ends,
+highlights the joined columns in both, and fades every other line; hovering a table does the same
+without the fade, and so does the table under the DBML caret (`relationHighlight` in `layout.js`,
+shared per UI change by `schemaHighlight` in `useSchema.js`). On canvas boards the overlay does the
+equivalent for arrows: a selected (or, with nothing selected, hovered) element's connectors run dots
+and the elements at their other ends get a dashed outline. A table's header colour is a swatch or a
+custom colour (`ui/ColorPopover.jsx`, positioned in the viewport — the native colour input opened off
+screen) written as `[headercolor: #hex]` (`edits.setTableColor`, keeping the table's other settings;
+a drag is one undo step). Deleting a table (button, Delete key, context menu), a column or a relation
+asks first, saying what goes with it (`ui.confirm`, shown by `BoardEditor`); cut does not ask. The
+relation kind, "References" and "Link to table" choices are `ui/PickList.jsx` lists in which every
+option says what it does.
+
+**Hover explains things**: every `title` in the workspace shows as a quick tooltip with its
+shortcut (`ui/Tooltips.jsx`); on a schema board, resting on a column, table header or relation line
+describes it (type meaning, keys, default, references both ways, note), and resting on a word in the
+DBML text explains the keyword, setting, type or operator — or shows the error under a squiggle.
+
 Not yet: dragging from a column to another to create a relation (relations come from the text
 or the inspector), TableGroup rendering behind tables, enum lists on the diagram, virtualised
 editor lines for very large schemas.
@@ -200,7 +232,7 @@ client/src/
   pages/DesignHome.jsx  pages/DesignWorkspace.jsx
   styles/design.css             everything, scoped under .sd-*
   design/
-    core/       ids.js  fractional.js  geometry.js  simplify.js  time.js  spatial.js (grid index)
+    core/       ids.js  fractional.js  geometry.js  simplify.js  time.js  spatial.js (grid index)  color.js (hex ⇄ HSV)
     tree/       tree.js                    explorer tree helpers + resolveDrop
     engine/
       store.js       records, transactions, gestures, subscriptions
@@ -224,17 +256,24 @@ client/src/
                 structures.js (data-structure block layouts)
     schema/     dbml.js (parser)  analyze.js (resolution, relations)  ddl.js (Postgres/MySQL/SQLite)
                 sqlImport.js (DDL → DBML)  layout.js (table sizes, relation paths, auto-arrange)
+                reconcile.js (positions follow the text, freeSpot)  assist.js (type catalogue, column
+                guesses, presets, defaults, DBML word docs, example schema)
     __tests__/  fractional geometry tree engine route spatial structures dbml ddl sqlImport
-                schemaLayout sync
+                schemaLayout schemaAssist sync
   components/design/
     icons.jsx                   design-only glyphs
     ui/ActionMenu.jsx           portalled menu (cards, tree, canvas context menu)
+    ui/Tooltips.jsx             TooltipLayer (every [title] in the workspace) + useTip for canvas/text hovers
+    ui/PickList.jsx             dropdown whose options carry descriptions (native <select> cannot)
+    ui/ColorPopover.jsx         saturation square + hue strip + hex, kept on screen
     home/  ProjectCard  ProjectModal  TrashModal
     workspace/  Workspace  TopBar (+ useEditorChrome)  Explorer  PanelSplitter
     canvas/  BoardEditor  Canvas  ElementHost(+ElementList)  OverlayLayer  TextEditor
              DraftStroke  Toolbar  ZoomControls  CanvasContextMenu  ShortcutsDialog  hooks.js
     shapes/  views.jsx  ConnectorView.jsx
     inspector/Inspector.jsx
+    schema/  SchemaPanel  DbmlEditor (hover explanations)  SchemaInspector (column grid, add, quick add)
+             TypeInput (type combobox)  SchemaHoverTips (canvas hovers)  DbTableView  SchemaRelations  SqlLabDrawer
     library/glyphs.jsx          generic tech glyphs (24-unit, currentColor)
 client/scripts/build-brand-icons.mjs   regenerates brandPaths.generated.js from simple-icons
 client/public/fonts/inter-latin-var.woff2 (+ Inter-LICENSE.txt, OFL)   the canvas font
@@ -470,15 +509,17 @@ Arrange: arrows (⇧ ×10) · ⌘] ⌘[ · ] [ · ⌘⌥G frame · ⌘⇧G unfra
 `client/src/styles/design.css`, imported by the two pages so it lives in the lazy chunk.
 **Every rule is scoped under `.sd-*`** because the sheet stays loaded after leaving the module.
 Panels use opaque tokens; selection uses `--focus`, active tool `--accent`; no
-`backdrop-filter` (app-wide rule). Canvas text uses the self-hosted Inter (`SD Inter`) so text
+`backdrop-filter` (app-wide rule). Tooltips are `.sd-tip`, above dialogs (z-index 400). Canvas text uses the self-hosted Inter (`SD Inter`) so text
 measures the same on every OS.
 
 ## Verifying it
 
 ```bash
-cd client && npm test          # 56 tests: fractional keys, geometry, camera, tree, store, history, diff, queue,
+cd client && npm test          # 88 tests: fractional keys, geometry, camera, tree, store, history, diff, queue,
                                # routing, spatial index, autosave retries + restore plans, structure layouts,
-                               # DBML parser/analyzer, DDL export (SQLite run in sql.js), SQL import, schema layout
+                               # DBML parser/analyzer, DDL export (SQLite run in sql.js), SQL import, schema layout,
+                               # schema assist (every suggested type parses, guesses, presets, defaults round-trip),
+                               # relation highlight, table colour edits, colour conversions
 cd server && npm test          # 21 tests: fractional keys, op folding, validation, tree helpers
 cd server && npm i --no-save mongodb-memory-server@10
 cd server/scripts/design/e2e && node --test design-api.test.mjs   # 19 end-to-end API checks
@@ -536,6 +577,13 @@ performance.
 12. **A batch id is for life** (`sync/autosave.js`): never re-send ops that may have landed under a
     new id; hold the batch and retry it as is.
 13. Keep this file, the README section and the in-app guide in step with the code.
+14. **Say what a control is with `title`** (`"Label (shortcut)"` or `"Label — what it does"`); the
+    workspace's `TooltipLayer` turns it into the styled tip. Anything that is not a DOM element under the
+    pointer (a canvas row, a word in a textarea) uses `useTip`. Never hand-roll another tooltip.
+15. **Choices that need explaining use `PickList`, colours use `ColorPopover`**, not `<select>` or
+    `<input type="color">`: the native ones cannot describe an option, ignore the board's theme, and the
+    colour popup opens wherever the OS puts it. Deletes that take other things with them ask through
+    `ui.confirm`.
 
 ## Future phases in detail
 

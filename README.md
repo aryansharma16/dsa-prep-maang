@@ -35,7 +35,7 @@ the sign-in page as well as from the sidebar.
 | **Revision** | A spaced-repetition queue on a 3/7/21/60-day ladder, across all four curriculums. Every row carries its real dates — when it is due and every review still owed after it — reviews are answered with four buttons that each say what date they would book, and a hand-raised flag carries a reason and a line saying what you meant by it |
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
-| **System Design** | *In development, super admin only.* A whiteboard for designing systems: projects hold nested folders, folders hold boards. Canvas boards have frames, boxes, ellipses, diamonds, cylinders, connectors that attach to shapes or to other connectors' lines, route around shapes and can animate traffic, text, markdown paragraphs, sticky notes, a pressure-shaped pen, highlighter and eraser — with snapping, undo, copy/paste across boards and continuous autosave that survives going offline. Schema boards (DBML ⇄ diagram), rich components and scale/bottleneck analysis are the next phases — see [System Design](#system-design) |
+| **System Design** | *In development, super admin only.* A whiteboard for designing systems: projects hold nested folders, folders hold boards. Canvas boards have frames, boxes, ellipses, diamonds, cylinders, connectors that attach to shapes or to other connectors' lines, route around shapes and can animate traffic, text, markdown paragraphs, sticky notes, a pressure-shaped pen, highlighter and eraser — with snapping, undo, copy/paste across boards and continuous autosave that survives going offline. Schema boards keep DBML text and the diagram in sync, with a type picker, column types guessed from names, one-click common columns and hover explanations for every column, relation and DBML word. Rich components and scale/bottleneck analysis are the next phases — see [System Design](#system-design) |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
@@ -1777,6 +1777,16 @@ for whoever works on it next — is **[docs/design.md](docs/design.md)**.
 The shape of it: `/design` lists your projects (with optional starter HLD / LLD / Database
 folders); opening one takes the whole window — an explorer tree on the left, the board in the
 middle, properties on the right, tools floating at the bottom, like Figma or FigJam.
+
+**Schema boards** are dbdiagram-style: DBML on the left, tables on the right, either side editable.
+Building a table without knowing DBML is meant to be quick: pick a column's type from a list that
+says what each type is for, or type a name and let the type be guessed — `user_id` next to a `users`
+table becomes a foreign key by itself, `created_at` a timestamp with `now()`. Common columns are one
+click, "Link to table" adds a foreign key, and an empty board can start from an example. Resting the
+pointer on a column, a relation line or a word in the DBML says what it means. Selecting a table
+lights up its relations and the columns they join and fades the rest (arrows do the same for shapes
+on canvas boards); tables take a header colour, and deleting a table, column or relation asks first. The rules behind the
+guesses live in `client/src/design/schema/assist.js`.
 
 Why it is built the way it is, briefly:
 

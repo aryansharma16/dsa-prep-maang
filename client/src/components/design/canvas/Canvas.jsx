@@ -6,6 +6,7 @@ import { useEditor, useUi } from './hooks.js';
 import { OverlayLayer } from './OverlayLayer.jsx';
 import { TextEditor } from './TextEditor.jsx';
 import { COMPONENT_MIME } from '../library/LibraryPanel.jsx';
+import { SchemaHoverTips } from '../schema/SchemaHoverTips.jsx';
 import { SchemaRelations } from '../schema/SchemaRelations.jsx';
 
 /**
@@ -70,6 +71,7 @@ export function Canvas() {
           <DraftStroke />
         </div>
         <OverlayLayer />
+        {editor.boardKind === 'schema' && <SchemaHoverTips />}
       </div>
     </div>
   );
@@ -99,7 +101,8 @@ function useClipboard(editor) {
     const onCut = (event) => {
       if (!active(event) || editor.ui.get().readOnly) return;
       onCopy(event);
-      editor.runAction('delete');
+      // What was cut is on the clipboard, so no "are you sure".
+      editor.runAction('delete', { confirmed: true });
     };
 
     const onPaste = (event) => {

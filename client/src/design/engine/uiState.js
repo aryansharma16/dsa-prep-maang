@@ -33,6 +33,8 @@ export const INITIAL_UI = Object.freeze({
   schemaFocus: null, // { table, column } under the DBML editor's caret
   schemaReveal: null, // a text span the DBML editor should select and scroll to
   schemaRelation: null, // id of the relation line selected on a schema board
+  schemaNewTable: null, // key of a table just added, whose name field the inspector focuses once
+  confirm: null, // { title, message, detail, confirmLabel, onConfirm } — a question the board is waiting on (BoardEditor shows it)
   toolStyle: Object.freeze({}), // last-used style per tool, applied to new elements
 });
 

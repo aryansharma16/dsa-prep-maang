@@ -2,6 +2,7 @@ import { memo, useMemo, useRef, useState } from 'react';
 import { shapeFor } from '../../../design/shapes/registry.js';
 import { COLORS, STICKY_COLORS } from '../../../design/shapes/shapes.js';
 import { TECH, TECH_BY_ID, TECH_CATEGORIES } from '../../../design/library/tech.js';
+import { EXAMPLE_SCHEMA } from '../../../design/schema/assist.js';
 import { shortcutFor } from '../../../design/engine/shortcuts.js';
 import { measureTextBox } from '../../../design/text/measure.js';
 import { useLocalState } from '../../../hooks/useLocalState.js';
@@ -25,6 +26,7 @@ import {
 import { shallowArray, useEditor, useStoreValue, useUi } from '../canvas/hooks.js';
 import { PanelSplitter } from '../workspace/PanelSplitter.jsx';
 import { RelationInspector, SchemaInspector } from '../schema/SchemaInspector.jsx';
+import { useSchemaModel } from '../schema/useSchema.js';
 
 /**
  * The panel on the right: what is selected, and everything about it you can change.
@@ -56,7 +58,8 @@ export const Inspector = memo(function Inspector({ node }) {
   const editor = useEditor();
   const selection = useUi((s) => s.selection, shallowArray);
   const readOnly = useUi((s) => s.readOnly);
-  const [width, setWidth] = useLocalState('sd-inspector-w', 272);
+  // A schema table's column grid needs more room than shape styles, so schema boards remember their own width.
+  const [width, setWidth] = useLocalState(node.boardKind === 'schema' ? 'sd-inspector-w-schema' : 'sd-inspector-w', node.boardKind === 'schema' ? 320 : 272);
   const [open, setOpen] = useLocalState('sd-inspector-open', true);
 
   const records = useStoreValue(
@@ -107,6 +110,36 @@ function SchemaRelationSection() {
   return relationId ? <RelationInspector relationId={relationId} /> : null;
 }
 
+function SchemaBoardHelp() {
+  const editor = useEditor();
+  const model = useSchemaModel();
+  const readOnly = useUi((s) => s.readOnly);
+  return (
+    <section className="sd-section-block">
+      <h5>Schema board</h5>
+      <ul className="sd-tips">
+        <li>Write DBML on the left — tables appear here as you type</li>
+        <li>Select a table to edit it here: pick column types from a list, type a column name and its type is guessed</li>
+        <li>
+          <kbd>user_id</kbd> in a table next to <kbd>users</kbd> links the two by itself
+        </li>
+        <li>Hover a word in the text, a column or a relation line to see what it means</li>
+        <li>Double-click a table to jump to its text; double-click empty space to add a table</li>
+      </ul>
+      {!readOnly && !model.tables.length && (
+        <div className="sd-button-row sd-help-actions">
+          <button type="button" className="btn primary sm" onClick={() => editor.schema?.addTable()}>
+            Add a table
+          </button>
+          <button type="button" className="btn ghost sm" onClick={() => editor.schema?.appendText('Start from example', EXAMPLE_SCHEMA)} title="Example — Users, products, orders and order items, with keys, an enum and references">
+            Start from an example
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function BoardInfo({ node }) {
   const editor = useEditor();
   // A schema board's text is a record too; it is not an element anyone placed.
@@ -126,17 +159,7 @@ function BoardInfo({ node }) {
         </div>
       </section>
       {node.boardKind === 'schema' ? (
-        <section className="sd-section-block">
-          <h5>Schema board</h5>
-          <ul className="sd-tips">
-            <li>Write DBML on the left — tables appear here as you type</li>
-            <li>
-              <kbd>Ref: orders.user_id &gt; users.id</kbd> draws a relation
-            </li>
-            <li>Double-click a table to jump to its text; double-click empty space to add a table</li>
-            <li>Import SQL, export DDL, or try the schema in SQL Lab from the panel</li>
-          </ul>
-        </section>
+        <SchemaBoardHelp />
       ) : (
       <section className="sd-section-block">
         <h5>Get started</h5>

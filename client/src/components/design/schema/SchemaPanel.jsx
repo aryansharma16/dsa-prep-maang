@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { describeToken, EXAMPLE_SCHEMA } from '../../../design/schema/assist.js';
 import { toDdl } from '../../../design/schema/ddl.js';
 import { useLocalState } from '../../../hooks/useLocalState.js';
 import { Modal } from '../../ui/Modal.jsx';
@@ -64,12 +65,13 @@ export function SchemaPanel({ boardName }) {
   }, [reveal, open, setOpen, editor]);
 
   const problems = useMemo(() => model.diagnostics.filter((d) => d.severity === 'error'), [model]);
+  const explain = useCallback((kind, word) => describeToken(kind, word, model), [model]);
   const warnings = model.diagnostics.length - problems.length;
   const slug = (boardName || 'schema').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'schema';
 
   if (!open) {
     return (
-      <button type="button" className="sd-schema-reopen" onClick={() => setOpen(true)} title="Show the DBML text" aria-label="Show the DBML text" data-sd-control>
+      <button type="button" className="sd-schema-reopen" onClick={() => setOpen(true)} title="Show the DBML text — The schema as text, synced with the diagram" aria-label="Show the DBML text" data-sd-control>
         DBML
       </button>
     );
@@ -87,14 +89,22 @@ export function SchemaPanel({ boardName }) {
           </div>
           <div className="sd-schema-actions">
             {!readOnly && (
-              <button type="button" className="btn ghost sm" onClick={() => setImporting(true)}>
+              <button type="button" className="btn ghost sm" onClick={() => setImporting(true)} title="Import SQL — Paste CREATE TABLE statements from PostgreSQL or MySQL and get DBML">
                 Import SQL
               </button>
             )}
-            <button ref={exportRef} type="button" className="btn ghost sm" aria-haspopup="menu" aria-expanded={exportMenu} onClick={() => setExportMenu((v) => !v)}>
+            <button
+              ref={exportRef}
+              type="button"
+              className="btn ghost sm"
+              aria-haspopup="menu"
+              aria-expanded={exportMenu}
+              onClick={() => setExportMenu((v) => !v)}
+              title="Export — Copy or download the DBML, or SQL for PostgreSQL, MySQL or SQLite"
+            >
               Export
             </button>
-            <button type="button" className={`btn ${lab ? 'primary' : 'ghost'} sm`} onClick={() => setLab((v) => !v)} title="Run this schema in SQLite and query it">
+            <button type="button" className={`btn ${lab ? 'primary' : 'ghost'} sm`} onClick={() => setLab((v) => !v)} title="SQL Lab — Create this schema in SQLite inside the browser and run queries against it. Nothing is sent anywhere">
               SQL Lab
             </button>
             <button type="button" className="sd-icon-btn" onClick={() => setOpen(false)} title="Hide the text" aria-label="Hide the text">
@@ -103,10 +113,27 @@ export function SchemaPanel({ boardName }) {
           </div>
         </div>
 
+        {!text.trim() && !readOnly && (
+          <div className="sd-schema-empty">
+            <p>
+              Write tables in DBML here, build them from the panel on the right, or start from something:
+            </p>
+            <div>
+              <button type="button" className="btn primary sm" onClick={() => schema.addTable()} title="Add table — A table with an id; name it and add columns in the panel on the right">
+                Add a table
+              </button>
+              <button type="button" className="btn ghost sm" onClick={() => schema.appendText('Start from example', EXAMPLE_SCHEMA)} title="Example — Users, products, orders and order items, with keys, an enum and references. Hover its words to learn DBML">
+                Start from an example
+              </button>
+            </div>
+          </div>
+        )}
+
         <DbmlEditor
           ref={editorRef}
           value={text}
           readOnly={readOnly}
+          explain={explain}
           diagnostics={model.diagnostics}
           onChange={(next) => schema.setText(next)}
           onCaret={(offset) => editor.ui.set({ schemaFocus: locate(model, offset) })}
@@ -122,10 +149,10 @@ export function SchemaPanel({ boardName }) {
           )}
           {!readOnly && (
             <span className="sd-schema-foot-actions">
-              <button type="button" className="link-btn" onClick={() => schema.addTable()}>
+              <button type="button" className="link-btn" onClick={() => schema.addTable()} title="Add table — In the middle of the view, ready to name. Double-clicking empty canvas adds one there">
                 Add table
               </button>
-              <button type="button" className="link-btn" onClick={() => schema.autoArrange()} disabled={!model.tables.length}>
+              <button type="button" className="link-btn" onClick={() => schema.autoArrange()} disabled={!model.tables.length} title="Auto-arrange — Lay the tables out in columns that follow their relations. Positions only; undo puts them back">
                 Auto-arrange
               </button>
             </span>

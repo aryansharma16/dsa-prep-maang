@@ -203,13 +203,13 @@ function SaveStatus({ save, onRetry }) {
   switch (save.state) {
     case 'saving':
       return (
-        <span className="sd-save saving" role="status">
+        <span className="sd-save saving" role="status" title="Saving — Changes go to the server a moment after you stop">
           <span className="sd-save-dot" /> Saving…
         </span>
       );
     case 'saved':
       return (
-        <span className="sd-save saved" role="status">
+        <span className="sd-save saved" role="status" title="Saved — Every change is saved automatically; there is no save button">
           Saved
         </span>
       );

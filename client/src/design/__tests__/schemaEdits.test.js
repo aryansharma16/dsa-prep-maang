@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { analyzeDbml } from '../schema/analyze.js';
-import { addColumn, addRelation, addTable, removeColumn, removeRelation, removeTable, renameColumn, renameTable, replaceColumn, setRelationOp } from '../schema/edits.js';
+import { addColumn, addRelation, addTable, removeColumn, removeRelation, removeTable, renameColumn, renameTable, replaceColumn, setRelationOp, setTableColor } from '../schema/edits.js';
 
 const SRC = `// shop
 Table users {
@@ -109,4 +109,20 @@ test('columnLine writes a parsed column back without losing anything', () => {
     assert.deepEqual(strip(reparsed), strip(column), line);
   }
   assert.equal(columnLine({ ...table.columns[1], unique: false, notNull: false }), 'n int [default: 0]');
+});
+
+test('setTableColor adds, changes and removes headercolor without touching other settings', () => {
+  const colored = setTableColor(SRC, 'public.users', '#3b82f6');
+  assert.ok(colored.includes('Table users [headercolor: #3b82f6] {'), colored);
+  assert.equal(clean(colored).byKey.get('public.users').headerColor, '#3b82f6');
+  const changed = setTableColor(colored, 'public.users', '#ef4444');
+  assert.ok(changed.includes('Table users [headercolor: #ef4444] {'));
+  assert.equal(setTableColor(changed, 'public.users', null), SRC, 'removing restores the text exactly');
+
+  const noted = "Table t as T [note: 'a, b'] {\n  id int\n}\n";
+  const both = setTableColor(noted, 'public.t', '#22c55e');
+  assert.ok(both.includes("Table t as T [note: 'a, b', headercolor: #22c55e] {"), both);
+  assert.equal(clean(both).byKey.get('public.t').note, 'a, b');
+  assert.equal(setTableColor(both, 'public.t', null), noted);
+  assert.equal(setTableColor(SRC, 'public.nope', '#000000'), SRC);
 });

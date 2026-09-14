@@ -8,7 +8,9 @@ import { useCamera, useEditor, useStoreValue, useUi } from './hooks.js';
 /**
  * Everything drawn *about* the board rather than *on* it: hover outlines, the
  * selection and its handles, the marquee, snap guides, where a drop or a
- * connector end would land.
+ * connector end would land — and what the selection is connected to: its
+ * arrows lit with running dots, and the things at their other ends outlined
+ * (the hovered thing's, when nothing is selected).
  *
  * In screen space, not world space, so a handle is 8px and a guide is 1px at
  * every zoom. It re-renders with the camera — which is cheap, because it only
@@ -30,6 +32,22 @@ export const OverlayLayer = memo(function OverlayLayer() {
   // Recomputed on any store change, so handles follow a drag.
   const version = useStoreValue((e) => e.store.version);
   const frame = useMemo(() => selectionFrame(editor), [editor, selection, version]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Arrows touching the selection (or the hovered thing), and what is at their other ends. Not per camera frame.
+  const links = useMemo(() => {
+    const active = new Set(selection.length ? selection : hovered && interaction === 'idle' ? [hovered] : []);
+    if (!active.size) return null;
+    const wires = [];
+    const nodes = new Set();
+    for (const record of editor.store.all()) {
+      if (record.type !== 'connector') continue;
+      const ends = [record.data.start?.eid, record.data.end?.eid];
+      if (!active.has(record.id) && !ends.some((eid) => eid && active.has(eid))) continue;
+      wires.push(record.id);
+      for (const eid of ends) if (eid && !active.has(eid) && editor.store.has(eid)) nodes.add(eid);
+    }
+    return wires.length ? { wires, nodes: [...nodes], selected: selection.length > 0 } : null;
+  }, [editor, selection, hovered, interaction, version]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { width, height } = editor.viewportRect;
   const toScreen = (x, y) => worldToScreen(camera, x, y);
@@ -54,6 +72,14 @@ export const OverlayLayer = memo(function OverlayLayer() {
 
   return (
     <svg className="sd-overlay" width={width} height={height} aria-hidden="true">
+      {links && interaction !== 'translating' && (
+        <g className={`sd-links ${links.selected ? 'selected' : ''}`}>
+          {links.wires.map((id) => outline(id, 'sd-link-wire'))}
+          {links.wires.map((id) => outline(id, 'sd-link-flow'))}
+          {links.nodes.map((id) => outline(id, 'sd-link-node'))}
+        </g>
+      )}
+
       {hovered && !selection.includes(hovered) && interaction === 'idle' && outline(hovered, 'sd-hover')}
 
       {dropTarget && outline(dropTarget, 'sd-drop')}

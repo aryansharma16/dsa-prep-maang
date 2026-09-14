@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { highlightDbml } from '../../../design/schema/highlight.js';
 import { applyIndent } from '../../../design/text/indent.js';
+import { useTip } from '../ui/Tooltips.jsx';
 
 /**
  * The DBML text on a schema board.
@@ -14,6 +15,11 @@ import { applyIndent } from '../../../design/text/indent.js';
  * in the gutter, with the message on hover), the caret reported to the board so
  * the diagram can highlight the table and column under it, and an imperative
  * `reveal(span)` so clicking a column in the diagram jumps to its line.
+ *
+ * Resting the pointer on a word says what it is — `explain(kind, word)` for a
+ * highlighted token (a keyword, a setting, a type, a relation operator) — and
+ * on underlined text, what is wrong with it. The glyphs are monospaced and
+ * never wrap, so the word under the pointer is plain arithmetic.
  */
 
 function segments(source, tokens, diagnostics) {
@@ -42,10 +48,33 @@ function segments(source, tokens, diagnostics) {
   return out;
 }
 
-export const DbmlEditor = forwardRef(function DbmlEditor({ value, onChange, onCaret, diagnostics = [], readOnly = false }, ref) {
+/** The last token starting at or before `offset` that contains it (tokens are in text order). */
+function tokenAt(tokens, offset) {
+  let lo = 0;
+  let hi = tokens.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (tokens[mid].start <= offset) lo = mid + 1;
+    else hi = mid - 1;
+  }
+  const token = tokens[hi];
+  return token && offset < token.end ? token : null;
+}
+
+let measureContext = null;
+function charWidth(el) {
+  const style = getComputedStyle(el);
+  measureContext ||= document.createElement('canvas').getContext('2d');
+  measureContext.font = `${style.fontSize} ${style.fontFamily}`;
+  return { width: measureContext.measureText('0').width, lineHeight: parseFloat(style.lineHeight) || 20, left: parseFloat(style.paddingLeft) || 0, top: parseFloat(style.paddingTop) || 0 };
+}
+
+export const DbmlEditor = forwardRef(function DbmlEditor({ value, onChange, onCaret, diagnostics = [], readOnly = false, explain }, ref) {
   const areaRef = useRef(null);
   const mirrorRef = useRef(null);
   const gutterRef = useRef(null);
+  const metrics = useRef(null);
+  const tips = useTip();
 
   const tokens = useMemo(() => highlightDbml(value), [value]);
   const parts = useMemo(() => segments(value, tokens, diagnostics), [value, tokens, diagnostics]);
@@ -101,6 +130,56 @@ export const DbmlEditor = forwardRef(function DbmlEditor({ value, onChange, onCa
     if (gutterRef.current) gutterRef.current.scrollTop = el.scrollTop;
   }, []);
 
+  const onPointerMove = (event) => {
+    const el = areaRef.current;
+    if (!el || event.buttons || event.pointerType === 'touch') return tips.hide();
+    metrics.current ||= charWidth(el);
+    const { width, lineHeight, left, top } = metrics.current;
+    const rect = el.getBoundingClientRect();
+    const x = event.clientX - rect.left - left + el.scrollLeft;
+    const y = event.clientY - rect.top - top + el.scrollTop;
+    const line = Math.floor(y / lineHeight);
+    if (x < 0 || y < 0 || line >= lineStarts.length) return tips.schedule(null);
+    const lineStart = lineStarts[line];
+    const lineEnd = line + 1 < lineStarts.length ? lineStarts[line + 1] - 1 : value.length;
+    // Visual column → offset, with tabs two columns wide (tab-size: 2).
+    const columnOf = (offset) => {
+      let col = 0;
+      for (let i = lineStart; i < offset; i += 1) col += value[i] === '\t' ? 2 - (col % 2) : 1;
+      return col;
+    };
+    let col = 0;
+    let offset = lineStart;
+    const wanted = x / width;
+    while (offset < lineEnd) {
+      const step = value[offset] === '\t' ? 2 - (col % 2) : 1;
+      if (col + step > wanted) break;
+      col += step;
+      offset += 1;
+    }
+    if (offset >= lineEnd) return tips.schedule(null);
+
+    const token = tokenAt(tokens, offset);
+    const about = token && explain ? explain(token.kind, value.slice(token.start, token.end)) : null;
+    const problem = diagnostics.find((d) => d.span.start <= offset && offset < Math.max(d.span.end, d.span.start + 1));
+    if (!about && !problem) return tips.schedule(null);
+    const span = about ? token : { start: problem.span.start, end: Math.max(problem.span.end, problem.span.start + 1) };
+    return tips.schedule(`${span.start}:${span.end}:${problem?.message || ''}`, () => {
+      const box = el.getBoundingClientRect();
+      const from = columnOf(Math.max(lineStart, span.start));
+      const to = columnOf(Math.min(lineEnd, span.end));
+      return {
+        rect: { left: box.left + left - el.scrollLeft + from * width, top: box.top + top - el.scrollTop + line * lineHeight, width: Math.max(1, to - from) * width, height: lineHeight },
+        tip: {
+          title: about?.title || (problem.severity === 'error' ? 'Error' : 'Warning'),
+          body: about?.body,
+          alert: problem?.message,
+          alertTone: problem?.severity,
+        },
+      };
+    });
+  };
+
   const reportCaret = () => {
     const el = areaRef.current;
     if (el && onCaret) onCaret(el.selectionStart);
@@ -151,13 +230,20 @@ export const DbmlEditor = forwardRef(function DbmlEditor({ value, onChange, onCa
           readOnly={readOnly}
           aria-label="Schema in DBML"
           onChange={(event) => onChange(event.target.value)}
-          onScroll={onScroll}
+          onScroll={() => {
+            onScroll();
+            tips.hide();
+          }}
           onKeyDown={onKeyDown}
+          onPointerMove={onPointerMove}
+          onPointerLeave={tips.hide}
+          onPointerDown={tips.hide}
           onKeyUp={reportCaret}
           onClick={reportCaret}
           onSelect={reportCaret}
         />
       </div>
+      {tips.element}
     </div>
   );
 });

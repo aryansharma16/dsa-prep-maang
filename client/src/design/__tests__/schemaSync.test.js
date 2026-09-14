@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { analyzeDbml } from '../schema/analyze.js';
 import { highlightDbml } from '../schema/highlight.js';
 import { tableSize } from '../schema/layout.js';
-import { placeNewTables, reconcileTables, SETTLE_MS } from '../schema/reconcile.js';
+import { freeSpot, placeNewTables, reconcileTables, SETTLE_MS } from '../schema/reconcile.js';
 
 const model = (src) => analyzeDbml(src);
 const elementsFor = (m, ids = {}) => m.tables.map((t, i) => ({ id: ids[t.key] || `el${i}`, table: t.key, columns: t.columns.map((c) => c.name) }));
@@ -101,4 +101,19 @@ test('indentEdit: caret, one line, many lines, outdent', () => {
   // Outdent never eats text.
   e = indentEdit('x\n y', 0, 4, true);
   assert.equal(applyEdit('x\n y', e), 'x\ny');
+});
+
+test('freeSpot keeps the start when it is clear and otherwise finds the nearest clear place', () => {
+  const size = { w: 180, h: 64 };
+  assert.deepEqual(freeSpot([], size, { x: 10, y: 20 }), { x: 10, y: 20 });
+  const taken = [{ x: 0, y: 0, w: 240, h: 120 }];
+  const spot = freeSpot(taken, size, { x: 0, y: 0 });
+  const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + size.w && a.y < b.y + b.h && b.y < a.y + size.h;
+  assert.ok(!overlaps(spot, taken[0]), JSON.stringify(spot));
+  assert.ok(Math.hypot(spot.x, spot.y) <= 260, 'next to it, not far away');
+  // Crowded: still never on top of anything.
+  const crowd = [];
+  for (let i = -3; i <= 3; i += 1) for (let j = -3; j <= 3; j += 1) crowd.push({ x: i * 220, y: j * 104, w: 180, h: 64 });
+  const far = freeSpot(crowd, size, { x: 0, y: 0 });
+  assert.ok(crowd.every((b) => !overlaps(far, b)));
 });

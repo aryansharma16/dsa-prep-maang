@@ -118,3 +118,29 @@ export function placeNewTables(model, positions, sizes, newKeys, gap = { x: 120,
   }
   return out;
 }
+
+/**
+ * The first place near `start` (a top-left corner) where a box of `size` overlaps none of `boxes`:
+ * the spot itself, then rings of candidates around it, nearest first — so "Add table" never drops a
+ * table on top of another.
+ */
+export function freeSpot(boxes, size, start, margin = 40) {
+  const clear = (x, y) => boxes.every((b) => x >= b.x + b.w + margin || b.x >= x + size.w + margin || y >= b.y + b.h + margin || b.y >= y + size.h + margin);
+  if (clear(start.x, start.y)) return { x: start.x, y: start.y };
+  const stepX = size.w + margin;
+  const stepY = size.h + margin;
+  for (let ring = 1; ring <= 12; ring += 1) {
+    const candidates = [];
+    for (let i = -ring; i <= ring; i += 1) {
+      for (let j = -ring; j <= ring; j += 1) {
+        if (Math.max(Math.abs(i), Math.abs(j)) !== ring) continue;
+        candidates.push({ x: start.x + i * stepX, y: start.y + j * stepY });
+      }
+    }
+    candidates.sort((a, b) => Math.hypot(a.x - start.x, a.y - start.y) - Math.hypot(b.x - start.x, b.y - start.y));
+    const found = candidates.find((c) => clear(c.x, c.y));
+    if (found) return found;
+  }
+  const right = boxes.reduce((m, b) => Math.max(m, b.x + b.w), start.x);
+  return { x: right + margin, y: start.y };
+}

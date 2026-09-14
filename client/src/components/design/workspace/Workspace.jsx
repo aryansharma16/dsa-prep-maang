@@ -9,6 +9,7 @@ import { useToast } from '../../../store/ToastContext.jsx';
 import { ConfirmDialog } from '../../ui/ConfirmDialog.jsx';
 import { BoardEditor } from '../canvas/BoardEditor.jsx';
 import { IconCanvasBoard, IconSchemaBoard } from '../icons.jsx';
+import { TooltipLayer } from '../ui/Tooltips.jsx';
 import { Explorer } from './Explorer.jsx';
 import { PanelSplitter } from './PanelSplitter.jsx';
 import { TopBar } from './TopBar.jsx';
@@ -324,6 +325,7 @@ export function Workspace() {
           onCancel={() => setConfirm(null)}
         />
       )}
+      <TooltipLayer />
     </div>
   );
 }

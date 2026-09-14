@@ -204,3 +204,27 @@ export function autoArrange(model, sizes, m = SCHEMA_METRICS) {
   }
   return positions;
 }
+
+/**
+ * What lights up when tables are picked out (selected, hovered, under the caret)
+ * or a relation line is selected: every relation touching them, and on both ends
+ * of each, the tables and the columns it joins.
+ *
+ * `{ relations: Set<id>, tables: Map<table key, Set<column>> }`.
+ */
+export function relationHighlight(model, activeTables, relationId = null) {
+  const relations = new Set();
+  const tables = new Map();
+  const add = (key, columns) => {
+    if (!tables.has(key)) tables.set(key, new Set());
+    for (const column of columns) tables.get(key).add(column);
+  };
+  for (const key of activeTables) if (model.byKey.has(key)) add(key, []);
+  for (const relation of model.relations) {
+    if (relation.id !== relationId && !activeTables.has(relation.from.table) && !activeTables.has(relation.to.table)) continue;
+    relations.add(relation.id);
+    add(relation.from.table, relation.from.columns);
+    add(relation.to.table, relation.to.columns);
+  }
+  return { relations, tables };
+}

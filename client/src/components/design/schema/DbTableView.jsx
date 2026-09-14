@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { SCHEMA_METRICS } from '../../../design/schema/layout.js';
-import { useUi } from '../canvas/hooks.js';
-import { useSchemaModel } from './useSchema.js';
+import { useEditor, useUi } from '../canvas/hooks.js';
+import { schemaHighlight, useSchemaModel } from './useSchema.js';
 
 /**
  * A table on a schema board. The element holds where it is; what it is — name,
@@ -25,9 +25,16 @@ const LinkGlyph = () => (
 
 export const DbTableView = memo(function DbTableView({ record }) {
   const model = useSchemaModel();
+  const editor = useEditor();
   const focus = useUi((s) => s.schemaFocus);
   const table = model.byKey.get(record.data.name);
   const focusedTable = focus?.table === record.data.name;
+  // The joined columns of this table while it or a related table is picked out; a string, so other tables' changes do not re-render this one.
+  const linkedText = useUi((s) => {
+    const columns = schemaHighlight(editor, model, s).tables.get(record.data.name);
+    return columns ? `on\u0001${[...columns].join('\u0001')}` : '';
+  });
+  const linked = linkedText ? new Set(linkedText.split('\u0001').slice(1)) : null;
 
   if (!table) {
     return (
@@ -44,7 +51,7 @@ export const DbTableView = memo(function DbTableView({ record }) {
   const title = `${table.schema && table.schema !== 'public' ? `${table.schema}.` : ''}${table.name}`;
   return (
     <div
-      className={`sd-sqltable sd-dbtable ${table.stale ? 'stale' : ''} ${focusedTable ? 'focused' : ''}`}
+      className={`sd-sqltable sd-dbtable ${table.stale ? 'stale' : ''} ${focusedTable ? 'focused' : ''} ${linked ? 'linked' : ''} ${table.headerColor ? 'has-color' : ''}`}
       style={{ '--head': `${SCHEMA_METRICS.headerH}px`, '--row': `${SCHEMA_METRICS.rowH}px`, ...(table.headerColor ? { '--table-head': table.headerColor } : {}) }}
     >
       <div className="sd-sqltable-head" title={table.note || undefined}>
@@ -58,7 +65,7 @@ export const DbTableView = memo(function DbTableView({ record }) {
         return (
           <div
             key={`${index}:${column.name}`}
-            className={`sd-sqltable-row ${column.pk ? 'pk' : ''} ${focusedTable && focus.column === column.name ? 'focused' : ''} ${referenced.has(column.name) ? 'referenced' : ''}`}
+            className={`sd-sqltable-row ${column.pk ? 'pk' : ''} ${focusedTable && focus.column === column.name ? 'focused' : ''} ${referenced.has(column.name) ? 'referenced' : ''} ${linked?.has(column.name) ? 'linked' : ''}`}
             title={column.note || undefined}
           >
             <span className="sd-sqltable-mark">{column.pk ? <KeyGlyph /> : isFk ? <LinkGlyph /> : null}</span>
