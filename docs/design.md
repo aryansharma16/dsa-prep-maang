@@ -10,6 +10,7 @@ next](#rules-for-whoever-works-on-this-next) before changing anything.
 - [Decisions](#decisions)
 - [Roadmap and status](#roadmap-and-status)
 - [Architecture](#architecture)
+- [The home page](#the-home-page)
 - [Where the code lives](#where-the-code-lives)
 - [Data model](#data-model)
 - [API](#api)
@@ -85,7 +86,7 @@ in the browser by the pass that found it.
 | # | Step | Status |
 |---|---|---|
 | 1 | Server: models, fractional keys, validation, access, tree/board services, routes, limits, hidden-by-default module, purge script | ✅ 21 unit tests + 19 end-to-end API checks |
-| 2 | Client scaffold: `designApi`, nav item, lazy routes, projects home (create with starter folders, edit, archive, trash, restore, purge), recent boards | ✅ |
+| 2 | Client scaffold: `designApi`, nav item, lazy routes, projects home (create with starter folders, edit, archive, trash, restore, purge), recent boards | ✅ · reworked 2026-09-15, see [The home page](#the-home-page) |
 | 3 | Pure foundations: ids, fractional keys (same vectors as server), geometry, camera math, spatial grid index | ✅ tests |
 | 4 | Workspace shell: top bar, breadcrumb rename, explorer tree (keyboard, context menu, inline rename, create, duplicate, delete, copy link, drag-to-move), resizable panels, ⌘\ toggles the explorer | ✅ browser-verified |
 | 5 | Store, registry, render pipeline, camera; spatial index for hit-testing, marquee and frame lookup; culling on boards of 300+ elements; `?sdperf` tooling (`__sd.stress(n)`, `__sd.measurePan()`) | ✅ 2,400 elements: 60fps pan at 100% (104 mounted), 0.5ms main-thread per camera frame, 1,000 hit-tests in 21ms · zoomed out to everything, painting bottlenecks on software-GPU headless Chrome (58fps with content hidden) — check on a real GPU |
@@ -113,10 +114,15 @@ snap toggle — the server's `meta` op is ready), equal-spacing snaps.
   hand-drawn glyphs for generic parts (load balancer, cache, queue…) and brands Simple Icons no
   longer carries (AWS, Azure, Oracle, Memcached…). Each has a one-line "what it is and when to
   reach for it". Card or icon-only look, monochrome, hide name; colours too dark or light for a
-  theme are mixed with the text colour.
+  theme are mixed with the text colour. The inspector's **Technology** field swaps one component for
+  another through a `PickList` with the same 173 entries — logo, name and that line each, grouped by
+  category, with a search box (`searchTech`, so it matches keywords and descriptions too) that ranks
+  matches across categories and labels each with the category it came from.
 - **Data structures** (`structure`): array, stack, queue, linked list, doubly linked list, call
   stack, hash map, binary tree (LeetCode level order), matrix, shards, hash ring — editable as
   text (one item per line, `*` highlights), auto-sized, S/M/L, direction for linear kinds, title.
+  The Kind picker says what each structure is and what it costs ("LIFO — push and pop at the top in
+  O(1)"), so the block can be chosen from the panel without knowing the names.
 - **SQL table** (`sqltable`): a DBML `Table` block as its text, rendered with key / reference
   markers, unique and enum badges, auto height, width that grows with its columns.
 
@@ -193,6 +199,35 @@ Bundle cost: main JS +3.6 KB (+1.2 KB gzip) for the nav item, API client and laz
 routes; the workspace chunk is ~148 KB (52 KB gzip), home ~33 KB; styles ship in the
 lazy chunk.
 
+## The home page
+
+`/design` is the module's front door and the one screen in it with nothing drawn on it,
+so it does the work a list cannot (reworked 2026-09-15, browser-verified):
+
+- **Hero** (`.sd-hero`) — the canvas's own dot grid in the accent colour, a diagram of
+  boxes and connectors with the same running flow a board has, and three counts: projects,
+  boards, when anything was last edited. Hidden below 820px, where the space is the text's.
+- **Finding a project** — search over name and description (`PageSearch`, so `/` focuses it
+  like every other list page), sort by recent, name or board count, and a cards ⇄ list
+  switch. Sort and view are `useLocalState` per device; the query is not. All client-side:
+  the whole list is already loaded, capped at 100 projects by the server.
+- **Cards** — each project's diagram is picked from its id (`home/blueprints.js`, six
+  architectures), so a project is recognised by silhouette as well as by colour and icon.
+  Hover runs the connectors and shows an "Open" chip; the description (new in the project
+  dialog, ≤160 chars) sits above the meta line.
+- **List** (`.sd-prow`) — the same projects one line each, for scanning twenty of them.
+- **Jump back in** — recent boards now say whether each is a canvas or a schema.
+- **Empty state** — "or start from" chips (WhatsApp, URL shortener, Rate limiter, News
+  feed) open the new-project dialog with the name filled in; the dialog still opens,
+  because the colour and the starter folders are part of the decision.
+
+**Theme and accent from inside a board**: the workspace's top bar renders the app shell's
+own `AppearancePicker` (`triggerClassName="sd-icon-btn"`), not a copy — the full menu, theme
+*and* accent, because a board is drawn in both. The workspace owns the whole window, so
+without it there is no way to change either until you leave the module. Its menu is lifted to
+`z-index: 210` under `.sd-topbar` (its own 20 is measured against the shell, where nothing
+else is layered; the stage below has panels at 25 and 26).
+
 ## Where the code lives
 
 ```
@@ -253,7 +288,7 @@ client/src/
     text/       measure.js (DOM)             auto-size text, sticky font fitting
     sync/       opQueue.js  autosave.js  mirror.js (crash copies + planRestore)  tabLock.js (DOM)
     library/    tech.js (catalogue: 173 entries)  brandPaths.generated.js (lazy, Simple Icons CC0)
-                structures.js (data-structure block layouts)
+                structures.js (block layouts; each kind carries its own one-line `about`)
     schema/     dbml.js (parser)  analyze.js (resolution, relations)  ddl.js (Postgres/MySQL/SQLite)
                 sqlImport.js (DDL → DBML)  layout.js (table sizes, relation paths, auto-arrange)
                 reconcile.js (positions follow the text, freeSpot)  assist.js (type catalogue, column
@@ -264,10 +299,10 @@ client/src/
     icons.jsx                   design-only glyphs
     ui/ActionMenu.jsx           portalled menu (cards, tree, canvas context menu)
     ui/Tooltips.jsx             TooltipLayer (every [title] in the workspace) + useTip for canvas/text hovers
-    ui/PickList.jsx             dropdown whose options carry descriptions (native <select> cannot)
+    ui/PickList.jsx             dropdown whose options carry descriptions and icons, searchable when long
     ui/ColorPopover.jsx         saturation square + hue strip + hex, kept on screen
-    home/  ProjectCard  ProjectModal  TrashModal
-    workspace/  Workspace  TopBar (+ useEditorChrome)  Explorer  PanelSplitter
+    home/  ProjectCard (card + list row)  ProjectModal  TrashModal  blueprints.js (card diagrams)
+    workspace/  Workspace  TopBar (+ useEditorChrome, the shared AppearancePicker)  Explorer  PanelSplitter
     canvas/  BoardEditor  Canvas  ElementHost(+ElementList)  OverlayLayer  TextEditor
              DraftStroke  Toolbar  ZoomControls  CanvasContextMenu  ShortcutsDialog  hooks.js
     shapes/  views.jsx  ConnectorView.jsx
@@ -509,7 +544,9 @@ Arrange: arrows (⇧ ×10) · ⌘] ⌘[ · ] [ · ⌘⌥G frame · ⌘⇧G unfra
 `client/src/styles/design.css`, imported by the two pages so it lives in the lazy chunk.
 **Every rule is scoped under `.sd-*`** because the sheet stays loaded after leaving the module.
 Panels use opaque tokens; selection uses `--focus`, active tool `--accent`; no
-`backdrop-filter` (app-wide rule). Tooltips are `.sd-tip`, above dialogs (z-index 400). Canvas text uses the self-hosted Inter (`SD Inter`) so text
+`backdrop-filter` (app-wide rule). A component borrowed from the shell keeps its own
+classes and is adjusted from here through an `.sd-` ancestor
+(`.sd-topbar .appearance-menu`), never by restyling the bare class. Tooltips are `.sd-tip`, above dialogs (z-index 400). Canvas text uses the self-hosted Inter (`SD Inter`) so text
 measures the same on every OS.
 
 ## Verifying it
@@ -582,8 +619,10 @@ performance.
     pointer (a canvas row, a word in a textarea) uses `useTip`. Never hand-roll another tooltip.
 15. **Choices that need explaining use `PickList`, colours use `ColorPopover`**, not `<select>` or
     `<input type="color">`: the native ones cannot describe an option, ignore the board's theme, and the
-    colour popup opens wherever the OS puts it. Deletes that take other things with them ask through
-    `ui.confirm`.
+    colour popup opens wherever the OS puts it. **No native `<select>` is left in the workspace** — keep
+    it that way; a list long enough to need one (the 173 components) gets `PickList`'s `search` and a
+    `filter` that ranks matches, not a plain `<select>`. Deletes that take other things with them ask
+    through `ui.confirm`.
 
 ## Future phases in detail
 

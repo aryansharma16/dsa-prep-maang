@@ -4,46 +4,27 @@ import { timeAgo } from '../../../design/core/time.js';
 import { IconEdit, IconMore, IconTrash } from '../../ui/Icons.jsx';
 import { ActionMenu } from '../ui/ActionMenu.jsx';
 import { IconArchive } from '../icons.jsx';
+import { blueprintFor } from './blueprints.js';
 
 /**
- * One project on the home grid.
+ * One project, as a card on the grid or a row in the list.
  *
- * The artwork is a small, fixed diagram in the project's colour rather than a
- * rendered thumbnail of its boards. A real thumbnail means rendering a board on
- * the server or storing an image per save; the colour and the icon already
- * tell projects apart at a glance, which is all a card has to do.
+ * Both shapes are here rather than in two components because everything that
+ * makes a project a project — its colour, the actions menu, what the meta line
+ * says — is the same either way; only the frame around it changes. The artwork
+ * is a small diagram in the project's colour, picked from its id (see
+ * `blueprints.js`), not a rendered thumbnail of its boards.
  */
-export function ProjectCard({ project, onOpenIntent, onEdit, onArchive, onTrash }) {
+export function ProjectCard({ project, view = 'grid', onOpenIntent, onEdit, onArchive, onTrash }) {
   const [menu, setMenu] = useState(false);
   const moreRef = useRef(null);
   const boards = project.boardCount ?? 0;
+  const meta = `${boards} ${boards === 1 ? 'board' : 'boards'} · ${
+    project.archived ? 'archived' : `edited ${timeAgo(project.touchedAt)}`
+  }`;
 
-  return (
-    <article className={`sd-card ${project.archived ? 'is-archived' : ''}`} data-hue={project.hue}>
-      <Link
-        to={`/design/${project.id}`}
-        className="sd-card-link"
-        onPointerEnter={onOpenIntent}
-        onFocus={onOpenIntent}
-      >
-        <div className="sd-card-art" aria-hidden="true">
-          <svg viewBox="0 0 220 110" className="sd-card-diagram">
-            <rect x="22" y="36" width="54" height="36" rx="7" />
-            <rect x="144" y="16" width="54" height="30" rx="7" />
-            <rect x="144" y="66" width="54" height="30" rx="7" />
-            <path d="M76 54 H108 Q116 54 116 46 V39 Q116 31 124 31 H144" />
-            <path d="M76 54 H108 Q116 54 116 62 V73 Q116 81 124 81 H144" />
-          </svg>
-          <span className="sd-card-icon">{project.icon || project.name.slice(0, 1).toUpperCase()}</span>
-        </div>
-        <div className="sd-card-body">
-          <h3 title={project.name}>{project.name}</h3>
-          <p>
-            {boards} {boards === 1 ? 'board' : 'boards'} · {project.archived ? 'archived' : `edited ${timeAgo(project.touchedAt)}`}
-          </p>
-        </div>
-      </Link>
-
+  const more = (
+    <>
       <button
         ref={moreRef}
         type="button"
@@ -73,6 +54,62 @@ export function ProjectCard({ project, onOpenIntent, onEdit, onArchive, onTrash 
           ]}
         />
       )}
+    </>
+  );
+
+  if (view === 'list') {
+    return (
+      <article className={`sd-prow ${project.archived ? 'is-archived' : ''}`} data-hue={project.hue}>
+        <Link
+          to={`/design/${project.id}`}
+          className="sd-prow-link"
+          onPointerEnter={onOpenIntent}
+          onFocus={onOpenIntent}
+        >
+          <span className="sd-prow-icon" aria-hidden="true">
+            {project.icon || project.name.slice(0, 1).toUpperCase()}
+          </span>
+          <span className="sd-prow-text">
+            <b>{project.name}</b>
+            {project.description && <small>{project.description}</small>}
+          </span>
+          <span className="sd-prow-meta">{meta}</span>
+        </Link>
+        {more}
+      </article>
+    );
+  }
+
+  const blueprint = blueprintFor(project.id);
+
+  return (
+    <article className={`sd-card ${project.archived ? 'is-archived' : ''}`} data-hue={project.hue}>
+      <Link
+        to={`/design/${project.id}`}
+        className="sd-card-link"
+        onPointerEnter={onOpenIntent}
+        onFocus={onOpenIntent}
+      >
+        <div className="sd-card-art" aria-hidden="true">
+          <svg viewBox="0 0 220 110" className="sd-card-diagram">
+            {blueprint.links.map((d) => (
+              <path key={d} d={d} />
+            ))}
+            {blueprint.nodes.map(([x, y, w, h]) => (
+              <rect key={`${x},${y}`} x={x} y={y} width={w} height={h} rx={7} />
+            ))}
+          </svg>
+          <span className="sd-card-open">Open</span>
+          <span className="sd-card-icon">{project.icon || project.name.slice(0, 1).toUpperCase()}</span>
+        </div>
+        <div className="sd-card-body">
+          <h3 title={project.name}>{project.name}</h3>
+          {project.description && <p className="sd-card-desc">{project.description}</p>}
+          <p>{meta}</p>
+        </div>
+      </Link>
+
+      {more}
     </article>
   );
 }

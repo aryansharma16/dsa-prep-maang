@@ -1,5 +1,6 @@
 import { useRef, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
+import { AppearancePicker } from '../../layout/AppearancePicker.jsx';
 import { IconEdit } from '../../ui/Icons.jsx';
 import {
   IconBack,
@@ -178,6 +179,20 @@ export function TopBar({ project, path, node, editor, explorerOpen, onToggleExpl
             ]}
           />
         )}
+
+        {/*
+          The whole appearance menu, not a light/dark button.
+
+          The workspace takes the entire window, so the app shell's copy of this
+          — and with it every way to change the theme or the accent — is off
+          screen for as long as a board is open. That matters more here than on
+          a list page: a board is drawn in the theme's colours and the accent is
+          what the selection, the active tool and the guides are painted in, so
+          "does this read on a projector?" is one menu away instead of a trip
+          back to /design and in again. It is the same component the top bar
+          uses, wearing this bar's button.
+        */}
+        <AppearancePicker triggerClassName="sd-icon-btn" />
 
         <button
           type="button"

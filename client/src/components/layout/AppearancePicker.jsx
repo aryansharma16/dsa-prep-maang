@@ -20,7 +20,13 @@ import { IconMoon, IconPalette, IconSun } from '../ui/Icons.jsx';
 const COLUMNS = 7;
 const STEPS = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: COLUMNS, ArrowUp: -COLUMNS };
 
-export function AppearancePicker() {
+/**
+ * `triggerClassName` is for the one other bar this appears in: System Design's
+ * workspace top bar, whose buttons are its own size and are styled `sd-icon-btn`.
+ * Only the button changes — the menu is the same menu, so the two places cannot
+ * drift apart.
+ */
+export function AppearancePicker({ triggerClassName = 'icon-btn' }) {
   const { theme, accent, custom, setTheme, setAccent, setCustom } = useAppearance();
   const [open, setOpen] = useState(false);
   const [hex, setHex] = useState(custom);
@@ -76,7 +82,7 @@ export function AppearancePicker() {
       <button
         type="button"
         ref={triggerRef}
-        className={`icon-btn ${open ? 'on' : ''}`}
+        className={`${triggerClassName} ${open ? 'on' : ''}`}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="dialog"
         aria-expanded={open}

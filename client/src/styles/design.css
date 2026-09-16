@@ -191,6 +191,44 @@
   font-size: 11.5px;
   line-height: 1.45;
 }
+/* The search box stays put; only the options scroll under it. */
+.sd-picklist-list {
+  display: flex;
+  flex-direction: column;
+  max-height: min(360px, 60vh);
+  overflow: hidden;
+}
+.sd-picklist-options {
+  min-height: 0;
+  overflow-y: auto;
+}
+.sd-picklist-search {
+  flex: none;
+  padding: 2px 2px 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.sd-picklist-search .sd-input {
+  height: 28px;
+}
+.sd-picklist-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+.sd-typelist-option.with-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.sd-picklist-text {
+  display: block;
+  min-width: 0;
+  flex: 1;
+}
 .sd-picklist-row {
   display: flex;
   align-items: baseline;
@@ -209,6 +247,12 @@
   color: var(--text-3);
   font-family: var(--mono);
   font-size: 10.5px;
+}
+/* A category name read back from the option's group, not a code-ish value. */
+.sd-picklist-meta.plain {
+  font-family: inherit;
+  font-size: 10.5px;
+  white-space: nowrap;
 }
 .sd-typelist-option.disabled {
   cursor: default;
@@ -383,28 +427,120 @@
   max-width: 1180px;
   margin: 0 auto;
 }
-.sd-home-head {
+
+/* ---- hero ----
+
+   The page's own header rather than a bare <h1>, because this is the one screen
+   in the module that has nothing drawn on it: a whiteboard product whose front
+   door is a list of names says very little about what is behind the door. The
+   backdrop is the canvas itself — the dot grid boards are drawn on, in the
+   accent colour — and the diagram at the right is the module's one idea, boxes
+   joined by arrows, with the same running flow connectors have on a board. */
+
+.sd-hero {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 26px;
+  gap: 16px 24px;
   flex-wrap: wrap;
+  min-height: 150px;
+  padding: 22px 22px 20px;
+  margin-bottom: 26px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 var(--sheen);
+  background:
+    radial-gradient(circle at 1px 1px, rgb(var(--accent-rgb) / 0.17) 1px, transparent 0) 0 0 / 18px 18px,
+    radial-gradient(130% 150% at 88% 6%, var(--accent-glow), transparent 62%),
+    var(--surface);
 }
-.sd-home-head h1 {
+.sd-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+}
+.sd-hero-copy h1 {
   margin: 0;
   font-size: 22px;
   font-weight: 650;
   letter-spacing: -0.025em;
 }
-.sd-home-head p {
+.sd-hero-copy p {
   margin: 5px 0 0;
-  max-width: 560px;
   color: var(--text-3);
   font-size: 13px;
   line-height: 1.55;
 }
+.sd-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+.sd-hero-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+}
+.sd-hero-stat b {
+  font-weight: 650;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.sd-hero-stat.muted {
+  color: var(--text-3);
+}
+/* Sits above the buttons rather than behind them: a diagram half under a solid
+   pill reads as a rendering fault, not as decoration. The hero keeps the height
+   for it at the widths where it is drawn. */
+.sd-hero-art {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 266px;
+  max-width: 38%;
+  opacity: 0.42;
+  pointer-events: none;
+}
+.sd-hero-art rect {
+  fill: var(--solid);
+  stroke: var(--accent-line);
+  stroke-width: 1.5;
+}
+.sd-hero-art path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 5;
+  animation: sd-dash 2s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-hero-art path {
+    animation: none;
+  }
+}
+@media (max-width: 820px) {
+  .sd-hero-art {
+    display: none;
+  }
+}
+@media (min-width: 821px) {
+  .sd-hero {
+    min-height: 196px;
+  }
+}
+
 .sd-home-actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 8px;
 }
@@ -426,11 +562,60 @@
   color: var(--text-3);
 }
 
+/* ---- search, sort, layout ---- */
+
+.sd-home-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.sd-home-bar h2 {
+  margin: 0 auto 0 0;
+}
+.sd-home-bar .page-search {
+  flex: 0 1 240px;
+}
+.sd-home-seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  background: var(--surface);
+}
+.sd-home-seg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.sd-home-seg button:hover {
+  color: var(--text);
+}
+.sd-home-seg button.on {
+  background: var(--surface-2);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border-soft);
+}
+
 /* ---- jump back in ---- */
 
 .sd-recent {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Wide enough that "project · 2 hours ago" survives next to the kind pill;
+     any narrower and the time — the reason the row is here — is the first
+     thing the ellipsis eats. */
+  grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
   gap: 8px;
 }
 .sd-recent-item {
@@ -478,6 +663,23 @@
   font-size: 11.5px;
   color: var(--text-3);
 }
+/* Which kind of board it is, since that decides what you are walking back into
+   — a canvas or a schema — and the name rarely says. */
+.sd-recent-kind {
+  margin-left: auto;
+  flex: none;
+  padding: 2px 7px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+.sd-recent-item:hover .sd-recent-kind {
+  border-color: rgb(var(--hue-rgb) / 0.3);
+  color: var(--hue);
+}
 
 /* ---- project cards ---- */
 
@@ -498,9 +700,14 @@
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 .sd-card:hover {
-  border-color: var(--border);
+  border-color: rgb(var(--hue-rgb) / 0.42);
   box-shadow: inset 0 1px 0 var(--sheen), var(--lift-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-card:hover {
+    transform: none;
+  }
 }
 .sd-card.is-archived {
   opacity: 0.72;
@@ -549,6 +756,29 @@
     stroke-dashoffset: -14;
   }
 }
+/* The hint that the whole card is a link. It says nothing the cursor does not,
+   which is the point: it is there so the card looks like something that opens
+   before the pointer reaches it. */
+.sd-card-open {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 9px;
+  border: 1px solid rgb(var(--hue-rgb) / 0.35);
+  border-radius: 999px;
+  background: var(--solid-2);
+  color: var(--hue);
+  font-size: 11px;
+  font-weight: 560;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 0.14s, transform 0.14s;
+}
+.sd-card:hover .sd-card-open,
+.sd-card-link:focus-visible .sd-card-open {
+  opacity: 1;
+  transform: none;
+}
 .sd-card-icon {
   position: absolute;
   left: 14px;
@@ -583,6 +813,13 @@
   font-size: 12px;
   color: var(--text-3);
 }
+.sd-card-desc {
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 24px;
+}
 .sd-card-more {
   position: absolute;
   right: 8px;
@@ -615,6 +852,102 @@
 .sd-card-new:hover {
   color: var(--text);
   background: var(--surface);
+}
+
+/* ---- project list (the same projects, one line each) ----
+
+   Cards are how you recognise a project; a list is how you scan twenty of them
+   for the one edited yesterday. Which one you are shown is remembered per
+   device — it is a way of working, not a property of the projects. */
+
+.sd-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sd-prow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--surface);
+  transition: background 0.12s, border-color 0.12s;
+}
+.sd-prow:hover {
+  background: var(--surface-hover);
+  border-color: rgb(var(--hue-rgb) / 0.32);
+}
+.sd-prow.is-archived {
+  opacity: 0.72;
+}
+.sd-prow-link {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+.sd-prow-link:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus);
+}
+.sd-prow-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 1px solid rgb(var(--hue-rgb) / 0.22);
+  border-radius: 9px;
+  background: rgb(var(--hue-rgb) / 0.14);
+  color: var(--hue);
+  font-size: 16px;
+  font-weight: 650;
+}
+.sd-prow-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sd-prow-text b,
+.sd-prow-text small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sd-prow-text b {
+  font-size: 13px;
+  font-weight: 560;
+}
+.sd-prow-text small {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.sd-prow-meta {
+  margin-left: auto;
+  padding-left: 14px;
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+/* The card's menu button, unpinned from the corner it sits in on a card. */
+.sd-prow .sd-card-more {
+  position: static;
+  flex: none;
+  margin-right: 8px;
+}
+.sd-prow:hover .sd-card-more {
+  opacity: 1;
+}
+@media (max-width: 560px) {
+  .sd-prow-meta {
+    display: none;
+  }
 }
 
 /* ---- empty ---- */
@@ -659,6 +992,45 @@
   align-items: center;
   gap: 6px;
 }
+/* Four systems everyone has been asked to design, so the first project is a
+   click rather than a blank name field. They only fill the field in — the
+   dialog still opens, because the colour and the starter folders are part of
+   the decision. */
+.sd-starters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+.sd-starter {
+  padding: 4px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.sd-starter:hover {
+  border-style: solid;
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+  color: var(--text);
+}
+
+.sd-nomatch {
+  padding: 26px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 13px;
+}
 
 /* ---- project modal ---- */
 
@@ -672,6 +1044,9 @@
   width: 40px;
   height: 36px;
   font-size: 18px;
+}
+.sd-pm-field small {
+  color: var(--text-3);
 }
 .sd-pm-starter {
   display: flex;
@@ -1055,6 +1430,15 @@ html.sd-dragging * {
 .sd-share-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* The app shell's appearance menu, borrowed by the top bar (see TopBar.jsx).
+   Its own z-index of 20 is measured against the shell, where nothing else is
+   layered; here the stage below carries panels at 25 and 26 — the component
+   library, the banner, the SQL Lab — and the menu opens down across them. 210
+   puts it with this module's other portalled menus, under the tooltips. */
+.sd-topbar .appearance-menu {
+  z-index: 210;
 }
 
 /* ---- body, explorer ---- */

@@ -1484,6 +1484,16 @@ export function Docs() {
                     layer of the answer.
                   </p>
 
+                  <h3>Your projects</h3>
+                  <p>
+                    The page lists every project, with the boards you were last in above them. Press{' '}
+                    <kbd>/</kbd> to search, sort by when you last touched them, by name or by size, and
+                    switch between cards and a list — whichever you pick is remembered on this device.
+                    Inside a board, the palette in the top bar changes the theme and the accent
+                    without leaving the canvas, so a diagram can be checked light and dark before it
+                    goes in front of anyone.
+                  </p>
+
                   <h3>Drawing</h3>
                   <ul className="docs-list">
                     <li>
@@ -1516,6 +1526,21 @@ export function Docs() {
                     server&rdquo; can point at the request itself. Attached ends follow when anything
                     moves. Elbow, straight or curved, with an optional label and an animated flow to
                     show which way traffic runs; the pause button in the top bar freezes every flow.
+                  </p>
+
+                  <h3>Components</h3>
+                  <p>
+                    <kbd>I</kbd> opens the component panel: 173 technologies with their real logos —
+                    Redis, Kafka, NGINX, a load balancer, a CDN — data-structure blocks you can type
+                    into (stack, queue, linked list, hash map, binary tree) and SQL tables. Search it
+                    by what a thing does, not only its name: &ldquo;queue&rdquo; finds RabbitMQ and SQS.
+                    Click to drop one in the middle of the view, or drag it where you want it.
+                  </p>
+                  <p>
+                    Select a component and the panel on the right swaps it for another from the same
+                    list, with a line on each saying when you would reach for it — so a box drawn as a
+                    generic cache becomes Redis without redrawing anything, and the arrows already
+                    attached to it stay attached.
                   </p>
 
                   <h3>Schema boards</h3>

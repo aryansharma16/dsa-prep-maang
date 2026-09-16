@@ -4,16 +4,21 @@ import { Modal } from '../../ui/Modal.jsx';
 import { STATUS_HUES } from '../../tasks/hues.js';
 
 /**
- * Create a project, or edit one's name, icon and colour.
+ * Create a project, or edit one's name, icon, colour and description.
  *
  * The starter-folders box is on by default for a new project, because the
  * empty tree is the hardest place to start from and the shape it gives — a
  * folder per layer — is the one this module is built around. It is one untick
  * away for the person who knows what they want.
+ *
+ * `initialName` is what the home page's "or start from WhatsApp" buttons fill
+ * in: the field is still empty of a decision, so it stays editable and focused
+ * rather than skipping the dialog altogether.
  */
-export function ProjectModal({ project, onSubmit, onClose }) {
+export function ProjectModal({ project, initialName = '', onSubmit, onClose }) {
   const editing = Boolean(project);
-  const [name, setName] = useState(project?.name || '');
+  const [name, setName] = useState(project?.name || initialName);
+  const [description, setDescription] = useState(project?.description || '');
   const [icon, setIcon] = useState(project?.icon || '');
   const [hue, setHue] = useState(project?.hue || 'violet');
   const [starter, setStarter] = useState(true);
@@ -34,6 +39,7 @@ export function ProjectModal({ project, onSubmit, onClose }) {
     try {
       await onSubmit({
         name: trimmed,
+        description: description.trim(),
         icon,
         hue,
         ...(editing ? {} : { template: starter ? 'system' : 'blank' }),
@@ -62,6 +68,19 @@ export function ProjectModal({ project, onSubmit, onClose }) {
               />
             </label>
           </div>
+
+          <label className="field sd-pm-field">
+            <span>
+              Description <small>optional</small>
+            </span>
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={160}
+              placeholder="One line — what this system is"
+              autoComplete="off"
+            />
+          </label>
 
           <div className="field">
             <span>Colour</span>

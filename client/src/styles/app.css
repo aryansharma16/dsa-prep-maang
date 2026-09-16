@@ -3657,18 +3657,93 @@ img.avatar {
 
 .auth-show-inner {
   position: relative;
+  width: 100%;
   max-width: 480px;
 }
+
+/*
+  The slides are stacked in one grid cell rather than laid out in a strip: the
+  panel is then always as tall as the tallest slide and nothing below it moves
+  when one replaces another. Only the active slide is visible — `visibility`
+  rather than `display`, so the pair can cross-fade — which also keeps the
+  inactive six out of the tab order and out of a screen reader.
+*/
+.auth-slides {
+  display: grid;
+}
+.auth-slide {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s linear 0.5s;
+}
+.auth-slide.on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s;
+}
+/* The slide's own colour, as ambient light behind it. It is a child of the
+   slide, so it cross-fades with it instead of switching hue in one frame. */
+.auth-slide::before {
+  content: '';
+  position: absolute;
+  inset: -22% -34% -14%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(52% 40% at 62% 26%, rgb(var(--hue-rgb) / 0.13), transparent 72%);
+}
+/* The parts of the active slide arrive in the order you read them. */
+.auth-slide.on > * {
+  animation: auth-rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+}
+.auth-slide.on > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.auth-slide.on > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.auth-slide.on > *:nth-child(4) {
+  animation-delay: 0.16s;
+}
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+}
+
 .auth-kicker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin: 0 0 10px;
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--hue, var(--accent));
+}
+/* Says a module is not finished, on the slide that describes it. The panel is
+   only worth reading because nothing on it is aspirational — so the one thing
+   that is says so itself. */
+.auth-tag {
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgb(var(--hue-rgb) / 0.14);
+  color: var(--hue);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
 }
 .auth-show h2 {
-  margin: 0 0 26px;
+  margin: 0 0 22px;
   font-size: 25px;
   font-weight: 600;
   line-height: 1.3;
@@ -3697,8 +3772,34 @@ img.avatar {
   border-radius: 50%;
   background: var(--border);
 }
+/* Which screen this is. Three grey dots alone could be any window; the caption
+   is what makes the picture legible at a glance from across the page. */
+.auth-mock-title {
+  margin-left: 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-3);
+}
 .auth-mock-body {
   padding: 4px 0;
+}
+.auth-mock-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 9px 14px;
+  border-top: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  font-size: 11px;
+  color: var(--text-3);
+}
+.auth-mock-foot svg {
+  color: var(--easy);
+}
+.auth-mock-foot.drift b {
+  color: var(--easy);
+  font-weight: 600;
 }
 .auth-mock-row {
   display: flex;
@@ -3744,9 +3845,344 @@ img.avatar {
   color: var(--text-2);
 }
 
+/* ---- the module mocks (components/layout/AuthShowcase.jsx) ----
+   Each is the same window chrome with a different screen inside it, built from
+   the vocabulary that module actually uses on its own page. */
+
+/* Learn: the five tracks and how big each one is. */
+.auth-tracks {
+  padding: 3px 0;
+}
+.auth-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.auth-track:last-child {
+  border-bottom: none;
+}
+/* Says what the bare numbers on the right are, once, instead of repeating
+   "topics" down five rows. */
+.auth-track.head {
+  height: 25px;
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.auth-track.head .auth-track-name {
+  padding-left: 17px;
+  font-size: inherit;
+  color: inherit;
+}
+.auth-track.head .auth-track-count {
+  font-family: inherit;
+  font-size: inherit;
+}
+.auth-track-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--hue);
+}
+.auth-track-name {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.auth-track-count {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* SQL Lab: the query above, the rows it returned below. */
+.auth-code {
+  margin: 0;
+  padding: 11px 14px 12px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--text-2);
+  white-space: pre;
+  overflow: hidden;
+}
+.auth-code-k {
+  color: var(--h-violet);
+  font-weight: 600;
+}
+.auth-code-f {
+  color: var(--h-sky);
+}
+.auth-grid {
+  border-top: 1px solid var(--border);
+}
+.auth-grid-row {
+  display: flex;
+  height: 27px;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.auth-grid-row span:first-child {
+  flex: 1;
+}
+.auth-grid-row .num {
+  width: 58px;
+  text-align: right;
+}
+.auth-grid-row.head {
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Pro Coder: the tier rail, then problems carrying the judge's own rating. */
+.auth-tiers {
+  display: flex;
+  gap: 4px;
+  padding: 9px 14px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+.auth-tier {
+  flex: none;
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  font-size: 9.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.auth-tier.on {
+  border-color: transparent;
+  background: rgb(var(--hue-rgb) / 0.16);
+  color: var(--hue);
+}
+/* The judge's rating bands, the colours Codeforces itself uses for them. */
+.auth-rating {
+  width: 34px;
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.auth-rating.newbie {
+  color: var(--text-3);
+}
+.auth-rating.pupil {
+  color: var(--h-green);
+}
+.auth-rating.specialist {
+  color: var(--h-teal);
+}
+.auth-rating.cm {
+  color: var(--h-violet);
+}
+.auth-dot {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  color: transparent;
+}
+.auth-dot.on {
+  border-color: transparent;
+  background: var(--easy);
+  color: var(--bg);
+}
+
+/* Playbook: the four phases and where this week sits in them. */
+.auth-phase {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.auth-phase-name {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.auth-phase-weeks {
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* System Design: a board above, one of its schema tables below. */
+.auth-board {
+  position: relative;
+  width: 340px;
+  height: 96px;
+  max-width: 100%;
+  margin: 12px auto 6px;
+}
+.auth-board-wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.auth-board-wires path {
+  fill: none;
+  stroke: var(--border-strong, var(--border));
+  stroke-width: 1.2;
+}
+.auth-board-flow {
+  fill: var(--hue);
+}
+.auth-node {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 28px;
+  border: 1px solid rgb(var(--hue-rgb) / 0.45);
+  border-radius: 6px;
+  background: rgb(var(--hue-rgb) / 0.12);
+  color: var(--hue);
+  font-size: 9.5px;
+  text-align: center;
+  line-height: 1.15;
+}
+.auth-table {
+  width: 340px;
+  max-width: calc(100% - 28px);
+  margin: 4px auto 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.auth-table-head {
+  display: block;
+  padding: 5px 9px;
+  background: rgb(var(--hue-rgb) / 0.9);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.auth-table-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 9px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 10.5px;
+}
+.auth-table-row:first-of-type {
+  border-top: none;
+}
+.auth-key {
+  width: 8px;
+  flex: none;
+  font-size: 8px;
+  color: var(--text-3);
+}
+.auth-key.pk {
+  color: var(--h-amber);
+}
+.auth-key.fk {
+  color: var(--h-red);
+}
+.auth-table-col {
+  flex: 1;
+  color: var(--text);
+}
+.auth-table-type {
+  color: var(--text-3);
+  font-size: 9.5px;
+}
+
+/* Assistant & Tasks: one exchange, and the thing you meant to do tonight. */
+.auth-chat {
+  display: grid;
+  gap: 6px;
+  padding: 11px 14px 12px;
+  justify-items: start;
+}
+.auth-bubble {
+  max-width: 88%;
+  padding: 6px 10px;
+  border-radius: 11px;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.auth-bubble.you {
+  justify-self: end;
+  background: rgb(var(--hue-rgb) / 0.16);
+  color: var(--text);
+  border-bottom-right-radius: 3px;
+}
+.auth-bubble.ai {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border-bottom-left-radius: 3px;
+}
+.auth-attach {
+  font-size: 9.5px;
+  color: var(--text-3);
+}
+.auth-task {
+  display: grid;
+  gap: 5px;
+  margin: 0 14px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+}
+.auth-task-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.auth-subtask {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 2px;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.auth-subtask::before {
+  content: '';
+  width: 11px;
+  height: 11px;
+  flex: none;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+}
+.auth-subtask.done {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+.auth-subtask.done::before {
+  display: none;
+}
+.auth-subtask svg {
+  color: var(--easy);
+}
+.auth-task-foot {
+  margin-top: 2px;
+  font-size: 9.5px;
+  color: var(--text-3);
+}
+
 .auth-points {
   list-style: none;
-  margin: 26px 0 0;
+  margin: 22px 0 0;
   padding: 0;
   display: grid;
   gap: 11px;
@@ -3767,27 +4203,108 @@ img.avatar {
   transform: translateY(1px);
 }
 
-.auth-next {
+/*
+  The module rail under the slides: where you are, what else there is, and the
+  way to any of it. Dots alone would say only the first of those, and the panel
+  is the one place a visitor learns this app is more than a problem list — so
+  each one carries its module's icon and name and is a real button.
+*/
+.auth-nav {
   display: flex;
-  align-items: baseline;
-  gap: 9px;
-  margin: 26px 0 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--text-3);
 }
-.auth-badge {
-  flex: 0 0 auto;
-  padding: 1px 7px;
-  border-radius: 10px;
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.auth-nav-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 27px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  color: var(--text-3);
+  font-size: 11.5px;
+  overflow: hidden;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+.auth-nav-btn:hover {
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+.auth-nav-btn.on {
+  border-color: rgb(var(--hue-rgb) / 0.4);
+  background: rgb(var(--hue-rgb) / 0.12);
+  color: var(--hue);
+}
+.auth-nav-btn svg {
+  flex: none;
+}
+/* Only the current module spells its name out. Seven labels at once is a menu,
+   and this is a slideshow. */
+.auth-nav-label {
+  display: none;
+  white-space: nowrap;
+}
+.auth-nav-btn.on .auth-nav-label {
+  display: inline;
+}
+/* How long is left on this slide. A hairline, because it is a hint about
+   something that is about to happen on its own, not a control. */
+.auth-nav-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--hue);
+  transform-origin: left;
+  animation: auth-fill linear forwards;
+}
+.auth-nav-fill.held {
+  animation-play-state: paused;
+}
+@keyframes auth-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/*
+  Nothing here moves for someone who has asked the OS for that. The component
+  also stops advancing on its own under the same query, so the slideshow becomes
+  seven slides you click through — which is all it ever was underneath.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .auth-slide,
+  .auth-slide.on,
+  .auth-slide.on > * {
+    transition: none;
+    animation: none;
+  }
+  .auth-nav-fill,
+  .auth-board-flow {
+    display: none;
+  }
+}
+
+/* A short window cannot show a whole slide; let the panel scroll rather than
+   clip the bullets off the bottom of the tallest one. */
+@media (max-height: 760px) {
+  .auth-show {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-block: 32px;
+  }
 }
 
 @media (max-width: 940px) {

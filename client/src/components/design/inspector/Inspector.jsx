@@ -1,7 +1,7 @@
 import { memo, useMemo, useRef, useState } from 'react';
 import { shapeFor } from '../../../design/shapes/registry.js';
 import { COLORS, STICKY_COLORS } from '../../../design/shapes/shapes.js';
-import { TECH, TECH_BY_ID, TECH_CATEGORIES } from '../../../design/library/tech.js';
+import { TECH, TECH_BY_ID, TECH_CATEGORIES, searchTech } from '../../../design/library/tech.js';
 import { EXAMPLE_SCHEMA } from '../../../design/schema/assist.js';
 import { shortcutFor } from '../../../design/engine/shortcuts.js';
 import { measureTextBox } from '../../../design/text/measure.js';
@@ -24,6 +24,8 @@ import {
   IconStraight,
 } from '../icons.jsx';
 import { shallowArray, useEditor, useStoreValue, useUi } from '../canvas/hooks.js';
+import { PickList } from '../ui/PickList.jsx';
+import { TechIcon } from '../library/TechIcon.jsx';
 import { PanelSplitter } from '../workspace/PanelSplitter.jsx';
 import { RelationInspector, SchemaInspector } from '../schema/SchemaInspector.jsx';
 import { useSchemaModel } from '../schema/useSchema.js';
@@ -425,42 +427,20 @@ function Field({ field, value, onChange, disabled, record }) {
       );
     case 'select':
       return (
-        <label className="sd-field">
-          <span className="sd-field-label">{field.label}</span>
-          <select className="sd-input" value={mixed ? '' : value ?? ''} disabled={disabled} onChange={(e) => onChange(field.key, e.target.value)}>
-            {mixed && <option value="">Mixed</option>}
-            {field.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      );
-    case 'tech': {
-      const entry = mixed ? null : TECH_BY_ID[value];
-      return (
         <div className="sd-field">
-          <label className="sd-field">
-            <span className="sd-field-label">{field.label}</span>
-            <select className="sd-input" value={mixed ? '' : value ?? ''} disabled={disabled} onChange={(e) => onChange(field.key, e.target.value)}>
-              {mixed && <option value="">Mixed</option>}
-              {!mixed && value && !TECH_BY_ID[value] && <option value={value}>Unknown ({value})</option>}
-              {TECH_CATEGORIES.map((category) => (
-                <optgroup key={category.id} label={category.label}>
-                  {TECH.filter((t) => t.category === category.id).map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </label>
-          {entry && <p className="sd-field-about">{entry.about}</p>}
+          <span className="sd-field-label">{field.label}</span>
+          <PickList
+            label={field.label}
+            value={mixed ? undefined : value}
+            display={mixed ? 'Mixed' : undefined}
+            options={field.options}
+            disabled={disabled}
+            onChange={(next) => onChange(field.key, next)}
+          />
         </div>
       );
-    }
+    case 'tech':
+      return <TechField field={field} value={value} mixed={mixed} disabled={disabled} onChange={onChange} />;
     case 'toggle':
       return (
         <label className="sd-field sd-toggle-row">
@@ -516,6 +496,52 @@ function Field({ field, value, onChange, disabled, record }) {
     default:
       return null;
   }
+}
+
+const TECH_CATEGORY_LABEL = Object.fromEntries(TECH_CATEGORIES.map((c) => [c.id, c.label]));
+
+/** The catalogue's own ranking, kept as the order the list shows matches in. */
+function filterTech(options, query) {
+  const rank = new Map(searchTech(query).map((entry, i) => [entry.id, i]));
+  return options.filter((o) => rank.has(o.value)).sort((a, b) => rank.get(a.value) - rank.get(b.value));
+}
+
+/**
+ * Which technology a component stands for: 173 entries in 16 categories, so the
+ * list searches (names, keywords and descriptions, as the library panel does)
+ * and shows each one's logo and line of "when you reach for it".
+ */
+function TechField({ field, value, mixed, disabled, onChange }) {
+  const entry = mixed ? null : TECH_BY_ID[value];
+  const options = useMemo(
+    () =>
+      TECH.map((t) => ({
+        value: t.id,
+        label: t.name,
+        about: t.about,
+        group: TECH_CATEGORY_LABEL[t.category],
+        icon: <TechIcon tech={t.id} size={18} />,
+      })),
+    [],
+  );
+  return (
+    <div className="sd-field">
+      <span className="sd-field-label">{field.label}</span>
+      <PickList
+        label={field.label}
+        value={mixed ? undefined : value}
+        display={mixed ? 'Mixed' : entry ? entry.name : value ? `Unknown (${value})` : undefined}
+        leading={entry ? <TechIcon tech={entry.id} size={16} /> : null}
+        options={options}
+        filter={filterTech}
+        search={`Search ${TECH.length} components — redis, queue, cdn`}
+        listWidth={300}
+        disabled={disabled}
+        onChange={(next) => onChange(field.key, next)}
+      />
+      {entry && <p className="sd-field-about">{entry.about}</p>}
+    </div>
+  );
 }
 
 function CapGlyph({ cap, flip }) {

@@ -1778,6 +1778,23 @@ The shape of it: `/design` lists your projects (with optional starter HLD / LLD 
 folders); opening one takes the whole window — an explorer tree on the left, the board in the
 middle, properties on the right, tools floating at the bottom, like Figma or FigJam.
 
+The list page is built to be used, not just read: a header drawn on the canvas's own dot grid
+with the counts that matter, the boards you were last in (labelled canvas or schema), `/` to
+search, sorting by recent, name or size, and a cards ⇄ list switch that is remembered. Each card
+carries a small architecture diagram chosen from the project's id, so projects are told apart by
+shape as well as by colour; an empty page offers WhatsApp, a URL shortener, a rate limiter or a
+news feed as a starting name. Inside a board the top bar carries the app's own appearance menu —
+theme *and* accent — because the workspace takes the whole window and a board is drawn in both.
+
+**Components** come from a library of 173 technologies — Redis, Kafka, a load balancer, a CDN —
+each with its logo and a line on when you reach for it, plus editable data-structure blocks
+(stack, queue, linked list, hash map, binary tree…) and SQL tables. Add one from the panel
+(`I`), then swap it for another in the properties panel: the Technology field is a
+searchable list of the same 173, ranked by what you type and grouped by category, so a box drawn
+as a cache becomes Redis without deleting anything. Every choice in the workspace that needs
+explaining is one of these lists, drawn in the board's theme — there are no operating-system
+dropdowns left in it.
+
 **Schema boards** are dbdiagram-style: DBML on the left, tables on the right, either side editable.
 Building a table without knowing DBML is meant to be quick: pick a column's type from a list that
 says what each type is for, or type a name and let the type be guessed — `user_id` next to a `users`
@@ -2106,11 +2123,27 @@ refresh token.
 
 ### The auth pages
 
-A split layout: the form on the left, and on the right a panel built from the
-app's own vocabulary — pattern rows, progress bars, mono fractions — rather than
-a stock illustration. It's the product drawn at rest, and it's completely inert:
-no data, no requests, nothing to load before the form is usable. Below 940px the
-showcase drops out and the form is the page.
+A split layout: the form on the left, and on the right a showcase that answers
+"what is this?" — **one slide per module**, seven of them: the roadmap, Learn,
+the SQL Lab, Pro Coder, the Playbook, the assistant and tasks, and the system
+design board. Each slide draws that module's own screen from the app's own
+vocabulary — pattern rows, a rating chip, a query and the rows it returned, a
+board with running traffic and a DBML table — rather than a stock illustration.
+It's the product drawn at rest, and it's completely inert: no data, no requests,
+nothing to load before the form is usable. Below 940px the showcase drops out and
+the form is the page.
+
+Three rules keep it honest and out of the way:
+
+- **Nothing on it is aspirational.** Every claim names something you can go and
+  use, and a module still being built carries an *In development* chip that says
+  so on its own slide. The panel is only worth reading because of that.
+- **It moves only if you let it.** Slides advance every 7s, stop the moment the
+  pointer or the keyboard is on the panel, and never start under
+  `prefers-reduced-motion` — where the slideshow is just seven slides you click.
+- **The rail is a real control.** Each module is a button with its own icon,
+  colour and progress hairline, so the slideshow is never the only way to reach a
+  slide, and the panel says at a glance that this is more than a problem list.
 
 Behind the form is a **canvas web that reacts to the cursor**: nodes drift, any
 two within 145px share an edge, and nearby nodes lean toward the pointer. Every
@@ -3089,7 +3122,7 @@ client/
   src/
     api/         axios client + endpoints
     components/
-      layout/    AppShell, Sidebar, AccountMenu, AuthLayout, ParticleWeb
+      layout/    AppShell, Sidebar, AccountMenu, AuthLayout, AuthShowcase, ParticleWeb
       problem/   table, guide reader, notes, statement, modals
       filters/   the spec-driven filters dialog and its chips
       tasks/     the board, its four views, the drawer and the timer

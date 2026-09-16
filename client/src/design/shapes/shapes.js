@@ -378,7 +378,7 @@ export const structure = defineShape({
     {
       title: 'Structure',
       fields: [
-        { key: 'kind', kind: 'select', label: 'Kind', options: STRUCTURE_KINDS.map((k) => ({ value: k.id, label: k.label })) },
+        { key: 'kind', kind: 'select', label: 'Kind', options: STRUCTURE_KINDS.map((k) => ({ value: k.id, label: k.label, about: k.about })) },
         {
           key: 'orientation',
           kind: 'segmented',
