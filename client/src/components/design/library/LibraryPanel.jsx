@@ -1,7 +1,8 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { layoutStructure, STRUCTURE_KINDS } from '../../../design/library/structures.js';
+import { searchLibrary } from '../../../design/library/search.js';
 import { SQL_TABLE_TEMPLATES } from '../../../design/library/sqlTable.js';
-import { searchTech, TECH, TECH_CATEGORIES } from '../../../design/library/tech.js';
+import { TECH, TECH_CATEGORIES } from '../../../design/library/tech.js';
 import { shortcutFor } from '../../../design/engine/shortcuts.js';
 import { useEditor } from '../canvas/hooks.js';
 import { TechIcon } from './TechIcon.jsx';
@@ -10,8 +11,9 @@ import { TechIcon } from './TechIcon.jsx';
  * The component library: technologies, data-structure blocks and SQL tables.
  *
  * Click a tile to drop it in the middle of the view, or drag it to where it
- * goes. Search matches names, keywords and the one-line descriptions, so
- * "queue", "cache" or "kv" find what you mean even without the brand name.
+ * goes. Search looks in every tab at once (`searchLibrary`) and matches names,
+ * keywords and the one-line descriptions, so "queue", "cache" or "kv" find what
+ * you mean even without the brand name, and "stack" finds the block from Tech.
  */
 
 export const COMPONENT_MIME = 'application/x-sd-component';
@@ -33,6 +35,8 @@ export const LibraryPanel = memo(function LibraryPanel({ onClose }) {
   });
   const [query, setQuery] = useState('');
   const searchRef = useRef(null);
+  // While searching, results come from every tab, so no tab shows as the one being looked at.
+  const searching = query.trim() !== '';
 
   useEffect(() => {
     searchRef.current?.focus();
@@ -50,8 +54,11 @@ export const LibraryPanel = memo(function LibraryPanel({ onClose }) {
   const onKeyDown = (event) => {
     if (event.key === 'Escape') {
       event.stopPropagation();
-      if (query) setQuery('');
-      else onClose();
+      if (query) {
+        setQuery('');
+        // The tile that had focus may be a search result that is about to go; keep focus in the panel so a second Escape closes it.
+        searchRef.current?.focus();
+      } else onClose();
     }
   };
 
@@ -77,8 +84,8 @@ export const LibraryPanel = memo(function LibraryPanel({ onClose }) {
               key={t.id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              className={tab === t.id ? 'on' : ''}
+              aria-selected={tab === t.id && !searching}
+              className={tab === t.id && !searching ? 'on' : ''}
               onClick={() => {
                 setTab(t.id);
                 setQuery('');
@@ -95,15 +102,16 @@ export const LibraryPanel = memo(function LibraryPanel({ onClose }) {
       <input
         ref={searchRef}
         className="sd-input sd-library-search"
-        placeholder={tab === 'tech' ? 'Search 170+ components — redis, queue, cdn…' : 'Search'}
+        placeholder="Search all tabs — redis, stack, orders…"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         aria-label="Search components"
       />
       <div className="sd-library-body">
-        {tab === 'tech' && <TechTab query={query} onInsert={insert} />}
-        {tab === 'structures' && <StructuresTab query={query} onInsert={insert} />}
-        {tab === 'database' && <DatabaseTab query={query} onInsert={insert} />}
+        {searching && <SearchResults query={query} tab={tab} onInsert={insert} />}
+        {!searching && tab === 'tech' && <TechTab onInsert={insert} />}
+        {!searching && tab === 'structures' && <StructuresTab onInsert={insert} />}
+        {!searching && tab === 'database' && <DatabaseTab onInsert={insert} />}
       </div>
       <p className="sd-library-hint">Click to add in the middle of the view, or drag onto the board.</p>
     </aside>
@@ -129,20 +137,59 @@ function Tile({ spec, label, title, onInsert, children }) {
   );
 }
 
-function TechTab({ query, onInsert }) {
-  const groups = useMemo(() => {
-    const matches = searchTech(query, TECH);
-    if (query.trim()) return [{ id: 'results', label: `${matches.length} result${matches.length === 1 ? '' : 's'}`, entries: matches }];
-    return TECH_CATEGORIES.map((c) => ({ ...c, entries: TECH.filter((t) => t.category === c.id) }));
-  }, [query]);
-  return groups.map((group) => (
-    <section key={group.id} className="sd-library-group">
-      <h5>{group.label}</h5>
+function TechTile({ entry, onInsert }) {
+  return (
+    <Tile spec={{ type: 'tech', tech: entry.id }} label={entry.name} title={`${entry.name} — ${entry.about}`} onInsert={onInsert}>
+      <TechIcon tech={entry.id} size={26} />
+    </Tile>
+  );
+}
+
+function StructureTile({ kind, onInsert }) {
+  return (
+    <Tile spec={{ type: 'structure', kind: kind.id }} label={kind.label} title={kind.about} onInsert={onInsert}>
+      <StructurePreview kind={kind} />
+    </Tile>
+  );
+}
+
+function TableTile({ template, onInsert }) {
+  return (
+    <Tile spec={{ type: 'sqltable', text: template.text }} label={template.label} title={template.text} onInsert={onInsert}>
+      <span className="sd-library-table" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+    </Tile>
+  );
+}
+
+/** Matches from all three tabs, one section each, the best-matching section first. */
+function SearchResults({ query, tab, onInsert }) {
+  const sections = useMemo(() => searchLibrary(query, tab), [query, tab]);
+  if (!sections.length) return <p className="sd-library-empty">Nothing matches “{query.trim()}” in any tab.</p>;
+  return sections.map((section) => (
+    <section key={section.id} className="sd-library-group">
+      <h5>
+        {section.label} · {section.items.length}
+      </h5>
+      <div className={`sd-library-grid ${section.id === 'tech' ? '' : 'wide'}`}>
+        {section.id === 'tech' && section.items.map((entry) => <TechTile key={entry.id} entry={entry} onInsert={onInsert} />)}
+        {section.id === 'structures' && section.items.map((kind) => <StructureTile key={kind.id} kind={kind} onInsert={onInsert} />)}
+        {section.id === 'database' && section.items.map((template) => <TableTile key={template.id} template={template} onInsert={onInsert} />)}
+      </div>
+    </section>
+  ));
+}
+
+function TechTab({ onInsert }) {
+  return TECH_CATEGORIES.map((category) => (
+    <section key={category.id} className="sd-library-group">
+      <h5>{category.label}</h5>
       <div className="sd-library-grid">
-        {group.entries.map((entry) => (
-          <Tile key={entry.id} spec={{ type: 'tech', tech: entry.id }} label={entry.name} title={`${entry.name} — ${entry.about}`} onInsert={onInsert}>
-            <TechIcon tech={entry.id} size={26} />
-          </Tile>
+        {TECH.filter((entry) => entry.category === category.id).map((entry) => (
+          <TechTile key={entry.id} entry={entry} onInsert={onInsert} />
         ))}
       </div>
     </section>
@@ -165,19 +212,14 @@ function StructurePreview({ kind }) {
   );
 }
 
-function StructuresTab({ query, onInsert }) {
-  const q = query.trim().toLowerCase();
-  const kinds = STRUCTURE_KINDS.filter((k) => !q || k.label.toLowerCase().includes(q) || k.about.toLowerCase().includes(q));
+function StructuresTab({ onInsert }) {
   return (
     <section className="sd-library-group">
       <div className="sd-library-grid wide">
-        {kinds.map((kind) => (
-          <Tile key={kind.id} spec={{ type: 'structure', kind: kind.id }} label={kind.label} title={kind.about} onInsert={onInsert}>
-            <StructurePreview kind={kind} />
-          </Tile>
+        {STRUCTURE_KINDS.map((kind) => (
+          <StructureTile key={kind.id} kind={kind} onInsert={onInsert} />
         ))}
       </div>
-      {!kinds.length && <p className="sd-library-empty">Nothing matches “{query}”.</p>}
       <p className="sd-library-note">
         Double-click a block to edit it: one item per line, <code>*</code> in front highlights an item, trees take LeetCode&rsquo;s{' '}
         <code>[1,2,null,3]</code>.
@@ -186,55 +228,37 @@ function StructuresTab({ query, onInsert }) {
   );
 }
 
-function DatabaseTab({ query, onInsert }) {
-  const q = query.trim().toLowerCase();
-  const tables = SQL_TABLE_TEMPLATES.filter((t) => !q || t.label.toLowerCase().includes(q) || t.text.toLowerCase().includes(q));
-  const kinds = STRUCTURE_KINDS.filter((k) => (k.id === 'shards' || k.id === 'hashring') && (!q || k.label.toLowerCase().includes(q)));
-  const tech = searchTech(q, TECH.filter((t) => t.category === 'sql' || t.category === 'nosql' || t.category === 'cache')).slice(0, q ? 40 : 12);
-  if (q && !tables.length && !kinds.length && !tech.length) return <p className="sd-library-empty">Nothing matches “{query}”.</p>;
+const SCALING_KINDS = STRUCTURE_KINDS.filter((kind) => kind.id === 'shards' || kind.id === 'hashring');
+const DATABASE_TECH = TECH.filter((entry) => entry.category === 'sql' || entry.category === 'nosql' || entry.category === 'cache').slice(0, 12);
+
+function DatabaseTab({ onInsert }) {
   return (
     <>
-      {tables.length > 0 && (
-        <section className="sd-library-group">
-          <h5>SQL tables</h5>
-          <div className="sd-library-grid wide">
-            {tables.map((template) => (
-              <Tile key={template.id} spec={{ type: 'sqltable', text: template.text }} label={template.label} title={template.text} onInsert={onInsert}>
-                <span className="sd-library-table" aria-hidden="true">
-                  <i />
-                  <i />
-                  <i />
-                </span>
-              </Tile>
-            ))}
-          </div>
-          <p className="sd-library-note">Columns are DBML — the same text a schema board and dbdiagram.io use.</p>
-        </section>
-      )}
-      {kinds.length > 0 && (
-        <section className="sd-library-group">
-          <h5>Scaling data</h5>
-          <div className="sd-library-grid wide">
-            {kinds.map((kind) => (
-              <Tile key={kind.id} spec={{ type: 'structure', kind: kind.id }} label={kind.label} title={kind.about} onInsert={onInsert}>
-                <StructurePreview kind={kind} />
-              </Tile>
-            ))}
-          </div>
-        </section>
-      )}
-      {tech.length > 0 && (
-        <section className="sd-library-group">
-          <h5>Databases & caches</h5>
-          <div className="sd-library-grid">
-            {tech.map((entry) => (
-              <Tile key={entry.id} spec={{ type: 'tech', tech: entry.id }} label={entry.name} title={`${entry.name} — ${entry.about}`} onInsert={onInsert}>
-                <TechIcon tech={entry.id} size={26} />
-              </Tile>
-            ))}
-          </div>
-        </section>
-      )}
+      <section className="sd-library-group">
+        <h5>SQL tables</h5>
+        <div className="sd-library-grid wide">
+          {SQL_TABLE_TEMPLATES.map((template) => (
+            <TableTile key={template.id} template={template} onInsert={onInsert} />
+          ))}
+        </div>
+        <p className="sd-library-note">Columns are DBML — the same text a schema board and dbdiagram.io use.</p>
+      </section>
+      <section className="sd-library-group">
+        <h5>Scaling data</h5>
+        <div className="sd-library-grid wide">
+          {SCALING_KINDS.map((kind) => (
+            <StructureTile key={kind.id} kind={kind} onInsert={onInsert} />
+          ))}
+        </div>
+      </section>
+      <section className="sd-library-group">
+        <h5>Databases & caches</h5>
+        <div className="sd-library-grid">
+          {DATABASE_TECH.map((entry) => (
+            <TechTile key={entry.id} entry={entry} onInsert={onInsert} />
+          ))}
+        </div>
+      </section>
     </>
   );
 }

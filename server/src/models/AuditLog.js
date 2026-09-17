@@ -23,6 +23,9 @@ export const AUDIT_TARGET_TYPES = Object.freeze([
   'motivation',
   'feedback',
   'module',
+  // An account request, which is not a `user`: the row it points at may never
+  // become one, and after a rejection there is nothing for a `user` id to mean.
+  'signup',
   'settings',
   'system',
 ]);

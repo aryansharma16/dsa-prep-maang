@@ -1534,7 +1534,9 @@ export function Docs() {
                     Redis, Kafka, NGINX, a load balancer, a CDN — data-structure blocks you can type
                     into (stack, queue, linked list, hash map, binary tree) and SQL tables. Search it
                     by what a thing does, not only its name: &ldquo;queue&rdquo; finds RabbitMQ and SQS.
-                    Click to drop one in the middle of the view, or drag it where you want it.
+                    The search looks in all three tabs at once, so &ldquo;stack&rdquo; finds the block
+                    even with Tech open. Click to drop one in the middle of the view, or drag it where
+                    you want it.
                   </p>
                   <p>
                     Select a component and the panel on the right swaps it for another from the same

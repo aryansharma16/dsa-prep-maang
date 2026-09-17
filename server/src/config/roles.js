@@ -35,6 +35,14 @@ export const DEFAULT_ROLE = 'user';
  *   feedback:write set a submission's status and leave the one reply on it
  *   module:preview reach a side-menu module that is still being built
  *   module:write   decide which modules are still being built
+ *   signup:read    see who has asked for an account
+ *   signup:write   approve or decline them
+ *
+ * The signup pair is `super_admin` only, and `signup:write` is not something to
+ * hand an `admin` casually: approving a request creates an account, which is
+ * `user:create` reached by another door. The read half is split off for the day
+ * someone should be able to triage the queue without being able to let anyone
+ * in — the same reason `feedback:read` and `feedback:write` are two things.
  *
  * `settings:write` is its own capability rather than a reuse of
  * `content:write`, even though only `super_admin` holds either one today. That
@@ -111,6 +119,8 @@ const CAPS = {
     'feedback:write',
     'module:preview',
     'module:write',
+    'signup:read',
+    'signup:write',
   ],
 };
 

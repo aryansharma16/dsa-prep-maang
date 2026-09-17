@@ -45,8 +45,22 @@ export function AuthProvider({ children }) {
   }, [endSession]);
 
   const login = useCallback(async (body) => applySession(await authApi.login(body)), [applySession]);
+  /**
+   * Asks for an account. Usually does not produce a session.
+   *
+   * The server answers one of two ways — a queued request, or (for the pinned
+   * owner registering on a fresh deployment) a real session — and this returns
+   * the response so the page can show the right one. `applySession` runs only
+   * when there is actually a user in it, because calling it with `{ pending:
+   * true }` would sign the app in as `undefined` and send a half-built session
+   * to every consumer of this context.
+   */
   const register = useCallback(
-    async (body) => applySession(await authApi.register(body)),
+    async (body) => {
+      const result = await authApi.register(body);
+      if (result?.user) applySession(result);
+      return result;
+    },
     [applySession],
   );
   const logout = useCallback(async () => {

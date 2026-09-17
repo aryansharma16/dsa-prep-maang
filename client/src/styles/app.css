@@ -3582,6 +3582,52 @@ img.avatar {
   background: var(--easy);
 }
 
+/* The one multi-line field on an auth form. Matches the inputs beside it
+   rather than inheriting the app's textarea, which is sized for a note. */
+.auth-textarea {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+  outline: none;
+}
+.auth-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* What replaces the form once a request is filed: the form is gone, because
+   there is nothing left to do on this page and re-sending is refused. */
+.auth-done {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.auth-done-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.auth-done p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.auth-done-sub {
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
 .auth-submit {
   width: 100%;
   height: 38px;
@@ -5139,6 +5185,39 @@ a.tile.attention:hover {
   align-items: center;
   gap: 10px;
   min-width: 0;
+}
+/* Approve / Decline in the last column of the request queue.
+   `display: flex` belongs on the wrapper, never on the `td` — a table cell that
+   stops being a table-cell drops out of the row's column layout and takes every
+   cell after it out of alignment. */
+.admin-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.admin-actions > div {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+/* The email under the name, rather than run on after it. */
+.admin-person small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+/* The applicant's own sentence. Capped so one long answer cannot push every
+   other column off the table. */
+.admin-why {
+  max-width: 260px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+/* Under the status chip, not beside it. */
+.decided-by {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
 }
 .admin-person-lg {
   gap: 14px;

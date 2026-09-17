@@ -43,6 +43,13 @@ import {
   updateSchema as feedbackUpdateSchema,
 } from '../controllers/admin/feedback.controller.js';
 import {
+  approveSignup,
+  listQuery as signupListQuery,
+  listSignups,
+  rejectSchema as signupRejectSchema,
+  rejectSignup,
+} from '../controllers/admin/signups.controller.js';
+import {
   createSchema,
   createUser,
   deleteUser,
@@ -247,6 +254,36 @@ adminRouter.patch(
   validate(idParam, 'params'),
   validate(feedbackUpdateSchema),
   updateFeedback,
+);
+
+/* ------------------------------------------------------------- signups */
+
+/*
+  The account queue. `signup:write` is `super_admin` only because approving one
+  creates an account — see the note in config/roles.js.
+
+  No module gate, for the reason feedback has none: there is no Signups module
+  to switch off, and people waiting to be let in must stay reachable whatever
+  else is hidden.
+*/
+adminRouter.get(
+  '/signups',
+  requireCap('signup:read'),
+  validate(signupListQuery, 'query'),
+  listSignups,
+);
+adminRouter.post(
+  '/signups/:id/approve',
+  requireCap('signup:write'),
+  validate(idParam, 'params'),
+  approveSignup,
+);
+adminRouter.post(
+  '/signups/:id/reject',
+  requireCap('signup:write'),
+  validate(idParam, 'params'),
+  validate(signupRejectSchema),
+  rejectSignup,
 );
 
 /* --------------------------------------------------------------- guides */

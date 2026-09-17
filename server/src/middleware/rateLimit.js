@@ -178,12 +178,19 @@ export const loginLimiter = limiter({
  * a fresh per-account budget for every limiter keyed by `byUser`. So nothing is
  * skipped, and the number is small: five an hour is generous for a household or
  * a classroom signing up together, and useless as a way to farm accounts.
+ *
+ * Registration files a request for approval now rather than creating an account,
+ * which changes what is at stake here but not the limit. The damage moves from a
+ * collection full of accounts to a queue full of rubbish a human has to read, and
+ * a flooded queue is the more effective attack of the two: nobody triages three
+ * thousand rows, so the real applicants in there never get let in. This also sits
+ * in front of the one outbound mail per request, so it is the cap on that too.
  */
 export const registerLimiter = limiter({
   name: 'register',
   windowMs: HOUR,
   limit: 5,
-  message: 'Too many accounts created from this network. Try again in an hour.',
+  message: 'Too many requests from this network. Try again in an hour.',
 });
 
 /**

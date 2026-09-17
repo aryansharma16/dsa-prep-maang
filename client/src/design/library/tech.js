@@ -112,7 +112,7 @@ export const TECH = [
   e('cache', 'Cache', 'cache', glyph('cache'), '#ef4444', 'Keeps hot data in memory; decide the eviction policy and how it is invalidated.', 'in-memory lru'),
   e('redis', 'Redis', 'cache', brand('redis'), '#ff4438', 'In-memory data structures: cache, sessions, rate limits, leaderboards, pub/sub, streams.', 'cache kv in-memory'),
   e('memcached', 'Memcached', 'cache', glyph('cache'), '#2e8b57', 'Simple multi-threaded in-memory key-value cache.', 'cache kv'),
-  e('upstash', 'Upstash', 'cache', brand('upstash'), '#00c98d', 'Serverless Redis and Kafka.', 'redis serverless'),
+  e('upstash', 'Upstash', 'cache', brand('upstash'), '#00c98d', 'Serverless Redis billed per request, plus QStash messaging and a vector store.', 'redis serverless qstash'),
 
   // Queues & streams
   e('queue', 'Message queue', 'messaging', glyph('queue'), '#14b8a6', 'Buffers work between producers and consumers; smooths spikes, enables retries.', 'mq async jobs'),
@@ -247,19 +247,33 @@ export const TECH = [
 
 export const TECH_BY_ID = Object.fromEntries(TECH.map((entry) => [entry.id, entry]));
 
+/**
+ * How well `{ id, name, keywords, about }` matches a trimmed, lower-cased query:
+ * 3 name starts with it, 2 name contains it, 1.5 keywords or id, 1 description, 0 no match.
+ * Shared by the whole library (`library/search.js`) so every tab ranks the same way.
+ */
+export function matchScore(q, { id, name, keywords = '', about = '' }) {
+  const lower = name.toLowerCase();
+  if (lower.startsWith(q)) return 3;
+  if (lower.includes(q)) return 2;
+  if (keywords.includes(q) || id.includes(q)) return 1.5;
+  if (about.toLowerCase().includes(q)) return 1;
+  return 0;
+}
+
+/** `[score, entry]` for every entry that matches, best first; `fields(entry)` supplies what `matchScore` reads. */
+export function rankMatches(q, entries, fields = (entry) => entry) {
+  const scored = [];
+  for (const entry of entries) {
+    const score = matchScore(q, fields(entry));
+    if (score) scored.push([score, entry]);
+  }
+  return scored.sort((a, b) => b[0] - a[0]);
+}
+
 /** Catalogue entries matching a search, best matches first (name start, name, keywords/about). */
 export function searchTech(query, entries = TECH) {
   const q = query.trim().toLowerCase();
   if (!q) return entries;
-  const scored = [];
-  for (const entry of entries) {
-    const name = entry.name.toLowerCase();
-    let score = 0;
-    if (name.startsWith(q)) score = 3;
-    else if (name.includes(q)) score = 2;
-    else if (entry.keywords.includes(q) || entry.id.includes(q)) score = 1.5;
-    else if (entry.about.toLowerCase().includes(q)) score = 1;
-    if (score) scored.push([score, entry]);
-  }
-  return scored.sort((a, b) => b[0] - a[0]).map(([, entry]) => entry);
+  return rankMatches(q, entries).map(([, entry]) => entry);
 }

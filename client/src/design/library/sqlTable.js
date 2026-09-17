@@ -19,13 +19,14 @@ export const DEFAULT_SQL_TABLE_TEXT = `Table users {
   created_at timestamp [default: \`now()\`]
 }`;
 
-/** Starting points in the library's Database tab. */
+/** Starting points in the library's Database tab. `keywords` feed the library search, with the text itself. */
 export const SQL_TABLE_TEMPLATES = [
-  { id: 'blank', label: 'Table', text: 'Table table_name {\n  id bigint [pk, increment]\n}' },
-  { id: 'users', label: 'users', text: DEFAULT_SQL_TABLE_TEXT },
+  { id: 'blank', label: 'Table', keywords: 'sql dbml schema empty', text: 'Table table_name {\n  id bigint [pk, increment]\n}' },
+  { id: 'users', label: 'users', keywords: 'accounts auth signup', text: DEFAULT_SQL_TABLE_TEXT },
   {
     id: 'orders',
     label: 'orders',
+    keywords: 'ecommerce checkout foreign key one to many',
     text: `Table orders {
   id bigint [pk, increment]
   user_id bigint [not null, ref: > users.id]
@@ -37,6 +38,7 @@ export const SQL_TABLE_TEMPLATES = [
   {
     id: 'join',
     label: 'Join table',
+    keywords: 'many to many junction pivot bridge associative composite key',
     text: `Table user_roles {
   user_id bigint [ref: > users.id]
   role_id int [ref: > roles.id]
@@ -50,6 +52,7 @@ export const SQL_TABLE_TEMPLATES = [
   {
     id: 'events',
     label: 'Event log',
+    keywords: 'event sourcing audit outbox append only history',
     text: `Table events {
   id bigint [pk, increment]
   aggregate_id uuid [not null]

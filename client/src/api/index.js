@@ -491,6 +491,15 @@ export const adminApi = {
   /** Candidates only — nothing is written until the admin picks. */
   draftMotivation: (body) => http.post('/admin/motivation/draft', body).then((r) => r.data.drafts),
 
+  /**
+   * The account queue. Approving one creates the account, which is why these
+   * three sit behind `signup:read`/`signup:write` and not `feedback:*`.
+   */
+  signups: (params) => http.get('/admin/signups', { params }).then((r) => r.data),
+  approveSignup: (id) => http.post(`/admin/signups/${id}/approve`).then((r) => r.data),
+  rejectSignup: (id, note) =>
+    http.post(`/admin/signups/${id}/reject`, { note }).then((r) => r.data.request),
+
   feedback: (params) => http.get('/admin/feedback', { params }).then((r) => r.data),
   /**
    * Status and the reply in one write. The panel edits both in one dialog and

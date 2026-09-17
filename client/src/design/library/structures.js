@@ -15,17 +15,17 @@
  */
 
 export const STRUCTURE_KINDS = [
-  { id: 'array', label: 'Array', example: '3\n8\n*1\n9\n4', about: 'Contiguous, indexed: O(1) access, O(n) insert in the middle.' },
-  { id: 'stack', label: 'Stack', example: '*top call\nsecond\nthird', about: 'LIFO — push and pop at the top in O(1). First line is the top.' },
-  { id: 'queue', label: 'Queue', example: '*A\nB\nC\nD', about: 'FIFO — enqueue at the rear, dequeue at the front. First line is the front.' },
-  { id: 'linkedlist', label: 'Linked list', example: '1\n2\n3\n4', about: 'Nodes pointing to the next; O(1) insert at a known node, O(n) search.' },
-  { id: 'doublylinkedlist', label: 'Doubly linked list', example: 'A\nB\nC', about: 'Nodes point both ways; O(1) removal of a known node (LRU cache).' },
-  { id: 'callstack', label: 'Call stack', example: '*fib(1)\nfib(2)\nfib(3)\nmain()', about: 'One frame per active call; the first line is the running (top) frame.' },
-  { id: 'hashmap', label: 'Hash map', example: 'alice: 42\nbob: 17\n*carol: 99', about: 'Key → value with O(1) average lookup. One "key: value" per line.' },
-  { id: 'tree', label: 'Binary tree', example: '[8,3,10,1,6,null,14,null,null,4,7]', about: 'Level order like LeetCode — null for a missing child. Heaps and BSTs too.' },
-  { id: 'matrix', label: 'Matrix / grid', example: '1 0 1\n0 *1 0\n1 1 1', about: 'Rows on lines, cells separated by spaces or commas (DP tables, grids).' },
-  { id: 'shards', label: 'Shards', example: 'Shard 1: users A–H\nShard 2: users I–P\nShard 3: users Q–Z', about: 'Horizontal partitioning: "name: key range" per line.' },
-  { id: 'hashring', label: 'Hash ring', example: 'node-A\nnode-B\nnode-C\nnode-D', about: 'Consistent hashing: nodes on a ring; adding one moves only ~1/N keys.' },
+  { id: 'array', label: 'Array', example: '3\n8\n*1\n9\n4', keywords: 'list vector index contiguous', about: 'Contiguous, indexed: O(1) access, O(n) insert in the middle.' },
+  { id: 'stack', label: 'Stack', example: '*top call\nsecond\nthird', keywords: 'lifo push pop undo', about: 'LIFO — push and pop at the top in O(1). First line is the top.' },
+  { id: 'queue', label: 'Queue', example: '*A\nB\nC\nD', keywords: 'fifo enqueue dequeue bfs', about: 'FIFO — enqueue at the rear, dequeue at the front. First line is the front.' },
+  { id: 'linkedlist', label: 'Linked list', example: '1\n2\n3\n4', keywords: 'singly node pointer next', about: 'Nodes pointing to the next; O(1) insert at a known node, O(n) search.' },
+  { id: 'doublylinkedlist', label: 'Doubly linked list', example: 'A\nB\nC', keywords: 'dll prev next lru', about: 'Nodes point both ways; O(1) removal of a known node (LRU cache).' },
+  { id: 'callstack', label: 'Call stack', example: '*fib(1)\nfib(2)\nfib(3)\nmain()', keywords: 'recursion frames stack trace', about: 'One frame per active call; the first line is the running (top) frame.' },
+  { id: 'hashmap', label: 'Hash map', example: 'alice: 42\nbob: 17\n*carol: 99', keywords: 'hash table dictionary dict map object kv', about: 'Key → value with O(1) average lookup. One "key: value" per line.' },
+  { id: 'tree', label: 'Binary tree', example: '[8,3,10,1,6,null,14,null,null,4,7]', keywords: 'bst binary search tree heap priority queue leetcode', about: 'Level order like LeetCode — null for a missing child. Heaps and BSTs too.' },
+  { id: 'matrix', label: 'Matrix / grid', example: '1 0 1\n0 *1 0\n1 1 1', keywords: 'grid 2d dp', about: 'Rows on lines, cells separated by spaces or commas (DP tables, grids).' },
+  { id: 'shards', label: 'Shards', example: 'Shard 1: users A–H\nShard 2: users I–P\nShard 3: users Q–Z', keywords: 'sharding partition partitioning horizontal scaling', about: 'Horizontal partitioning: "name: key range" per line.' },
+  { id: 'hashring', label: 'Hash ring', example: 'node-A\nnode-B\nnode-C\nnode-D', keywords: 'consistent hashing ring virtual nodes', about: 'Consistent hashing: nodes on a ring; adding one moves only ~1/N keys.' },
 ];
 
 export const STRUCTURE_BY_ID = Object.fromEntries(STRUCTURE_KINDS.map((k) => [k.id, k]));

@@ -1789,11 +1789,15 @@ theme *and* accent — because the workspace takes the whole window and a board 
 **Components** come from a library of 173 technologies — Redis, Kafka, a load balancer, a CDN —
 each with its logo and a line on when you reach for it, plus editable data-structure blocks
 (stack, queue, linked list, hash map, binary tree…) and SQL tables. Add one from the panel
-(`I`), then swap it for another in the properties panel: the Technology field is a
+(`I`), whose search looks in all three tabs at once — "stack" finds the block while Tech is open,
+because nobody should have to guess which tab a thing lives in — then swap it for another in the
+properties panel: the Technology field is a
 searchable list of the same 173, ranked by what you type and grouped by category, so a box drawn
 as a cache becomes Redis without deleting anything. Every choice in the workspace that needs
 explaining is one of these lists, drawn in the board's theme — there are no operating-system
-dropdowns left in it.
+dropdowns left in it. What each component actually *is* — a definition per entry, when you would
+use it, the interview traps, and a link to the official docs it is condensed from — is the
+[component glossary](docs/design.md#component-glossary).
 
 **Schema boards** are dbdiagram-style: DBML on the left, tables on the right, either side editable.
 Building a table without knowing DBML is meant to be quick: pick a column's type from a list that
@@ -2145,6 +2149,73 @@ Three rules keep it honest and out of the way:
   colour and progress hairline, so the slideshow is never the only way to reach a
   slide, and the panel says at a glance that this is more than a problem list.
 
+### Signing up is a request, not an account
+
+Registration does not create a `User`. It creates a **`SignupRequest`**, and the
+super admin turns it into an account or does not — the Requests tab in the panel.
+
+The five fields are name, email, mobile, password and one line on why they want
+access, and five is the budget: everything past the four an account needs is a
+stranger being asked to prove themselves to a form, and the last one is what the
+owner actually reads when deciding. Alongside them the server records what it can
+see without asking — the IP, desktop/mobile, browser and OS off the user agent,
+and city/country from a free no-key lookup (ip-api.com, best-effort, wrapped in a
+2.5s timeout; it never fails a signup). Those are not form fields and do not
+count against the five.
+
+What makes it safe rather than merely slower is that **nothing in between is an
+account**. A pending request cannot sign in, cannot hold a session, cannot be
+promoted and does not appear in the user list — it is a row with a bcrypt hash on
+it until somebody says yes. That is also why it is a separate collection: every
+other query in this app treats a `User` row as a real person, and a `pending` flag
+on `User` would mean teaching all of them about someone who cannot sign in.
+
+- **The password is chosen at request time**, hashed immediately at the same cost
+  a real account uses, and `select: false`. Approval copies that hash onto the new
+  `User` and `$unset`s the row's copy, so a decided request is not a second place
+  a password lives. Declining unsets it too.
+- **One *pending* request per address**, as a partial unique index. A plain unique
+  index would mean a declined applicant could never apply again, and an approved
+  one would block the address forever even after the account was deleted.
+- **The pinned owner is the exception.** `SUPER_ADMIN_EMAIL` registers the old way
+  and signs straight in, because on a fresh deployment there is nobody to approve
+  them — the queue would have one row and no way to reach the panel that shows it.
+- Both decisions are audited (`signup.approve` / `signup.reject`), so "who let
+  this person in" is a filter on the activity feed rather than a guess.
+
+**Mail** is `server/src/services/mail.service.js`: four short messages — we got
+your request, somebody wants in, you're approved, not this time. Two backends,
+picked by whichever credential is set, and both free at this volume: SendGrid's
+HTTPS API (100 a day) or plain SMTP, e.g. a Gmail app password (500 a day).
+SendGrid wins when both are set, because a host that blocks outbound SMTP is
+exactly the deployment that configured both.
+
+Set neither and the flow still works end to end — requests queue, approvals create
+accounts, and each message is logged instead. That is the rule the whole mail
+layer is built on: every message is a *notification about* something already
+written to the database, so `sendMail` resolves `false` rather than throwing, and
+nothing awaits it. A revoked API key must not turn an approval into a 500 after
+the account was created.
+
+One thing that will bite: **`MAIL_FROM` has to be an address the sender is allowed
+to use.** SendGrid 403s a From it has not verified (Settings → Sender
+Authentication → Single Sender Verification), and SMTP servers tend to accept it
+and file it as spam. It is the only setting here that fails quietly.
+
+The whole flow has end-to-end coverage against an in-memory Mongo, with SMTP
+deliberately unconfigured — because "mail is not set up" is the case the request
+path must survive:
+
+```bash
+cd server && npm i --no-save mongodb-memory-server@10
+cd server/scripts/signup/e2e && node --test signup-api.test.mjs
+```
+
+Eleven checks, including the ones worth being sure of: a queued request sets no
+cookies and cannot log in, the hash never reaches the panel, a learner gets a 403
+on the queue, approving signs them in with the password they typed on the form,
+and both decisions land in the audit log.
+
 Behind the form is a **canvas web that reacts to the cursor**: nodes drift, any
 two within 145px share an edge, and nearby nodes lean toward the pointer. Every
 few seconds — and whenever the cursor settles somewhere new — a breadth-first
@@ -2421,6 +2492,8 @@ administration are delegable.
 | **Change site settings** |  –   |   –   |     –      |      ✓      |
 | Read the feedback queue |  –  |   ✓   |     ✓      |      ✓      |
 | Answer feedback        |  –   |   ✓   |     ✓      |      ✓      |
+| **See account requests** | –  |   –   |     –      |      ✓      |
+| **Approve / decline them** | – |  –   |     –      |      ✓      |
 | **See a module in development** | – | – |    –      |      ✓      |
 | **Hide / release a module** | –  |   –   |     –      |      ✓      |
 
@@ -2439,6 +2512,12 @@ confirm the route exists.
 hold both today. Reading the queue is triage; writing on an item sends a sentence
 to a real person, signed with a name, in the product's voice. The overlap is what
 the matrix currently says, not a claim the two are the same power.
+
+`signup:read` and `signup:write` are super admin only, and `signup:write` is the
+one to be careful handing out: approving a request **creates an account**, which
+is `user:create` reached through another door. The read half is split off for the
+day somebody should be able to triage the queue without being able to let anyone
+in.
 
 ### The dashboard
 
@@ -3105,11 +3184,13 @@ with a dialog open.
 server/
   src/
     config/      env, db connection
-    models/      User, UserView, Pattern, Problem, Progress, PatternGuide,
-                 CompanyLogo, AuditLog, Motivation, DailyLine, Task, TaskBoard
+    models/      User, SignupRequest, UserView, Pattern, Problem, Progress,
+                 PatternGuide, CompanyLogo, AuditLog, Motivation, DailyLine,
+                 Task, TaskBoard
     routes/      route tables only
     controllers/ request/response
-    services/    auth, leetcode, spaced repetition, media, logos, gemini,
+    services/    auth, signup (the approval queue), mail (SendGrid or SMTP),
+                 leetcode, spaced repetition, media, logos, gemini,
                  audit, activity, motivation (signals, picker, daily line),
                  tasks (the board, the clock, attachments)
     middleware/  requireAuth, errorHandler, validate, upload
@@ -3151,7 +3232,8 @@ docs/          the deep-dive references the README links out to:
 
 | method | route | |
 |---|---|---|
-| `POST` | `/auth/register` · `/auth/login` · `/auth/logout` · `/auth/refresh` | session |
+| `POST` | `/auth/register` | asks for an account — 202 and a queued request, or 201 with a session for the pinned owner |
+| `POST` | `/auth/login` · `/auth/logout` · `/auth/refresh` | session |
 | `GET` `PATCH` | `/auth/me` | the signed-in user with their capabilities and visible modules, and editing your own details |
 | `PUT` | `/auth/me/rating` | your own rating out of five — replaces, never appends |
 | `POST` `DELETE` | `/auth/me/avatar` | profile picture |

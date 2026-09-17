@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { User, publicUser } from '../models/User.js';
-import { loginUser, registerUser } from '../services/auth.service.js';
+import { loginUser } from '../services/auth.service.js';
+import { requestAccess } from '../services/signup.service.js';
 import { moduleAccess } from '../services/settings.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -11,10 +12,30 @@ import {
   verifyRefreshToken,
 } from '../utils/tokens.js';
 
+/**
+ * The five fields, and the only five.
+ *
+ * Asking a stranger for more than this before they are let in is a product
+ * decision, not a validation change — the form, the model and this schema all
+ * say so in the same words so that adding a sixth has to be done on purpose in
+ * three places.
+ *
+ * `mobile` is checked for shape rather than for being a real number: this app
+ * sends nothing to it, it is there so the owner can tell two applicants apart
+ * and reach one if they want to, and a strict E.164 rule would refuse half the
+ * ways people write their own number down.
+ */
 export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   name: z.string().min(1, 'Name is required').max(60),
+  mobile: z
+    .string()
+    .trim()
+    .min(7, 'That does not look like a phone number')
+    .max(20)
+    .regex(/^[+\d][\d\s()-]*$/, 'Digits, spaces, brackets and a leading + only'),
+  reason: z.string().trim().max(300).optional().default(''),
 });
 
 export const loginSchema = z.object({
@@ -40,10 +61,32 @@ const session = async (user) => ({
   modules: await moduleAccess(user.role),
 });
 
+/**
+ * Asks for an account. Does not create one.
+ *
+ * The two responses are different shapes on purpose, and the client branches on
+ * which it got. A 201 with a session is the pinned owner registering on a fresh
+ * deployment — the one address that cannot queue behind an approver, because it
+ * *is* the approver. Everyone else gets a 202: accepted, nothing exists yet,
+ * no cookies set.
+ *
+ * 202 rather than 201 because the status code is the honest one — the request
+ * has been accepted for processing and the processing is a person reading it.
+ */
 export const register = asyncHandler(async (req, res) => {
-  const user = await registerUser(req.body);
-  setAuthCookies(res, user);
-  res.status(201).json(await session(user));
+  const { user, request } = await requestAccess(req.body, req);
+
+  if (user) {
+    setAuthCookies(res, user);
+    res.status(201).json(await session(user));
+    return;
+  }
+
+  res.status(202).json({
+    pending: true,
+    email: request.email,
+    message: 'Your request is with the owner. You will get an email when it is reviewed.',
+  });
 });
 
 export const login = asyncHandler(async (req, res) => {

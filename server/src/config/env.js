@@ -46,6 +46,11 @@ function readCloudinary() {
 const cloudinary = readCloudinary();
 const geminiApiKey = (process.env.GEMINI_API_KEY || '').trim();
 
+const smtpHost = (process.env.SMTP_HOST || '').trim();
+const smtpUser = (process.env.SMTP_USER || '').trim();
+const smtpPass = process.env.SMTP_PASS || '';
+const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim();
+
 const s3Region = (process.env.AWS_REGION || '').trim();
 const s3Bucket = (process.env.AWS_S3_BUCKET || '').trim();
 
@@ -93,6 +98,73 @@ export const env = {
    * Optional — leave it unset and the app simply has no super admin.
    */
   superAdminEmail: (process.env.SUPER_ADMIN_EMAIL || '').trim().toLowerCase(),
+  /**
+   * Outgoing mail: who it is from, and who hears about a signup.
+   *
+   * Two backends, neither of which costs anything at this volume, and the
+   * provider is chosen by which credential is present rather than by a switch
+   * somebody has to keep in step with the credentials:
+   *
+   *   SENDGRID_API_KEY set → SendGrid's HTTPS API (100 messages a day, free)
+   *   SMTP_* set          → plain SMTP, e.g. a Gmail app password (500 a day)
+   *   neither             → nothing is sent, and each message is logged instead
+   *
+   * SendGrid wins when both are set, because a host that blocks outbound SMTP
+   * ports — which many do — is exactly the deployment that configured both.
+   *
+   * Optional to boot, like Cloudinary and Gemini and for the same reason: mail
+   * that is not configured should cost you the notifications, not the server.
+   * With neither set, signup requests still queue and approvals still create
+   * accounts; the panel is how the owner finds out either way.
+   */
+  mail: {
+    /*
+      Who the mail says it is from, and the one setting that silently breaks
+      everything if it is wrong. SendGrid refuses a From it has not verified
+      (403 "does not match a verified Sender Identity"), and an SMTP server
+      refuses a From its account may not use — often by filing it as spam
+      rather than bouncing it. Defaults to the SMTP mailbox, which is always a
+      legitimate sender for that account; a SendGrid deployment has to set it.
+    */
+    from: (process.env.MAIL_FROM || '').trim() || smtpUser,
+    /*
+      Where "somebody wants in" goes. The super admin's own address unless it is
+      set — one fewer thing to configure for the deployment that has exactly one
+      owner, and an override for the one that wants a shared inbox.
+    */
+    adminTo:
+      (process.env.MAIL_ADMIN_TO || '').trim().toLowerCase() ||
+      (process.env.SUPER_ADMIN_EMAIL || '').trim().toLowerCase(),
+  },
+  /**
+   * SendGrid, over its HTTPS API rather than its SMTP relay.
+   *
+   * Same credential either way — the SMTP relay takes the literal username
+   * `apikey` and the key as the password — but the API is a normal outbound
+   * HTTPS request, so it works on hosts that block port 587, gives a real
+   * status code and message when a send is refused, and needs no dependency
+   * beyond `fetch`. The SMTP relay's failures arrive as timeouts.
+   */
+  sendgrid: {
+    apiKey: sendgridKey,
+    configured: Boolean(sendgridKey),
+  },
+  /**
+   * Plain SMTP: any mailbox you already own, no vendor account.
+   *
+   * `secure` is the implicit-TLS switch, and it follows the port unless stated:
+   * 465 is TLS from the first byte, 587 starts plain and upgrades with STARTTLS.
+   * Getting this pair wrong is the one configuration mistake that hangs rather
+   * than erroring, so it is derived rather than left to be remembered.
+   */
+  smtp: {
+    host: smtpHost,
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : Number(process.env.SMTP_PORT) !== 587,
+    user: smtpUser,
+    pass: smtpPass,
+    configured: Boolean(smtpHost && smtpUser && smtpPass),
+  },
   /**
    * Request ceilings. The limits themselves live in middleware/rateLimit.js,
    * next to the reasoning that picked them; only the two worth changing on a

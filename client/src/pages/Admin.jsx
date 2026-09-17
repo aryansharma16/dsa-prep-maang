@@ -8,6 +8,7 @@ import { AdminMotivation } from '../components/admin/AdminMotivation.jsx';
 import { AdminOverview } from '../components/admin/AdminOverview.jsx';
 import { AdminPatterns } from '../components/admin/AdminPatterns.jsx';
 import { AdminProblems } from '../components/admin/AdminProblems.jsx';
+import { AdminSignups } from '../components/admin/AdminSignups.jsx';
 import { AdminUsers } from '../components/admin/AdminUsers.jsx';
 import { useAuth } from '../store/AuthContext.jsx';
 import { ROLE_LABEL, can } from '../store/caps.js';
@@ -15,6 +16,11 @@ import { ROLE_LABEL, can } from '../store/caps.js';
 const SECTIONS = [
   { id: '', label: 'Overview', Component: AdminOverview },
   { id: 'users', label: 'Users', Component: AdminUsers, cap: 'user:read' },
+  // Directly under Users because it is the door into that list: every account
+  // below now starts as a row here. First of the two queues for the same reason
+  // Feedback sits next to it — somebody is waiting at the other end of both,
+  // and this one cannot use the app at all until it is answered.
+  { id: 'signups', label: 'Requests', Component: AdminSignups, cap: 'signup:read' },
   // Next to Users deliberately: "who is here" and "what they are telling us" are
   // one cluster, and this is the tab with a person waiting at the other end of it.
   { id: 'feedback', label: 'Feedback', Component: AdminFeedback, cap: 'feedback:read' },

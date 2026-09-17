@@ -53,6 +53,18 @@ export const AUDIT = Object.freeze({
   */
   FEEDBACK_UPDATE: 'feedback.update',
 
+  /*
+    Two actions rather than one `signup.decide` with the answer in `meta`,
+    because these are the two most consequential rows this log will ever hold —
+    one of them mints an account — and "who let this person in" should be a
+    filter on the activity feed, not a field somebody has to expand to read.
+
+    Filing a request is absent, like submitting feedback: this collection
+    records what staff do, and a stranger asking for an account is not that.
+  */
+  SIGNUP_APPROVE: 'signup.approve',
+  SIGNUP_REJECT: 'signup.reject',
+
   SETTINGS_UPDATE: 'settings.update',
   CHAT_PURGE: 'chat.purge',
 
@@ -87,6 +99,8 @@ export const AUDIT_LABEL = {
   [AUDIT.FEEDBACK_UPDATE]: 'answered the feedback',
   [AUDIT.SETTINGS_UPDATE]: 'changed the site settings',
   [AUDIT.CHAT_PURGE]: 'deleted all chat history',
+  [AUDIT.SIGNUP_APPROVE]: 'approved the account request from',
+  [AUDIT.SIGNUP_REJECT]: 'declined the account request from',
   [AUDIT.MODULE_VISIBILITY]: 'changed who can see',
   [AUDIT.SUPERADMIN_PIN]: 'promoted to super admin',
 };
