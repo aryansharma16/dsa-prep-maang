@@ -20,6 +20,11 @@ guide to every feature in the order a learner needs it, with no setup and no
 code. It is [public](#the-guide) — it needs no session, so it is reachable from
 the sign-in page as well as from the sidebar.
 
+**Want the short version of this file?** [docs/overview.md](docs/overview.md) is
+one page: what each module does, and every piece of the stack — React and Vite,
+Express and Mongo, S3, Cloudinary, SendGrid, the four AI providers — with what
+breaks when a credential is missing.
+
 ## What's in it
 
 | | |
@@ -1799,6 +1804,14 @@ dropdowns left in it. What each component actually *is* — a definition per ent
 use it, the interview traps, and a link to the official docs it is condensed from — is the
 [component glossary](docs/design.md#component-glossary).
 
+That glossary is also **reference material inside the app**. The System Design section of `/docs`
+ends with all 196 entries — 173 technologies, 11 data structures, the words a schema is built from
+— searchable across every category at once ("LIFO" finds the stack, "kafka" finds the broker, the
+streams it competes with and the aside comparing the two). The page does not hold a second copy of
+the prose: `client/scripts/build-docs-glossary.mjs` generates it out of `docs/design.md`, refuses
+to run if a component in the library has no entry, and writes a lazily loaded chunk, because
+`/docs` is in the main bundle and 60KB of reference text has no business there.
+
 **Schema boards** are dbdiagram-style: DBML on the left, tables on the right, either side editable.
 Building a table without knowing DBML is meant to be quick: pick a column's type from a list that
 says what each type is for, or type a name and let the type be guessed — `user_id` next to a `users`
@@ -1935,7 +1948,17 @@ auth pages, and `/docs` directly.
 Signed out it draws its own thin bar with **Sign in** and **Start your
 journey**; signed in it renders inside the shell and picks up the sidebar. The
 only other thing that changes with the session is the button at the foot, which
-becomes **Back to the course**. Nothing on the page fetches.
+becomes **Back to the course**.
+
+It makes **one request, and only when signed out**: `GET /api/modules`, the
+public list of which modules are switched on. The sections it writes about follow
+the menu, and signed out there is no session to carry that list — so while System
+Design is hidden only the super admin reads about it, and the day it is switched
+on in Admin → Modules every reader does, signed up or not. The endpoint is the
+ordinary learner's answer (`moduleAccess(null)`), so a module still being built
+never appears in it. Nothing else on the page fetches, and the one heavy thing on
+it — the 196-entry System Design reference — is a lazy chunk fetched when the
+reader opens it.
 
 It is built on one idea: **a guide to a tool should let you work the tool.**
 Every mechanic that a paragraph explains badly is a thing you can operate on the
@@ -2700,6 +2723,12 @@ lives in `main` instead of on a branch nobody merges.
 The roadmap is deliberately not eligible: it is where the catch-all route, the
 admin redirect and every other redirect land, so hiding it would mean inventing
 a second place for people to end up.
+
+**The guide follows the toggle.** `/docs` gates the section it writes about per
+module, and because it is public it reads the list from `GET /api/modules` when
+there is no session — so switching a module on adds its section for every reader,
+signed up or not, and hiding one takes it back off. That endpoint is
+`moduleAccess(null)`: the ordinary learner's answer, never the preview list.
 
 Feedback is worth hiding deliberately rather than by habit — it is the channel
 people use to report that something is broken, so taking it away takes the report

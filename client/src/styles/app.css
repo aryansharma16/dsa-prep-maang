@@ -11452,6 +11452,200 @@ a.tile.attention:hover {
   transition: all 0.12s ease;
 }
 
+/* ---------------------------------------------------------------- glossary
+   The System Design reference: 196 definitions, generated from docs/design.md
+   and loaded only when the button below is pressed. Long enough that the search
+   and the category chips are what make it usable — the list itself is plain
+   prose on purpose, because it is meant to be read rather than operated. */
+.docs-gl-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 17px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.docs-gl-open:hover {
+  border-color: color-mix(in srgb, var(--hue, var(--accent)) 50%, var(--border));
+  background: var(--surface-2);
+}
+.docs-gl-open span {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--hue, var(--accent));
+}
+
+.docs-gl {
+  max-width: var(--docs-wide);
+}
+.docs-gl-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.docs-gl-search {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+.docs-gl-search::placeholder {
+  color: var(--text-3);
+}
+.docs-gl-search:focus {
+  outline: none;
+  border-color: var(--hue, var(--accent));
+  box-shadow: 0 0 0 3px rgb(var(--hue-rgb) / 0.16);
+}
+.docs-gl-count {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.docs-gl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.docs-gl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.docs-gl-chip span {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+}
+.docs-gl-chip:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--hue, var(--accent)) 45%, var(--border));
+}
+.docs-gl-chip[aria-pressed='true'] {
+  border-color: var(--hue, var(--accent));
+  background: rgb(var(--hue-rgb) / 0.1);
+  color: var(--text);
+}
+.docs-gl-chip[aria-pressed='true'] span {
+  color: var(--hue, var(--accent));
+}
+
+.docs-gl-group + .docs-gl-group {
+  margin-top: 26px;
+}
+.docs-gl-group h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.docs-gl-group h4 span {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.docs-gl dl {
+  margin: 0;
+}
+/* A glossary reads as prose, so the term and its definition share a line rather
+   than sitting in two columns; only the weight tells them apart. */
+.docs-gl-item {
+  margin-bottom: 11px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.docs-gl-item dt,
+.docs-gl-item dd {
+  display: inline;
+  margin: 0;
+}
+.docs-gl-item dt {
+  font-weight: 600;
+  color: var(--text);
+}
+.docs-gl-item dt a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+.docs-gl-item dt a:hover {
+  color: var(--hue, var(--accent));
+  border-bottom-color: currentColor;
+}
+.docs-gl-lead {
+  font-weight: 400;
+  color: var(--text-3);
+}
+.docs-gl-dash {
+  color: var(--text-3);
+}
+.docs-gl-item dd a {
+  color: var(--hue, var(--accent));
+}
+
+/* The asides that compare two choices — "Kafka or RabbitMQ?", "OLTP or OLAP?" */
+.docs-gl-note {
+  margin: 14px 0 !important;
+  padding: 11px 14px;
+  border-left: 2px solid var(--hue, var(--accent));
+  border-radius: 0 6px 6px 0;
+  background: var(--surface);
+  font-size: 14px !important;
+  max-width: none !important;
+}
+
+.docs-gl-empty {
+  color: var(--text-3) !important;
+}
+.docs-gl-further {
+  margin-top: 26px !important;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13.5px !important;
+  color: var(--text-3) !important;
+}
+.docs-gl-further a {
+  color: var(--text-2);
+}
+.docs-gl-further a:hover {
+  color: var(--hue, var(--accent));
+}
+
 /* ------------------------------------------------------------------- close */
 .docs-closer {
   margin-top: 72px;
@@ -11573,6 +11767,8 @@ a.tile.attention:hover {
   .docs-key,
   .docs-outcome-btn,
   .docs-box,
+  .docs-gl-open,
+  .docs-gl-chip,
   .docs-rail a,
   .docs-rail-dot,
   .docs-status-demo,

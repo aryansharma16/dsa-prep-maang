@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getLogo } from '../controllers/company.controller.js';
 import { getGuide } from '../controllers/guide.controller.js';
+import { getPublicModules } from '../controllers/modules.controller.js';
 import {
   getLoginMotivation,
   getMotivation,
@@ -110,6 +111,16 @@ router.get('/companies/:slug/logo', getLogo);
  * is why adding a trigger cannot accidentally widen this.
  */
 router.get('/motivation/login', getLoginMotivation);
+
+/**
+ * Public, and the same answer an ordinary learner gets: every module except the
+ * hidden ones. `/docs` is mounted on both sides of the auth branch and gates the
+ * sections it writes about on this list, so a signed-out reader is shown exactly
+ * the modules that are switched on. A module still in development is missing
+ * from it, which is what keeps it safe to leave open — see
+ * controllers/modules.controller.js.
+ */
+router.get('/modules', getPublicModules);
 
 // Everything below needs a session.
 router.use(requireAuth);

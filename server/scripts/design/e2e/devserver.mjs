@@ -39,7 +39,14 @@ const call = async (method, path, body) => {
   return res.json().catch(() => null);
 };
 await new Promise((r) => setTimeout(r, 300));
-await call('POST', '/auth/register', { email: 'admin@test.local', password: 'password123', name: 'Aryan' });
+// `mobile` is part of the signup request (auth.controller.js registerSchema);
+// without it this seed gets a 400 and everything below it fails on undefined.
+await call('POST', '/auth/register', {
+  email: 'admin@test.local',
+  password: 'password123',
+  name: 'Aryan',
+  mobile: '+91 90000 00000',
+});
 const { project, nodes } = await call('POST', '/design/projects', { name: 'WhatsApp', icon: '💬', hue: 'green', template: 'system' });
 await call('POST', '/design/projects', { name: 'URL shortener', icon: '🔗', hue: 'blue', template: 'blank' });
 const board = nodes.find((n) => n.name === 'Architecture');

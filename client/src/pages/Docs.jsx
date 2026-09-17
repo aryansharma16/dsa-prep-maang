@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BRAND } from '../brand.js';
+import { modulesApi } from '../api/index.js';
 import { useAuth } from '../store/AuthContext.jsx';
 import { moduleVisible } from '../store/modules.js';
 import { ParticleWeb } from '../components/layout/ParticleWeb.jsx';
@@ -31,8 +32,11 @@ import {
  * the revision date — is a thing you can operate here instead of a paragraph
  * claiming it. The prose is around the demos, not instead of them.
  *
- * Nothing on this page fetches, and nothing it does touches your account. The
- * rows below are props, not `Progress`.
+ * Nothing it does touches your account, and the rows below are props, not
+ * `Progress`. It makes exactly one request, and only when signed out: the public
+ * module list, because the sections it writes about follow the menu and there is
+ * no session to carry one — see `usePageModules`. The System Design reference at
+ * the foot of that section is a lazy chunk, fetched when a reader opens it.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -196,8 +200,11 @@ const SECTIONS = [
   { id: 'playbook', label: 'The Playbook', hue: 'indigo', eyebrow: 'The plan' },
   { id: 'assistant', label: 'Assistant & Tasks', hue: 'fuchsia', eyebrow: 'Help and planning' },
   /*
-    Only listed for accounts that can see the module (it ships hidden while it is
-    being built), so a learner never reads about a page they cannot open.
+    Listed for anyone the module is on for — signed in or not, since the guide is
+    public and `usePageModules` asks for the signed-out list. While it ships
+    hidden that is the super admin alone, so a learner never reads about a page
+    they cannot open; the day it is switched on in Admin → Modules, this section
+    appears for every reader, including one who has not signed up.
   */
   { id: 'design', label: 'System Design', hue: 'teal', eyebrow: 'Whiteboard', module: 'design' },
   { id: 'stats', label: 'Stats', hue: 'green', eyebrow: 'The honest view' },
@@ -621,6 +628,46 @@ function TryKeys() {
   );
 }
 
+/*
+  The System Design reference: 196 definitions, generated out of the Component
+  glossary in docs/design.md.
+
+  Its own chunk, and fetched only when someone asks for it. This page is in the
+  main bundle — it is the one page a signed-out visitor is sent to — and the
+  reference is several times the weight of the guide around it. Hovering the
+  button is a good enough signal to start the download early; by the time the
+  click lands it is usually already there.
+*/
+const DesignGlossary = lazy(() =>
+  import('../components/docs/DesignGlossary.jsx').then((m) => ({ default: m.DesignGlossary })),
+);
+
+function DesignReference() {
+  const [open, setOpen] = useState(false);
+  const preload = () => import('../components/docs/DesignGlossary.jsx');
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        className="docs-gl-open"
+        onClick={() => setOpen(true)}
+        onPointerEnter={preload}
+        onFocus={preload}
+      >
+        Open the reference
+        <span>196 entries</span>
+      </button>
+    );
+  }
+
+  return (
+    <Suspense fallback={<p className="docs-gl-empty">Loading the reference…</p>}>
+      <DesignGlossary />
+    </Suspense>
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* the page                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -668,11 +715,49 @@ function Section({ meta, children }) {
   );
 }
 
+/**
+ * The module list this page gates its sections on.
+ *
+ * Signed in it is the session's own, which arrives with the user and is never
+ * fetched separately — the point of sending them together is that the menu and
+ * the account cannot disagree. Signed out there is no session to carry one, so
+ * the page asks the public endpoint for the list an ordinary learner would get:
+ * every module that is switched on, and none that is still being built. A guide
+ * read by someone who has not signed up yet should describe the app as it is for
+ * them, which means a module the owner turns on appears here for everybody.
+ *
+ * `null` until it answers, which `moduleVisible` reads as "not visible" — so a
+ * section arrives once rather than flashing in and out of the contents list.
+ */
+function usePageModules(user, modules) {
+  const [pub, setPub] = useState(null);
+
+  useEffect(() => {
+    if (user) return undefined;
+    let alive = true;
+    modulesApi
+      .public()
+      .then((list) => {
+        if (alive) setPub(list);
+      })
+      // Nothing here is load-bearing: the guide reads fine without the sections
+      // this list would unlock, and there is nobody to apologise to on a page
+      // that is otherwise entirely static.
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  return user ? modules : pub;
+}
+
 const byId = Object.fromEntries(SECTIONS.map((s) => [s.id, s]));
 
 export function Docs() {
   const { user, modules } = useAuth();
-  const sections = useMemo(() => SECTIONS.filter((s) => !s.module || moduleVisible(modules, s.module)), [modules]);
+  const shown = usePageModules(user, modules);
+  const sections = useMemo(() => SECTIONS.filter((s) => !s.module || moduleVisible(shown, s.module)), [shown]);
   const ids = useMemo(() => sections.map((s) => s.id), [sections]);
   const current = useCurrentSection(ids);
   const progress = useScrollProgress();
@@ -1473,7 +1558,7 @@ export function Docs() {
               </Reveal>
             </Section>
 
-            {moduleVisible(modules, 'design') && (
+            {moduleVisible(shown, 'design') && (
               <Section meta={byId.design}>
                 <Reveal>
                   <p>
@@ -1592,6 +1677,28 @@ export function Docs() {
                     one tab at a time: open it in a second tab and the first becomes view-only, with
                     a button to take it back.
                   </p>
+
+                  {/*
+                    The knowledge, rather than the tool. Drawn from the same
+                    glossary the repo carries, so the definition here and the one
+                    in docs/design.md cannot drift apart — and kept behind a
+                    click, because it is several times the weight of this page.
+                  */}
+                  <h3>What the components are</h3>
+                  <p>
+                    Drawing the box is the easy half. Below is what each component in the panel
+                    actually <i>is</i> — how it works in a line, when you would reach for it, and the
+                    trap that comes up when an interviewer asks why you chose it. All 173
+                    technologies, the 11 data-structure blocks with what each operation costs, and
+                    the words a schema is built from: primary key, foreign key, index, normalisation.
+                  </p>
+                  <p>
+                    Search it by what a thing <i>does</i> — &ldquo;cache&rdquo;, &ldquo;queue&rdquo;,
+                    &ldquo;LIFO&rdquo;, &ldquo;sharding&rdquo; — the same way you search the panel
+                    while drawing. Every name links to where the definition comes from: the
+                    product&rsquo;s own documentation, or a standard reference.
+                  </p>
+                  <DesignReference />
                 </Reveal>
               </Section>
             )}

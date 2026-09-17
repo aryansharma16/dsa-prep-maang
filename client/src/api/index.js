@@ -317,6 +317,19 @@ export const motivationApi = {
 };
 
 /**
+ * Which modules are switched on, for a reader with no session.
+ *
+ * Signed in, this same `{ visible, preview }` arrives with the user on every
+ * session response and nothing should ask for it separately — the point of
+ * sending them together is that they cannot disagree. This is for the one page
+ * that is public: `/docs` gates the sections it writes about on the module list,
+ * and signed out there is no session to carry one.
+ */
+export const modulesApi = {
+  public: () => http.get('/modules').then((r) => r.data),
+};
+
+/**
  * What the people using this have to say about it.
  *
  * `mine` returns your own submissions and nothing else — the server filters by

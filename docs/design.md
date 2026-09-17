@@ -100,7 +100,7 @@ in the browser by the pass that found it.
 | 12 | Connectors: binding with side anchors, ends on other connectors' lines, parented to the deepest frame holding both ends, straight/elbow/curve, 12 caps incl. crow's feet, labels, animated flow | ✅ browser-verified; elbow router property-tested |
 | 13 | Pen, highlighter, eraser (own freehand outline algorithm, RDP simplification, coalesced events; they stay on until another tool is picked) | ✅ browser-verified |
 | 14 | Shortcuts dialog · LOD (CSS) · culling · perf pass | ✅ (memory: heap after 10 board switches not measured) |
-| 15 | Docs: this file · README section · in-app `/docs` section (shown to accounts that can see the module) | ✅ |
+| 15 | Docs: this file · README section · in-app `/docs` section (shown to accounts that can see the module), ending in the [Component glossary](#component-glossary) generated out of this file | ✅ browser-verified 2026-09-18 (search across tabs, category chips, 196 entries, no markdown left on the page, phone width) |
 
 Not yet built inside Phase 1: board-level settings in the inspector (background/grid/
 snap toggle — the server's `meta` op is ready), equal-spacing snaps.
@@ -116,7 +116,9 @@ snap toggle — the server's `meta` op is ready), equal-spacing snaps.
   highlighted; Escape clears it (keeping focus in the panel), clicking a tab clears it and shows that
   tab. Structures and table templates carry their own `keywords` ("lifo", "sharding", "junction").
 - **What each component is**: [Component glossary](#component-glossary), a definition for every
-  entry, linked to the official docs it is condensed from.
+  entry, linked to the official docs it is condensed from. It is also the app's own reference:
+  the System Design section of `/docs` renders all 196 entries, searchable across every category,
+  from data generated out of this file (see [Where the code lives](#where-the-code-lives)).
 - **Tech** (`tech`): 173 catalogue entries in 16 categories — 111 brand logos from Simple Icons
   (CC0, generated into a lazily loaded chunk by `client/scripts/build-brand-icons.mjs`) and 53
   hand-drawn glyphs for generic parts (load balancer, cache, queue…) and brands Simple Icons no
@@ -320,7 +322,14 @@ client/src/
     schema/  SchemaPanel  DbmlEditor (hover explanations)  SchemaInspector (column grid, add, quick add)
              TypeInput (type combobox)  SchemaHoverTips (canvas hovers)  DbTableView  SchemaRelations  SqlLabDrawer
     library/glyphs.jsx          generic tech glyphs (24-unit, currentColor)
+  components/docs/
+    DesignGlossary.jsx          the /docs reference: search across categories, chips, inline markdown
+    designGlossary.generated.js the glossary as data (generated — do not edit)
+  pages/Docs.jsx                the guide; its System Design section lazy-loads the two files above
 client/scripts/build-brand-icons.mjs   regenerates brandPaths.generated.js from simple-icons
+client/scripts/build-docs-glossary.mjs regenerates designGlossary.generated.js from the
+                                       Component glossary below; fails if a library component
+                                       has no entry, or if Docs.jsx promises the wrong count
 client/public/fonts/inter-latin-var.woff2 (+ Inter-LICENSE.txt, OFL)   the canvas font
 ```
 
@@ -571,6 +580,8 @@ cd client && npm test          # 92 tests: fractional keys, geometry, camera, tr
 cd server && npm test          # 21 tests: fractional keys, op folding, validation, tree helpers
 cd server && npm i --no-save mongodb-memory-server@10
 cd server/scripts/design/e2e && node --test design-api.test.mjs   # 19 end-to-end API checks
+cd client && node scripts/build-docs-glossary.mjs   # the /docs reference: regenerates it, and
+                                                    # fails if a library component has no entry
 ```
 
 UI without touching a real database: run `e2e/devserver.mjs` (API on :4100 with a seeded
@@ -636,7 +647,11 @@ performance.
     through `ui.confirm`.
 16. **A new library entry gets a glossary entry** — tech, structure kind or table template, under its
     exact catalogue name (bold, linked to its official docs) in [Component glossary](#component-glossary),
-    in the same change. Its `keywords` are what search finds it by from any tab.
+    in the same change. Its `keywords` are what search finds it by from any tab. Then run
+    `cd client && node scripts/build-docs-glossary.mjs`: the glossary is also the app's reference,
+    and the script refuses to generate one that is missing a component. Keep the bullets in the
+    shape it parses — `- **[Name](url)** — what it is`, wrapped lines indented by two spaces — and
+    update the entry count in `Docs.jsx` when it moves.
 
 ## Future phases in detail
 
@@ -710,6 +725,11 @@ product, or a standard reference for a general idea (the Cloudflare Learning Cen
 SRE books, microservices.io, MDN, Wikipedia). The one-line `about` the panel and the inspector show
 is the short version of these (`library/tech.js`, `library/structures.js`). The entries are written
 from those sources, not quoted, and are kept short: follow the link for the full story.
+
+**This section is a source file.** `client/scripts/build-docs-glossary.mjs` parses it into
+`components/docs/designGlossary.generated.js`, which the System Design section of `/docs` renders
+as the app's own reference — so these words are written once and cannot drift from what a reader
+sees. Edit them here, never there, and re-run the script (rule 16).
 
 **Going deeper**, best first: Martin Kleppmann's
 *[Designing Data-Intensive Applications](https://dataintensive.net/)* (replication, partitioning,
