@@ -15,6 +15,8 @@ import { Profile } from './pages/Profile.jsx';
 import { ProCoder } from './pages/ProCoder.jsx';
 import { SqlLab } from './pages/SqlLab.jsx';
 import { Register } from './pages/Register.jsx';
+import { ForgotPassword } from './pages/ForgotPassword.jsx';
+import { ResetPassword } from './pages/ResetPassword.jsx';
 import { Revision } from './pages/Revision.jsx';
 import { Roadmap } from './pages/Roadmap.jsx';
 import { Stats } from './pages/Stats.jsx';
@@ -58,6 +60,8 @@ export function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         {/*
           The one route that exists on both sides of this branch. Someone
           deciding whether to sign up is the reader who most needs to know what
@@ -97,6 +101,12 @@ export function App() {
         <TasksProvider>
           <AttemptTimerProvider>
             <Routes>
+              {/*
+                Outside the shell, and on this side of the sign-in check too: a
+                reset link opened in a browser that is still signed in must not
+                fall through to the catch-all and lose its token.
+              */}
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route element={<AppShell />}>
                 <Route path="/" element={<Roadmap />} />
                 {/*

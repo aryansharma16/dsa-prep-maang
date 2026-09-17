@@ -10,6 +10,14 @@ export const authApi = {
   */
   register: (body) => http.post('/auth/register', body).then((r) => r.data),
   login: (body) => http.post('/auth/login', body).then((r) => r.data),
+  /**
+   * Both answer `{ ok, message }` and neither signs anyone in. The first says
+   * the same sentence whether or not the address has an account; the second
+   * ends every session the account had, this one included.
+   */
+  forgotPassword: (email) => http.post('/auth/forgot-password', { email }).then((r) => r.data),
+  resetPassword: (token, password) =>
+    http.post('/auth/reset-password', { token, password }).then((r) => r.data),
   logout: () => http.post('/auth/logout').then((r) => r.data),
   me: () => http.get('/auth/me').then((r) => r.data),
   /** Your own name and profile fields. Returns the whole updated user. */

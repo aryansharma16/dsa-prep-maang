@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
-import { BRAND_NAME } from '../config/brand.js';
+import * as templates from './mail.templates.js';
 
 /**
  * Outgoing mail: two backends, one `sendMail`, and the rule that it can never
@@ -56,6 +56,25 @@ async function sendViaSendGrid({ to, subject, text, html }) {
         { type: 'text/plain', value: text },
         { type: 'text/html', value: html },
       ],
+      /*
+        Off, per message, whatever the account's defaults say — and SendGrid's
+        defaults are on. Measured against a real inbox: with click tracking
+        every link, plain-text part included, was rewritten through
+        `…ct.sendgrid.net/ls/click`, and open tracking appended a pixel.
+
+        For these messages that is not analytics, it is a leak. A reset link
+        is a password-equivalent token, and click tracking routes it through a
+        third party's redirect and logs; the "paste this into your browser"
+        fallback would show a tracking URL instead of this site. Rewritten
+        links and tracking pixels on mail from a new sender are also two of
+        the signals spam filters weigh. Nothing here needs to know who opened
+        what.
+      */
+      tracking_settings: {
+        click_tracking: { enable: false, enable_text: false },
+        open_tracking: { enable: false },
+        subscription_tracking: { enable: false },
+      },
     }),
     // A signup should not hang on a mail API having a bad afternoon.
     signal: AbortSignal.timeout(10_000),
@@ -104,6 +123,9 @@ function parseFrom(value) {
 
 let transport;
 
+/** Every message "sent" under NODE_ENV=test. Always empty otherwise. */
+export const outbox = [];
+
 /** Built once, lazily — `createTransport` opens no socket, `sendMail` does. */
 function getTransport() {
   if (!transport) {
@@ -131,6 +153,17 @@ function getTransport() {
 export async function sendMail({ to, subject, text, html }) {
   if (!to) return false;
 
+  /*
+    Tests never send, whatever credentials happen to be in the environment, and
+    the end-to-end suite reads this to follow a reset link the way a person
+    would. Only under NODE_ENV=test: a reset link in a list in memory anywhere
+    else is a token somebody can find.
+  */
+  if (env.nodeEnv === 'test') {
+    outbox.push({ to, subject, text, html });
+    return true;
+  }
+
   if (!env.sendgrid.configured && !env.smtp.configured) {
     console.log(`[mail] not configured — would have sent "${subject}" to ${to}`);
     return false;
@@ -151,136 +184,47 @@ export async function sendMail({ to, subject, text, html }) {
 /* the messages                                                               */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Text first, HTML second, and the text is written to be read.
- *
- * These go to people who did not ask for a newsletter, from a domain with no
- * sending reputation, through a mailbox that sends a dozen messages a week.
- * Plain sentences and one link get delivered; a table-based template with a
- * banner image is what a spam filter is looking for.
- *
- * `escape` exists because `name` and `reason` are typed by a stranger. Nothing
- * on a request is trusted — the HTML part is the one place their words are
- * interpolated into markup, and an unescaped `<img onerror>` in a name is a
- * stored payload aimed at whoever opens the notification.
- */
-const escape = (value) =>
-  String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+/*
+  What each one says and looks like lives in mail.templates.js. These only
+  decide who it goes to, so a template can be rendered and looked at without
+  anything being sent.
+*/
 
-const wrap = (body) =>
-  `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:15px;line-height:1.6;color:#111">${body}</div>`;
+/** To the applicant, the moment their request is queued. */
+export const mailRequestReceived = (request) =>
+  sendMail({ to: request.email, ...templates.requestReceived(request) });
 
-const line = (label, value) =>
-  value ? `<p style="margin:2px 0"><b>${escape(label)}:</b> ${escape(value)}</p>` : '';
+/** To the owner: somebody wants in. */
+export const mailAdminNewRequest = (request) =>
+  sendMail({ to: env.mail.adminTo, ...templates.adminNewRequest(request) });
 
-/** Where a link in an email should point. Never a request header. */
-const appUrl = (path = '') => `${env.clientUrl.replace(/\/+$/, '')}${path}`;
-
-/** "We have it" — sent the moment a request is queued. */
-export function mailRequestReceived(request) {
-  return sendMail({
-    to: request.email,
-    subject: `${BRAND_NAME}: we got your request`,
-    text: [
-      `Hi ${request.name},`,
-      '',
-      `Your request for a ${BRAND_NAME} account is with the owner. You will get another email when it is reviewed — usually within a day.`,
-      '',
-      'Nothing to do until then. Your password is already set, so once you are approved you can sign in with it straight away.',
-    ].join('\n'),
-    html: wrap(
-      `<p>Hi ${escape(request.name)},</p>
-       <p>Your request for a ${escape(BRAND_NAME)} account is with the owner. You will get another email when it is reviewed — usually within a day.</p>
-       <p>Nothing to do until then. Your password is already set, so once you are approved you can sign in with it straight away.</p>`,
-    ),
-  });
-}
-
-/** "Somebody wants in" — sent to the owner, with enough to decide on. */
-export function mailAdminNewRequest(request) {
-  const where = [request.context?.city, request.context?.country].filter(Boolean).join(', ');
-  const device = [request.context?.device, request.context?.os, request.context?.browser]
-    .filter(Boolean)
-    .join(' · ');
-
-  return sendMail({
-    to: env.mail.adminTo,
-    subject: `${BRAND_NAME}: access request from ${request.name}`,
-    text: [
-      `${request.name} <${request.email}> asked for an account.`,
-      '',
-      `Mobile: ${request.mobile}`,
-      request.reason ? `Why: ${request.reason}` : '',
-      where ? `Where: ${where}` : '',
-      device ? `Device: ${device}` : '',
-      request.context?.ip ? `IP: ${request.context.ip}` : '',
-      '',
-      `Approve or decline: ${appUrl('/admin/signups')}`,
-    ]
-      .filter(Boolean)
-      .join('\n'),
-    html: wrap(
-      `<p><b>${escape(request.name)}</b> &lt;${escape(request.email)}&gt; asked for an account.</p>
-       ${line('Mobile', request.mobile)}
-       ${line('Why', request.reason)}
-       ${line('Where', where)}
-       ${line('Device', device)}
-       ${line('IP', request.context?.ip)}
-       <p style="margin-top:16px"><a href="${appUrl('/admin/signups')}">Approve or decline</a></p>`,
-    ),
-  });
-}
-
-/** "You're in." */
-export function mailApproved(request) {
-  return sendMail({
-    to: request.email,
-    subject: `${BRAND_NAME}: your account is ready`,
-    text: [
-      `Hi ${request.name},`,
-      '',
-      `You are approved. Sign in with this email and the password you chose: ${appUrl('/login')}`,
-      '',
-      'Start on the roadmap — the first section is already open.',
-    ].join('\n'),
-    html: wrap(
-      `<p>Hi ${escape(request.name)},</p>
-       <p>You are approved. Sign in with this email and the password you chose:</p>
-       <p><a href="${appUrl('/login')}">${appUrl('/login')}</a></p>
-       <p>Start on the roadmap — the first section is already open.</p>`,
-    ),
-  });
-}
+/** To the applicant: approved. */
+export const mailApproved = (request) =>
+  sendMail({ to: request.email, ...templates.approved(request) });
 
 /**
- * "Not this time."
+ * To the applicant: declined.
  *
  * Sent because the alternative is silence, and silence is answered by applying
  * again. The note is included only when the owner wrote one.
  */
-export function mailRejected(request, note) {
-  return sendMail({
-    to: request.email,
-    subject: `${BRAND_NAME}: about your request`,
-    text: [
-      `Hi ${request.name},`,
-      '',
-      `Your request for a ${BRAND_NAME} account was not approved.`,
-      note ? `\n${note}` : '',
-      '',
-      'If you think that is a mistake, reply to this email.',
-    ]
-      .filter(Boolean)
-      .join('\n'),
-    html: wrap(
-      `<p>Hi ${escape(request.name)},</p>
-       <p>Your request for a ${escape(BRAND_NAME)} account was not approved.</p>
-       ${note ? `<p>${escape(note)}</p>` : ''}
-       <p>If you think that is a mistake, reply to this email.</p>`,
+export const mailRejected = (request, note) =>
+  sendMail({ to: request.email, ...templates.rejected(request, note) });
+
+/**
+ * A reset link. The token is only ever in this email and in the user's address
+ * bar — the database holds its hash.
+ */
+export const mailPasswordReset = (user, token, minutes) =>
+  sendMail({
+    to: user.email,
+    ...templates.passwordReset(
+      user,
+      templates.appUrl(`/reset-password?token=${encodeURIComponent(token)}`),
+      minutes,
     ),
   });
-}
+
+/** The receipt after a reset, sent to the account's own address either way. */
+export const mailPasswordChanged = (user) =>
+  sendMail({ to: user.email, ...templates.passwordChanged(user) });

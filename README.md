@@ -2183,12 +2183,54 @@ on `User` would mean teaching all of them about someone who cannot sign in.
 - Both decisions are audited (`signup.approve` / `signup.reject`), so "who let
   this person in" is a filter on the activity feed rather than a guess.
 
-**Mail** is `server/src/services/mail.service.js`: four short messages — we got
-your request, somebody wants in, you're approved, not this time. Two backends,
-picked by whichever credential is set, and both free at this volume: SendGrid's
-HTTPS API (100 a day) or plain SMTP, e.g. a Gmail app password (500 a day).
-SendGrid wins when both are set, because a host that blocks outbound SMTP is
-exactly the deployment that configured both.
+### Forgotten passwords
+
+"Forgot password?" on the login page (it carries the address already typed) →
+`/forgot-password` → an emailed link → `/reset-password?token=…` → a new password,
+typed twice → back to `/login` with a note saying why they are signed out.
+
+- **The answer never says whether the address has an account.** Unknown and known
+  addresses get the same sentence and the same status; only a real account is
+  sent anything. Otherwise the form is a free lookup of who uses the app.
+- **The link is 32 random bytes; the database holds their SHA-256.** A dump or a
+  backup cannot be turned into a working link. `PasswordReset` rows carry a TTL
+  index, so expired ones delete themselves — and the service checks the expiry
+  itself too, because Mongo's reaper runs about once a minute.
+- **One hour, one use, newest only.** Using a link deletes it; asking again
+  deletes every older link; the same account cannot be sent another within a
+  minute, so the form cannot be used to fill somebody's inbox. A per-address
+  limiter (10 per 15 minutes) covers both routes.
+- **Setting the password signs out everywhere** (`tokenVersion` is bumped), and
+  a "your password was changed" email goes to the account's own address — a
+  receipt if they did it, the only warning if they did not.
+- It does not sign in afterwards: typing the new password once more is the check
+  they know what they set. `/reset-password` also exists on the signed-in side of
+  the router, so a link opened in a browser that is still signed in does not
+  bounce to the roadmap and lose its token.
+
+The approval email does **not** contain the password: the app only has a hash,
+and a password in an email lives in that inbox forever. It says to sign in with
+the password they chose, and links to `/forgot-password?email=…` — to the form,
+not to a token, because an approval may be read days after it is sent.
+
+### Mail
+
+`server/src/services/mail.service.js` sends; `mail.templates.js` is every message
+as a pure `{ subject, text, html }` function, so each can be rendered to a file and
+looked at. Six of them: we got your request, somebody wants in, you're approved,
+not this time, reset your password, your password was changed.
+
+They are drawn in the app's own dark theme — `--bg`, the surface and text ramp,
+the amber accent, the `EM` mark — copied in as hex and inlined, because email
+clients honour neither custom properties nor stylesheets. No images, web fonts or
+tracking pixels, one call to action each, a real plain-text part, and everything
+a stranger typed is escaped: the owner's notification is where a name like
+`<img onerror>` would be aimed.
+
+Two backends, picked by whichever credential is set, both free at this volume:
+SendGrid's HTTPS API (100 a day) or plain SMTP, e.g. a Gmail app password (500 a
+day). SendGrid wins when both are set, because a host that blocks outbound SMTP
+is exactly the deployment that configured both.
 
 Set neither and the flow still works end to end — requests queue, approvals create
 accounts, and each message is logged instead. That is the rule the whole mail
@@ -2197,24 +2239,40 @@ written to the database, so `sendMail` resolves `false` rather than throwing, an
 nothing awaits it. A revoked API key must not turn an approval into a 500 after
 the account was created.
 
-One thing that will bite: **`MAIL_FROM` has to be an address the sender is allowed
-to use.** SendGrid 403s a From it has not verified (Settings → Sender
-Authentication → Single Sender Verification), and SMTP servers tend to accept it
-and file it as spam. It is the only setting here that fails quietly.
+Three things that will bite:
 
-The whole flow has end-to-end coverage against an in-memory Mongo, with SMTP
-deliberately unconfigured — because "mail is not set up" is the case the request
-path must survive:
+- **`MAIL_FROM` has to be an address the sender is allowed to use.** SendGrid 403s
+  a From it has not verified (Settings → Sender Authentication → Single Sender
+  Verification), and SMTP servers tend to accept it and file it as spam. The log
+  line for that 403 says so and links to the page.
+- **`APP_URL` has to be set in production.** Links in emails are built from it.
+  `CLIENT_URL` is the CORS list, usually with localhost first — without `APP_URL`
+  a reset link would send a real user to `http://localhost:3003`.
+- **SendGrid tracks clicks and opens by default**, and it was measured doing so:
+  every link, plain-text part included, rewritten through `…ct.sendgrid.net`, and
+  a pixel appended. For a reset link that routes a password-equivalent token
+  through a third party, so every message turns both off in `tracking_settings`.
+
+Coverage is end to end against an in-memory Mongo. Under `NODE_ENV=test` nothing is
+ever sent: messages go to an in-memory `outbox`, and the reset tests read the link
+out of it the way a person reads it out of their inbox.
 
 ```bash
 cd server && npm i --no-save mongodb-memory-server@10
 cd server/scripts/signup/e2e && node --test signup-api.test.mjs
 ```
 
-Eleven checks, including the ones worth being sure of: a queued request sets no
+Eighteen checks, including the ones worth being sure of: a queued request sets no
 cookies and cannot log in, the hash never reaches the panel, a learner gets a 403
-on the queue, approving signs them in with the password they typed on the form,
-and both decisions land in the audit log.
+on the queue, approving signs them in with the password they typed, the approval
+email contains no password, a typed name cannot inject markup into the owner's
+email, forgot-password answers identically for unknown addresses, the database
+never holds a usable token, a link works once and only the newest one works, an
+expired link is refused before Mongo reaps it, and a reset kills sessions opened
+before it.
+
+The same flow was also run once for real — SendGrid into a disposable inbox,
+links followed in a browser — which is how the click tracking was found.
 
 Behind the form is a **canvas web that reacts to the cursor**: nodes drift, any
 two within 145px share an edge, and nearby nodes lean toward the pointer. Every
@@ -3184,12 +3242,13 @@ with a dialog open.
 server/
   src/
     config/      env, db connection
-    models/      User, SignupRequest, UserView, Pattern, Problem, Progress,
+    models/      User, SignupRequest, PasswordReset, UserView, Pattern, Problem, Progress,
                  PatternGuide, CompanyLogo, AuditLog, Motivation, DailyLine,
                  Task, TaskBoard
     routes/      route tables only
     controllers/ request/response
-    services/    auth, signup (the approval queue), mail (SendGrid or SMTP),
+    services/    auth, signup (the approval queue), password (reset links),
+                 mail (SendGrid or SMTP) + mail.templates (every email),
                  leetcode, spaced repetition, media, logos, gemini,
                  audit, activity, motivation (signals, picker, daily line),
                  tasks (the board, the clock, attachments)
@@ -3217,7 +3276,8 @@ client/
                  useTableLayout, useSavedFilters, useBoardDrag
     learn/       the five tracks' chrome — icons and stubs — and the
                  read/revision helpers; the prose lives on the server now
-    pages/       Login, Register, Roadmap, Revision, Stats, Tasks, Learn,
+    pages/       Login, Register, ForgotPassword, ResetPassword, Roadmap,
+                 Revision, Stats, Tasks, Learn,
                  Profile, Admin
     store/       Auth, Roadmap, Tasks, AttemptTimer, Toast contexts
     styles/      tokens, base, app
@@ -3234,6 +3294,7 @@ docs/          the deep-dive references the README links out to:
 |---|---|---|
 | `POST` | `/auth/register` | asks for an account — 202 and a queued request, or 201 with a session for the pinned owner |
 | `POST` | `/auth/login` · `/auth/logout` · `/auth/refresh` | session |
+| `POST` | `/auth/forgot-password` · `/auth/reset-password` | a reset link by email (same answer for unknown addresses), and a new password from it — signs out everywhere |
 | `GET` `PATCH` | `/auth/me` | the signed-in user with their capabilities and visible modules, and editing your own details |
 | `PUT` | `/auth/me/rating` | your own rating out of five — replaces, never appends |
 | `POST` `DELETE` | `/auth/me/avatar` | profile picture |

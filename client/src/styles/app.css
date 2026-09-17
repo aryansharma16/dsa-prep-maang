@@ -3600,6 +3600,40 @@ img.avatar {
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
+/* Right-aligned under the password, where people look for it after a failed
+   attempt. Pulled up into the field's bottom margin so it reads as part of it. */
+.auth-forgot {
+  margin: -6px 0 14px;
+  text-align: right;
+  font-size: 12.5px;
+}
+.auth-forgot a {
+  color: var(--text-3);
+}
+.auth-forgot a:hover {
+  color: var(--accent);
+}
+
+/* Good news in the alert's shape — a reset that worked, not an error. */
+.alert.alert-ok {
+  border-color: rgb(0 184 163 / 0.35);
+  background: rgb(0 184 163 / 0.1);
+  color: var(--easy);
+}
+
+/* A link-looking button inside running text. */
+.auth-inline-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.auth-inline-btn:hover {
+  text-decoration: underline;
+}
+
 /* What replaces the form once a request is filed: the form is gone, because
    there is nothing left to do on this page and re-sending is refused. */
 .auth-done {

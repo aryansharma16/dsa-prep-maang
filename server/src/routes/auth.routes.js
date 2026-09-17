@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import {
+  forgotPassword,
+  forgotSchema,
   login,
   loginSchema,
   logout,
@@ -7,6 +9,8 @@ import {
   refresh,
   register,
   registerSchema,
+  resetPasswordWithToken,
+  resetSchema,
 } from '../controllers/auth.controller.js';
 import {
   rateApp,
@@ -16,7 +20,12 @@ import {
   updateMe,
   uploadAvatar,
 } from '../controllers/user.controller.js';
-import { loginLimiter, registerLimiter, uploadLimiter } from '../middleware/rateLimit.js';
+import {
+  loginLimiter,
+  passwordResetLimiter,
+  registerLimiter,
+  uploadLimiter,
+} from '../middleware/rateLimit.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { singleImage } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
@@ -37,6 +46,8 @@ export const authRouter = Router();
 */
 authRouter.post('/register', registerLimiter, validate(registerSchema), register);
 authRouter.post('/login', loginLimiter, validate(loginSchema), login);
+authRouter.post('/forgot-password', passwordResetLimiter, validate(forgotSchema), forgotPassword);
+authRouter.post('/reset-password', passwordResetLimiter, validate(resetSchema), resetPasswordWithToken);
 authRouter.post('/refresh', refresh);
 authRouter.post('/logout', logout);
 authRouter.get('/me', requireAuth, me);

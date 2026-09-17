@@ -194,6 +194,26 @@ export const registerLimiter = limiter({
 });
 
 /**
+ * Forgot-password and reset, sharing one budget per address.
+ *
+ * Two different abuses, one ceiling. The first route sends an email, so a loop
+ * on it is somebody else's inbox filled from this app's sending reputation —
+ * the per-account one-a-minute rule in password.service.js stops that for one
+ * victim, and this stops it across many. The second checks a token, and 32
+ * random bytes cannot be guessed at any rate, but there is no reason to let
+ * anyone try thousands of times.
+ *
+ * Ten in fifteen minutes is far more than a person who mistyped their address
+ * twice and then clicked the link needs.
+ */
+export const passwordResetLimiter = limiter({
+  name: 'password-reset',
+  windowMs: 15 * MINUTE,
+  limit: 10,
+  message: 'Too many password reset attempts from this network. Try again in 15 minutes.',
+});
+
+/**
  * The chat stream. The only route where one request spends money.
  *
  * Every other limit here protects the box; this one protects the API key. A loop

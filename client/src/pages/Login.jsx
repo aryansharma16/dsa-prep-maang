@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
 import { AuthLayout } from '../components/layout/AuthLayout.jsx';
 import { PasswordField } from '../components/ui/PasswordField.jsx';
@@ -8,6 +8,8 @@ import { useAuth } from '../store/AuthContext.jsx';
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const justReset = params.get('reset') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -38,6 +40,10 @@ export function Login() {
       }
     >
       <form onSubmit={submit}>
+        {/* Arriving from a reset: say why they are signed out, not just that they are. */}
+        {justReset && !error && (
+          <div className="alert alert-ok">Password changed, and every device was signed out. Sign in with your new password.</div>
+        )}
         {error && <div className="alert">{error}</div>}
 
         <label className="field">
@@ -61,6 +67,13 @@ export function Login() {
           autoComplete="current-password"
           placeholder="Your password"
         />
+
+        {/* Carries the address already typed, so the reset form does not ask for it twice. */}
+        <div className="auth-forgot">
+          <Link to={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ''}`}>
+            Forgot password?
+          </Link>
+        </div>
 
         <button className="btn primary auth-submit" disabled={busy}>
           {busy ? 'Signing in…' : 'Sign in'}

@@ -82,6 +82,19 @@ export const env = {
   port: Number(process.env.PORT) || 4000,
   mongoUri: required('MONGO_URI'),
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  /**
+   * The one public address of the app, for links that leave it — the reset link,
+   * "sign in", "review request" in an email.
+   *
+   * Not `CLIENT_URL`, which is a comma-separated list of origins CORS accepts and
+   * is ordered for whoever wrote it, usually with localhost first. An email built
+   * from its first entry sends a real user to `http://localhost:3003`, which is a
+   * reset link that cannot work. Falls back to that first entry, so development
+   * needs nothing set; production must set this.
+   */
+  appUrl: (process.env.APP_URL || (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0])
+    .trim()
+    .replace(/\/+$/, ''),
   jwt: {
     accessSecret: required('JWT_ACCESS_SECRET'),
     refreshSecret: required('JWT_REFRESH_SECRET'),

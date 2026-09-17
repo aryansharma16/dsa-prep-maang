@@ -7,9 +7,9 @@
 //   cd server && npm i --no-save mongodb-memory-server@10
 //   cd server/scripts/signup/e2e && node --test signup-api.test.mjs
 //
-// SMTP is left unconfigured on purpose. Every message the flow sends is a
-// courtesy the request must not depend on, so running with no mail server is
-// the case worth having a test for — `mail.service.js` logs and carries on.
+// Nothing is ever sent from here: under NODE_ENV=test `mail.service.js` puts each
+// message in an in-memory `outbox` instead, and the reset tests below read the
+// link out of it the way a person would read it out of their inbox.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -20,6 +20,7 @@ let replSet;
 let server;
 let base;
 let mongoose;
+let outbox;
 
 before(async () => {
   replSet = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: 'wiredTiger' } });
@@ -36,6 +37,7 @@ before(async () => {
   ({ default: mongoose } = await import(`${SERVER}/../node_modules/mongoose/index.js`));
   const { connectDb } = await import(`${SERVER}/config/db.js`);
   const { createApp } = await import(`${SERVER}/app.js`);
+  ({ outbox } = await import(`${SERVER}/services/mail.service.js`));
   await connectDb();
   await new Promise((resolve) => {
     server = createApp().listen(0, resolve);
@@ -262,4 +264,130 @@ test('both decisions are in the audit log, naming who made them', async () => {
     declined.body.entries.some((e) => e.targetLabel === 'nope@example.com'),
     'declining should be audited too',
   );
+});
+
+/* ------------------------------------------------------------ mail */
+
+const lastMailTo = (to) => [...outbox].reverse().find((m) => m.to === to);
+
+test('each step of the flow emails the right person, in the themed layout', async () => {
+  const received = outbox.find((m) => m.to === 'asha@example.com' && /got your request/i.test(m.subject));
+  assert.ok(received, 'the applicant hears their request is in');
+
+  const toOwner = outbox.find((m) => m.to === 'owner@test.local' && /requested access/.test(m.subject));
+  assert.ok(toOwner, 'the super admin hears somebody wants in');
+  assert.match(toOwner.html, /\/admin\/signups/);
+
+  const approved = lastMailTo('asha@example.com');
+  assert.match(approved.subject, /approved/i);
+  // The account has no readable password to send, and must not pretend to.
+  assert.doesNotMatch(approved.text, /correct-horse-battery/);
+  assert.match(approved.html, /\/forgot-password\?email=asha%40example\.com/);
+
+  const declined = lastMailTo('nope@example.com');
+  assert.ok(outbox.some((m) => m.to === 'nope@example.com' && /Not right now\./.test(m.text)), 'the note reaches the applicant');
+  assert.ok(declined);
+});
+
+test('a name typed into the form cannot inject markup into the owner\'s email', async () => {
+  await client().post('/auth/register', applicant({
+    email: 'xss@example.com',
+    name: '<img src=x onerror=alert(1)>',
+    reason: '<script>alert(1)</script>',
+  }));
+  const mail = lastMailTo('owner@test.local');
+  assert.doesNotMatch(mail.html, /<img src=x/);
+  assert.doesNotMatch(mail.html, /<script>/);
+});
+
+/* ------------------------------------------------------------ password reset */
+
+const tokenFrom = (mail) => new URL(mail.text.match(/https?:\/\/\S*reset-password\?token=\S+/)[0]).searchParams.get('token');
+
+test('forgot-password answers the same sentence for an unknown address, and sends nothing', async () => {
+  const before = outbox.length;
+  const unknown = await client().post('/auth/forgot-password', { email: 'nobody@example.com' });
+  const known = await client().post('/auth/forgot-password', { email: 'Asha@Example.com' });
+
+  assert.equal(unknown.status, 200);
+  assert.equal(known.status, 200);
+  assert.equal(unknown.body.message, known.body.message, 'the response must not reveal who has an account');
+
+  const sent = outbox.slice(before);
+  assert.equal(sent.length, 1, 'only the real account gets a link');
+  assert.equal(sent[0].to, 'asha@example.com');
+});
+
+test('a reset link sets a new password, works once, and signs out every session', async () => {
+  // Asha is signed in somewhere before the reset.
+  const oldSession = client();
+  assert.equal((await oldSession.post('/auth/login', { email: 'asha@example.com', password: 'correct-horse-battery' })).status, 200);
+
+  const token = tokenFrom(lastMailTo('asha@example.com'));
+  assert.ok(token && token.length >= 40, 'the email carries a long random token');
+
+  const reset = await client().post('/auth/reset-password', { token, password: 'a-brand-new-password' });
+  assert.equal(reset.status, 200);
+
+  // The receipt goes to the account's own address.
+  assert.match(lastMailTo('asha@example.com').subject, /password was changed/i);
+
+  // Old password is gone, new one works.
+  assert.equal((await client().post('/auth/login', { email: 'asha@example.com', password: 'correct-horse-battery' })).status, 401);
+  assert.equal((await client().post('/auth/login', { email: 'asha@example.com', password: 'a-brand-new-password' })).status, 200);
+
+  // The session from before the reset can no longer be refreshed.
+  assert.equal((await oldSession.post('/auth/refresh')).status, 401);
+
+  // And the link is spent.
+  const again = await client().post('/auth/reset-password', { token, password: 'yet-another-password' });
+  assert.equal(again.status, 400);
+  assert.equal(again.body.error.code, 'RESET_INVALID');
+});
+
+test('the database never holds a usable token', async () => {
+  // Wait out the one-a-minute resend guard by clearing Asha's previous link row.
+  const { PasswordReset } = await import(`${SERVER}/models/PasswordReset.js`);
+  await PasswordReset.deleteMany({});
+
+  await client().post('/auth/forgot-password', { email: 'plain@example.com' });
+  const token = tokenFrom(lastMailTo('plain@example.com'));
+  const rows = await PasswordReset.find({}).lean();
+
+  assert.equal(rows.length, 1);
+  assert.notEqual(rows[0].tokenHash, token, 'only a hash of the token is stored');
+  assert.equal(JSON.stringify(rows[0]).includes(token), false);
+});
+
+test('only the newest link works, and asking again within a minute sends nothing', async () => {
+  const before = outbox.length;
+  await client().post('/auth/forgot-password', { email: 'plain@example.com' });
+  assert.equal(outbox.length, before, 'a second request inside a minute is not emailed');
+
+  const { PasswordReset } = await import(`${SERVER}/models/PasswordReset.js`);
+  const firstToken = tokenFrom(lastMailTo('plain@example.com'));
+  // Age the existing link past the resend guard, then ask again. Through the raw
+  // driver: Mongoose's timestamps make `createdAt` immutable and drop the update.
+  await PasswordReset.collection.updateMany({}, { $set: { createdAt: new Date(Date.now() - 5 * 60 * 1000) } });
+  await client().post('/auth/forgot-password', { email: 'plain@example.com' });
+  const secondToken = tokenFrom(lastMailTo('plain@example.com'));
+  assert.notEqual(firstToken, secondToken);
+
+  const stale = await client().post('/auth/reset-password', { token: firstToken, password: 'should-not-work' });
+  assert.equal(stale.status, 400, 'the older link stopped working when a newer one was sent');
+
+  const fresh = await client().post('/auth/reset-password', { token: secondToken, password: 'plain-new-password' });
+  assert.equal(fresh.status, 200);
+});
+
+test('an expired link is refused even before Mongo reaps it', async () => {
+  const { PasswordReset } = await import(`${SERVER}/models/PasswordReset.js`);
+  await PasswordReset.deleteMany({});
+  await client().post('/auth/forgot-password', { email: 'plain@example.com' });
+  const token = tokenFrom(lastMailTo('plain@example.com'));
+
+  await PasswordReset.updateMany({}, { $set: { expiresAt: new Date(Date.now() - 1000) } });
+  const res = await client().post('/auth/reset-password', { token, password: 'too-late-password' });
+  assert.equal(res.status, 400);
+  assert.equal(res.body.error.code, 'RESET_INVALID');
 });

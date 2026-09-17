@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { User, publicUser } from '../models/User.js';
 import { loginUser } from '../services/auth.service.js';
+import { requestReset, resetPassword } from '../services/password.service.js';
 import { requestAccess } from '../services/signup.service.js';
 import { moduleAccess } from '../services/settings.service.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -36,6 +37,17 @@ export const registerSchema = z.object({
     .max(20)
     .regex(/^[+\d][\d\s()-]*$/, 'Digits, spaces, brackets and a leading + only'),
   reason: z.string().trim().max(300).optional().default(''),
+});
+
+export const forgotSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+});
+
+export const resetSchema = z.object({
+  // 32 random bytes as base64url is 43 characters. Bounded so a megabyte of
+  // "token" is refused by the validator rather than hashed.
+  token: z.string().min(20).max(200),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(200),
 });
 
 export const loginSchema = z.object({
@@ -87,6 +99,29 @@ export const register = asyncHandler(async (req, res) => {
     email: request.email,
     message: 'Your request is with the owner. You will get an email when it is reviewed.',
   });
+});
+
+/**
+ * Asks for a reset link. Answers the same sentence whether or not the address
+ * has an account — see services/password.service.js for why that matters.
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  await requestReset(req.body.email);
+  res.json({
+    ok: true,
+    message: 'If that email has an account, a link to reset its password is on its way.',
+  });
+});
+
+/**
+ * Sets a new password from a link. Does not sign in: the person has to type the
+ * new password once more on the login page, which is both a check that they
+ * know what they just set and the point at which every old session is gone.
+ */
+export const resetPasswordWithToken = asyncHandler(async (req, res) => {
+  await resetPassword(req.body.token, req.body.password);
+  clearAuthCookies(res);
+  res.json({ ok: true, message: 'Password changed. Sign in with your new password.' });
 });
 
 export const login = asyncHandler(async (req, res) => {
