@@ -1,0 +1,1886 @@
+/*
+  Applications — the job hunt.
+
+  This sheet redefines no tokens. Unlike `.cp-root`, `.learn-shell` and
+  `.sql-root`, the pipeline is not its own room: it is the same app with a board
+  on it, in the same glass over the same wash, in whichever accent the reader
+  picked. Everything here is prefixed `ap-` and nothing overrides a shared
+  class, so its position in main.jsx is not load-bearing the way the other four
+  sheets' are.
+
+  Two house rules it has to keep, and both bite here specifically:
+
+    - **No `backdrop-filter`, anywhere.** Translucency only. The measurement is
+      in the README; a blurred backdrop is re-rasterized whenever anything
+      behind it paints, which on a board that scrolls is every frame.
+
+    - **Anything sticky, fixed or portalled takes the `--solid*` twin.** That is
+      the lane headers, which stick while a long lane scrolls, and the drawer,
+      which is fixed. Glass on either would let cards scroll visibly through
+      them.
+
+  Colour is on edges, dots and marks and never under text. A stage is a 6px dot
+  and a lane rule, the way a rating tier is on the ladder — this is a surface
+  somebody reads for twenty minutes at a time while they are already anxious.
+*/
+
+.ap-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* The board owns the vertical space it is given rather than growing the page
+     — lanes scroll their own cards, which is what keeps the headers in place. */
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.ap-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ap-head-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ap-muted {
+  color: var(--text-3);
+  font-size: 12px;
+}
+.ap-warn {
+  color: var(--medium);
+}
+
+/* -------------------------------------------------------------------------- */
+/* the bar                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.ap-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ap-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  height: 30px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-3);
+}
+.ap-search:focus-within {
+  border-color: rgb(var(--accent-rgb) / 0.5);
+}
+.ap-search input {
+  border: 0;
+  background: none;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  width: 210px;
+}
+.ap-count {
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- */
+/* the board                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.ap-board {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ap-col {
+  flex: 0 0 286px;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  min-height: 160px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  /* The single inset line of light along the top edge, where a real pane would
+     catch it — the app's material, stated once in tokens and worn here. */
+  box-shadow: inset 0 1px 0 var(--sheen), var(--lift);
+}
+
+.ap-col-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  flex: 0 0 auto;
+  /* Sticky, so the twin rather than the glass. */
+  position: sticky;
+  top: 0;
+  background: var(--solid-2);
+  border-bottom: 1px solid var(--border-soft);
+  border-radius: 10px 10px 0 0;
+  /* The lane's only real colour: a hairline along the top edge. */
+  box-shadow: inset 0 2px 0 rgb(var(--hue-rgb) / 0.55);
+}
+.ap-col-head h2 {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.ap-col-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hue);
+  flex: 0 0 auto;
+}
+.ap-col-count {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.ap-col-head .icon-btn {
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.ap-col:hover .ap-col-head .icon-btn,
+.ap-col-head .icon-btn:focus-visible {
+  opacity: 1;
+}
+
+.ap-col-body {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 60px;
+}
+
+.ap-col-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.ap-col-empty:hover {
+  background: var(--surface-hover);
+  color: var(--text-2);
+}
+
+.ap-add input {
+  width: 100%;
+  padding: 8px 9px;
+  background: var(--surface-2);
+  border: 1px solid rgb(var(--accent-rgb) / 0.45);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  outline: none;
+}
+
+/* The gap indicator: nothing moves until the drop, and a line says where the
+   card will land. `useBoardDrag` owns the state; this is all it draws. */
+.ap-gap {
+  height: 2px;
+  margin: 1px 0;
+  border-radius: 2px;
+  background: rgb(var(--accent-rgb) / 0.8);
+}
+.ap-slot {
+  display: flex;
+  flex-direction: column;
+}
+
+/* -------------------------------------------------------------------------- */
+/* a card                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.ap-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  cursor: grab;
+  /* Only transform and box-shadow animate, so a lane of twenty cards costs no
+     layout on hover. */
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+.ap-card:hover {
+  /* Replaces the fill rather than layering on it — the trap the material note
+     in tokens.css describes, where an inner element tints twice and shows a
+     seam. */
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+.ap-card:focus-within {
+  border-color: rgb(var(--accent-rgb) / 0.5);
+}
+.ap-card.is-dragging {
+  opacity: 0.45;
+  transform: rotate(-0.6deg) scale(0.99);
+  cursor: grabbing;
+}
+.ap-card.is-stale {
+  /* The one place a card carries colour without being asked, and it is a
+     hairline on the leading edge rather than a wash — quiet is a nudge, not an
+     alarm. */
+  box-shadow: inset 2px 0 0 rgb(var(--h-orange-rgb) / 0.5);
+}
+
+/* The whole card opens the drawer. A 280px target with a 60px hit area is a
+   card people think is broken. */
+.ap-card-open {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 9px;
+}
+.ap-card-open:focus-visible {
+  outline: 2px solid rgb(var(--accent-rgb) / 0.7);
+  outline-offset: 1px;
+}
+/* Everything the pointer needs rides above it. */
+.ap-card > *:not(.ap-card-open) {
+  position: relative;
+  pointer-events: none;
+}
+.ap-card a,
+.ap-card button:not(.ap-card-open) {
+  pointer-events: auto;
+}
+
+.ap-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ap-card-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.ap-card-name strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-card-role {
+  font-size: 11.5px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-card-flag {
+  margin-left: auto;
+  color: var(--medium);
+  flex: 0 0 auto;
+}
+.ap-card-where {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ap-card-chips,
+.ap-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ap-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+.ap-next,
+.ap-last {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+  min-width: 0;
+}
+.ap-next svg {
+  color: var(--text-3);
+  flex: 0 0 auto;
+}
+.ap-offer {
+  color: var(--medium);
+  font-weight: 600;
+}
+.ap-quiet {
+  color: var(--text-3);
+}
+.ap-stale {
+  margin-left: auto;
+  color: var(--h-orange);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.ap-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hue);
+  flex: 0 0 auto;
+}
+
+/* -------------------------------------------------------------------------- */
+/* the company mark                                                            */
+/* -------------------------------------------------------------------------- */
+
+.ap-mark {
+  border-radius: 5px;
+  object-fit: contain;
+  background: var(--surface);
+  flex: 0 0 auto;
+}
+.ap-mark-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-3);
+  border: 1px solid var(--border-soft);
+}
+
+/* -------------------------------------------------------------------------- */
+/* chips                                                                       */
+/* -------------------------------------------------------------------------- */
+
+.ap-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+  border: 1px solid var(--border-soft);
+  color: var(--text-2);
+  background: var(--surface);
+}
+.ap-chip-quiet {
+  color: var(--text-3);
+}
+.ap-chip-stage,
+.ap-chip-outcome {
+  color: var(--hue);
+  border-color: rgb(var(--hue-rgb) / 0.35);
+  background: rgb(var(--hue-rgb) / 0.09);
+}
+.ap-chip-thin {
+  /* Deliberately the dimmest chip on the card. A one-click application is
+     worth marking and is not worth shouting about — the number that matters is
+     in the report, not on the card. */
+  color: var(--text-3);
+  border-style: dashed;
+  background: none;
+}
+.ap-chip-ref {
+  color: var(--h-teal);
+  border-color: rgb(var(--h-teal-rgb) / 0.35);
+  background: rgb(var(--h-teal-rgb) / 0.09);
+}
+
+/* -------------------------------------------------------------------------- */
+/* the drawer                                                                  */
+/* -------------------------------------------------------------------------- */
+
+.ap-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  z-index: 40;
+}
+.ap-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  width: min(560px, 100vw);
+  display: flex;
+  flex-direction: column;
+  /* Fixed, so the solid twin. */
+  background: var(--solid);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 32px var(--shadow);
+  animation: ap-slide 0.18s ease;
+}
+@keyframes ap-slide {
+  from {
+    transform: translateX(16px);
+    opacity: 0.4;
+  }
+}
+
+.ap-drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--border);
+  box-shadow: inset 0 2px 0 rgb(var(--hue-rgb) / 0.6);
+}
+.ap-drawer-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ap-drawer-title,
+.ap-drawer-sub {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  padding: 2px 5px;
+  outline: none;
+}
+.ap-drawer-title {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.ap-drawer-sub {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.ap-drawer-title:hover,
+.ap-drawer-sub:hover {
+  background: var(--surface-hover);
+}
+.ap-drawer-title:focus,
+.ap-drawer-sub:focus {
+  background: var(--surface-2);
+  border-color: rgb(var(--accent-rgb) / 0.5);
+}
+.ap-drawer-stage {
+  flex: 0 0 auto;
+}
+
+.ap-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 12px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+.ap-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.ap-tab:hover {
+  color: var(--text-2);
+}
+.ap-tab.on {
+  color: var(--text);
+  border-bottom-color: rgb(var(--accent-rgb) / 0.9);
+}
+.ap-tab .mono {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.ap-drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ap-drawer-danger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+.ap-drawer-danger .btn {
+  margin-left: auto;
+}
+
+.ap-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ap-section-head h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.ap-section-head > *:last-child:not(h3) {
+  margin-left: auto;
+}
+
+.ap-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* the timeline                                                                */
+/* -------------------------------------------------------------------------- */
+
+.ap-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 4px;
+  position: relative;
+}
+/*
+  The rail. One pseudo-element rather than a border on every row, so the line is
+  continuous and a row's own hue never breaks it — and it draws itself downward
+  on open, which is the whole animation. `transform-origin: top` plus `scaleY`
+  means no layout is recalculated while it runs.
+*/
+.ap-timeline::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--border);
+  transform-origin: top;
+  animation: ap-rail 0.42s ease both;
+}
+@keyframes ap-rail {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.ap-tl-row {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 7px 0;
+  /* Staggered off `--i`, set inline and capped at a dozen — past that the delay
+     stops reading as a sequence and starts reading as a slow page. */
+  animation: ap-rise 0.32s ease both;
+  animation-delay: calc(var(--i, 0) * 45ms + 120ms);
+}
+@keyframes ap-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.ap-tl-node {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  /* Opaque, because it sits on the rail and a translucent node would show the
+     line straight through the middle of the icon. */
+  background: var(--solid-2);
+  border: 1px solid rgb(var(--hue-rgb) / 0.45);
+  color: var(--hue);
+}
+.ap-tl-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ap-tl-title {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.ap-tl-title .link-btn {
+  font-size: 12.5px;
+}
+.ap-tl-detail {
+  font-size: 11px;
+  color: var(--hue);
+}
+.ap-tl-when {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.ap-timeline-empty {
+  padding: 18px 2px;
+}
+.ap-timeline-empty p {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* -------------------------------------------------------------------------- */
+/* rounds                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.ap-round-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ap-round {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 9px;
+  box-shadow: inset 2px 0 0 rgb(var(--hue-rgb) / 0.45);
+  overflow: hidden;
+}
+.ap-round.is-open {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+.ap-round-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+}
+.ap-round-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: left;
+}
+.ap-round-caret {
+  color: var(--text-3);
+  transition: transform 0.14s ease;
+  flex: 0 0 auto;
+}
+.ap-round.is-open .ap-round-caret {
+  transform: rotate(90deg);
+}
+.ap-round-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.ap-round-name strong {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.ap-round-name .ap-muted {
+  font-size: 10.5px;
+}
+.ap-round-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.ap-round-when {
+  font-size: 11px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.ap-round-tools {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.ap-round:hover .ap-round-tools,
+.ap-round-tools:focus-within {
+  opacity: 1;
+}
+
+.ap-round-body {
+  padding: 2px 10px 11px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  animation: ap-open 0.18s ease both;
+}
+@keyframes ap-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.ap-round-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.ap-round-facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ap-round-notes {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+  white-space: pre-wrap;
+}
+
+/* -------------------------------------------------------------------------- */
+/* questions                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.ap-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ap-q-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ap-q {
+  border: 1px solid var(--border-soft);
+  border-radius: 7px;
+  background: var(--surface);
+}
+.ap-q.is-open {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+.ap-q-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 5px 4px 7px;
+}
+.ap-q-n {
+  font-size: 10px;
+  color: var(--text-3);
+  min-width: 13px;
+}
+.ap-q-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 3px 5px;
+  outline: none;
+}
+.ap-q-text:hover {
+  background: var(--surface-hover);
+}
+.ap-q-text:focus {
+  border-color: rgb(var(--accent-rgb) / 0.5);
+}
+
+/*
+  Four buttons rather than a dropdown, and the only control in the module that
+  is not a `Dropdown`. Four one-word values, set in a run of nine rows, on the
+  one screen whose whole purpose is speed.
+*/
+.ap-q-rate {
+  display: inline-flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+.ap-rate {
+  padding: 2px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.ap-rate:hover {
+  background: var(--surface-hover);
+  color: var(--text-2);
+}
+.ap-rate.on {
+  color: var(--hue);
+  border-color: rgb(var(--hue-rgb) / 0.4);
+  background: rgb(var(--hue-rgb) / 0.11);
+}
+/* Under about 520px the four words do not fit beside the question, so they wrap
+   to their own line rather than squeezing the text they describe. */
+@media (max-width: 560px) {
+  .ap-q-head {
+    flex-wrap: wrap;
+  }
+  .ap-q-text {
+    flex-basis: 100%;
+    order: -1;
+  }
+}
+
+.ap-q-toggle {
+  transition: transform 0.14s ease;
+}
+.ap-q-toggle.on {
+  transform: rotate(90deg);
+}
+.ap-q-body {
+  padding: 2px 8px 9px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: ap-open 0.16s ease both;
+}
+
+.ap-q-add {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px dashed var(--border);
+  border-radius: 7px;
+  color: var(--text-3);
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+.ap-q-add:focus-within {
+  border-style: solid;
+  border-color: rgb(var(--accent-rgb) / 0.5);
+  background: var(--surface);
+}
+.ap-q-add input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.ap-q-hint {
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* the offer                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.ap-offer-panel,
+.ap-postmortem,
+.ap-touchpoints,
+.ap-links,
+.ap-cv,
+.ap-people {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 var(--sheen);
+}
+/* The offer is the one panel allowed a colour, because it is the one people
+   open the drawer to look at. */
+.ap-offer-panel {
+  box-shadow: inset 0 1px 0 var(--sheen), inset 2px 0 0 rgb(var(--h-amber-rgb) / 0.5);
+}
+
+.ap-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 9px;
+}
+.ap-offer-grid .field.is-strong input {
+  font-weight: 600;
+  border-color: rgb(var(--h-amber-rgb) / 0.4);
+}
+.ap-unit {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+.ap-offer-gap {
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* contact                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.ap-touch-add {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex-wrap: wrap;
+  animation: ap-open 0.16s ease both;
+}
+.ap-touch-add input {
+  flex: 1 1 140px;
+  min-width: 0;
+  padding: 5px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  outline: none;
+}
+.ap-touch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ap-touch-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  font-size: 12px;
+  --hue: var(--text-3);
+  --hue-rgb: 121 130 143;
+}
+.ap-touch-list li.is-inbound {
+  --hue: var(--h-sky);
+  --hue-rgb: var(--h-sky-rgb);
+}
+.ap-touch-kind {
+  color: var(--text);
+  white-space: nowrap;
+}
+.ap-touch-note {
+  color: var(--text-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-touch-list time {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.ap-touch-list .icon-btn {
+  opacity: 0;
+}
+.ap-touch-list li:hover .icon-btn,
+.ap-touch-list .icon-btn:focus-visible {
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* links                                                                       */
+/* -------------------------------------------------------------------------- */
+
+.ap-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.ap-link-row a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-link-row .icon-btn {
+  margin-left: auto;
+  opacity: 0;
+}
+.ap-link-row:hover .icon-btn,
+.ap-link-row .icon-btn:focus-visible {
+  opacity: 1;
+}
+.ap-link-add {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-3);
+}
+.ap-link-add input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px dashed var(--border);
+  background: none;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 3px 0;
+}
+.ap-link-add input:focus {
+  border-bottom-color: rgb(var(--accent-rgb) / 0.6);
+}
+
+/* -------------------------------------------------------------------------- */
+/* the CV                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.ap-resume {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ap-resume-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+.ap-resume-current a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-resume-none {
+  margin: 0;
+}
+.ap-resume-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ap-resume-actions > :first-child:not(.btn) {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.ap-resume-link {
+  display: flex;
+  gap: 6px;
+  animation: ap-open 0.16s ease both;
+}
+.ap-resume-link input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  outline: none;
+}
+.ap-resume-link input:focus {
+  border-color: rgb(var(--accent-rgb) / 0.5);
+}
+.ap-resume-busy {
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* the numbers                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.ap-stats .panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ap-stats-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+}
+/* A table wider than its block scrolls inside it rather than running into the
+   block beside it — "OFFER" and "METHOD" used to meet in the middle. */
+.ap-stat-block {
+  min-width: 0;
+  overflow-x: auto;
+}
+.ap-stat-block h4 {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.ap-stats .tiles {
+  grid-column: 1 / -1;
+}
+.ap-stat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.ap-stat-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  padding: 0 6px 5px 0;
+}
+.ap-stat-table td {
+  padding: 4px 6px 4px 0;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-2);
+}
+.ap-stat-table td:first-child {
+  color: var(--text);
+}
+/* The one-click rows, dimmed rather than coloured — the table is a comparison
+   and painting half of it red would answer the question for the reader. */
+.ap-stat-table tr.is-oneclick td:first-child {
+  color: var(--text-2);
+  font-style: italic;
+}
+.ap-stat-note {
+  margin: 8px 0 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* renaming the lanes                                                          */
+/* -------------------------------------------------------------------------- */
+
+.ap-lane-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ap-lane-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.ap-lane-row input[type='text'],
+.ap-lane-row > input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.ap-lane-row > input:focus {
+  border-color: rgb(var(--accent-rgb) / 0.5);
+}
+.ap-lane-hide {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------------------------- */
+/* the top-bar badge                                                           */
+/* -------------------------------------------------------------------------- */
+
+.ap-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  /* In the top bar, which is sticky — the twin, not the glass. */
+  background: var(--solid-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 11.5px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ap-due:hover {
+  background: var(--solid-hover);
+  color: var(--text);
+}
+.ap-due.is-overdue {
+  border-color: rgb(var(--h-orange-rgb) / 0.45);
+  color: var(--h-orange);
+}
+.ap-due-next {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ap-due-next em {
+  font-style: normal;
+  color: var(--text-3);
+}
+.ap-due-count {
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* -------------------------------------------------------------------------- */
+/* odds and ends                                                               */
+/* -------------------------------------------------------------------------- */
+
+.ap-empty-inline {
+  padding: 14px 2px;
+}
+.ap-empty-inline p {
+  margin: 0 0 3px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.ap-empty-line {
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* the view switcher                                                           */
+/* -------------------------------------------------------------------------- */
+
+.ap-views {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.ap-views button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.ap-views button:hover {
+  color: var(--text-2);
+  background: var(--surface-hover);
+}
+.ap-views button.on {
+  color: var(--text);
+  background: var(--surface-2);
+  box-shadow: inset 0 1px 0 var(--sheen), 0 0 0 1px var(--border);
+}
+/* Icons only once the bar gets tight — five labelled tabs plus the search box
+   is wider than a phone, and the icons are what people learn anyway. */
+@media (max-width: 900px) {
+  .ap-views button span {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* table                                                                       */
+/* -------------------------------------------------------------------------- */
+
+.ap-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 var(--sheen);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.ap-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+.ap-table th {
+  /* Sticky, so the twin rather than the glass. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--solid-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  padding: 0;
+  white-space: nowrap;
+}
+.ap-table th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.ap-table th button:hover,
+.ap-table th[aria-sort='ascending'] button,
+.ap-table th[aria-sort='descending'] button {
+  color: var(--text);
+}
+.ap-table th.num button {
+  justify-content: flex-end;
+}
+.ap-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-2);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.ap-table td.num {
+  text-align: right;
+}
+.ap-table tbody tr {
+  cursor: pointer;
+  /* The stage's colour, as a hairline on the leading edge and nothing more. */
+  box-shadow: inset 2px 0 0 rgb(var(--hue-rgb) / 0.5);
+}
+.ap-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+.ap-table tbody tr:focus-visible {
+  outline: 2px solid rgb(var(--accent-rgb) / 0.6);
+  outline-offset: -2px;
+}
+.ap-t-company {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ap-t-company > span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.ap-t-company strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.ap-t-company em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--text-3);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ap-stale-text {
+  color: var(--h-orange);
+}
+
+/* -------------------------------------------------------------------------- */
+/* calendar                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.ap-cal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ap-cal-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ap-cal-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ap-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ap-cal-wd {
+  padding: 6px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  background: var(--solid-2);
+}
+.ap-cal-day {
+  min-height: 104px;
+  padding: 5px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--solid);
+  min-width: 0;
+}
+.ap-cal-day.is-outside {
+  background: var(--solid-2);
+}
+.ap-cal-day.is-outside .ap-cal-n {
+  color: var(--text-3);
+  opacity: 0.6;
+}
+.ap-cal-n {
+  font-size: 11px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.ap-cal-day.is-today .ap-cal-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgb(var(--accent-rgb));
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.ap-cal-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 2px 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: rgb(var(--hue-rgb) / 0.1);
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+.ap-cal-entry:hover {
+  border-color: rgb(var(--hue-rgb) / 0.45);
+}
+.ap-cal-entry .mono {
+  font-size: 10px;
+  color: var(--text-3);
+  flex: 0 0 auto;
+}
+.ap-cal-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+/* A follow-up is something you owe, not something booked — outlined, never
+   filled, so the two never read as the same kind of thing. */
+.ap-cal-entry.is-follow {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--text-2);
+}
+.ap-cal-entry.is-deadline {
+  font-weight: 600;
+}
+.ap-cal-more,
+.ap-cal-sent {
+  font-size: 10.5px;
+  color: var(--text-3);
+  padding: 0 5px;
+}
+.ap-cal-sent {
+  margin-top: auto;
+}
+.ap-cal-key {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ap-cal-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ap-cal-swatch {
+  width: 14px;
+  height: 9px;
+  border-radius: 3px;
+}
+.ap-cal-swatch.is-round {
+  background: rgb(var(--h-sky-rgb) / 0.35);
+}
+.ap-cal-swatch.is-follow {
+  border: 1px dashed var(--text-3);
+}
+.ap-cal-swatch.is-deadline {
+  background: rgb(var(--h-amber-rgb) / 0.45);
+}
+/* Below a tablet a month grid is seven slivers — entries collapse to their dots,
+   and the tap still opens the application. */
+@media (max-width: 760px) {
+  .ap-cal-day {
+    min-height: 64px;
+  }
+  .ap-cal-label,
+  .ap-cal-entry .mono,
+  .ap-cal-sent {
+    display: none;
+  }
+  .ap-cal-entry {
+    justify-content: center;
+    padding: 3px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* the all-companies timeline                                                  */
+/* -------------------------------------------------------------------------- */
+
+.ap-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 780px;
+}
+.ap-feed-day h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.ap-feed-day.is-upcoming h3 {
+  color: rgb(var(--accent-rgb));
+}
+.ap-feed-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 4px;
+  position: relative;
+}
+.ap-feed-list::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--border);
+  transform-origin: top;
+  animation: ap-rail 0.42s ease both;
+}
+.ap-feed-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  animation: ap-rise 0.3s ease both;
+  animation-delay: calc(var(--i, 0) * 35ms + 80ms);
+}
+.ap-feed-body {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ap-feed-body:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-soft);
+}
+.ap-feed-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+  line-height: 1.3;
+}
+.ap-feed-text strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ap-feed-what {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ap-feed-body time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- */
+/* insights                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.ap-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ap-chart {
+  position: relative;
+}
+.ap-chart svg {
+  display: block;
+  overflow: visible;
+}
+/* One hairline step off the surface, solid, recessive. */
+.ap-chart-grid {
+  stroke: var(--border-soft);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+.ap-chart-tick {
+  fill: var(--text-3);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+/* Text in text tokens, never the series colour. */
+.ap-chart-value {
+  fill: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ap-chart-bar {
+  fill: rgb(var(--accent-rgb) / 0.78);
+  transition: fill 0.12s ease;
+}
+.ap-chart-bar.on {
+  fill: rgb(var(--accent-rgb));
+}
+.ap-chart-hit {
+  fill: transparent;
+  cursor: default;
+  outline: none;
+}
+.ap-chart-hit:focus-visible {
+  stroke: rgb(var(--accent-rgb) / 0.6);
+  stroke-width: 1;
+}
+.ap-chart-tip {
+  position: absolute;
+  top: 0;
+  transform: translate(-50%, -4px);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 9px;
+  /* Floats over the plot, so the solid twin. */
+  background: var(--solid-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  box-shadow: var(--lift);
+  font-size: 11.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ap-chart-tip strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------------------------- */
+/* small screens                                                               */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  /*
+    The lanes narrow but never squash — below about 240px a card cannot hold a
+    company and a role on the same line, so the board keeps scrolling sideways
+    instead. Sideways scrolling is the correct answer for a board on a phone;
+    six unreadable columns is not.
+  */
+  .ap-col {
+    flex-basis: 252px;
+  }
+  .ap-drawer {
+    width: 100vw;
+    border-left: 0;
+  }
+  .ap-search input {
+    width: 140px;
+  }
+  /* The badge keeps the count and drops the company — there is no room for a
+     name up here once the menu toggle is back. */
+  .ap-due-next em {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* reduced motion                                                              */
+/* -------------------------------------------------------------------------- */
+
+/*
+  Every animation in the module, off in one block.
+
+  The rail, the staggered timeline rows, the drawer's slide, the panels that
+  open — all of them are decoration over a layout that is already correct, so
+  turning them off changes nothing about what is readable or reachable. The
+  transitions on hover and on the caret go too: a caret that snaps is fine, and
+  `prefers-reduced-motion` is a request about movement rather than about
+  duration.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .ap-drawer,
+  .ap-timeline::before,
+  .ap-tl-row,
+  .ap-round-body,
+  .ap-q-body,
+  .ap-touch-add,
+  .ap-resume-link,
+  .ap-feed-list::before,
+  .ap-feed-row {
+    animation: none;
+  }
+  .ap-card,
+  .ap-round-caret,
+  .ap-q-toggle,
+  .ap-rate,
+  .ap-views button,
+  .ap-chart-bar,
+  .ap-col-head .icon-btn,
+  .ap-round-tools {
+    transition: none;
+  }
+  .ap-card.is-dragging {
+    transform: none;
+  }
+}

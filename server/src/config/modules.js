@@ -134,6 +134,29 @@ export const MODULES = Object.freeze([
     for how the default is honoured until a super admin decides otherwise.
   */
   { key: 'design', label: 'System Design', path: '/design', defaultHidden: true },
+  /*
+    Applications — the job hunt itself: a pipeline of companies, the rounds each
+    one put you through, and the questions you were asked in them.
+
+    A module rather than a corner of Tasks, even though both are boards you drag
+    cards around. A task is something you decided to do and can therefore
+    invent columns for; an application is somewhere you *are*, in a sequence
+    somebody else controls, and the stages have to be fixed for any of the
+    numbers to mean anything. Its own collections, its own vocabulary, its own
+    report.
+
+    It is also the only module here that holds records about people who are not
+    the account holder — a referrer's name, a recruiter's phone number, an
+    interviewer's title. Nothing is shared and there is no second reader, but it
+    is the reason hiding this one has to take the API with the nav item just as
+    firmly as the rest: `requireModule('applications')` sits on the mount in
+    routes/index.js.
+
+    `defaultHidden`, following `design` above it and for the same reason: it
+    lands in `main` in pieces, and the first deploy should not show a half-built
+    page to everyone for as long as it takes somebody to open the panel.
+  */
+  { key: 'applications', label: 'Applications', path: '/applications', defaultHidden: true },
 ]);
 
 export const MODULE_KEYS = MODULES.map((module) => module.key);

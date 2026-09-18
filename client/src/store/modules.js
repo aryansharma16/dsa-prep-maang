@@ -1,6 +1,7 @@
 import {
   IconBoard,
   IconBook,
+  IconBriefcase,
   IconCalendar,
   IconChart,
   IconChat,
@@ -58,6 +59,16 @@ export const MODULE_NAV = [
      ladder draws its problems from its own list. */
   { key: 'practice', to: '/practice', label: 'Practice', Icon: IconDice },
   { key: 'tasks', to: '/tasks', label: 'Tasks', Icon: IconBoard },
+  /*
+    Under Tasks, because they are the two boards and this is the one you open
+    less often — but above System Design, because it is a page you live on for
+    six weeks rather than a workspace you go into.
+
+    It is the only entry here that is not about the curriculum at all. Everything
+    above it is something you do to get ready; this is the thing you were getting
+    ready for.
+  */
+  { key: 'applications', to: '/applications', label: 'Applications', Icon: IconBriefcase },
   /*
     Last, because it is the one module where you make something rather than
     work through or look back at something. It opens into a full-screen

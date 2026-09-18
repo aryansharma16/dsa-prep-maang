@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Admin } from './pages/Admin.jsx';
 import { AppShell } from './components/layout/AppShell.jsx';
+import { Applications } from './pages/Applications.jsx';
 import { Chat } from './pages/Chat.jsx';
 import { ChatProvider } from './store/ChatContext.jsx';
 import { Feedback } from './pages/Feedback.jsx';
@@ -152,6 +153,16 @@ export function App() {
                 {has('learn') && <Route path="/learn/:track" element={<LearnTrack />} />}
                 {has('learn') && <Route path="/learn/:track/:topic" element={<LearnTopic />} />}
                 {has('tasks') && <Route path="/tasks" element={<Tasks />} />}
+                {/*
+                  No provider around it, unlike Playbook and Pro Coder. The
+                  board is one request and nothing outside the page reads it —
+                  the top bar's due badge asks for its own three-field summary
+                  rather than sharing this page's state, so opening the roadmap
+                  never fetches an application.
+                */}
+                {has('applications') && (
+                  <Route path="/applications" element={<Applications />} />
+                )}
                 {/*
                   Pro Coder mounts its own provider on the route rather than
                   around the tree, unlike the roadmap's. The ladder is 800 rows

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useLocalState } from '../../hooks/useLocalState.js';
 import { HOVERS, NARROW, useMediaQuery } from '../../hooks/useMediaQuery.js';
+import { DueBadge } from '../applications/DueBadge.jsx';
 import { ChatLauncher } from '../chat/ChatLauncher.jsx';
 import { FeedbackHost } from '../feedback/FeedbackHost.jsx';
 import { TimerPill } from '../tasks/TimerPill.jsx';
@@ -192,6 +193,15 @@ export function AppShell() {
               can run at once — an afternoon booked on the board, one problem
               inside it. */}
           <AttemptTimerPill />
+
+          {/*
+            The job hunt, and the only thing up here that is about a date rather
+            than a clock. It draws nothing on the days there is nothing, like
+            the two pills before it — and it is here rather than on its own page
+            because an interview you forgot and a follow-up you owe both look
+            exactly like a board you have not opened.
+          */}
+          <DueBadge />
 
           {/* Three curriculums, one slot — see ProgressRotator. */}
           <ProgressRotator />

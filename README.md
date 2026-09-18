@@ -41,6 +41,7 @@ breaks when a credential is missing.
 | **Assistant** | Chat across Gemini, Cerebras, DeepSeek and Grok — pick a model or let it route per question, attach the problem you are on, and keep every thread. On Pro Coder it becomes a CP coach with a stricter spoiler rule that knows your rating |
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
 | **System Design** | *In development, super admin only.* A whiteboard for designing systems: projects hold nested folders, folders hold boards. Canvas boards have frames, boxes, ellipses, diamonds, cylinders, connectors that attach to shapes or to other connectors' lines, route around shapes and can animate traffic, text, markdown paragraphs, sticky notes, a pressure-shaped pen, highlighter and eraser — with snapping, undo, copy/paste across boards and continuous autosave that survives going offline. Schema boards keep DBML text and the diagram in sync, with a type picker, column types guessed from names, one-click common columns and hover explanations for every column, relation and DBML word. Rich components and scale/bottleneck analysis are the next phases — see [System Design](#system-design) |
+| **Applications** | *In development, super admin only.* The job hunt: a board of every company across six lanes and nine stages you move by dragging, a derived timeline per application, rounds with an eighteen-kind vocabulary and a question log built for the ten minutes after an interview, a post-mortem, an offer panel, and a CV library that never stores the same file twice. Where you found it, how you applied (Easy Apply or their own site) and whether you were referred are three separate fields, so the report can compare them. Board, table, calendar, timeline and insights views, and a reminder in the top bar — see [Applications](#applications) |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
@@ -1845,6 +1846,175 @@ Why it is built the way it is, briefly:
 | API end to end | `server/scripts/design/e2e/design-api.test.mjs` (in-memory Mongo) |
 | Trash retention | `npm run design:purge-trash` — schedule it daily |
 
+## Applications
+
+*In development — ships hidden, the super admin previews it.* The job hunt
+itself: every company you applied to, where each one is, the rounds it put you
+through, and the questions you were asked in them. Everything else in the app
+is getting ready; this is the thing you were getting ready for.
+
+It answers three questions a spreadsheet of links cannot: **where is each
+company right now**, **what do interviewers keep asking me**, and **which way
+of applying actually gets replies**. The full reference — every field, the API,
+the limits — is [docs/applications.md](docs/applications.md).
+
+### Nine stages, six columns
+
+A board of six lanes — Wishlist, Applied, Screening, In Process, Offer, Closed —
+over nine stages. Closed holds three endings (**rejected**, **ghosted**,
+**withdrawn**) and Offer holds two (**on the table**, **accepted**), told apart
+by a chip on the card. Nine columns is not a board anyone can read across;
+collapsing in the *view* rather than the *data* is what keeps "they said no"
+and "nobody ever replied" as two numbers, which is the difference between a
+channel that works and one that does not.
+
+**Dragging a card is the status update.** It writes the stage, the date it was
+reached, `appliedAt` the first time a card leaves the wishlist, and `closedAt`
+when it lands in Closed — with no form in the way. Closed defaults to
+*rejected*; the other two endings are one click on the chip.
+
+The stages are fixed and the **column names are yours**. Rename In Process to
+*Grinding* and every number still lands in the same bucket, because the
+server knows what `in_process` means and would not know what a column you
+invented means. Columns cannot be added or deleted for the same reason; one
+you never use can be hidden.
+
+Two definitions are written down because the funnel is worthless without them:
+**Screening** is a human replied — a recruiter call or an online test is in
+front of you. **In Process** is a round that tests the actual job is booked.
+The first rate measures your CV; the second measures your interviewing.
+
+**Nothing moves a card on its own.** A card silent for longer than your
+threshold (21 days by default, changeable) gets an orange edge and a
+"quiet for 3 weeks" line. Ghosted is still yours to decide.
+
+### Three questions, three fields
+
+The obvious design puts *LinkedIn*, *Referral* and *Easy Apply* in one "source"
+dropdown. They are three different facts, and a single field throws away two
+of them:
+
+| field | the question | example |
+|---|---|---|
+| `source` | where you found it | LinkedIn, Naukri, a shared Google Doc |
+| `applyMethod` | how you actually sent it | Easy Apply, their own portal, a referral link, an email |
+| `referrer` | whether somebody put you in | a name, their role, how you know them |
+
+You find a role on LinkedIn on Monday and a senior refers you on Tuesday — one
+dropdown has to lose one of those, always the one the report wanted. So the
+report cuts by all three: conversion by source *split into referred and cold*,
+and a separate table for one-click against a real application. That second
+table is the sharpest line in the module — the same profile into four hundred
+applicants, or a form you filled in properly — and it is why the add form
+promotes the method field on the platforms that have an Easy Apply button.
+
+### The timeline is derived, not logged
+
+Every node on a card's timeline is projected from a date the record already
+holds: when you applied, each stage it reached, each round and its result, an
+offer's date, when it closed. Edit a round's date and its node moves, because
+the node *is* the round; delete a round and its node goes, because nothing
+recorded it twice.
+
+A stored event log was the alternative, and every way of keeping it is wrong.
+Mutate the event and it is a cache of the round with a bug per forgotten field;
+append a correction and the screen that answered "what happened with Razorpay"
+shows six rows, five of them about your typing; leave it and the timeline lies.
+The only thing a log buys is an audit trail, and this collection has one writer
+who is also its only reader.
+
+Two things genuinely cannot be derived, and are stored:
+
+- **`reached`** — the first date the card entered each stage. Monotone: dragging
+  a card back to fix a misdrop never erases how far it got, and dragging forward
+  never back-fills stages it skipped. It is also the only field the funnel reads,
+  never `stage` — an offer you declined ends *withdrawn*, and a funnel built on
+  the current stage would report it as never getting past the first screen.
+- **Touchpoints** — a recruiter phoned, you chased them, HR said "results by
+  Friday". There is no other record for those to be projected from.
+
+### Rounds and questions
+
+A round has a kind from eighteen (grouped as screen, technical, behavioural and
+closing, so the report can answer at two levels), a date, a mode, who was on
+it, and an outcome. The list is long on purpose: a missing kind does not fall
+into "other" once, it falls in *forever*, because the next similar round goes
+to the same place to keep history consistent.
+
+Rescheduling is not an outcome. Changing the date records the old one, the
+round stays *scheduled*, and the card says how many times it has moved — three
+reschedules is a company telling you something.
+
+The **question log** is built for the ten minutes after an interview: type the
+question, press Enter, the next line is ready. Grading (nailed it, got there,
+fumbled, blanked) and what you answered come later. An ungraded question and
+one you **blanked** on are different facts and stay different — the first is
+the state everything is in while you are still dumping them in.
+
+A question is free text and never a picker over the roadmap. An interview
+question is half-remembered, differently worded, and often not a coding
+problem at all; forcing it through a picker means the ones that match nothing
+never get written down, and those are the ones you did worst on.
+
+A **post-mortem** on a closed card keeps three fields apart: the reason (for
+the report), what they said (usually worthless), and what you think actually
+happened (the one sentence worth re-reading in six months). It names the round
+it died at by kind as well as by id, so deleting that round leaves "died at the
+system design round" rather than a blank line.
+
+### Your CVs
+
+Each application records which CV it went out with, from a per-account
+library: pick one you have sent before, upload a PDF or Word file, or paste a
+Drive link.
+
+**The same file is never stored twice, and the check happens before any bytes
+move.** The browser hashes the file (SHA-256, Web Crypto) and asks whether that
+hash is already in the library; on a hit it attaches the existing CV and the
+upload never happens — so the CV you sent to nine companies, renamed for the
+tenth, is one small request rather than a second copy. On a miss it uploads,
+and the server hashes what it received again before storing, because the
+browser's answer is a shortcut and never the thing that decides. `{ user, hash }`
+is unique in the database and the Cloudinary public id *is* the hash, so even
+two tabs racing the same new file end up with one row and one object. A pasted
+link dedupes the same way, on its normalised URL.
+
+Deleting a CV from the library leaves every application that used it saying
+which one it was — they store the label and URL beside the reference.
+
+**A CV is opened through the app, never from its Cloudinary address.** New
+Cloudinary accounts refuse to deliver PDFs from the public CDN at all: the
+upload succeeds, and the link answers `401` with `x-cld-error: deny or ACL
+failure`, which Chrome shows as "Failed to load PDF document". So
+`GET /applications/resumes/:id/file` fetches the file server-side with a signed,
+sixty-second API download — which that setting does not cover — and streams it
+back `inline`, with its original filename and `Cache-Control: private`. It is
+also simply the right place for it: a CV carries a phone number and an email,
+and served from here, reading one takes this account's session rather than
+whoever a link was pasted to. Clicking one refreshes the session first and
+opens the tab inside the click, because a plain navigation cannot replay itself
+after a silent token refresh and a tab opened after an `await` is a popup.
+
+### Five views
+
+**Board** is the default and the one you act on. **Table** sorts everything by
+what is coming up, when you applied or how long it has been quiet.
+**Calendar** puts rounds, follow-ups you owe and offer deadlines on a month.
+**Timeline** is every event across every company, newest first, with what is
+booked at the top — built on the server from the same function the per-card
+timeline uses, so the two cannot word an event differently. **Insights** is
+applications sent per week, and what they turned into.
+
+Search and every filter apply to all five, and switching is a re-render rather
+than a request — except the timeline, which asks for the merged feed.
+
+### Outside the page
+
+A reminder in the top bar names the soonest round this week, an offer deadline,
+or how many follow-ups are overdue, and draws nothing when there is nothing.
+Stats gains a job-hunt panel once something has been sent. Company logos come
+from the same cache the roadmap uses.
+
 ## Profile
 
 Your picture, name and email, then joined date, solved count, current and
@@ -2384,9 +2554,10 @@ that point is `rate-limit-redis` in the `store` option, and nothing else moves.
 ## File uploads
 
 Cloudinary, behind `services/media.service.js`. Callers hand over a buffer and a
-folder and get back a record to store — they never touch the SDK. Profile
-pictures are the only user today; documents reuse `uploadBuffer` as-is, with a
-different folder and `resourceType`.
+folder and get back a record to store — they never touch the SDK. Two callers
+today: profile pictures, and the CVs attached to job applications, which reuse
+`uploadBuffer` as-is with their own folder, `resourceType: 'raw'` and the file's
+SHA-256 as the public id — see [Your CVs](#your-cvs).
 
 ```
 uploadBuffer(buffer, { folder, publicId, resourceType, transformation, tags })
@@ -2408,6 +2579,9 @@ Four decisions worth knowing:
   'image'` means it decodes the file and rejects anything that isn't an image —
   a guarantee `Content-Type` can't give, since the client writes it. The multer
   allowlist is there to catch the honest mistake before spending a round trip.
+  CVs are the exception: they go up as `raw`, which Cloudinary stores without
+  decoding, so for them `singleResume`'s PDF-and-Word allowlist is the only type
+  check there is — and it is written down there as such.
 - **`destroyAsset` never throws.** Callers are deleting a *replaced* file; the
   new one is already saved. Failing the user's request because old bytes outlived
   their record is the wrong trade — an orphan in the cloud is cheaper than a
@@ -2719,6 +2893,7 @@ lives in `main` instead of on a branch nobody merges.
 | Practice | `/practice` |
 | Feedback | `/feedback` |
 | System Design | `/design` — ships hidden (`defaultHidden`) until first toggled |
+| Applications | `/applications` — ships hidden (`defaultHidden`) until first toggled |
 
 The roadmap is deliberately not eligible: it is where the catch-all route, the
 admin redirect and every other redirect land, so hiding it would mean inventing
@@ -3273,14 +3448,15 @@ server/
     config/      env, db connection
     models/      User, SignupRequest, PasswordReset, UserView, Pattern, Problem, Progress,
                  PatternGuide, CompanyLogo, AuditLog, Motivation, DailyLine,
-                 Task, TaskBoard
+                 Task, TaskBoard, Application, ApplicationBoard, Resume
     routes/      route tables only
     controllers/ request/response
     services/    auth, signup (the approval queue), password (reset links),
                  mail (SendGrid or SMTP) + mail.templates (every email),
                  leetcode, spaced repetition, media, logos, gemini,
                  audit, activity, motivation (signals, picker, daily line),
-                 tasks (the board, the clock, attachments)
+                 tasks (the board, the clock, attachments),
+                 application (the pipeline, due, the report), resume (the CV library)
     middleware/  requireAuth, errorHandler, validate, upload
   scripts/seed/  fetch-sources -> curate -> seed
     guides/      one file per pattern, written with block constructors
@@ -3295,6 +3471,7 @@ client/
       problem/   table, guide reader, notes, statement, modals
       filters/   the spec-driven filters dialog and its chips
       tasks/     the board, its four views, the drawer and the timer
+      applications/ the pipeline, its five views, the drawer, rounds and the CV field
       profile/   avatar upload
       stats/     solved ring, activity heatmap
       admin/     panel tabs, editors, the motivation corpus
@@ -3312,7 +3489,7 @@ client/
     styles/      tokens, base, app
     brand.js     the product name, in one place
 docs/          the deep-dive references the README links out to:
-               aws-infrastructure, aws-runbook, tasks, learn
+               aws-infrastructure, aws-runbook, tasks, learn, applications
 ```
 
 `route → controller → service`, models alongside. No repository layer, no DI.
@@ -3345,6 +3522,11 @@ docs/          the deep-dive references the README links out to:
 | `POST` `PUT` `PATCH` `DELETE` | `/tasks/board/statuses` · `/tasks/board/statuses/:statusId` | your columns; `PUT` reorders them, `DELETE` takes `?moveTo=` for the tasks inside |
 | `POST` `PATCH` `DELETE` | `/tasks/:id/subtasks` · `/tasks/:id/questions` · `/tasks/:id/attachments` · `/tasks/:id/sessions` | the parts of a task — see [Tasks](#tasks) |
 | `GET` `POST` | `/tasks/timer` · `/tasks/:id/timer/start` · `/tasks/:id/timer/stop` | the one running clock |
+| `GET` `POST` `PATCH` `DELETE` | `/applications` · `/applications/:id` | the board and every application in one read, question bodies left out; one application in full, with its derived timeline — see [Applications](#applications) |
+| `POST` `PATCH` | `/applications/move` · `/applications/:id/stage` | a drag, `{ id, column, ids }`; and a stage set from the drawer |
+| `POST` `PATCH` `DELETE` `PUT` | `/applications/:id/rounds` · `…/questions` · `/touchpoints` · `/post-mortem` | the parts of an application |
+| `GET` `POST` `PATCH` `DELETE` | `/applications/resumes` · `/resumes/check` · `/resumes/link` · `/resumes/:id/file` | the CV library — `check` takes a SHA-256 and is asked before any upload; `file` streams the CV itself from behind the session |
+| `GET` | `/applications/due` · `/stats` · `/feed` · `/lookup` | the top-bar reminder, the report, every event across every application, and "have I applied here before" |
 | `GET` `PUT` `DELETE` | `/views/:scope` | the filters you left on a screen — see [Saved views](#saved-views) |
 | `GET` `POST` | `/feedback` | your own submissions, and sending one — capped at 5 open per account |
 | `GET` | `/motivation` | the line for one page, chosen from your progress |

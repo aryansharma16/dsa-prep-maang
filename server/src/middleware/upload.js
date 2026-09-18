@@ -122,6 +122,30 @@ export function singleDocument(field, maxMb = 10) {
   );
 }
 
+/**
+ * A CV: PDF or Word, and nothing else.
+ *
+ * Its own list rather than `singleDocument`'s, which also takes images — a
+ * screenshot of a CV is not a CV anybody can send, and accepting one would put
+ * a PNG in a library whose every row is meant to be something you attach to an
+ * application form. The bytes go to Cloudinary as `raw`, which will store
+ * anything, so this filter is the only check on type there is.
+ */
+export const RESUME_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+export function singleResume(field, maxMb = 8) {
+  const maxBytes = maxMb * MB;
+  return handled(fileUpload({ maxBytes, mimeTypes: RESUME_TYPES }).single(field), {
+    maxBytes,
+    field,
+    maxFiles: 1,
+  });
+}
+
 /** Everything the bulk endpoints accept: images and PDFs together. */
 export const UPLOAD_TYPES = [...IMAGE_TYPES, ...DOCUMENT_TYPES];
 

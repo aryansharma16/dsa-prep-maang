@@ -207,6 +207,18 @@ const SECTIONS = [
     appears for every reader, including one who has not signed up.
   */
   { id: 'design', label: 'System Design', hue: 'teal', eyebrow: 'Whiteboard', module: 'design' },
+  /*
+    After the whiteboard and before Stats, because it is the last thing the
+    practice is for — and gated the same way, so the section appears for every
+    reader the day the module is switched on and not before.
+  */
+  {
+    id: 'applications',
+    label: 'Applications',
+    hue: 'orange',
+    eyebrow: 'The job hunt',
+    module: 'applications',
+  },
   { id: 'stats', label: 'Stats', hue: 'green', eyebrow: 'The honest view' },
   { id: 'yours', label: 'Making it yours', hue: 'sky', eyebrow: 'Setup' },
   { id: 'keys', label: 'Shortcuts', hue: 'slate', eyebrow: 'Faster' },
@@ -1699,6 +1711,116 @@ export function Docs() {
                     product&rsquo;s own documentation, or a standard reference.
                   </p>
                   <DesignReference />
+                </Reveal>
+              </Section>
+            )}
+
+            {moduleVisible(shown, 'applications') && (
+              <Section meta={byId.applications}>
+                <Reveal>
+                  <p>
+                    Every company you apply to, where each one stands, and — the part that pays off
+                    later — what they asked you in each round and what you said. It is for the
+                    weeks when you have twenty applications out and cannot remember which of them
+                    ever replied.
+                  </p>
+
+                  <h3>Adding one</h3>
+                  <p>
+                    A company name is all it needs. Paste the job link first if you have it: a
+                    LinkedIn or Naukri link fills in where you found it, and a careers-page link
+                    fills in the company too. Everything else — role, team, location, who referred
+                    you, which CV you sent — can be added now or whenever you learn it. If you have
+                    applied to the same company before, it says so, and lets you add another
+                    anyway.
+                  </p>
+
+                  <h3>Moving it along</h3>
+                  <p>
+                    The board has six columns: Wishlist, Applied, Screening, In Process, Offer and
+                    Closed. <b>Dragging a card is the update</b> — drop it in Screening when a
+                    recruiter replies, and the date is recorded for you. Closed holds three endings
+                    (rejected, ghosted, withdrawn) and Offer holds two (on the table, accepted);
+                    the chip on the card says which, and the drawer changes it. Nothing ever moves
+                    a card on its own — a card that has gone quiet gets an orange edge, and the
+                    move is yours.
+                  </p>
+                  <ul className="docs-list">
+                    <li>
+                      <b>Screening</b> is when a human has replied — a recruiter call or an online
+                      test. <b>In Process</b> is when a round that tests the actual job is booked.
+                      Keeping them apart is what lets the numbers tell your CV apart from your
+                      interviewing.
+                    </li>
+                    <li>
+                      <b>Where you found it</b> and <b>how you applied</b> are two questions. Found
+                      on LinkedIn, then pressed Easy Apply — or followed the link to their own
+                      site? Those get very different reply rates, and the numbers show you which.
+                    </li>
+                    <li>
+                      <b>Referred</b> is its own field rather than a place you found the job,
+                      because you can find a role on LinkedIn and get referred into it the next
+                      day.
+                    </li>
+                  </ul>
+
+                  <h3>Rounds and questions</h3>
+                  <p>
+                    Open a card and go to <b>Rounds</b>. Add one when they call — the kind (HR,
+                    DSA, system design, machine coding, hiring manager…), when, and how it went.
+                    Then open it and type what they asked, one question per line, pressing Enter
+                    after each. Grading them (nailed it, got there, fumbled, blanked) and writing
+                    down what you answered can wait until you have them all down. Do it straight
+                    after the round, while you still remember.
+                  </p>
+                  <p>
+                    Moving a round to a new date is not a result — just change the date, and the
+                    round remembers how many times it has been moved.
+                  </p>
+
+                  <h3>The timeline</h3>
+                  <p>
+                    Every card has one: when you applied, each stage it reached, each round and its
+                    result, and anything you logged under <b>Contact</b> — a recruiter calling, you
+                    chasing them. Change a round&rsquo;s date and its place on the timeline moves
+                    with it.
+                  </p>
+
+                  <h3>Your CVs</h3>
+                  <p>
+                    Under <b>Details</b>, record which CV you sent: pick one you have used before,
+                    upload a PDF or Word file, or paste a Drive link. The same file is never stored
+                    twice — pick a CV you uploaded for another company, even under a different
+                    filename, and it is recognised and reused instead of uploaded again.
+                  </p>
+
+                  <h3>Five ways to look at it</h3>
+                  <ul className="docs-list">
+                    <li>
+                      <b>Board</b> — where every company is. The one you act on.
+                    </li>
+                    <li>
+                      <b>Table</b> — every application in one list. Click a heading to sort: by
+                      what is coming up next, or by how long it has been quiet.
+                    </li>
+                    <li>
+                      <b>Calendar</b> — rounds, follow-ups you owe and offer deadlines, by date.
+                    </li>
+                    <li>
+                      <b>Timeline</b> — everything that happened across every company, newest
+                      first, with what is booked at the top.
+                    </li>
+                    <li>
+                      <b>Insights</b> — how many you are sending each week, and what they turn
+                      into: reply rate by where you found them and how you applied, and which kind
+                      of round most often ends them.
+                    </li>
+                  </ul>
+                  <p>
+                    Search and the filters apply to all five. When a round is coming up this
+                    week, an offer deadline is close or a follow-up is overdue, a reminder sits in
+                    the top bar on every page.
+                  </p>
                 </Reveal>
               </Section>
             )}

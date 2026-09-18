@@ -529,6 +529,22 @@ export const IconPaperclip = (p) => (
   </Svg>
 );
 
+/** The job hunt: a case with a handle. Applications wear this in the menu. */
+export const IconBriefcase = (p) => (
+  <Svg {...p}>
+    <rect x="1.8" y="4.8" width="12.4" height="8.6" rx="1.4" />
+    <path d="M5.8 4.8V3.4a1.2 1.2 0 011.2-1.2h2a1.2 1.2 0 011.2 1.2v1.4M1.8 8.2h12.4" />
+  </Svg>
+);
+
+/** A company, where there is no logo to draw instead. */
+export const IconBuilding = (p) => (
+  <Svg {...p}>
+    <rect x="2.6" y="2.2" width="7" height="11.6" rx="1" />
+    <path d="M9.6 6.4h3.8v7.4M4.8 5h2.6M4.8 7.6h2.6M4.8 10.2h2.6" />
+  </Svg>
+);
+
 /** A checklist item, for subtasks — a box that has been ticked. */
 export const IconCheckSquare = (p) => (
   <Svg {...p}>

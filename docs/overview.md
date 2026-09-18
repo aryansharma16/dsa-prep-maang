@@ -33,6 +33,7 @@ In the order `/docs` introduces it.
 | **Assistant** | Chat across four model providers, with the problem you are on attached. Every thread is kept. |
 | **Tasks** | A board for what you meant to do: your own columns, deadlines, subtasks, file attachments, and roadmap problems that tick themselves off as you solve them. |
 | **System Design** | A whiteboard for designing systems — canvas boards (shapes, frames, connectors, pen) and schema boards (DBML text ⇄ diagram), with a library of 173 technologies, data-structure blocks and SQL tables, and a 196-entry reference explaining what each one is. *Ships hidden; the super admin previews it.* |
+| **Applications** | The job hunt: every company on a board you move by dragging, with a timeline per application, each round's questions and your answers, a post-mortem, the offer, and which CV you sent. Board, table, calendar, timeline and insights views; a reminder in the top bar when something is due. *Ships hidden; the super admin previews it.* |
 | **Stats & Profile** | Solved ring, a year-long heatmap, streaks, weakest patterns, company coverage; a profile with your numbers and picture. |
 | **Feedback** | Anyone can send a suggestion, bug or complaint and watch its status; staff triage it and reply once. |
 | **Admin** | Four roles, a dashboard, user management, content editing, an audit log, and a switch to hide a module while it is being built. |
@@ -79,7 +80,7 @@ feature with a clear message; it never stops the server.
 | Service | Used for | Without it |
 |---|---|---|
 | **AWS S3** (`@aws-sdk/client-s3`) | Task attachments, and design-board assets later. Uploads go through `s3.service.js`; a `File` row indexes each object, and downloads are pre-signed URLs. | Attachment upload answers 503; everything else works. |
-| **Cloudinary** | Profile pictures — an image that wants resizing and a CDN more than it wants a bucket. (Company logos are not here: they are fetched once and cached as bytes in Mongo.) | Profile-picture upload answers `503 UPLOADS_DISABLED`. |
+| **Cloudinary** | Profile pictures — an image that wants resizing and a CDN more than it wants a bucket — and the CVs attached to job applications, stored once per file by content hash and served back through the API rather than the CDN. (Company logos are not here: they are fetched once and cached as bytes in Mongo.) | Profile-picture and CV uploads answer `503 UPLOADS_DISABLED`; a CV pasted as a link still works. |
 | **SendGrid** (HTTPS API) **or SMTP** (nodemailer) | Signup requests, approvals, password resets. Whichever credential is present wins; SendGrid first. | Nothing is sent — each message is logged instead, which is the normal local setup. |
 | **Gemini, Cerebras, DeepSeek, xAI** | The assistant. A registry tries (provider, model) pairs in order and sidelines one that is rate-limited, so a free tier is actually usable. | The assistant says no model is configured. |
 | **LeetCode API** | Problem statements and metadata pulled into the roadmap. | Statements fall back to the link out. |

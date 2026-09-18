@@ -477,6 +477,113 @@ export const tasksApi = {
     http.delete(`/tasks/${id}/attachments/${fileId}`).then((r) => r.data.task),
 };
 
+/**
+ * The job hunt.
+ *
+ * Almost every write answers with the whole application rather than the piece
+ * that changed, and that is the server's decision rather than a convenience
+ * here: adding a round moves `nextRoundAt`, `lastActivityAt`, `roundCount` and
+ * the entire timeline, and a response carrying only the round would leave this
+ * file recomputing four derived fields it does not own the rules for. So the
+ * unwrapping below is uniform — `r.data.application`, every time.
+ */
+export const applicationsApi = {
+  /** Board and applications together — one request paints the page. */
+  board: () => http.get('/applications').then((r) => r.data),
+  /** The full record: rounds, questions, touchpoints and the derived timeline. */
+  get: (id) => http.get(`/applications/${id}`).then((r) => r.data),
+
+  create: (body) => http.post('/applications', body).then((r) => r.data),
+  update: (id, body) => http.patch(`/applications/${id}`, body).then((r) => r.data.application),
+  remove: (id) => http.delete(`/applications/${id}`).then((r) => r.data),
+  restore: (id) => http.post(`/applications/${id}/restore`).then((r) => r.data.application),
+
+  /**
+   * A drag. `ids` is the destination lane in full, in the order it was drawn,
+   * so within-lane and cross-lane moves are one call — the same shape the task
+   * board sends, which is what lets both use `useBoardDrag` unchanged.
+   */
+  move: (body) => http.post('/applications/move', body).then((r) => r.data.application),
+  /** The stage on its own — the drawer's dropdown and the chip on a closed card. */
+  setStage: (id, body) =>
+    http.patch(`/applications/${id}/stage`, body).then((r) => r.data.application),
+
+  addRound: (id, body) =>
+    http.post(`/applications/${id}/rounds`, body).then((r) => r.data.application),
+  updateRound: (id, roundId, body) =>
+    http.patch(`/applications/${id}/rounds/${roundId}`, body).then((r) => r.data.application),
+  removeRound: (id, roundId) =>
+    http.delete(`/applications/${id}/rounds/${roundId}`).then((r) => r.data.application),
+
+  addQuestion: (id, roundId, body) =>
+    http
+      .post(`/applications/${id}/rounds/${roundId}/questions`, body)
+      .then((r) => r.data.application),
+  updateQuestion: (id, roundId, questionId, body) =>
+    http
+      .patch(`/applications/${id}/rounds/${roundId}/questions/${questionId}`, body)
+      .then((r) => r.data.application),
+  removeQuestion: (id, roundId, questionId) =>
+    http
+      .delete(`/applications/${id}/rounds/${roundId}/questions/${questionId}`)
+      .then((r) => r.data.application),
+
+  addTouchpoint: (id, body) =>
+    http.post(`/applications/${id}/touchpoints`, body).then((r) => r.data.application),
+  updateTouchpoint: (id, touchpointId, body) =>
+    http
+      .patch(`/applications/${id}/touchpoints/${touchpointId}`, body)
+      .then((r) => r.data.application),
+  removeTouchpoint: (id, touchpointId) =>
+    http.delete(`/applications/${id}/touchpoints/${touchpointId}`).then((r) => r.data.application),
+
+  setPostMortem: (id, body) =>
+    http.put(`/applications/${id}/post-mortem`, body).then((r) => r.data.application),
+
+  updateBoard: (body) => http.patch('/applications/board', body).then((r) => r.data.board),
+
+  /** "Have I applied here before" — the add form's warning, not a block. */
+  lookup: (company) =>
+    http.get('/applications/lookup', { params: { company } }).then((r) => r.data.prior),
+
+  /**
+   * The CV library.
+   *
+   * `checkResume` is asked first, with a SHA-256 of the file computed in the
+   * browser, and a hit means `uploadResume` is never called — the same CV sent
+   * to a tenth company costs one small request and no upload. The server hashes
+   * whatever it actually receives as well, so the check is a shortcut and never
+   * a trust boundary.
+   */
+  resumes: () => http.get('/applications/resumes').then((r) => r.data.resumes),
+  checkResume: (hash) =>
+    http.post('/applications/resumes/check', { hash }).then((r) => r.data.resume),
+  /** Resolves to `{ resume, existed }` — `existed` when the server found it after all. */
+  uploadResume: (file, label, onProgress) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (label) form.append('label', label);
+    return http
+      .post('/applications/resumes', form, {
+        onUploadProgress: (event) =>
+          onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
+      })
+      .then((r) => r.data);
+  },
+  linkResume: (url, label) =>
+    http.post('/applications/resumes/link', { url, label }).then((r) => r.data),
+  renameResume: (resumeId, label) =>
+    http.patch(`/applications/resumes/${resumeId}`, { label }).then((r) => r.data.resume),
+  removeResume: (resumeId) =>
+    http.delete(`/applications/resumes/${resumeId}`).then((r) => r.data),
+
+  /** Deliberately tiny: the top bar draws this on every page. */
+  due: () => http.get('/applications/due').then((r) => r.data),
+  stats: () => http.get('/applications/stats').then((r) => r.data),
+  /** Every event across every application, merged and sorted by the server. */
+  feed: () => http.get('/applications/feed').then((r) => r.data.events),
+};
+
 export const adminApi = {
   overview: () => http.get('/admin/overview').then((r) => r.data),
   audit: (params) => http.get('/admin/audit', { params }).then((r) => r.data),

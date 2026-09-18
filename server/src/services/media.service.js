@@ -147,6 +147,26 @@ export async function destroyAsset(publicId, resourceType = 'image') {
 }
 
 /**
+ * A short-lived, signed download link that goes through Cloudinary's API rather
+ * than its CDN.
+ *
+ * Needed because a new Cloudinary account refuses to *deliver* PDFs and ZIPs
+ * from the public CDN at all — the upload succeeds and the delivery URL answers
+ * `401 deny or ACL failure`, which a browser shows as "Failed to load PDF
+ * document". The API download is not subject to that setting. It is signed
+ * with the API secret and expires in a minute, so it is only ever fetched
+ * server-side and never handed to a browser. See `resumeFile`.
+ */
+export function privateDownloadUrl(publicId, { resourceType = 'raw', ttlSeconds = 60 } = {}) {
+  const api = useCloudinary();
+  return api.utils.private_download_url(publicId, '', {
+    resource_type: resourceType,
+    type: 'upload',
+    expires_at: Math.floor(Date.now() / 1000) + ttlSeconds,
+  });
+}
+
+/**
  * A delivery URL derived from a stored publicId.
  *
  * One upload serves every size: the transformation lives in the URL and

@@ -26,6 +26,7 @@ export const VIEW_SCOPES = [
   'cp',
   'cp-revision',
   'sql',
+  'applications',
 ];
 
 export const VIEW_LIMITS = {

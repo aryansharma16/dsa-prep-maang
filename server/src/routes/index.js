@@ -61,6 +61,7 @@ import { aiEnabled } from '../services/gemini.service.js';
 import { uploadsEnabled } from '../services/media.service.js';
 import { anyProviderConfigured } from '../services/ai/registry.js';
 import { adminRouter } from './admin.routes.js';
+import { applicationRouter } from './application.routes.js';
 import { authRouter } from './auth.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { cpRouter } from './cp.routes.js';
@@ -313,5 +314,17 @@ router.use('/tasks', requireModule('tasks'), taskRouter);
   already has people waiting in it.
 */
 router.use('/feedback', requireModule('feedback'), feedbackRouter);
+
+/*
+  The job hunt. Behind the same gate as chat and tasks, and one mount for the
+  same reason — a route added to application.routes.js tomorrow is covered by
+  having been added there at all.
+
+  Worth gating properly rather than by habit: this is the one module holding
+  names and phone numbers of people who are not the account holder, so a hidden
+  door here would leave a referrer's contact details answering anyone who kept a
+  bookmark.
+*/
+router.use('/applications', requireModule('applications'), applicationRouter);
 
 router.get('/motivation', validate(surfaceQuery, 'query'), getMotivation);

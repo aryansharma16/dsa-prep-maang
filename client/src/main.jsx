@@ -18,6 +18,13 @@ import './styles/cp.css';
    stopwatch on, not a different room the way the ladder is. */
 import './styles/practice.css';
 /*
+  Same argument, same place in the order: Applications is the app with a board
+  on it rather than its own room, so it redefines no tokens and overrides no
+  shared class. Everything in it is prefixed `ap-`, which is why — unlike the
+  four sheets below — where it sits here is not load-bearing.
+*/
+import './styles/applications.css';
+/*
   After cp.css, for the same reason cp.css is after app.css: the playbook
   borrows the ladder's panel language and overrides a handful of shared classes
   at equal specificity, so source order is what decides them.

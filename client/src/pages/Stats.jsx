@@ -2,13 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { errorMessage } from '../api/http.js';
 import { statsApi } from '../api/index.js';
 import { ActivityHeatmap } from '../components/stats/ActivityHeatmap.jsx';
+import { FunnelPanel } from '../components/applications/FunnelPanel.jsx';
 import { CPStats } from '../components/stats/CPStats.jsx';
 import { SolvedRing } from '../components/stats/SolvedRing.jsx';
 import { MeterRow } from '../components/ui/MeterRow.jsx';
 import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 import { reasonOf } from '../components/problem/attempts.js';
+import { useAuth } from '../store/AuthContext.jsx';
+import { moduleVisible } from '../store/modules.js';
 
 export function Stats() {
+  const { modules } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [table, setTable] = useState(false);
@@ -261,6 +265,14 @@ export function Stats() {
         is unchanged for anyone not using Pro Coder.
       */}
       <CPStats />
+
+      {/*
+        The job hunt, beside the practice that is for it. Gated on the module
+        rather than fetched and hidden, so an account the module is off for never
+        asks `/applications/stats` — which would answer 404 while it is hidden —
+        and it renders nothing until at least one application has been sent.
+      */}
+      {moduleVisible(modules, 'applications') && <FunnelPanel title="Job hunt" hideWhenEmpty />}
     </>
   );
 }
