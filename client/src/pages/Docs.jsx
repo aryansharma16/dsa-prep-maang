@@ -1263,6 +1263,15 @@ export function Docs() {
                       is not algorithms.
                     </p>
                   </div>
+                  <div className="docs-box" data-hue="indigo">
+                    <span className="docs-box-label">System Design (HLD) · 104 topics</span>
+                    <p>
+                      The other half, written to be revised rather than read — every page a diagram,
+                      a trade-off table and a thirty-second answer. CAP through sharding, caching and
+                      queues; the AI-era stack from vector databases to LLM serving; nineteen real
+                      systems drawn end to end; and the ladder from 1K users to 100M.
+                    </p>
+                  </div>
                 </div>
 
                 <ul className="docs-list">
@@ -1974,8 +1983,8 @@ export function Docs() {
 
             <p className="docs-colophon">
               {BRAND.name} — {BRAND.tagline}. 517 problems across 23 patterns, 117 SQL problems, a
-              1,100-problem CP ladder, and 205 reference topics across Complexity, React, Node,
-              SQL and Computer Networks.
+              1,100-problem CP ladder, and 309 reference topics across Complexity, React, Node,
+              SQL, Computer Networks and System Design.
             </p>
           </main>
         </div>

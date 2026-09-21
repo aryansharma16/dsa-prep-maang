@@ -984,6 +984,80 @@
   margin-top: 22px;
 }
 
+/*
+  The three blocks the HLD track is mostly made of.
+
+  All three obey the rule above the file: colour is a light, never a fill behind
+  text. The hue appears on a diagram's caption strip, on a flow's chip edges and
+  on the quick card's border — never under the words themselves, which stay on
+  the same ground every paragraph sits on.
+*/
+
+/* A figure wants the same air a code block gets, and for the same reason. */
+.learn-col .guide-diagram {
+  margin-top: 22px;
+  box-shadow: 0 1px 0 var(--sheen) inset;
+}
+.learn-col .guide-body > .guide-diagram + p {
+  margin-top: 22px;
+}
+.learn-col .guide-diagram figcaption {
+  color: rgb(var(--hue-rgb));
+  background: rgb(var(--hue-rgb) / 0.07);
+  border-bottom-color: rgb(var(--hue-rgb) / 0.22);
+}
+
+/* The chips carry the hue on their edge, which is what makes a request path
+   read as the page's own diagram rather than as a row of buttons. */
+.learn-col .guide-flow-node {
+  border-color: rgb(var(--hue-rgb) / 0.3);
+}
+.learn-col .guide-flow-cap {
+  color: rgb(var(--hue-rgb));
+}
+.learn-col .guide-flow-step + .guide-flow-step::before {
+  color: rgb(var(--hue-rgb) / 0.75);
+}
+
+/*
+  The Interview Quick Look card.
+
+  Its header row is hidden rather than written, because the caption has already
+  named the box and `Field / What to say` above it is two more words than the
+  reader wants at the top of a page they opened to skim. The column names still
+  exist in the stored block — `GuideBlocks` keys its header cells on them, and
+  two blank names is a duplicate React key.
+
+  The first column is a label, so it is narrower and quieter than the cheatsheet
+  tables' first column and does not wrap: five labels of one or two words.
+*/
+.learn-col .guide-tablewrap[data-variant='quick'] {
+  border-color: rgb(var(--hue-rgb) / 0.34);
+}
+.learn-col .guide-tablewrap[data-variant='quick'] caption {
+  color: rgb(var(--hue-rgb));
+  background: rgb(var(--hue-rgb) / 0.07);
+  border-bottom-color: rgb(var(--hue-rgb) / 0.22);
+}
+.learn-col .guide-tablewrap[data-variant='quick'] thead {
+  display: none;
+}
+.learn-col .guide-tablewrap[data-variant='quick'] td:first-child {
+  width: 1%;
+  max-width: none;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-3);
+  vertical-align: top;
+}
+/* No zebra here. The card is five rows read top to bottom, not a grid scanned
+   across, and striping it would make it one more table on a page of tables. */
+.learn-col .guide-tablewrap[data-variant='quick'] tbody tr:nth-child(even) {
+  background: none;
+}
+
 /* --------------------------------------------------------------- ask ai */
 .learn-ask {
   margin: 36px 0 0;
@@ -1187,6 +1261,37 @@
     font-size: 18px;
     margin-top: 40px;
     padding-top: 20px;
+  }
+  /*
+    A flow stacks rather than wraps at this width.
+
+    Wrapped, a six-step path breaks into three rows of two and stops reading as
+    one sequence — the eye has to find where each row restarts. Stacked, it is a
+    column with the arrow turned to point down it, which is the same diagram
+    read the other way round. The arrow is generated content precisely so this
+    costs one rule and no change to what is stored.
+  */
+  .learn-col .guide-flow-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .learn-col .guide-flow-step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .learn-col .guide-flow-step + .guide-flow-step::before {
+    content: '↓';
+    padding: 3px 0 3px 14px;
+  }
+  .learn-col .guide-flow-node {
+    white-space: normal;
+  }
+  /* The art is already as small as it reads at; below this it scrolls, which is
+     the right answer for a picture that cannot reflow. */
+  .learn-col .guide-diagram pre {
+    padding: 12px;
+    font-size: 11.5px;
   }
   .learn-topics {
     grid-template-columns: 1fr;

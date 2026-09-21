@@ -1,14 +1,53 @@
-import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { BRAND } from '../../brand.js';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { ROLE_LABEL, can } from '../../store/caps.js';
-import { MODULE_NAV, modulePreview, moduleVisible } from '../../store/modules.js';
+import {
+  MODULE_NAV,
+  modulePreview,
+  moduleVisible,
+  visibleChildren,
+} from '../../store/modules.js';
 import { useRoadmap } from '../../store/RoadmapContext.jsx';
-import { IconBook, IconExpand, IconGrid, IconMenu, IconShield } from '../ui/Icons.jsx';
+import {
+  IconBook,
+  IconChevronRight,
+  IconExpand,
+  IconGrid,
+  IconMenu,
+  IconShield,
+} from '../ui/Icons.jsx';
 
 const HOVER_TITLE = {
   on: 'Hover to open is on — the rail expands while the pointer is over it. Click to turn it off.',
   off: 'Hover to open is off — the rail only expands when you open it. Click to turn it on.',
+};
+
+/**
+ * Which nav groups are open, remembered across reloads.
+ *
+ * Wrapped both ways, like every other reader of `localStorage` in this app: it
+ * throws on access in a private window with site data blocked, and a menu that
+ * will not render is a worse outcome than a group that forgets it was open.
+ */
+const GROUPS_KEY = 'sidebar-groups';
+
+const readGroups = () => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(GROUPS_KEY));
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeGroups = (open) => {
+  try {
+    localStorage.setItem(GROUPS_KEY, JSON.stringify(open));
+  } catch {
+    // Nothing to do about it, and nothing worth telling anyone.
+  }
 };
 
 export function Sidebar({
@@ -22,6 +61,15 @@ export function Sidebar({
 }) {
   const { totals } = useRoadmap();
   const { user, modules } = useAuth();
+  const { pathname } = useLocation();
+  const [openGroups, setOpenGroups] = useState(readGroups);
+
+  const toggleGroup = (key) =>
+    setOpenGroups((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      writeGroups(next);
+      return next;
+    });
 
   // Staff only. Cosmetic — the server refuses the routes regardless — but a
   // learner should never see a door they cannot open.
@@ -44,8 +92,16 @@ export function Sidebar({
     and every redirect land, so it is never hideable. See config/modules.js.
     Nor is the guide, for the opposite reason — it is not a module at all, it
     needs no session, and it is mounted outside this shell as well.
+
+    A group resolves its children here rather than in either branch below, so
+    both get the same answer and neither has to know that `visible` is a list of
+    module keys. `kids` is `null` for a plain entry and an array for a group,
+    which is also the test the branches switch on.
   */
-  const nav = MODULE_NAV.filter((item) => moduleVisible(modules, item.key));
+  const nav = MODULE_NAV.map((item) => ({ ...item, kids: visibleChildren(modules, item) }))
+    // A group with nothing in it is not drawn — a dropdown that opens onto an
+    // empty list is worse than a missing menu row.
+    .filter((item) => (item.kids ? item.kids.length > 0 : moduleVisible(modules, item.key)));
 
   /*
     Tabbing into a rail whose labels are all icons is the keyboard equivalent of
@@ -95,19 +151,35 @@ export function Sidebar({
             <NavLink onClick={onNavigate} to="/" className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`} title="Roadmap">
               <IconGrid size={15} />
             </NavLink>
-            {nav.map(({ key, to, label, Icon }) => (
-              <NavLink
-                key={key}
-                onClick={onNavigate}
-                to={to}
-                className={({ isActive }) =>
-                  `rail-item ${isActive ? 'active' : ''} ${modulePreview(modules, key) ? 'in-dev' : ''}`
-                }
-                title={modulePreview(modules, key) ? `${label} — in development` : label}
-              >
-                <Icon size={15} />
-              </NavLink>
-            ))}
+            {nav.map(({ key, group, to, label, Icon, kids }) => {
+              /*
+                A group in the rail is one icon pointing at its first child, not
+                a flyout. The rail is a column of icons you hit on the way past;
+                a submenu that opens sideways out of it is a thing to aim at,
+                and the expanded menu two pixels away already does that job
+                properly. Active whenever any child's route is.
+              */
+              const target = kids ? kids[0].to : to;
+              const id = group || key;
+              const dev = !kids && modulePreview(modules, key);
+              return (
+                <NavLink
+                  key={id}
+                  onClick={onNavigate}
+                  to={target}
+                  className={({ isActive }) =>
+                    `rail-item ${
+                      isActive || (kids && kids.some((c) => pathname.startsWith(c.to)))
+                        ? 'active'
+                        : ''
+                    } ${dev ? 'in-dev' : ''}`
+                  }
+                  title={dev ? `${label} — in development` : label}
+                >
+                  <Icon size={15} />
+                </NavLink>
+              );
+            })}
           </>
         ) : (
           <>
@@ -118,20 +190,66 @@ export function Sidebar({
                 {totals.solved}/{totals.total}
               </span>
             </NavLink>
-            {nav.map(({ key, to, label, Icon }) => (
-              <NavLink
-                key={key}
-                onClick={onNavigate}
-                to={to}
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-              >
-                <Icon size={14} />
-                {label}
-                {/* Only ever rendered for someone holding `module:preview`, so
-                    the badge doubles as the reason nobody else sees this row. */}
-                {modulePreview(modules, key) && <span className="dev-pill">Dev</span>}
-              </NavLink>
-            ))}
+            {nav.map(({ key, group, to, label, Icon, kids }) => {
+              if (!kids) {
+                return (
+                  <NavLink
+                    key={key}
+                    onClick={onNavigate}
+                    to={to}
+                    className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  >
+                    <Icon size={14} />
+                    {label}
+                    {/* Only ever rendered for someone holding `module:preview`,
+                        so the badge doubles as the reason nobody else sees
+                        this row. */}
+                    {modulePreview(modules, key) && <span className="dev-pill">Dev</span>}
+                  </NavLink>
+                );
+              }
+
+              /*
+                Open if you opened it, or if you are already inside it. The
+                second half is not a convenience: landing on /learn/hld from a
+                bookmark with the group shut leaves the menu unable to say where
+                you are, and the row you are on invisible.
+              */
+              const inside = kids.some((child) => pathname.startsWith(child.to));
+              const open = inside || openGroups.includes(group);
+
+              return (
+                <div className="nav-group" key={group}>
+                  <button
+                    type="button"
+                    className={`nav-item ${inside ? 'within' : ''}`}
+                    aria-expanded={open}
+                    onClick={() => toggleGroup(group)}
+                  >
+                    <Icon size={14} />
+                    {label}
+                    <IconChevronRight size={12} className={`nav-chev ${open ? 'open' : ''}`} />
+                  </button>
+                  {open && (
+                    <div className="nav-group-items">
+                      {kids.map((child) => (
+                        <NavLink
+                          key={child.to}
+                          onClick={onNavigate}
+                          to={child.to}
+                          className={({ isActive }) => `nav-item child ${isActive ? 'active' : ''}`}
+                        >
+                          {child.label}
+                          {modulePreview(modules, child.key) && (
+                            <span className="dev-pill">Dev</span>
+                          )}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </>
         )}
       </div>

@@ -47,15 +47,35 @@ export const BLOCK_TYPES = [
   'image',
   'video',
   'links',
+  /*
+    The last two came from the Learn HLD track, where the page is mostly
+    pictures. Neither adds a field: `diagram` is `text` + `caption` and `flow`
+    is `items` + `caption`, which is the reason they were shaped this way. A
+    block type is cheap here and expensive everywhere else — the renderer, the
+    zod union, the editor's field list, the seeder's verifier and `toPlaintext`
+    all have to learn it — so reusing the existing fields keeps that cost to a
+    switch case instead of a migration.
+
+    `diagram` is ASCII art drawn as a *figure*: no line-number gutter, no tab
+    strip, no copy button. The Networks track draws its handshakes in `sh` code
+    blocks for want of anything better, and a reader cannot tell a picture from
+    a snippet when both arrive wearing a gutter and a Copy.
+
+    `flow` is a pipeline — `Client → CDN → LB → Service → DB` — as chips rather
+    than as a line of monospace, so it reflows on a narrow screen instead of
+    scrolling sideways off it.
+  */
+  'diagram',
+  'flow',
 ];
 
 export const guideBlockSchema = new mongoose.Schema(
   {
     type: { type: String, required: true, enum: BLOCK_TYPES },
 
-    // heading | paragraph | callout | image caption
+    // heading | paragraph | callout | image caption | diagram art
     text: { type: String, default: '' },
-    // bullets
+    // bullets | flow steps
     items: { type: [String], default: [] },
     // code — one entry renders plain, several render as tabs
     variants: { type: [codeVariantSchema], default: [] },
@@ -63,7 +83,8 @@ export const guideBlockSchema = new mongoose.Schema(
     columns: { type: [String], default: [] },
     rows: { type: [[String]], default: [] },
     /*
-      table — an optional name above the grid, and what kind of grid it is.
+      table | diagram | flow — an optional name above the thing, and for a
+      table, what kind of grid it is.
 
       Both came from the Learn SQL track, where a section is regularly "here are
       the tables, here is the query, here is the result" and three unlabelled
@@ -71,9 +92,17 @@ export const guideBlockSchema = new mongoose.Schema(
       thing across both collections — see the note at the top of this file — even
       though no seeded guide sets them yet. `''` and undefined render exactly as
       every table written before them did.
+
+      `caption` carries more weight on the two newer types than it does on a
+      table: it is the only label a diagram or a flow has, and on the HLD
+      track's scale ladder it is the rung itself — `1K users`, `100K users`.
+
+      `quick` is the third grid kind, and the Interview Quick Look box the HLD
+      track opens on: rows of `[label, what to say]`, the header row hidden
+      because the caption already names it.
     */
     caption: { type: String, default: '' },
-    variant: { type: String, enum: ['', 'data', 'result'], default: '' },
+    variant: { type: String, enum: ['', 'data', 'result', 'quick'], default: '' },
     // callout
     tone: { type: String, enum: ['note', 'warn', 'tip'], default: 'note' },
     // image

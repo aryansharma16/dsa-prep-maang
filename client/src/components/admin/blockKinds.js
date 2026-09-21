@@ -92,6 +92,27 @@ export const BLOCK_KINDS = [
     },
   },
   {
+    type: 'diagram',
+    label: 'Diagram',
+    // `text` is the art, `caption` its name. Same two fields a captioned image
+    // has, which is what a diagram is — one drawn in characters.
+    fields: ['text', 'caption'],
+    blank: () => ({ text: '', caption: '' }),
+    summary: (b) => b.caption || b.text.split('\n')[0],
+    validate: (b) => (b.text.trim() ? '' : 'Empty diagram'),
+  },
+  {
+    type: 'flow',
+    label: 'Flow',
+    fields: ['items', 'caption'],
+    blank: () => ({ items: ['', ''], caption: '' }),
+    summary: (b) => b.items.filter(Boolean).join(' → '),
+    validate: (b) =>
+      b.items.filter((i) => i.trim()).length >= 2
+        ? ''
+        : 'A flow needs at least two steps — one step is a label',
+  },
+  {
     type: 'image',
     label: 'Image',
     fields: ['url', 'text'],

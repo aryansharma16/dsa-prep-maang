@@ -32,7 +32,7 @@ breaks when a credential is missing.
 | **Roadmap** | 517 problems in 23 patterns, filters that follow your account, a configurable table, inline statements and notes |
 | **Attempts** | A stopwatch you start before you open the problem and read off when you log it, five outcomes that each decide what happens to the row, and a note, a colour and a confidence per sitting — editable and deletable for half an hour after logging, and drawn back into the table as one chip per attempt |
 | **Pattern guides** | A full-screen reader per pattern — ~2,000 words, Java and C++ side by side |
-| **Learn** | Reference notes for the things around the algorithms. Five tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests; SQL, 53 topics from "what is a database" through ER models, normalisation, every join shown with its result, window functions, isolation levels and query plans; and Computer Networks, 35 topics from the OSI layers through subnets, TCP, DNS and TLS to load balancers, CDNs and a VPC drawn the way AWS draws it — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
+| **Learn** | Reference notes for the things around the algorithms. Six tracks — Complexity, 6 topics from "what is a logarithm" to the Big-O tables worth knowing cold; React, 43 topics from the virtual DOM through the ecosystem a job expects; Node.js, 68 topics from closures to a hardened API with a cache, a queue and tests; SQL, 53 topics from "what is a database" through ER models, normalisation, every join shown with its result, window functions, isolation levels and query plans; Computer Networks, 35 topics from the OSI layers through subnets, TCP, DNS and TLS to load balancers, CDNs and a VPC drawn the way AWS draws it; and **System Design (HLD)**, 104 topics written as revision notes rather than documentation — every page a diagram, a trade-off table and a thirty-second answer, covering CAP through sharding and queues, the AI-era stack from vector databases to LLM serving, nineteen real systems drawn end to end, and the ladder from 1K users to 100M — each a definition, why the thing exists, a small example and the gotchas, with linkable sections, arrow-key paging, read tracking, the official docs linked and the assistant one click away |
 | **Practice** | Two ways to train against the curriculum rather than work through it: a **pattern drill** that shows a problem's title and six techniques and asks which one it wants — three seconds a repetition, on the skill an interview tests in its first ninety seconds — and a **mock harness** that runs two unsolved problems against one clock with the answers off the page, a code box that stays locked until you have written the approach down, and a four-line self-scored rubric |
 | **Playbook** | A 24-week interview-prep plan — four phases targeting 396 of the 517 roadmap problems and the ≤Specialist half of the ladder, all 117 SQL problems on the Friday evening block, a high-level design track from week 13 and a machine-coding/LLD track from week 14, a weekly timetable built around real available hours, and a drift line that says how far ahead or behind the schedule you actually are. One plan document per account; the schedule itself is authored prose, written to one specific starting point |
 | **SQL Lab** | 117 SQL problems in 8 categories, with two kinds of row and one rule between them: **72 run in your browser** — SQLite compiled to WASM, their own schema and rows, graded against a generated expected result — and **45 link out to LeetCode**, because a problem that already has a judge should be solved on it. Progressive hints, a reference solution behind the same 25-minute gate as every editorial, MySQL shims so the answers match what the Learn track teaches, and the same revision ladder as everything else |
@@ -60,7 +60,7 @@ cp .env.example .env          # fill in MONGO_URI and the two JWT secrets
 npm install
 npm run seed                  # fetch sources -> curate -> write to MongoDB
 npm run seed:guides           # the 22 pattern guides
-npm run seed:learn            # the 5 Learn tracks and their 205 topics
+npm run seed:learn            # the 6 Learn tracks and their 309 topics
 npm run dev                   # http://localhost:4000
 
 # 2. Frontend (second terminal)
@@ -90,7 +90,7 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:db` | upserts problems and patterns into MongoDB |
 | `npm run seed` | all three, in order |
 | `npm run seed:guides` | writes the pattern guides |
-| `npm run seed:learn` | writes the 5 Learn tracks and their 205 topics. `-- --dry-run` validates every block and prints the totals without opening a connection; `-- --force` overwrites topics the admin panel has edited |
+| `npm run seed:learn` | writes the 6 Learn tracks and their 309 topics. `-- --dry-run` validates every block and prints the totals without opening a connection; `-- --force` overwrites topics the admin panel has edited |
 | `npm run seed:learn:verify` | compares every seeded topic against the content files, field by field, and fails if anything differs |
 | `npm run seed:cp` | the whole Pro Coder pipeline — see [Seeding it](#seeding-it) |
 | `npm run seed:cp:fetch` | Codeforces problemset + contests → `data/raw/cp/` |
@@ -323,14 +323,18 @@ error; the reader shows the blurb and the key techniques instead.
 
 The roadmap teaches the algorithms. **Learn** is for everything around them —
 the vocabulary you use every day and could not define under pressure. There are
-five tracks: **Complexity**, 6 topics that start at "how many times can you
+six tracks: **Complexity**, 6 topics that start at "how many times can you
 halve a thousand" and end at the Big-O tables; **React**, 43 topics from what
 happens between a `setState` and the pixels through to the ecosystem a React job
 actually expects; **Node.js**, 68 topics that start at closures and `map` and
 end at a hardened, paginated, authenticated API with a cache, a queue and tests
 behind it; **SQL**, 53 topics that start at "what is a database" and end at
-reading a query plan; and **Computer Networks**, 35 topics that start at "what
-is a network" and end at debugging one in a VPC.
+reading a query plan; **Computer Networks**, 35 topics that start at "what
+is a network" and end at debugging one in a VPC; and **System Design (HLD)**,
+104 topics from the interview framework and back-of-envelope arithmetic through
+CAP, sharding, caching and queues, into the AI-era stack — vector databases,
+RAG, LLM serving, GPU economics — then nineteen real systems drawn end to end
+and five cheatsheets to read on the way to the interview.
 
 The ends of that list are deliberate, and it is not about length.
 **Complexity** is first because it is the maths the roadmap assumes you have
@@ -342,6 +346,17 @@ API. React and Node are reference you reach for while building; an interview
 asks about ER models, BCNF, isolation levels, the OSI layers and TCP the way it
 asks about graphs, so those two are written to be learned front to back rather
 than looked up.
+
+**System Design is the one track written to be revised rather than read.** The
+other five are notes you work through once and refer back to; a design round is
+a conversation you have to hold at 10am on a Tuesday, so each of its topics is a
+page you skim in two minutes the night before — a picture inside the first
+screen, a trade-off table, and a box with the thirty-second answer in it. That
+is also why it is the track that made the block vocabulary grow: `diagram` and
+`flow` were added for it, because an architecture drawn in a code block reads as
+a snippet rather than a figure. It is reachable from the hub like any other
+track, and from **System Design → HLD** in the side menu, which groups it with
+the whiteboard and, later, LLD.
 
 Sidebar → **Learn** → a track → a topic. Each topic is the same shape, so it
 reads as a cheatsheet and holds up as documentation: the definition in the

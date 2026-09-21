@@ -1,8 +1,9 @@
 # Learn — the reference
 
-Learn is the reference half of this app: **5 tracks, 42 sections, 205 topics** of
-authored prose about Complexity, React, Node.js, SQL and Computer Networks. The
-roadmap teaches the algorithms; Learn is everything around them.
+Learn is the reference half of this app: **6 tracks, 58 sections, 309 topics** of
+authored prose about Complexity, React, Node.js, SQL, Computer Networks and
+System Design. The roadmap teaches the algorithms; Learn is everything around
+them.
 
 The prose version of *why*, for a human reading the repo for the first time, is
 [**Learn** in the README](../README.md#learn). This file is the part that would
@@ -143,7 +144,7 @@ client/src/
 Three collections. Two hold content and are written only by the seeder (and, one
 day, the admin panel); one holds per-account state.
 
-### `LearnTrack` — 5 documents
+### `LearnTrack` — 6 documents
 
 ```js
 {
@@ -173,7 +174,7 @@ would be a "stable" pointer that moves. `LearnTopic.section` joins on it.
 **`blurb` and `summary` are both kept** and neither is derivable from the other:
 one is an advertisement on a card, the other an introduction on a page.
 
-### `LearnTopic` — 205 documents
+### `LearnTopic` — 309 documents
 
 ```js
 {
@@ -514,6 +515,27 @@ specification and a VPC's is Amazon's manual, and those are different kinds of
 authority. Its code blocks are `sh` and occasionally `js` — never `java`, since
 nothing in the track is an algorithm.
 
+**HLD is the third exception, and the largest one.** It is the only track
+written to be *revised* rather than read, so it inverts the house shape: the
+picture comes first, inside the opening screen, and the page closes on a
+`quick(...)` card carrying the thirty-second answer. Its topics run 10–16 blocks
+and under about 450 words of prose — long enough to be useful, short enough to
+skim the night before. It has no `sig`, its code blocks are `js`, `sql` and
+`sh`, and its footer links are `wiki` rather than a vendor's docs, because
+"consistent hashing" and "the saga pattern" belong to nobody.
+
+Its sections 2, 3 and 6 deliberately overlap Networks and SQL and stay short,
+because those tracks already explain the mechanism. What they answer instead is
+*where does this sit in an architecture and what does it cost me*, and they
+close with `seeAlso(...)` from `hld/shapes.js` pointing at the other track's
+topic by name — `links()` takes absolute URLs only, and a Learn topic has no
+public one, so a cross-reference cannot be a link.
+
+`hld/shapes.js` is the SQL track's `sample-data.js` idea applied to pictures:
+nineteen real-world topics all open with a request walking the same path, and
+nineteen hand-drawn copies is nineteen chances to put the cache on the wrong
+side of the service.
+
 Text is written from the official docs in our own sentences, with the canonical
 page linked at the foot. Never bulk-pasted.
 
@@ -545,6 +567,11 @@ the same set by construction.
 | `sig(rows)` | `table` with the header `Parameter / Type / What it does` |
 | `cheat(rows)` | `table` with the header `Want to / Reach for` |
 | `asked(rows)` | `table` with the header `Asked in interviews / The answer in one line` |
+| `diagram(art, caption)` | **ASCII art as a figure** — no line-number gutter, no tab strip, no copy button. The Networks track draws its handshakes in `sh` blocks for want of anything better, and a reader cannot tell a picture from a snippet when both arrive wearing a gutter and a Copy |
+| `flow(steps, caption)` | **a pipeline as chips** — `Client → CDN → LB → Service → DB`. Wraps at container width and stacks to a vertical column with `↓` arrows under 760px, because a six-step path broken into three rows of two stops reading as one sequence. The arrow is CSS generated content, which is what lets the stylesheet swap it |
+| `quick(rows)` | the **Interview Quick Look** card — `table` with `variant: 'quick'`, rows of `[label, what to say]`, header row hidden because the caption already names it |
+| `tradeoff(rows)` | `table` with the header `Choice / You gain / You pay` |
+| `scaleTable(rows)` | `table` with the header `At this size / What you add / Because` |
 | `note` · `tip` · `warn` | a labelled callout |
 | `links(link(label, url))` | the footer links |
 | `reactDoc(path, label)` · `nodeDoc(path, label)` · `mdn(path, label)` · `wiki(path, label)` · `mysqlDoc(path, label)` · `pgDoc(path, label)` | a footer link to react.dev, nodejs.org/api, MDN, Wikipedia, or the MySQL and PostgreSQL manuals |
@@ -565,6 +592,16 @@ unaffected: both fields are optional and default to nothing.
 `sh` deliberately uses a `lang` the highlighter does not know, so a command list
 falls through to the neutral scan instead of having `install` coloured as an
 identifier and `npm` as a function call.
+
+`diagram` and `flow` are the two block *types* the vocabulary has gained since,
+and they came from the HLD track, where the page is mostly pictures. Neither
+adds a field — `diagram` is `text` + `caption`, `flow` is `items` + `caption` —
+which was the point: a block type is cheap in `guideBlock.js` and expensive
+everywhere else (the zod union, the renderer, `blockKinds.fields`, `verify`'s
+`FIELDS`, `toPlaintext`), so reusing existing fields kept the cost to a switch
+case rather than a migration. `toPlaintext` gives `flow` its steps — `CDN` and
+`Load balancer` are words a reader searches for — and gives `diagram` only its
+caption, on the same judgement that excludes code.
 
 Every one of these is a shape `GuideBlocks` already renders, which is the point
 — the code tabs, copy buttons, callout styling and syntax colours all came for
@@ -696,7 +733,7 @@ The `hue` on the entry is a name from the palette in `tokens.css`, and it is the
 only line that decides the track's ambient wash, its icon tile, its meters, its
 section rules and its topics' side rail. See [The look](#the-look).
 
-`icon` is a name too — `clock`, `layers`, `globe`, `table`, `network` — and it is the one
+`icon` is a name too — `clock`, `layers`, `globe`, `table`, `network`, `shapes` — and it is the one
 field of a track that a JSON response cannot carry, because it was a React
 component. `client/src/learn/tracks.js` maps the name back to a component and
 falls back to a generic one rather than crashing, so a *fifth* track added here
@@ -728,12 +765,15 @@ The things a change here must not break. Each one has cost something to learn.
    identities, and the Node track is 68 cards re-rendered on every keystroke in
    the filter box.
 6. **No prefetching.** A request means you opened something.
-7. **The block vocabulary is one set across three collections.** `guideBlock.js`
-   (Mongoose), `validation/blocks.js` (zod) and `blockKinds.js` (the editor's
-   field lists) must agree. A field in one and not the others is silently
-   dropped — that is exactly how `caption`/`variant` were lost for a while, and
-   fixing only the server fixed nothing because `toPayload` stripped them in the
-   browser first.
+7. **The block vocabulary is one set across three collections, and seven
+   files.** `guideBlock.js` (Mongoose), `validation/blocks.js` (zod),
+   `blockKinds.js` (the editor's field lists), `BlockFields.jsx` (the editor's
+   forms), `GuideBlocks.jsx` (the renderer), `seed/learn/verify.js` (`FIELDS`)
+   and `services/learn.content.js` (`toPlaintext`) must all agree. A field in
+   one and not the others is silently dropped — that is exactly how
+   `caption`/`variant` were lost for a while, and fixing only the server fixed
+   nothing because `toPayload` stripped them in the browser first. `diagram` and
+   `flow` were added to all seven at once, which is the only way it works.
 8. **`AuditLog.targetType` is a closed enum and `recordAudit` swallows its own
    errors.** A value not in `AUDIT_TARGET_TYPES` is a row that silently never
    writes. `learn` is in the list.
@@ -841,7 +881,8 @@ carrying a backdrop filter becomes the containing block for fixed descendants.)
 
 **One hue per track, named not valued.** `learn/tracks.js` gives each track a
 name out of the palette in `tokens.css` — Complexity `violet`, React `sky`,
-Node `green`, SQL `amber`. The pages hand it to `data-hue` on `.learn-shell`
+Node `green`, SQL `amber`, Networks `teal`, HLD `indigo`. The pages hand it to
+`data-hue` on `.learn-shell`
 (and `TrackCard` puts it on each card), the `[data-hue='x']` block in
 `tokens.css` resolves `--hue` and `--hue-rgb`, and `.learn-shell[data-hue]`
 takes the lead light off the accent:
@@ -1702,3 +1743,193 @@ walk.
 |---|---|
 | **The cheat sheet** <br> `cheatsheet` | Every table in one place: layers, ports, status codes, protocols, record types, and the latency numbers. |
 | **The questions, rapid fire** <br> `top-questions` | Forty questions with the answer said out loud in one or two lines, in the order they get asked. |
+
+### System Design (HLD)
+
+104 topics in 16 sections, in reading order. The one track written to
+be **revised** rather than read: each topic is a picture inside the first screen,
+a trade-off table, and a `quick(...)` card carrying the thirty-second answer.
+
+**Foundations** — The vocabulary and the arithmetic. What a design round is testing, how to size a system on the back of an envelope, and the numbers you are expected to know without looking them up.
+
+| topic | |
+|---|---|
+| **What high-level design is** <br> `what-is-high-level-design` | HLD versus LLD, what a design round is actually scoring, and the building blocks every answer is assembled from. |
+| **Requirements and estimation** <br> `requirements-and-estimation` | Functional versus non-functional requirements, the questions to ask first, and back-of-the-envelope maths for QPS, storage and bandwidth. |
+| **Latency, throughput and percentiles** <br> `latency-throughput-and-percentiles` | Why latency and throughput are different problems, why p99 is the number that matters, and the latency table worth knowing cold. |
+| **Scaling up and scaling out** <br> `scaling-up-and-out` | Vertical versus horizontal scaling, why stateless services are the price of scaling out, and where to put session state instead. |
+| **Availability, SLAs and nines** <br> `availability-and-slas` | What three nines buys you in minutes, how availability multiplies through a chain of services, and the difference between an SLA, an SLO and an SLI. |
+
+**The request path** — Everything between a user and your code, in the order a packet meets it. Short, because the Computer Networks track already explains how each one works — these ask where it sits and what it costs.
+
+| topic | |
+|---|---|
+| **DNS and traffic routing** <br> `dns-and-traffic-routing` | How a name becomes an address, and how DNS becomes a routing tool: geo-routing, weighted records, anycast and the TTL that decides how fast you can fail over. |
+| **Load balancers** <br> `load-balancers` | Layer 4 versus layer 7, the balancing algorithms and when each one is wrong, health checks, and why sticky sessions are a smell. |
+| **Reverse proxies and the API gateway** <br> `proxies-and-api-gateway` | Forward versus reverse proxy, what an API gateway adds on top, the backend-for-frontend pattern, and when a gateway becomes the bottleneck. |
+| **CDN and the edge** <br> `cdn-and-the-edge` | Why bytes travel badly, push versus pull CDNs, cache-control headers, purging, and what else the edge can do besides serve files. |
+| **Protocols worth choosing between** <br> `protocols-for-design` | TCP versus UDP, what HTTP/2 and HTTP/3 change, REST versus gRPC versus GraphQL, and why connection pooling shows up in every scaling story. |
+
+**Distributed systems** — The theory that decides what you are allowed to promise. Four of these five are the reason an interviewer asks "and what happens if that node is unreachable?"
+
+| topic | |
+|---|---|
+| **CAP and PACELC** <br> `cap-and-pacelc` | What CAP actually says, why "pick two" is a misreading, and why PACELC is the version that describes the system you are really building. |
+| **Consistency models** <br> `consistency-models` | Strong, eventual, causal, read-your-writes and monotonic reads — what each one promises, and the bug each one still lets through. |
+| **Replication** <br> `replication` | Leader-follower, multi-leader and leaderless replication, synchronous versus asynchronous, and what replica lag breaks in each. |
+| **Quorums and tunable consistency** <br> `quorums` | Why R + W > N gives you a consistent read, what happens when it does not, and how Dynamo-style stores let you dial the trade per query. |
+| **Fault tolerance and failover** <br> `fault-tolerance-and-failover` | The failure modes worth designing for, redundancy that actually helps, automatic failover, and how split-brain happens. |
+
+**Partitioning and sharding** — What to do when one database is no longer enough — and the four problems you have bought yourself the moment you split it.
+
+| topic | |
+|---|---|
+| **Partitioning and sharding** <br> `partitioning-and-sharding` | Vertical versus horizontal partitioning, range versus hash versus directory sharding, and how to pick a shard key you will not regret. |
+| **Consistent hashing** <br> `consistent-hashing` | Why modulo hashing moves every key when a node joins, how the ring fixes it, and what virtual nodes are actually for. |
+| **Hotspots and skew** <br> `hotspots-and-skew` | The celebrity problem, sequential keys that pin every write to one shard, and the four standard fixes for a shard that runs hot. |
+| **Life after sharding** <br> `life-after-sharding` | Cross-shard queries, joins and counts, resharding without downtime, and generating unique IDs when there is no single sequence left. |
+
+**Caching** — The cheapest order-of-magnitude in system design, and the one that fails in the most interesting ways. Five topics: where caches live, how to write to them, how to evict, how to invalidate, and how they fall over.
+
+| topic | |
+|---|---|
+| **Caching basics** <br> `caching-basics` | Every layer a cache can live at, from the browser to the database buffer pool, and the hit-ratio arithmetic that decides whether one is worth adding. |
+| **Cache patterns** <br> `cache-patterns` | Cache-aside, read-through, write-through, write-behind and refresh-ahead — the write path each one implies and the failure each one hides. |
+| **Eviction and TTL** <br> `eviction-and-ttl` | LRU, LFU, FIFO and random, what each one is good at, how to size a cache, and why a TTL is a correctness decision rather than a memory one. |
+| **Cache invalidation** <br> `cache-invalidation` | The genuinely hard problem: TTL versus explicit purge versus versioned keys, and why invalidating on write is harder than it sounds. |
+| **How caches fall over** <br> `cache-failure-modes` | Stampede, hot keys, penetration and avalanche — the four ways a cache turns from a shield into the thing that took the site down, and the fix for each. |
+| **Redis in practice** <br> `redis-in-practice` | Redis versus Memcached, the data structures that replace application code, persistence options, and what Redis Cluster does and does not give you. |
+
+**Databases at scale** — Choosing a store and then living with the choice. The SQL track teaches the language; these seven are about the decision and what it costs at ten million rows.
+
+| topic | |
+|---|---|
+| **SQL versus NoSQL** <br> `sql-vs-nosql` | The decision table, the five NoSQL families with what each is actually for, and why "NoSQL scales better" is the wrong reason to pick one. |
+| **Data modelling for scale** <br> `data-modelling-for-scale` | Designing from access patterns instead of entities, when denormalisation is correct, and how to evolve a schema with no downtime. |
+| **Transactions and isolation** <br> `transactions-and-isolation` | ACID in one page, the four isolation levels and the anomaly each one still permits, and what a transaction costs you under load. |
+| **Indexing and storage engines** <br> `indexing-and-storage-engines` | B-tree versus LSM-tree and why your write pattern picks one, covering indexes, write amplification, and the cost of an index nobody uses. |
+| **Read replicas and scaling writes** <br> `replicas-and-write-scaling` | How far read replicas take you, what replica lag breaks, and the four things to try when it is the writes that will not fit. |
+| **Object storage** <br> `object-storage` | What S3-style storage is for, why blobs do not belong in your database, storage classes, and the consistency guarantees you actually get. |
+| **OLTP versus OLAP** <br> `oltp-vs-olap` | Why analytics kills a production database, the warehouse and the lake, row versus column storage, and how data gets from one to the other. |
+
+**Async and messaging** — Taking work off the request path. Queues are how a system survives a spike it cannot serve in real time, and the delivery guarantees are where the bugs live.
+
+| topic | |
+|---|---|
+| **Synchronous versus asynchronous** <br> `sync-vs-async` | What belongs on the request path and what does not, how async changes the user-facing contract, and the latency you trade for throughput. |
+| **Queues and pub/sub** <br> `queues-and-pubsub` | Point-to-point queues versus publish/subscribe, competing consumers, visibility timeouts, and which shape each problem wants. |
+| **Kafka** <br> `kafka` | The log as a primitive: partitions, consumer groups, offsets, ordering guarantees and retention — and why replay is the feature people actually come for. |
+| **Choosing a broker** <br> `choosing-a-broker` | Kafka versus RabbitMQ versus SQS versus Redis Streams, compared on the four things that decide it: ordering, retention, routing and operational cost. |
+| **Event-driven architecture** <br> `event-driven-architecture` | Events versus commands, choreography versus orchestration, event schemas that can change, and the debugging cost nobody mentions. |
+| **Delivery, idempotency and retries** <br> `delivery-idempotency-and-retries` | At-most-once, at-least-once and the truth about exactly-once; idempotency keys, deduplication, retry with jitter, dead-letter queues and backpressure. |
+
+**Services and reliability** — How a system made of many services keeps working when some of them are not. Seven topics, and five of them are about failing well.
+
+| topic | |
+|---|---|
+| **Monolith versus microservices** <br> `monolith-vs-microservices` | What splitting actually buys and what it costs, where the seams should be, and why the honest answer in an interview is usually "start with a monolith". |
+| **Service communication and discovery** <br> `service-communication-and-discovery` | How services find each other, client-side versus server-side discovery, the service mesh, and when a synchronous call between services is a mistake. |
+| **Rate limiting** <br> `rate-limiting` | Token bucket, leaky bucket, fixed and sliding window — the four algorithms drawn, what each one does at a boundary, and how to limit across many servers. |
+| **Failing well** <br> `failing-well` | Timeouts, retries with backoff and jitter, circuit breakers, bulkheads and graceful degradation — the five patterns that stop one slow service taking the rest down. |
+| **Distributed locks and leader election** <br> `distributed-locks-and-leader-election` | Why a lock across machines is hard, what Redlock does and does not promise, fencing tokens, leases, and how a cluster picks a leader. |
+| **Consensus** <br> `consensus` | Raft in one page, why consensus needs a majority, and what ZooKeeper and etcd actually give you that a database does not. |
+| **Deployment and autoscaling** <br> `deployment-and-autoscaling` | Rolling, blue-green and canary releases, feature flags, backward-compatible migrations, and choosing the metric an autoscaler should watch. |
+
+**Distributed data patterns** — Three answers to one question: how do you change data in two places when there is no transaction that spans both?
+
+| topic | |
+|---|---|
+| **Distributed transactions and sagas** <br> `distributed-transactions-and-saga` | Two-phase commit and why almost nobody uses it, the saga pattern, compensating actions, and choreography versus orchestration for a saga. |
+| **The outbox pattern and CDC** <br> `outbox-and-cdc` | The dual-write problem, the transactional outbox that solves it, and change data capture reading the database log instead. |
+| **CQRS and event sourcing** <br> `cqrs-and-event-sourcing` | Splitting reads from writes, storing events instead of state, the read models you rebuild from them, and the price you pay for both. |
+
+**Real-time, media and search** — The three payloads that break a plain request/response design: a connection that stays open, a file too big to post, and a query that a WHERE clause cannot answer.
+
+| topic | |
+|---|---|
+| **Push versus pull** <br> `push-vs-pull` | Short polling, long polling, server-sent events and WebSockets, compared on the four things that decide it — direction, cost, proxies and reconnection. |
+| **Real-time architecture** <br> `realtime-architecture` | Connection servers and why they are stateful, presence, fan-out on write versus fan-out on read, and routing a message to a socket on another box. |
+| **Notification systems** <br> `notification-systems` | One pipeline for push, email and SMS: fan-out, per-channel providers, preferences and quiet hours, deduplication, and retries that do not spam. |
+| **File upload and media** <br> `file-upload-and-media` | Presigned URLs so bytes never touch your servers, chunked and resumable uploads, deduplication by hash, and the processing pipeline behind them. |
+| **Video streaming** <br> `video-streaming` | Transcoding into a ladder of renditions, HLS and DASH, adaptive bitrate, and why live streaming is a different problem from video on demand. |
+| **Search systems** <br> `search-systems` | The inverted index drawn out, how documents get into it, relevance scoring, and why search lives beside your database rather than inside it. |
+
+**Observability and operations** — Running it after it ships. An interviewer asks "how would you know this was broken?" and this section is the answer.
+
+| topic | |
+|---|---|
+| **Observability** <br> `observability` | Logs, metrics and traces — what each one answers that the others cannot, and what to instrument first in a system you have just designed. |
+| **Logging and metrics** <br> `logging-and-metrics` | Structured logs and what they cost at scale, the RED and USE method for choosing metrics, cardinality as the thing that blows up your bill. |
+| **Distributed tracing** <br> `distributed-tracing` | Traces and spans, propagating context across services and queues, sampling strategies, and the question tracing answers that metrics cannot. |
+| **Alerting and on-call** <br> `alerting-and-oncall` | Alerting on symptoms rather than causes, error budgets, runbooks, and why the page that fires every night is worse than no page at all. |
+| **Load testing, capacity and cost** <br> `load-testing-and-capacity` | Load, stress and soak tests, finding the knee in the curve, planning capacity for a known spike, and the cost-versus-performance trade in plain numbers. |
+
+**Security and tenancy** — The part of a design round that gets skipped until the interviewer asks. Five topics: who you are, what you may do, and how one customer stays out of another one.
+
+| topic | |
+|---|---|
+| **Authentication and authorization** <br> `authn-and-authz` | The two words people swap by mistake, where each belongs in the request path, and RBAC versus ABAC for deciding what someone may do. |
+| **Sessions, tokens and JWT** <br> `sessions-tokens-and-jwt` | Server sessions versus stateless tokens, what a JWT really is, the revocation problem, and why refresh tokens exist. |
+| **OAuth 2 and OIDC** <br> `oauth-and-oidc` | The authorization code flow drawn step by step, what OIDC adds on top, and the difference between an access token and an ID token. |
+| **Securing a system** <br> `securing-a-system` | TLS everywhere, encryption at rest, secret management, least privilege, and the handful of attacks a design round expects you to have thought about. |
+| **Multi-tenancy** <br> `multi-tenancy` | Shared, siloed and hybrid tenancy models, where the isolation boundary goes, noisy neighbours, and per-tenant limits that actually hold. |
+
+**Geography and resilience** — Surviving the loss of a whole region, and serving users who are nowhere near your servers. The section that starts with "what if the data centre floods".
+
+| topic | |
+|---|---|
+| **Multi-region architecture** <br> `multi-region` | Why you would go multi-region and why you would not, routing users to the nearest one, and data gravity as the thing that makes it hard. |
+| **Active-active versus active-passive** <br> `active-active-vs-active-passive` | Two ways to run a second region, what each costs while nothing is wrong, and how long each takes to take over when something is. |
+| **Cross-region replication** <br> `cross-region-replication` | Replicating data across a 150ms link, conflict resolution when both sides accept writes, and picking which data has to be global. |
+| **Disaster recovery and backups** <br> `disaster-recovery-and-backups` | RTO and RPO as the two numbers that decide everything, the four DR strategies by cost, point-in-time restore, and testing that a restore works. |
+
+**AI system design** — A full section rather than an appendix, because a design round in 2026 asks about vector databases and GPU scheduling the way one in 2016 asked about sharding. Twelve topics, same shape as the rest.
+
+| topic | |
+|---|---|
+| **What changes with AI in the loop** <br> `ai-system-design-basics` | Where an AI system differs from a classic one: inference cost, GPU scarcity, non-determinism, unbounded latency, and evaluation instead of tests. |
+| **Model serving** <br> `model-serving` | What an inference server does, batching for throughput, model versioning and rollout, cold starts, and autoscaling something that takes 90 seconds to warm up. |
+| **LLM serving** <br> `llm-serving` | Prefill versus decode, the KV cache and why it dominates memory, continuous batching, token streaming, and what context length really costs. |
+| **Batch versus real-time inference** <br> `batch-vs-realtime-inference` | Precomputing predictions versus computing them on request, the freshness-cost trade, and the hybrid most production systems actually run. |
+| **GPU scaling and cost** <br> `gpu-scaling-and-cost` | Why GPUs are scheduled rather than autoscaled, utilisation as the number that matters, queueing, spot capacity, and sharing one GPU between models. |
+| **Embeddings** <br> `embeddings` | What an embedding is in one picture, dimensionality and what it costs to store, similarity metrics, and the migration problem when you change model. |
+| **Vector databases** <br> `vector-databases` | Approximate nearest neighbour search, HNSW versus IVF, the recall-latency dial, metadata filtering, and when a vector column in Postgres is enough. |
+| **RAG architecture** <br> `rag-architecture` | The full pipeline drawn: ingest, chunk, embed, index, retrieve, rerank, generate — plus chunking strategy, hybrid search and where RAG actually goes wrong. |
+| **Caching for AI systems** <br> `ai-caching` | Three caches with three different keys — exact response, prompt prefix and semantic similarity — what each one saves, and how each one goes wrong. |
+| **Recommendation systems** <br> `recommendation-systems` | The candidate generation, ranking and re-ranking funnel, collaborative versus content-based signals, the cold-start problem, and the offline/online split. |
+| **Feature stores and ML pipelines** <br> `feature-stores-and-ml-pipelines` | Offline and online feature stores, training-serving skew and why it silently ruins a model, and the pipeline from raw event to deployed prediction. |
+| **AI agents** <br> `ai-agents` | Agentic architecture as a system design problem: the tool loop, memory, orchestration, guardrails, and bounding cost and latency when the model decides how many steps to take. |
+
+**Cheatsheets** — The five pages to reread on the way to the interview. Almost no prose — a ladder, a lookup table, the numbers, the script, and the trade-offs in one line each.
+
+| topic | |
+|---|---|
+| **The scale ladder** <br> `the-scale-ladder` | One architecture per rung from 1K users to 100M+, what broke to force each step, and what the new component actually solved. |
+| **Bottleneck → fix** <br> `bottleneck-to-fix` | The lookup table: if X is the bottleneck, here is what you add, in the order you would add it, and here is when each one stops helping. |
+| **Numbers to know** <br> `numbers-to-know` | Latency numbers, throughput ceilings per component, storage and bandwidth constants, and rough costs — everything an estimate needs, on one page. |
+| **The 45-minute script** <br> `the-45-minute-script` | Minute by minute: what to ask, what to draw and what to say, from "what are we building" to "here is what I would fix first". |
+| **Trade-offs and common mistakes** <br> `trade-offs-and-mistakes` | Every major trade-off in one line each, and the dozen mistakes that cost candidates the round — mostly answers given before the question was understood. |
+
+**Real-world systems** — Nineteen systems drawn end to end. Each one is an interview-level architecture — the design you would defend on a whiteboard, not a claim about what the company actually runs, which is not public and would not fit in forty-five minutes anyway.
+
+| topic | |
+|---|---|
+| **Netflix** <br> `design-netflix` | Video on demand at continental scale: why the CDN is the product, how transcoding works, and what happens when everyone presses play at 8pm. |
+| **YouTube** <br> `design-youtube` | Upload, transcode, store and serve user-generated video — plus the view counter, which is a harder distributed systems problem than the video. |
+| **Hotstar** <br> `design-hotstar` | Live sport for 50 million concurrent viewers: the spike that arrives in ninety seconds, pre-scaling, and graceful degradation when it is bigger than planned. |
+| **Spotify** <br> `design-spotify` | Audio streaming, the difference that small files make, playlists, offline sync, and how a recommendation pipeline feeds a weekly playlist. |
+| **Instagram** <br> `design-instagram` | Photo upload and the news feed: fan-out on write versus read, the celebrity problem in its natural habitat, and the feed cache. |
+| **WhatsApp** <br> `design-whatsapp` | Messaging: the connection layer, delivery receipts, offline queueing, group fan-out, and what end-to-end encryption rules out of your design. |
+| **Twitter / X** <br> `design-twitter` | The timeline at scale: the hybrid fan-out that handles both a normal user and one with 100 million followers, plus search and trends. |
+| **LinkedIn** <br> `design-linkedin` | The social graph as the hard part: degrees of connection, "people you may know", the feed, and search over a graph rather than a table. |
+| **Google Search** <br> `design-google-search` | Crawl, index, serve: the inverted index across thousands of machines, ranking as a separate stage, and why the answer has to arrive in 200ms. |
+| **Amazon** <br> `design-amazon` | E-commerce end to end: catalogue and search, the cart, inventory that must not oversell, checkout, and order fulfilment as an async saga. |
+| **Flipkart** <br> `design-flipkart` | E-commerce built for a sale event: flash sales, queueing at the gate, inventory reservation under a hundred-times spike, and payment retries. |
+| **Swiggy** <br> `design-swiggy` | Food delivery: restaurant discovery by location, order state as a workflow, assigning a delivery partner, and live tracking on the map. |
+| **Zomato** <br> `design-zomato` | The discovery half of the same problem: geo search over restaurants, ratings and reviews, menus that change, and the read-heavy traffic shape. |
+| **Uber** <br> `design-uber` | Matching riders to drivers in real time: geospatial indexing, location updates at scale, the matching loop, surge pricing and trip state. |
+| **Airbnb** <br> `design-airbnb` | Search over availability and price, the double-booking problem, a two-sided marketplace, and why the calendar is the hardest table in the system. |
+| **IRCTC** <br> `design-irctc` | Train booking under the worst traffic shape in the world: Tatkal at 10am, seat inventory per leg of a journey, queueing and fairness. |
+| **UPI** <br> `design-upi` | A payment switch between banks: the four parties, the two-leg debit and credit, idempotency, reconciliation, and what happens when a bank times out. |
+| **Google Pay** <br> `design-google-pay` | A UPI app rather than a switch: the client, tokenised credentials, transaction history, and the part where you are a thin layer over someone else’s ledger. |
+| **Razorpay** <br> `design-razorpay` | A payment gateway: routing to acquirers, webhooks that must arrive exactly once, the ledger, refunds, settlement and idempotent retries. |

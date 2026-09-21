@@ -104,4 +104,29 @@ export const TRACKS = [
     blurb:
       'What happens between your fetch and their server: the layers, IP and subnets, TCP and DNS, HTTPS, load balancers and CDNs, and a VPC drawn the way AWS draws it.',
   },
+  /*
+    Last, and the only track written to be *revised* rather than read.
+
+    The other five are notes you work through once and refer back to. A design
+    round is a conversation you have to be able to hold at 10am on a Tuesday,
+    so every topic here is a page you can skim in two minutes the night before:
+    a picture inside the first screen, a trade-off table, and a box with the
+    thirty-second answer in it. That is also why it is the one track that is
+    mostly diagrams — `diagram` and `flow` were added to the block vocabulary
+    for it, because a design drawn in an `sh` code block reads as a snippet.
+
+    `indigo` because the other five have taken violet, sky, green, amber and
+    teal, and it leaves the neighbouring pinks free for the LLD track that will
+    sit beside this one.
+  */
+  {
+    slug: 'hld',
+    name: 'System Design (HLD)',
+    hue: 'indigo',
+    icon: 'shapes',
+    status: 'live',
+    order: 5,
+    blurb:
+      'High-level design as revision notes, not a textbook: load balancers, caching, sharding, queues and consensus, the AI-era stack from vector databases to LLM serving, nineteen real systems drawn end to end, and the ladder from 1K users to 100M.',
+  },
 ];

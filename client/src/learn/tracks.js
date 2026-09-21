@@ -4,6 +4,7 @@ import {
   IconGlobe,
   IconLayers,
   IconNetwork,
+  IconShapes,
   IconTable,
 } from '../components/ui/Icons.jsx';
 
@@ -40,6 +41,10 @@ const ICONS = {
   globe: IconGlobe,
   table: IconTable,
   network: IconNetwork,
+  // The same glyph the System Design group wears in the side menu — two nodes
+  // and a wire. The track and the whiteboard are the two halves of one subject,
+  // and one icon between them is how the menu says so.
+  shapes: IconShapes,
 };
 
 /**
@@ -96,6 +101,15 @@ export const TRACK_STUBS = [
     Icon: IconNetwork,
     blurb:
       'What happens between your fetch and their server: the layers, IP and subnets, TCP and DNS, HTTPS, load balancers and CDNs, and a VPC drawn the way AWS draws it.',
+  },
+  {
+    slug: 'hld',
+    hue: 'indigo',
+    name: 'System Design (HLD)',
+    status: 'live',
+    Icon: IconShapes,
+    blurb:
+      'High-level design as revision notes, not a textbook: load balancers, caching, sharding, queues and consensus, the AI-era stack from vector databases to LLM serving, nineteen real systems drawn end to end, and the ladder from 1K users to 100M.',
   },
 ];
 

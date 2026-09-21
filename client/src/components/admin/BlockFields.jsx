@@ -36,52 +36,62 @@ export function BlockFields({ block, onChange }) {
       );
 
     case 'bullets':
+      return <ItemList block={block} patch={patch} label="Bullets" noun="Bullet" />;
+
+    /*
+      A flow is `items` too, so it gets the same editor — down to Enter adding
+      the next step and Backspace removing an empty one. The two differ in what
+      the list means, which is the caption's job and the reader's stylesheet's,
+      not this form's.
+    */
+    case 'flow':
       return (
-        <div className="field">
-          <span>Bullets</span>
-          {block.items.map((item, i) => (
-            <div className="gb-item" key={i}>
-              <input
-                value={item}
-                onChange={(e) => {
-                  const items = [...block.items];
-                  items[i] = e.target.value;
-                  patch({ items });
-                }}
-                onKeyDown={(e) => {
-                  // Enter adds the next bullet, Backspace on an empty one
-                  // removes it. Writing six bullets otherwise costs six mouse
-                  // trips to a button.
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const items = [...block.items];
-                    items.splice(i + 1, 0, '');
-                    patch({ items });
-                  }
-                  if (e.key === 'Backspace' && !item && block.items.length > 1) {
-                    e.preventDefault();
-                    patch({ items: block.items.filter((_, j) => j !== i) });
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className="icon-btn"
-                aria-label="Remove bullet"
-                onClick={() => patch({ items: block.items.filter((_, j) => j !== i) })}
-              >
-                <IconClose size={12} />
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            className="link-btn"
-            onClick={() => patch({ items: [...block.items, ''] })}
-          >
-            + Bullet
-          </button>
-        </div>
+        <>
+          <ItemList block={block} patch={patch} label="Steps" noun="Step" />
+          <label className="field">
+            <span>Caption</span>
+            <input
+              value={block.caption || ''}
+              onChange={(e) => patch({ caption: e.target.value })}
+            />
+            <span className="field-hint">
+              Sits above the chips — &ldquo;Request path&rdquo;, or the rung on a scale ladder.
+            </span>
+          </label>
+        </>
+      );
+
+    /*
+      Art, so the textarea is monospace and does not wrap: a diagram reflowed to
+      the width of a form field is no longer a diagram. Spellcheck off for the
+      same reason — every box-drawing run would earn a red underline.
+    */
+    case 'diagram':
+      return (
+        <>
+          <label className="field">
+            <span>Diagram</span>
+            <textarea
+              className="gb-art"
+              rows={12}
+              spellCheck={false}
+              wrap="off"
+              value={block.text}
+              onChange={(e) => patch({ text: e.target.value })}
+            />
+            <span className="field-hint">
+              Drawn as a figure — no line numbers, no copy button. Leading blank lines are
+              trimmed.
+            </span>
+          </label>
+          <label className="field">
+            <span>Caption</span>
+            <input
+              value={block.caption || ''}
+              onChange={(e) => patch({ caption: e.target.value })}
+            />
+          </label>
+        </>
       );
 
     case 'code':
@@ -214,6 +224,62 @@ export function BlockFields({ block, onChange }) {
   }
 }
 
+/**
+ * The `items` editor, shared by `bullets` and `flow`.
+ *
+ * Two block types write the same field, and the keyboard behaviour below is the
+ * whole reason this is worth extracting rather than pasting: Enter adds the
+ * next line and Backspace on an empty one removes it, so writing six bullets
+ * costs no mouse trips at all. Duplicated, that is the kind of thing that gets
+ * fixed in one copy.
+ *
+ * Keyed by index rather than by a `_k`, as the bullets editor always was —
+ * these are bare strings with nowhere to hang a key, and a reorder control is
+ * one of the things this form does not have.
+ */
+function ItemList({ block, patch, label, noun }) {
+  return (
+    <div className="field">
+      <span>{label}</span>
+      {block.items.map((item, i) => (
+        <div className="gb-item" key={i}>
+          <input
+            value={item}
+            onChange={(e) => {
+              const items = [...block.items];
+              items[i] = e.target.value;
+              patch({ items });
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const items = [...block.items];
+                items.splice(i + 1, 0, '');
+                patch({ items });
+              }
+              if (e.key === 'Backspace' && !item && block.items.length > 1) {
+                e.preventDefault();
+                patch({ items: block.items.filter((_, j) => j !== i) });
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label={`Remove ${noun.toLowerCase()}`}
+            onClick={() => patch({ items: block.items.filter((_, j) => j !== i) })}
+          >
+            <IconClose size={12} />
+          </button>
+        </div>
+      ))}
+      <button type="button" className="link-btn" onClick={() => patch({ items: [...block.items, ''] })}>
+        + {noun}
+      </button>
+    </div>
+  );
+}
+
 function CodeFields({ block, patch }) {
   const setVariant = (i, changes) => {
     const variants = [...block.variants];
@@ -309,6 +375,10 @@ const VARIANT_OPTIONS = [
   { value: '', label: 'Plain table' },
   { value: 'data', label: 'Sample data' },
   { value: 'result', label: 'Query result' },
+  // Rows of `[label, what to say]`, drawn as a card. Its header row is hidden
+  // by the stylesheet, so the two column names are never seen — they exist
+  // because GuideBlocks keys header cells on them and two blanks collide.
+  { value: 'quick', label: 'Interview quick look' },
 ];
 
 /**

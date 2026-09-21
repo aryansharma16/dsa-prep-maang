@@ -53,6 +53,32 @@ export const MODULE_NAV = [
   { key: 'stats', to: '/stats', label: 'Stats', Icon: IconChart },
   { key: 'chat', to: '/chat', label: 'AI Chat', Icon: IconChat },
   { key: 'learn', to: '/learn', label: 'Learn', Icon: IconBook },
+  /*
+    A group rather than a link, and the only one in this list.
+
+    System design is three rooms that belong together and live in two modules:
+    the HLD notes are a Learn track, the whiteboard is its own workspace, and
+    LLD will be a second Learn track. A flat menu can show one of those, and
+    picking which one is a worse answer than a dropdown.
+
+    It sits here, under Learn, rather than last where the whiteboard used to:
+    HLD is reading you do most days, not a workspace you go into.
+
+    `children` carry their own module keys, so visibility is per child — the
+    group appears when *any* child is visible. A normal account sees it holding
+    only HLD; the whiteboard is still behind `requireModule('design')` on the
+    server, and its row is simply absent rather than shown and refused.
+  */
+  {
+    group: 'systems',
+    label: 'System Design',
+    Icon: IconShapes,
+    children: [
+      { key: 'learn', to: '/learn/hld', label: 'HLD' },
+      { key: 'design', to: '/design', label: 'Practice' },
+      // LLD joins here when that Learn track exists.
+    ],
+  },
   /* Down here with the rest of the after-the-fact work rather than next to
      either list, because training against the curriculum is not working
      through it — the drill draws its questions from the roadmap the way the
@@ -60,21 +86,15 @@ export const MODULE_NAV = [
   { key: 'practice', to: '/practice', label: 'Practice', Icon: IconDice },
   { key: 'tasks', to: '/tasks', label: 'Tasks', Icon: IconBoard },
   /*
-    Under Tasks, because they are the two boards and this is the one you open
-    less often — but above System Design, because it is a page you live on for
-    six weeks rather than a workspace you go into.
+    Last, under Tasks, because they are the two boards and this is the one you
+    open less often.
 
     It is the only entry here that is not about the curriculum at all. Everything
     above it is something you do to get ready; this is the thing you were getting
-    ready for.
+    ready for — which is also why it ends the list rather than sitting among the
+    rooms you prepare in.
   */
   { key: 'applications', to: '/applications', label: 'Applications', Icon: IconBriefcase },
-  /*
-    Last, because it is the one module where you make something rather than
-    work through or look back at something. It opens into a full-screen
-    workspace of its own, so its place in this list only matters for getting in.
-  */
-  { key: 'design', to: '/design', label: 'System Design', Icon: IconShapes },
   /*
     Feedback is deliberately absent. It is a module like the rest — the server
     still gates /feedback on it, and `moduleVisible(modules, 'feedback')` still
@@ -91,6 +111,18 @@ export const MODULE_NAV = [
  * later — is the one behaviour worth ruling out by construction here.
  */
 export const moduleVisible = (modules, key) => Boolean(modules?.visible?.includes(key));
+
+/**
+ * The children of a group this session may actually open.
+ *
+ * A group is visible when it has at least one of these, so the caller filters
+ * and tests emptiness in one step rather than asking twice. Returns `null` for
+ * a plain entry, which is what tells the two renderers below which shape they
+ * are holding — a `children` key that is sometimes absent would have every call
+ * site guessing.
+ */
+export const visibleChildren = (modules, item) =>
+  item.children ? item.children.filter((child) => moduleVisible(modules, child.key)) : null;
 
 /**
  * Visible to this person, hidden from everyone else — i.e. still being built.

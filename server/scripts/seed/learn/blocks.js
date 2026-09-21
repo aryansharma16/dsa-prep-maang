@@ -82,6 +82,47 @@ export const postgres = (source, label = 'PostgreSQL') => ({
   code: source.trim(),
 });
 
+/**
+ * A picture, drawn in characters.
+ *
+ * The Networks track draws its handshakes and route tables in `sh` code blocks,
+ * because until now that was the only block that would hold monospace text
+ * without reflowing it. It works and it reads wrong: the art arrives with a
+ * line-number gutter down its left edge, a tab strip saying "Terminal" and a
+ * Copy button, which is a lot of furniture for something nobody is going to
+ * paste into a shell.
+ *
+ * This is the same characters with none of that — a `<figure>`, a caption, and
+ * `white-space: pre`. The HLD track is mostly pictures, so it is worth a block
+ * of its own rather than a fourth convention layered on `code`.
+ *
+ * Trimmed like the code constructors, so the art can be written as a template
+ * literal starting on the line below the backtick.
+ */
+export const diagram = (art, caption = '') => ({
+  type: 'diagram',
+  text: String(art).replace(/^\n+|\s+$/g, ''),
+  caption,
+});
+
+/**
+ * A pipeline: `flow(['Client', 'CDN', 'Load balancer', 'Service', 'DB'])`.
+ *
+ * Rendered as chips with arrows between them rather than as a line of
+ * monospace, for one reason that matters on a phone: a line of text scrolls
+ * sideways off the screen and a row of chips wraps, then stacks. The arrow is
+ * generated content, so it is never selected, never copied and never read out.
+ *
+ * `caption` is the rung on the scale ladder — `1K users`, `100K users` — and
+ * the label on a request path everywhere else. Steps take inline markers, so a
+ * node can be named `` `Redis` `` and set in mono.
+ */
+export const flow = (steps, caption = '') => ({
+  type: 'flow',
+  items: [steps].flat().filter(Boolean),
+  caption,
+});
+
 export const table = (columns, rows, caption = '') => ({ type: 'table', columns, rows, caption });
 
 /**
@@ -130,6 +171,42 @@ export const result = (columns, rows, caption = 'Result') => ({
  * can say the thing out loud, not a second copy of the prose above it.
  */
 export const asked = (rows) => table(['Asked in interviews', 'The answer in one line'], rows);
+
+/*
+  The three the HLD track adds, for the same reason as the three above: a header
+  row written out in eighty files is a header row that says something different
+  in the eleventh.
+
+  `tradeoff` is the one that does the most work. Every design answer is a choice
+  with a bill attached, and naming both columns — what you get, what it costs —
+  is what stops a topic listing only the half that sounds good.
+*/
+export const tradeoff = (rows) => table(['Choice', 'You gain', 'You pay'], rows);
+
+/** "What happens when this scales" — the question the track exists to answer. */
+export const scaleTable = (rows) => table(['At this size', 'What you add', 'Because'], rows);
+
+/**
+ * The Interview Quick Look box.
+ *
+ * A `table` with `variant: 'quick'` rather than a block type of its own, which
+ * saves a renderer case, an editor form and a verifier entry for what is, after
+ * all, a two-column grid. Rows are `[label, what to say]`; the stylesheet sets
+ * the first column as a label column and hides the header row, because the
+ * caption has already named the box and `Field / What to say` above it would be
+ * two more words than the reader needs.
+ *
+ * The columns are still written out, and not as empty strings: `GuideBlocks`
+ * keys its header cells on the column name, and two empty names is a duplicate
+ * React key.
+ */
+export const quick = (rows) => ({
+  type: 'table',
+  variant: 'quick',
+  caption: 'Interview quick look',
+  columns: ['Field', 'What to say'],
+  rows,
+});
 
 export const note = (text) => ({ type: 'callout', tone: 'note', text });
 export const tip = (text) => ({ type: 'callout', tone: 'tip', text });

@@ -29,6 +29,8 @@ const FIELDS = {
   code: ['variants'],
   callout: ['text', 'tone'],
   table: ['columns', 'rows', 'caption', 'variant'],
+  diagram: ['text', 'caption'],
+  flow: ['items', 'caption'],
   image: ['url', 'text'],
   video: ['videoId', 'text'],
   links: ['links'],

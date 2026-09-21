@@ -228,6 +228,61 @@
   color: var(--text-3);
 }
 
+/*
+  A nav group: one row that opens onto its children.
+
+  The header is a `<button>` and goes nowhere, which is deliberate — a row that
+  both navigates and expands makes every click a guess about which one you
+  meant. `.within` is how it says a child below is the active page without
+  claiming to be that page itself: the same lit text as `.active`, and none of
+  its accent rule down the edge, which stays the mark of where you actually are.
+*/
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+.nav-group > .nav-item {
+  width: 100%;
+  text-align: left;
+}
+.nav-item.within {
+  color: var(--text);
+}
+.nav-chev {
+  margin-left: auto;
+  color: var(--text-3);
+  transition: transform 0.16s ease;
+}
+.nav-chev.open {
+  transform: rotate(90deg);
+}
+/*
+  The children hang off a hairline that lines up with the parent's icon, so the
+  group reads as one object rather than as four rows that happen to be indented.
+  The spine is on the container, not per row, or the gaps between rows would
+  break it.
+*/
+.nav-group-items {
+  display: flex;
+  flex-direction: column;
+  margin-left: 21px;
+  border-left: 1px solid var(--border-soft);
+}
+.nav-item.child {
+  height: 29px;
+  padding-left: 15px;
+  font-size: 12.5px;
+  /* Its own left border is the active mark, so it sits on top of the spine
+     rather than beside it — one line in the same place either way. */
+  margin-left: -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-chev {
+    transition: none;
+  }
+}
+
 .pattern-link {
   display: block;
   padding: 5px 12px;
@@ -2168,6 +2223,96 @@ tr.cursor .act {
 /* Or the pinned number keeps the old background while its line lights up. */
 .guide-code .cl:hover::before {
   background: var(--solid-hover);
+}
+
+/*
+  A diagram is the block above with all the furniture taken off.
+
+  Same opaque ground and the same monospace — box-drawing characters only line
+  up in a font where every glyph is one cell wide — and then nothing else: no
+  tab strip, no Copy, and no `counter-increment`, because a picture has no lines
+  to number. That absence is the entire point of it being its own block rather
+  than a fourth convention layered on `code`.
+
+  The caption is a figcaption above the art rather than below it, matching where
+  `<caption>` sits on the tables, and it is the only label a figure has.
+*/
+.guide-diagram {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--solid);
+}
+.guide-diagram figcaption {
+  padding: 9px 15px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.guide-diagram pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  /* Tighter than code's 1.7. Vertical connectors are drawn with `│`, and a
+     glyph one cell tall in a line box 1.7 cells tall draws a dashed line. */
+  line-height: 1.45;
+  color: var(--text-2);
+  white-space: pre;
+  tab-size: 4;
+}
+
+/*
+  A pipeline as chips.
+
+  The arrow is generated content on every step but the first, so it is never
+  selected when you drag across the row, never announced, and — the reason that
+  matters most — swappable for `↓` when the row stacks, without the stored
+  content knowing anything about the viewport.
+*/
+.guide-flow-cap {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+}
+.guide-flow-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 0;
+}
+/* The wrapper carries the arrow; the node inside it is the chip. Splitting them
+   is what keeps the arrow outside the chip's border and on the same line as the
+   chip it points into, so a wrap never strands one at the end of a row. */
+.guide-flow-step {
+  display: inline-flex;
+  align-items: center;
+}
+.guide-flow-node {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  white-space: nowrap;
+}
+.guide-flow-node code {
+  font-size: 12.5px;
+}
+.guide-flow-step + .guide-flow-step::before {
+  content: '→';
+  padding: 0 9px;
+  color: var(--text-3);
 }
 
 /* syntax */

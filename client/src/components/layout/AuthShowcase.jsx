@@ -82,13 +82,14 @@ function RoadmapMock() {
   );
 }
 
-// The five tracks and their sizes, as the guide at /docs prints them.
+// The six tracks and their sizes, as the guide at /docs prints them.
 const TRACKS = [
   { name: 'Complexity', topics: 6, hue: 'amber' },
   { name: 'React', topics: 43, hue: 'sky' },
   { name: 'Node.js', topics: 68, hue: 'green' },
   { name: 'SQL', topics: 53, hue: 'pink' },
   { name: 'Computer Networks', topics: 35, hue: 'blue' },
+  { name: 'System Design', topics: 104, hue: 'indigo' },
 ];
 
 function LearnMock() {

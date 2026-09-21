@@ -179,6 +179,54 @@ function Block({ block, index }) {
         </div>
       );
 
+    /*
+      ASCII art as a figure, which is the whole difference between this and a
+      `code` block holding the same characters: no tab strip, no Copy, and no
+      line-number gutter. `CodeBlock` splits its source into one element per
+      line to generate those numbers; here the art goes in whole, because a
+      diagram has no lines to count and `highlight()` has nothing to say about
+      box-drawing characters.
+
+      The caption is first in the DOM, not last. It names the picture, and a
+      name arrives before the thing it names — which is also where `<caption>`
+      sits on the tables above.
+    */
+    case 'diagram':
+      return (
+        <figure className="guide-diagram">
+          {block.caption && <figcaption>{inline(block.caption)}</figcaption>}
+          <pre>{block.text}</pre>
+        </figure>
+      );
+
+    /*
+      A pipeline as chips.
+
+      The arrows are CSS generated content on every step after the first, not
+      elements and not characters in the labels. That keeps them out of the
+      selection when you drag across the row, out of the accessibility tree, and
+      — the reason it matters most — it lets the stylesheet swap `→` for `↓`
+      when the chips stack on a narrow screen, without the content knowing
+      anything about the viewport.
+    */
+    case 'flow':
+      return (
+        <div className="guide-flow">
+          {block.caption && <span className="guide-flow-cap">{inline(block.caption)}</span>}
+          <div className="guide-flow-row">
+            {/* Two elements per step, not one: the arrow is a `::before` on the
+                outer, and a `::before` on the chip itself would draw inside its
+                border. The outer also keeps arrow and chip on the same line, so
+                a wrap never strands an arrow pointing at nothing. */}
+            {block.items.map((item, i) => (
+              <span className="guide-flow-step" key={i}>
+                <span className="guide-flow-node">{inline(item)}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+
     case 'image':
       return (
         <figure className="guide-figure">

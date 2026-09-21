@@ -53,10 +53,30 @@ export function toPlaintext(blocks = []) {
       case 'links':
         out.push(...(block.links || []).map((l) => stripInline(l.label)));
         break;
+      /*
+        A flow's steps are prose. They are the nouns of a design — `CDN`,
+        `Load balancer`, `Kafka` — and a reader searching for one of those is
+        looking for exactly the page whose request path goes through it.
+      */
+      case 'flow':
+        if (block.caption) out.push(stripInline(block.caption));
+        out.push(...(block.items || []).map(stripInline));
+        break;
+      /*
+        A diagram's caption is prose and its art is not, on the same judgement
+        that excludes code below: nobody reads box-drawing characters at 220
+        words a minute, and counting them would make every reading estimate on
+        the HLD track a lie.
+
+        It needs a case of its own rather than falling to `default`, because
+        the caption is often the only words the figure has.
+      */
+      case 'diagram':
       case 'image':
       case 'video':
-        // The caption only — a URL or a YouTube id is not prose.
-        if (block.text) out.push(stripInline(block.text));
+        // The caption only — a URL, a YouTube id and a picture are not prose.
+        if (block.caption) out.push(stripInline(block.caption));
+        if (block.text && block.type !== 'diagram') out.push(stripInline(block.text));
         break;
       default:
         // `code`, and anything a later schema adds. Silence is correct: a new

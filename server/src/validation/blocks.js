@@ -80,7 +80,33 @@ const table = z.object({
     defaulted to anyway.
   */
   caption: z.string().max(200).default(''),
-  variant: z.enum(['', 'data', 'result']).default(''),
+  variant: z.enum(['', 'data', 'result', 'quick']).default(''),
+});
+/*
+  ASCII art drawn as a figure rather than as code.
+
+  `text` rather than a field of its own, and the same 8000 ceiling a paragraph
+  gets: the longest diagram in the corpus this was written for is a little over
+  1,200 characters, and a figure that needs more than a paragraph's worth of
+  characters is a figure nobody can read on a phone anyway.
+*/
+const diagram = z.object({
+  type: z.literal('diagram'),
+  text: z.string().min(1).max(8000),
+  caption: z.string().max(200).default(''),
+});
+/*
+  A pipeline — `Client → CDN → LB → Service → DB` — as steps.
+
+  Bounded far tighter than `bullets`, which shares the field, and deliberately:
+  two steps is the smallest thing that is a flow rather than a label, twelve is
+  where the chips stop fitting two rows on a laptop, and 120 characters is a
+  node label rather than the sentence that belongs in the table underneath.
+*/
+const flow = z.object({
+  type: z.literal('flow'),
+  items: z.array(z.string().min(1).max(120)).min(2).max(12),
+  caption: z.string().max(200).default(''),
 });
 const image = z.object({
   type: z.literal('image'),
@@ -115,6 +141,8 @@ export const guideBlock = z.discriminatedUnion('type', [
   code,
   callout,
   table,
+  diagram,
+  flow,
   image,
   video,
   links,
