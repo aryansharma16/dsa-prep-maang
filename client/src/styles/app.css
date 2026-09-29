@@ -2,58 +2,161 @@
 /*
   The canvas the whole app is glass on.
 
-  Three soft lights, laid into `.shell`'s own background — one in the reader's
-  accent so the app is tinted by the colour they picked, and two cool ones for
-  depth. See THE MATERIAL at the top of tokens.css for why there is no blur
-  anywhere near it.
+  `.shell` itself is only the flat `--bg`. The light comes from `.ambient`, its
+  first child: four large, soft colour fields that drift on slow, out-of-phase
+  loops, the way Gemini's and YouTube's ambient backgrounds breathe. Two are in
+  the reader's accent — top-left and bottom-right — so the app is tinted by the
+  colour they picked from opposite corners, and two cool ones (indigo, fuchsia)
+  give it depth. See THE MATERIAL at the top of tokens.css for why there is no
+  blur anywhere near it.
 
-  `.shell` is the right element and the only right element. It is `height: 100%`
-  and it does not scroll — `.content` inside it owns the scrollbar — so this
-  paints once at mount and again only on resize. Putting the same wash on a
-  page instead would repaint it for the length of every scroll, and putting it
-  on `body` would leave it behind the sidebar rather than under it.
+  Why this costs nothing to scroll or to run:
 
-  Layered into the element's own `background` rather than drawn by a
-  `z-index: -1` pseudo-element, which would need a stacking context here — and a
-  stacking context on `.shell` would trap the modals, the toasts and the chat
-  dock inside it. Background layers need no stacking context at all.
+  - Each light is a plain box painted once with a `closest-side` radial
+    gradient, and only its `transform` and `opacity` animate. Both are
+    compositor properties: the GPU moves an already-rasterised layer, so no
+    frame of the drift repaints anything, and `.content` scrolling over it is
+    blending, not painting.
+  - `.shell` does not scroll — `.content` owns the scrollbar — so the layer is
+    never re-rasterised by a scroll either.
+  - Browsers throttle CSS animations in background tabs, and
+    `prefers-reduced-motion` stops them outright, leaving the four lights
+    parked where the old static wash was.
 
-  Fixed sizes rather than percentages so the lights do not stretch into ovals on
-  an ultrawide, and `no-repeat` so they stay lights rather than becoming a
-  pattern.
+  Why an element and not a background or a pseudo-element: gradient positions
+  in `background` cannot be moved without a repaint every frame, and a
+  `z-index: -1` pseudo-element would need `.shell` to be a stacking context —
+  which would trap the modals, the toasts and the chat dock inside it. Instead
+  `.ambient` is absolutely positioned with `z-index: auto`, and the sidebar and
+  `.main` are `position: relative`, which puts them after it in paint order
+  without creating a stacking context anywhere.
+
+  Fixed pixel sizes rather than percentages so the lights do not stretch into
+  ovals on an ultrawide.
 */
 .shell {
   display: flex;
   height: 100%;
   /* The anchor for a peeking sidebar, which leaves the row to draw over the
-     page rather than push it. */
+     page rather than push it — and for `.ambient`. */
   position: relative;
-  background:
-    radial-gradient(1250px 720px at 10% -12%, rgb(var(--accent-rgb) / 0.11), transparent 62%)
-      no-repeat,
-    radial-gradient(1050px 640px at 92% 2%, rgb(var(--h-indigo-rgb) / 0.1), transparent 64%)
-      no-repeat,
-    radial-gradient(1000px 760px at 46% 112%, rgb(var(--h-fuchsia-rgb) / 0.055), transparent 60%)
-      no-repeat,
-    var(--bg);
+  background: var(--bg);
 }
-/* The same three lights carry further against white, so all three come down.
-   At the dark theme's alphas this reads as a tie-dyed page. */
-:root[data-theme='light'] .shell {
-  background:
-    radial-gradient(1250px 720px at 10% -12%, rgb(var(--accent-rgb) / 0.09), transparent 62%)
-      no-repeat,
-    radial-gradient(1050px 640px at 92% 2%, rgb(var(--h-indigo-rgb) / 0.08), transparent 64%)
-      no-repeat,
-    radial-gradient(1000px 760px at 46% 112%, rgb(var(--h-fuchsia-rgb) / 0.05), transparent 60%)
-      no-repeat,
-    var(--bg);
+
+.ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* Scales every light's alpha at once; the light theme turns it down. */
+  --amb-k: 1;
+}
+/* Colour carries further against white, so the same lights come down. At the
+   dark theme's alphas this reads as a tie-dyed page. */
+:root[data-theme='light'] .ambient {
+  --amb-k: 0.7;
+}
+.ambient > span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgb(var(--amb-rgb) / calc(var(--amb-a) * var(--amb-k))),
+    rgb(var(--amb-rgb) / calc(var(--amb-a) * var(--amb-k) * 0.45)) 50%,
+    transparent
+  );
+  will-change: transform, opacity;
+  animation: var(--amb-drift) var(--amb-t) ease-in-out infinite alternate;
+  /* Negative delays start each loop mid-way, so the page never opens on four
+     lights sitting still in their corners. */
+  animation-delay: var(--amb-d);
+}
+/* Accent, top-left — the brightest, where the eye lands first. */
+.ambient > span:nth-child(1) {
+  --amb-rgb: var(--accent-rgb);
+  --amb-a: 0.17;
+  --amb-drift: amb-drift-1;
+  --amb-t: 34s;
+  --amb-d: -6s;
+  width: 1300px;
+  height: 860px;
+  left: -460px;
+  top: -500px;
+}
+/* Indigo, top-right. */
+.ambient > span:nth-child(2) {
+  --amb-rgb: var(--h-indigo-rgb);
+  --amb-a: 0.14;
+  --amb-drift: amb-drift-2;
+  --amb-t: 41s;
+  --amb-d: -19s;
+  width: 1100px;
+  height: 760px;
+  right: -380px;
+  top: -420px;
+}
+/* Fuchsia, low and centre — the quietest, a colour cast rather than a light. */
+.ambient > span:nth-child(3) {
+  --amb-rgb: var(--h-fuchsia-rgb);
+  --amb-a: 0.09;
+  --amb-drift: amb-drift-3;
+  --amb-t: 47s;
+  --amb-d: -30s;
+  width: 1200px;
+  height: 800px;
+  left: 22%;
+  bottom: -560px;
+}
+/* Accent, bottom-right — the top-left light's diagonal partner. */
+.ambient > span:nth-child(4) {
+  --amb-rgb: var(--accent-rgb);
+  --amb-a: 0.15;
+  --amb-drift: amb-drift-4;
+  --amb-t: 38s;
+  --amb-d: -12s;
+  width: 1250px;
+  height: 820px;
+  right: -440px;
+  bottom: -480px;
+}
+
+/* Each loop wanders inward and back; `alternate` makes the return the same
+   path reversed, so there is never a jump at the seam. */
+@keyframes amb-drift-1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1);          opacity: 0.85; }
+  35%  { transform: translate3d(260px, 90px, 0) scale(1.12); opacity: 1; }
+  70%  { transform: translate3d(120px, 240px, 0) scale(0.96); opacity: 0.9; }
+  100% { transform: translate3d(340px, 170px, 0) scale(1.08); opacity: 1; }
+}
+@keyframes amb-drift-2 {
+  0%   { transform: translate3d(0, 0, 0) scale(1.04);          opacity: 1; }
+  40%  { transform: translate3d(-300px, 140px, 0) scale(0.94);  opacity: 0.8; }
+  100% { transform: translate3d(-120px, 280px, 0) scale(1.12);  opacity: 0.95; }
+}
+@keyframes amb-drift-3 {
+  0%   { transform: translate3d(0, 0, 0) scale(1);            opacity: 0.8; }
+  50%  { transform: translate3d(-280px, -200px, 0) scale(1.15); opacity: 1; }
+  100% { transform: translate3d(240px, -120px, 0) scale(0.95);  opacity: 0.85; }
+}
+@keyframes amb-drift-4 {
+  0%   { transform: translate3d(0, 0, 0) scale(1);             opacity: 0.9; }
+  30%  { transform: translate3d(-220px, -160px, 0) scale(1.1);  opacity: 1; }
+  65%  { transform: translate3d(-80px, -300px, 0) scale(0.95);  opacity: 0.85; }
+  100% { transform: translate3d(-320px, -110px, 0) scale(1.06); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambient > span {
+    animation: none;
+  }
 }
 
 /* Glass beside the page, not over it — so it stays translucent here and takes
    the opaque twin only in the two states where it leaves the row: `.peek` and
    the phone drawer, both below. */
 .sidebar {
+  /* Painted after `.ambient` — see the shell notes. `.peek` and the phone
+     drawer override this further down. */
+  position: relative;
   width: var(--sidebar-w);
   flex: 0 0 var(--sidebar-w);
   background: var(--surface);
@@ -407,6 +510,9 @@
 
 /* ----------------------------------------------------------------- topbar */
 .main {
+  /* Painted after `.ambient` — see the shell notes. No z-index, so no stacking
+     context: the modals declared inside still escape it. */
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1346,20 +1452,35 @@ table.problems tbody tr:last-child td {
   Opaque twins, not the glass tokens — see THE MATERIAL in tokens.css. A
   translucent frozen column is a window onto the columns sliding underneath it,
   which is the one thing a frozen column exists not to be.
+
+  But only while something *is* sliding underneath — the `cut-left` /
+  `cut-right` classes PatternSection sets from the scroll position. When the
+  whole table fits, a frozen cell is an ordinary cell, and painting it opaque
+  anyway drew a flat dark slab down the TRACK column against rows that the
+  ambient light shows through. So until its edge is cut, a frozen cell stays
+  transparent and takes the row's glass like every other cell.
 */
 .problems th.pin,
 .problems td.pin {
   position: sticky;
   z-index: 2;
-  background: var(--solid);
 }
 .problems thead th.pin {
-  background: var(--solid-2);
   /* Above the body's frozen cells, which scroll vertically past it. */
   z-index: 3;
 }
-.problems tbody tr:hover td.pin,
-.problems tbody tr.cursor td.pin {
+.tablewrap.cut-left .pin-left,
+.tablewrap.cut-right .pin-right {
+  background: var(--solid);
+}
+.tablewrap.cut-left thead th.pin-left,
+.tablewrap.cut-right thead th.pin-right {
+  background: var(--solid-2);
+}
+.tablewrap.cut-left tbody tr:hover td.pin-left,
+.tablewrap.cut-left tbody tr.cursor td.pin-left,
+.tablewrap.cut-right tbody tr:hover td.pin-right,
+.tablewrap.cut-right tbody tr.cursor td.pin-right {
   background: var(--solid-hover);
 }
 

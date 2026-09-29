@@ -15,7 +15,7 @@ import { defineFilters } from './spec.js';
 
 const SHEETS = [
   /*
-    First, because it is the only one of the five that was built for this
+    First, because it is the only one of the six that was built for this
     roadmap rather than imported into it — 300 of the 517, chosen for coverage
     per hour rather than by any outside author. See server/scripts/seed/ai-sheet.js.
   */
@@ -28,6 +28,7 @@ const SHEETS = [
   { value: 'neetcode-150', label: 'NeetCode 150', note: 'The pattern-first 150' },
   { value: 'blind-75', label: 'Blind 75', note: 'The original short list' },
   { value: 'faang-2026', label: 'FAANG 2025-26', note: 'Reported in recent interviews' },
+  { value: 'sheet-150', label: 'Sheet 150', note: '150 problems over 90 days, pattern by pattern' },
 ];
 
 export const ROADMAP_FILTERS = defineFilters([

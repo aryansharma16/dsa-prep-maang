@@ -1,0 +1,1595 @@
+{
+"Roadmap":[
+ {
+  "Done": "☐",
+  "Day": 1,
+  "Pattern": "Arrays",
+  "#": 1,
+  "Problem": "Contains Duplicate",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/contains-duplicate/"
+ },
+ {
+  "Done": "☐",
+  "Day": 1,
+  "Pattern": "Arrays",
+  "#": 2,
+  "Problem": "Product of Array Except Self",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/product-of-array-except-self/"
+ },
+ {
+  "Done": "☐",
+  "Day": 1,
+  "Pattern": "Arrays",
+  "#": 3,
+  "Problem": "Valid Sudoku",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/valid-sudoku/"
+ },
+ {
+  "Done": "☐",
+  "Day": 2,
+  "Pattern": "Hashing",
+  "#": 4,
+  "Problem": "Valid Anagram",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/valid-anagram/"
+ },
+ {
+  "Done": "☐",
+  "Day": 2,
+  "Pattern": "Hashing",
+  "#": 5,
+  "Problem": "Two Sum",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/two-sum/"
+ },
+ {
+  "Done": "☐",
+  "Day": 2,
+  "Pattern": "Hashing",
+  "#": 6,
+  "Problem": "Group Anagrams",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/group-anagrams/"
+ },
+ {
+  "Done": "☐",
+  "Day": 3,
+  "Pattern": "Hashing",
+  "#": 7,
+  "Problem": "Top K Frequent Elements",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/top-k-frequent-elements/"
+ },
+ {
+  "Done": "☐",
+  "Day": 3,
+  "Pattern": "Hashing",
+  "#": 8,
+  "Problem": "Longest Consecutive Sequence",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/longest-consecutive-sequence/"
+ },
+ {
+  "Done": "☐",
+  "Day": 4,
+  "Pattern": "Hashing",
+  "#": 9,
+  "Problem": "Subarray Sum Equals K",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/subarray-sum-equals-k/"
+ },
+ {
+  "Done": "☐",
+  "Day": 5,
+  "Pattern": "Two Pointers",
+  "#": 10,
+  "Problem": "Valid Palindrome",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/valid-palindrome/"
+ },
+ {
+  "Done": "☐",
+  "Day": 5,
+  "Pattern": "Two Pointers",
+  "#": 11,
+  "Problem": "Two Sum II - Input Array Is Sorted",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/"
+ },
+ {
+  "Done": "☐",
+  "Day": 6,
+  "Pattern": "Two Pointers",
+  "#": 12,
+  "Problem": "Sort Colors",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/sort-colors/"
+ },
+ {
+  "Done": "☐",
+  "Day": 6,
+  "Pattern": "Two Pointers",
+  "#": 13,
+  "Problem": "3Sum",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/3sum/"
+ },
+ {
+  "Done": "☐",
+  "Day": 7,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 1-6"
+ },
+ {
+  "Done": "☐",
+  "Day": 8,
+  "Pattern": "Two Pointers",
+  "#": 14,
+  "Problem": "Container With Most Water",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/container-with-most-water/"
+ },
+ {
+  "Done": "☐",
+  "Day": 8,
+  "Pattern": "Two Pointers",
+  "#": 15,
+  "Problem": "Trapping Rain Water",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/trapping-rain-water/"
+ },
+ {
+  "Done": "☐",
+  "Day": 9,
+  "Pattern": "Sliding Window",
+  "#": 16,
+  "Problem": "Best Time to Buy and Sell Stock",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/"
+ },
+ {
+  "Done": "☐",
+  "Day": 9,
+  "Pattern": "Sliding Window",
+  "#": 17,
+  "Problem": "Longest Substring Without Repeating Characters",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/longest-substring-without-repeating-characters/"
+ },
+ {
+  "Done": "☐",
+  "Day": 10,
+  "Pattern": "Sliding Window",
+  "#": 18,
+  "Problem": "Longest Repeating Character Replacement",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/longest-repeating-character-replacement/"
+ },
+ {
+  "Done": "☐",
+  "Day": 10,
+  "Pattern": "Sliding Window",
+  "#": 19,
+  "Problem": "Permutation in String",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/permutation-in-string/"
+ },
+ {
+  "Done": "☐",
+  "Day": 11,
+  "Pattern": "Sliding Window",
+  "#": 20,
+  "Problem": "Find All Anagrams in a String",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/find-all-anagrams-in-a-string/"
+ },
+ {
+  "Done": "☐",
+  "Day": 11,
+  "Pattern": "Sliding Window",
+  "#": 21,
+  "Problem": "Minimum Window Substring",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/minimum-window-substring/"
+ },
+ {
+  "Done": "☐",
+  "Day": 12,
+  "Pattern": "Sliding Window",
+  "#": 22,
+  "Problem": "Sliding Window Maximum",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/sliding-window-maximum/"
+ },
+ {
+  "Done": "☐",
+  "Day": 13,
+  "Pattern": "Stack",
+  "#": 23,
+  "Problem": "Valid Parentheses",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/valid-parentheses/"
+ },
+ {
+  "Done": "☐",
+  "Day": 13,
+  "Pattern": "Stack",
+  "#": 24,
+  "Problem": "Implement Queue using Stacks",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/implement-queue-using-stacks/"
+ },
+ {
+  "Done": "☐",
+  "Day": 13,
+  "Pattern": "Stack",
+  "#": 25,
+  "Problem": "Min Stack",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/min-stack/"
+ },
+ {
+  "Done": "☐",
+  "Day": 14,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 8-13"
+ },
+ {
+  "Done": "☐",
+  "Day": 15,
+  "Pattern": "Stack",
+  "#": 26,
+  "Problem": "Evaluate Reverse Polish Notation",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/evaluate-reverse-polish-notation/"
+ },
+ {
+  "Done": "☐",
+  "Day": 15,
+  "Pattern": "Stack",
+  "#": 27,
+  "Problem": "Daily Temperatures",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/daily-temperatures/"
+ },
+ {
+  "Done": "☐",
+  "Day": 16,
+  "Pattern": "Stack",
+  "#": 28,
+  "Problem": "Generate Parentheses",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/generate-parentheses/"
+ },
+ {
+  "Done": "☐",
+  "Day": 16,
+  "Pattern": "Stack",
+  "#": 29,
+  "Problem": "Car Fleet",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/car-fleet/"
+ },
+ {
+  "Done": "☐",
+  "Day": 17,
+  "Pattern": "Stack",
+  "#": 30,
+  "Problem": "Largest Rectangle in Histogram",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/largest-rectangle-in-histogram/"
+ },
+ {
+  "Done": "☐",
+  "Day": 18,
+  "Pattern": "Binary Search",
+  "#": 31,
+  "Problem": "Binary Search",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/binary-search/"
+ },
+ {
+  "Done": "☐",
+  "Day": 18,
+  "Pattern": "Binary Search",
+  "#": 32,
+  "Problem": "Find First and Last Position in Sorted Array",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/"
+ },
+ {
+  "Done": "☐",
+  "Day": 19,
+  "Pattern": "Binary Search",
+  "#": 33,
+  "Problem": "Search a 2D Matrix",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/search-a-2d-matrix/"
+ },
+ {
+  "Done": "☐",
+  "Day": 19,
+  "Pattern": "Binary Search",
+  "#": 34,
+  "Problem": "Koko Eating Bananas",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/koko-eating-bananas/"
+ },
+ {
+  "Done": "☐",
+  "Day": 20,
+  "Pattern": "Binary Search",
+  "#": 35,
+  "Problem": "Find Minimum in Rotated Sorted Array",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/"
+ },
+ {
+  "Done": "☐",
+  "Day": 20,
+  "Pattern": "Binary Search",
+  "#": 36,
+  "Problem": "Search in Rotated Sorted Array",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/search-in-rotated-sorted-array/"
+ },
+ {
+  "Done": "☐",
+  "Day": 21,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 15-20"
+ },
+ {
+  "Done": "☐",
+  "Day": 22,
+  "Pattern": "Binary Search",
+  "#": 37,
+  "Problem": "Time Based Key-Value Store",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/time-based-key-value-store/"
+ },
+ {
+  "Done": "☐",
+  "Day": 22,
+  "Pattern": "Binary Search",
+  "#": 38,
+  "Problem": "Median of Two Sorted Arrays",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/median-of-two-sorted-arrays/"
+ },
+ {
+  "Done": "☐",
+  "Day": 23,
+  "Pattern": "Linked List",
+  "#": 39,
+  "Problem": "Reverse Linked List",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/reverse-linked-list/"
+ },
+ {
+  "Done": "☐",
+  "Day": 23,
+  "Pattern": "Linked List",
+  "#": 40,
+  "Problem": "Merge Two Sorted Lists",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/merge-two-sorted-lists/"
+ },
+ {
+  "Done": "☐",
+  "Day": 23,
+  "Pattern": "Linked List",
+  "#": 41,
+  "Problem": "Linked List Cycle",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/linked-list-cycle/"
+ },
+ {
+  "Done": "☐",
+  "Day": 24,
+  "Pattern": "Linked List",
+  "#": 42,
+  "Problem": "Palindrome Linked List",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/palindrome-linked-list/"
+ },
+ {
+  "Done": "☐",
+  "Day": 24,
+  "Pattern": "Linked List",
+  "#": 43,
+  "Problem": "Reorder List",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/reorder-list/"
+ },
+ {
+  "Done": "☐",
+  "Day": 25,
+  "Pattern": "Linked List",
+  "#": 44,
+  "Problem": "Remove Nth Node From End of List",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/"
+ },
+ {
+  "Done": "☐",
+  "Day": 25,
+  "Pattern": "Linked List",
+  "#": 45,
+  "Problem": "Find the Duplicate Number",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/find-the-duplicate-number/"
+ },
+ {
+  "Done": "☐",
+  "Day": 26,
+  "Pattern": "Linked List",
+  "#": 46,
+  "Problem": "Add Two Numbers",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/add-two-numbers/"
+ },
+ {
+  "Done": "☐",
+  "Day": 26,
+  "Pattern": "Linked List",
+  "#": 47,
+  "Problem": "Copy List with Random Pointer",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/copy-list-with-random-pointer/"
+ },
+ {
+  "Done": "☐",
+  "Day": 27,
+  "Pattern": "Linked List",
+  "#": 48,
+  "Problem": "LRU Cache",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/lru-cache/"
+ },
+ {
+  "Done": "☐",
+  "Day": 27,
+  "Pattern": "Linked List",
+  "#": 49,
+  "Problem": "Merge K Sorted Lists",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/merge-k-sorted-lists/"
+ },
+ {
+  "Done": "☐",
+  "Day": 28,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 22-27"
+ },
+ {
+  "Done": "☐",
+  "Day": 29,
+  "Pattern": "Linked List",
+  "#": 50,
+  "Problem": "Reverse Nodes in K-Group",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/reverse-nodes-in-k-group/"
+ },
+ {
+  "Done": "☐",
+  "Day": 30,
+  "Pattern": "Trees",
+  "#": 51,
+  "Problem": "Invert Binary Tree",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/invert-binary-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 30,
+  "Pattern": "Trees",
+  "#": 52,
+  "Problem": "Maximum Depth of Binary Tree",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/maximum-depth-of-binary-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 30,
+  "Pattern": "Trees",
+  "#": 53,
+  "Problem": "Same Tree",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/same-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 31,
+  "Pattern": "Trees",
+  "#": 54,
+  "Problem": "Diameter of Binary Tree",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/diameter-of-binary-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 31,
+  "Pattern": "Trees",
+  "#": 55,
+  "Problem": "Balanced Binary Tree",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/balanced-binary-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 31,
+  "Pattern": "Trees",
+  "#": 56,
+  "Problem": "Subtree of Another Tree",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/subtree-of-another-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 32,
+  "Pattern": "Trees",
+  "#": 57,
+  "Problem": "Lowest Common Ancestor of a BST",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 32,
+  "Pattern": "Trees",
+  "#": 58,
+  "Problem": "Binary Tree Level Order Traversal",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/binary-tree-level-order-traversal/"
+ },
+ {
+  "Done": "☐",
+  "Day": 33,
+  "Pattern": "Trees",
+  "#": 59,
+  "Problem": "Binary Tree Right Side View",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/binary-tree-right-side-view/"
+ },
+ {
+  "Done": "☐",
+  "Day": 33,
+  "Pattern": "Trees",
+  "#": 60,
+  "Problem": "Count Good Nodes in Binary Tree",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/count-good-nodes-in-binary-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 34,
+  "Pattern": "Trees",
+  "#": 61,
+  "Problem": "Validate Binary Search Tree",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/validate-binary-search-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 34,
+  "Pattern": "Trees",
+  "#": 62,
+  "Problem": "Kth Smallest Element in a BST",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/kth-smallest-element-in-a-bst/"
+ },
+ {
+  "Done": "☐",
+  "Day": 35,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 29-34"
+ },
+ {
+  "Done": "☐",
+  "Day": 36,
+  "Pattern": "Trees",
+  "#": 63,
+  "Problem": "Construct Binary Tree from Preorder and Inorder",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/"
+ },
+ {
+  "Done": "☐",
+  "Day": 36,
+  "Pattern": "Trees",
+  "#": 64,
+  "Problem": "Binary Tree Maximum Path Sum",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/binary-tree-maximum-path-sum/"
+ },
+ {
+  "Done": "☐",
+  "Day": 37,
+  "Pattern": "Trees",
+  "#": 65,
+  "Problem": "Serialize and Deserialize Binary Tree",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 38,
+  "Pattern": "Heap / Priority Queue",
+  "#": 66,
+  "Problem": "Kth Largest Element in a Stream",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/kth-largest-element-in-a-stream/"
+ },
+ {
+  "Done": "☐",
+  "Day": 38,
+  "Pattern": "Heap / Priority Queue",
+  "#": 67,
+  "Problem": "Last Stone Weight",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/last-stone-weight/"
+ },
+ {
+  "Done": "☐",
+  "Day": 39,
+  "Pattern": "Heap / Priority Queue",
+  "#": 68,
+  "Problem": "K Closest Points to Origin",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/k-closest-points-to-origin/"
+ },
+ {
+  "Done": "☐",
+  "Day": 39,
+  "Pattern": "Heap / Priority Queue",
+  "#": 69,
+  "Problem": "Kth Largest Element in an Array",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/kth-largest-element-in-an-array/"
+ },
+ {
+  "Done": "☐",
+  "Day": 40,
+  "Pattern": "Heap / Priority Queue",
+  "#": 70,
+  "Problem": "Task Scheduler",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/task-scheduler/"
+ },
+ {
+  "Done": "☐",
+  "Day": 40,
+  "Pattern": "Heap / Priority Queue",
+  "#": 71,
+  "Problem": "Design Twitter",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/design-twitter/"
+ },
+ {
+  "Done": "☐",
+  "Day": 41,
+  "Pattern": "Heap / Priority Queue",
+  "#": 72,
+  "Problem": "Find Median from Data Stream",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/find-median-from-data-stream/"
+ },
+ {
+  "Done": "☐",
+  "Day": 42,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 36-41"
+ },
+ {
+  "Done": "☐",
+  "Day": 43,
+  "Pattern": "Backtracking",
+  "#": 73,
+  "Problem": "Subsets",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/subsets/"
+ },
+ {
+  "Done": "☐",
+  "Day": 43,
+  "Pattern": "Backtracking",
+  "#": 74,
+  "Problem": "Subsets II",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/subsets-ii/"
+ },
+ {
+  "Done": "☐",
+  "Day": 44,
+  "Pattern": "Backtracking",
+  "#": 75,
+  "Problem": "Combination Sum",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/combination-sum/"
+ },
+ {
+  "Done": "☐",
+  "Day": 44,
+  "Pattern": "Backtracking",
+  "#": 76,
+  "Problem": "Combination Sum II",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/combination-sum-ii/"
+ },
+ {
+  "Done": "☐",
+  "Day": 45,
+  "Pattern": "Backtracking",
+  "#": 77,
+  "Problem": "Permutations",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/permutations/"
+ },
+ {
+  "Done": "☐",
+  "Day": 45,
+  "Pattern": "Backtracking",
+  "#": 78,
+  "Problem": "Word Search",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/word-search/"
+ },
+ {
+  "Done": "☐",
+  "Day": 46,
+  "Pattern": "Backtracking",
+  "#": 79,
+  "Problem": "Palindrome Partitioning",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/palindrome-partitioning/"
+ },
+ {
+  "Done": "☐",
+  "Day": 46,
+  "Pattern": "Backtracking",
+  "#": 80,
+  "Problem": "Letter Combinations of a Phone Number",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/letter-combinations-of-a-phone-number/"
+ },
+ {
+  "Done": "☐",
+  "Day": 47,
+  "Pattern": "Backtracking",
+  "#": 81,
+  "Problem": "N-Queens",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/n-queens/"
+ },
+ {
+  "Done": "☐",
+  "Day": 48,
+  "Pattern": "Tries",
+  "#": 82,
+  "Problem": "Implement Trie (Prefix Tree)",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/implement-trie-prefix-tree/"
+ },
+ {
+  "Done": "☐",
+  "Day": 48,
+  "Pattern": "Tries",
+  "#": 83,
+  "Problem": "Design Add and Search Words Data Structure",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/design-add-and-search-words-data-structure/"
+ },
+ {
+  "Done": "☐",
+  "Day": 49,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 43-48"
+ },
+ {
+  "Done": "☐",
+  "Day": 50,
+  "Pattern": "Tries",
+  "#": 84,
+  "Problem": "Word Search II",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/word-search-ii/"
+ },
+ {
+  "Done": "☐",
+  "Day": 50,
+  "Pattern": "Graphs",
+  "#": 85,
+  "Problem": "Number of Islands",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/number-of-islands/"
+ },
+ {
+  "Done": "☐",
+  "Day": 51,
+  "Pattern": "Graphs",
+  "#": 86,
+  "Problem": "Max Area of Island",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/max-area-of-island/"
+ },
+ {
+  "Done": "☐",
+  "Day": 51,
+  "Pattern": "Graphs",
+  "#": 87,
+  "Problem": "Clone Graph",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/clone-graph/"
+ },
+ {
+  "Done": "☐",
+  "Day": 52,
+  "Pattern": "Graphs",
+  "#": 88,
+  "Problem": "Number of Provinces",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/number-of-provinces/"
+ },
+ {
+  "Done": "☐",
+  "Day": 52,
+  "Pattern": "Graphs",
+  "#": 89,
+  "Problem": "Rotting Oranges",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/rotting-oranges/"
+ },
+ {
+  "Done": "☐",
+  "Day": 53,
+  "Pattern": "Graphs",
+  "#": 90,
+  "Problem": "Pacific Atlantic Water Flow",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/pacific-atlantic-water-flow/"
+ },
+ {
+  "Done": "☐",
+  "Day": 53,
+  "Pattern": "Graphs",
+  "#": 91,
+  "Problem": "Surrounded Regions",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/surrounded-regions/"
+ },
+ {
+  "Done": "☐",
+  "Day": 54,
+  "Pattern": "Graphs",
+  "#": 92,
+  "Problem": "Course Schedule",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/course-schedule/"
+ },
+ {
+  "Done": "☐",
+  "Day": 54,
+  "Pattern": "Graphs",
+  "#": 93,
+  "Problem": "Course Schedule II",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/course-schedule-ii/"
+ },
+ {
+  "Done": "☐",
+  "Day": 55,
+  "Pattern": "Graphs",
+  "#": 94,
+  "Problem": "Redundant Connection",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/redundant-connection/"
+ },
+ {
+  "Done": "☐",
+  "Day": 55,
+  "Pattern": "Graphs",
+  "#": 95,
+  "Problem": "Word Ladder",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/word-ladder/"
+ },
+ {
+  "Done": "☐",
+  "Day": 56,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 50-55"
+ },
+ {
+  "Done": "☐",
+  "Day": 57,
+  "Pattern": "Graphs",
+  "#": 96,
+  "Problem": "Network Delay Time",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/network-delay-time/"
+ },
+ {
+  "Done": "☐",
+  "Day": 57,
+  "Pattern": "Graphs",
+  "#": 97,
+  "Problem": "Min Cost to Connect All Points",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/min-cost-to-connect-all-points/"
+ },
+ {
+  "Done": "☐",
+  "Day": 58,
+  "Pattern": "Graphs",
+  "#": 98,
+  "Problem": "Cheapest Flights Within K Stops",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/cheapest-flights-within-k-stops/"
+ },
+ {
+  "Done": "☐",
+  "Day": 58,
+  "Pattern": "Graphs",
+  "#": 99,
+  "Problem": "Swim in Rising Water",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/swim-in-rising-water/"
+ },
+ {
+  "Done": "☐",
+  "Day": 59,
+  "Pattern": "Graphs",
+  "#": 100,
+  "Problem": "Reconstruct Itinerary",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/reconstruct-itinerary/"
+ },
+ {
+  "Done": "☐",
+  "Day": 60,
+  "Pattern": "DP - 1D",
+  "#": 101,
+  "Problem": "Climbing Stairs",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/climbing-stairs/"
+ },
+ {
+  "Done": "☐",
+  "Day": 60,
+  "Pattern": "DP - 1D",
+  "#": 102,
+  "Problem": "Min Cost Climbing Stairs",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/min-cost-climbing-stairs/"
+ },
+ {
+  "Done": "☐",
+  "Day": 61,
+  "Pattern": "DP - 1D",
+  "#": 103,
+  "Problem": "House Robber",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/house-robber/"
+ },
+ {
+  "Done": "☐",
+  "Day": 61,
+  "Pattern": "DP - 1D",
+  "#": 104,
+  "Problem": "House Robber II",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/house-robber-ii/"
+ },
+ {
+  "Done": "☐",
+  "Day": 62,
+  "Pattern": "DP - 1D",
+  "#": 105,
+  "Problem": "Longest Palindromic Substring",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/longest-palindromic-substring/"
+ },
+ {
+  "Done": "☐",
+  "Day": 62,
+  "Pattern": "DP - 1D",
+  "#": 106,
+  "Problem": "Palindromic Substrings",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/palindromic-substrings/"
+ },
+ {
+  "Done": "☐",
+  "Day": 63,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 57-62"
+ },
+ {
+  "Done": "☐",
+  "Day": 64,
+  "Pattern": "DP - 1D",
+  "#": 107,
+  "Problem": "Decode Ways",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/decode-ways/"
+ },
+ {
+  "Done": "☐",
+  "Day": 64,
+  "Pattern": "DP - 1D",
+  "#": 108,
+  "Problem": "Coin Change",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/coin-change/"
+ },
+ {
+  "Done": "☐",
+  "Day": 65,
+  "Pattern": "DP - 1D",
+  "#": 109,
+  "Problem": "Maximum Product Subarray",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/maximum-product-subarray/"
+ },
+ {
+  "Done": "☐",
+  "Day": 65,
+  "Pattern": "DP - 1D",
+  "#": 110,
+  "Problem": "Word Break",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/word-break/"
+ },
+ {
+  "Done": "☐",
+  "Day": 66,
+  "Pattern": "DP - 1D",
+  "#": 111,
+  "Problem": "Longest Increasing Subsequence",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/longest-increasing-subsequence/"
+ },
+ {
+  "Done": "☐",
+  "Day": 66,
+  "Pattern": "DP - 1D",
+  "#": 112,
+  "Problem": "Partition Equal Subset Sum",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/partition-equal-subset-sum/"
+ },
+ {
+  "Done": "☐",
+  "Day": 67,
+  "Pattern": "DP - 2D",
+  "#": 113,
+  "Problem": "Unique Paths",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/unique-paths/"
+ },
+ {
+  "Done": "☐",
+  "Day": 67,
+  "Pattern": "DP - 2D",
+  "#": 114,
+  "Problem": "Longest Common Subsequence",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/longest-common-subsequence/"
+ },
+ {
+  "Done": "☐",
+  "Day": 68,
+  "Pattern": "DP - 2D",
+  "#": 115,
+  "Problem": "Coin Change II",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/coin-change-ii/"
+ },
+ {
+  "Done": "☐",
+  "Day": 68,
+  "Pattern": "DP - 2D",
+  "#": 116,
+  "Problem": "Target Sum",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/target-sum/"
+ },
+ {
+  "Done": "☐",
+  "Day": 69,
+  "Pattern": "DP - 2D",
+  "#": 117,
+  "Problem": "Best Time to Buy and Sell Stock with Cooldown",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/"
+ },
+ {
+  "Done": "☐",
+  "Day": 69,
+  "Pattern": "DP - 2D",
+  "#": 118,
+  "Problem": "Edit Distance",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/edit-distance/"
+ },
+ {
+  "Done": "☐",
+  "Day": 70,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 64-69"
+ },
+ {
+  "Done": "☐",
+  "Day": 71,
+  "Pattern": "DP - 2D",
+  "#": 119,
+  "Problem": "Interleaving String",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/interleaving-string/"
+ },
+ {
+  "Done": "☐",
+  "Day": 71,
+  "Pattern": "DP - 2D",
+  "#": 120,
+  "Problem": "Longest Increasing Path in a Matrix",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/"
+ },
+ {
+  "Done": "☐",
+  "Day": 72,
+  "Pattern": "DP - 2D",
+  "#": 121,
+  "Problem": "Distinct Subsequences",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/distinct-subsequences/"
+ },
+ {
+  "Done": "☐",
+  "Day": 72,
+  "Pattern": "DP - 2D",
+  "#": 122,
+  "Problem": "Burst Balloons",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/burst-balloons/"
+ },
+ {
+  "Done": "☐",
+  "Day": 73,
+  "Pattern": "DP - 2D",
+  "#": 123,
+  "Problem": "Regular Expression Matching",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/regular-expression-matching/"
+ },
+ {
+  "Done": "☐",
+  "Day": 74,
+  "Pattern": "Greedy",
+  "#": 124,
+  "Problem": "Maximum Subarray",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/maximum-subarray/"
+ },
+ {
+  "Done": "☐",
+  "Day": 74,
+  "Pattern": "Greedy",
+  "#": 125,
+  "Problem": "Jump Game",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/jump-game/"
+ },
+ {
+  "Done": "☐",
+  "Day": 75,
+  "Pattern": "Greedy",
+  "#": 126,
+  "Problem": "Jump Game II",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/jump-game-ii/"
+ },
+ {
+  "Done": "☐",
+  "Day": 75,
+  "Pattern": "Greedy",
+  "#": 127,
+  "Problem": "Gas Station",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/gas-station/"
+ },
+ {
+  "Done": "☐",
+  "Day": 76,
+  "Pattern": "Greedy",
+  "#": 128,
+  "Problem": "Hand of Straights",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/hand-of-straights/"
+ },
+ {
+  "Done": "☐",
+  "Day": 76,
+  "Pattern": "Greedy",
+  "#": 129,
+  "Problem": "Merge Triplets to Form Target Triplet",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/merge-triplets-to-form-target-triplet/"
+ },
+ {
+  "Done": "☐",
+  "Day": 77,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 71-76"
+ },
+ {
+  "Done": "☐",
+  "Day": 78,
+  "Pattern": "Greedy",
+  "#": 130,
+  "Problem": "Partition Labels",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/partition-labels/"
+ },
+ {
+  "Done": "☐",
+  "Day": 78,
+  "Pattern": "Greedy",
+  "#": 131,
+  "Problem": "Valid Parenthesis String",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/valid-parenthesis-string/"
+ },
+ {
+  "Done": "☐",
+  "Day": 79,
+  "Pattern": "Intervals",
+  "#": 132,
+  "Problem": "Insert Interval",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/insert-interval/"
+ },
+ {
+  "Done": "☐",
+  "Day": 79,
+  "Pattern": "Intervals",
+  "#": 133,
+  "Problem": "Merge Intervals",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/merge-intervals/"
+ },
+ {
+  "Done": "☐",
+  "Day": 80,
+  "Pattern": "Intervals",
+  "#": 134,
+  "Problem": "Non-overlapping Intervals",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/non-overlapping-intervals/"
+ },
+ {
+  "Done": "☐",
+  "Day": 80,
+  "Pattern": "Intervals",
+  "#": 135,
+  "Problem": "Minimum Interval to Include Each Query",
+  "Difficulty": "Hard",
+  "URL": "https://leetcode.com/problems/minimum-interval-to-include-each-query/"
+ },
+ {
+  "Done": "☐",
+  "Day": 81,
+  "Pattern": "Math & Geometry",
+  "#": 136,
+  "Problem": "Rotate Image",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/rotate-image/"
+ },
+ {
+  "Done": "☐",
+  "Day": 81,
+  "Pattern": "Math & Geometry",
+  "#": 137,
+  "Problem": "Spiral Matrix",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/spiral-matrix/"
+ },
+ {
+  "Done": "☐",
+  "Day": 82,
+  "Pattern": "Math & Geometry",
+  "#": 138,
+  "Problem": "Set Matrix Zeroes",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/set-matrix-zeroes/"
+ },
+ {
+  "Done": "☐",
+  "Day": 82,
+  "Pattern": "Math & Geometry",
+  "#": 139,
+  "Problem": "Happy Number",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/happy-number/"
+ },
+ {
+  "Done": "☐",
+  "Day": 83,
+  "Pattern": "Math & Geometry",
+  "#": 140,
+  "Problem": "Plus One",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/plus-one/"
+ },
+ {
+  "Done": "☐",
+  "Day": 83,
+  "Pattern": "Math & Geometry",
+  "#": 141,
+  "Problem": "Pow(x, n)",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/powx-n/"
+ },
+ {
+  "Done": "☐",
+  "Day": 84,
+  "Pattern": "Review",
+  "Problem": "Review Day: redo Days 78-83"
+ },
+ {
+  "Done": "☐",
+  "Day": 85,
+  "Pattern": "Math & Geometry",
+  "#": 142,
+  "Problem": "Multiply Strings",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/multiply-strings/"
+ },
+ {
+  "Done": "☐",
+  "Day": 85,
+  "Pattern": "Math & Geometry",
+  "#": 143,
+  "Problem": "Detect Squares",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/detect-squares/"
+ },
+ {
+  "Done": "☐",
+  "Day": 86,
+  "Pattern": "Bit Manipulation",
+  "#": 144,
+  "Problem": "Single Number",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/single-number/"
+ },
+ {
+  "Done": "☐",
+  "Day": 86,
+  "Pattern": "Bit Manipulation",
+  "#": 145,
+  "Problem": "Number of 1 Bits",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/number-of-1-bits/"
+ },
+ {
+  "Done": "☐",
+  "Day": 87,
+  "Pattern": "Bit Manipulation",
+  "#": 146,
+  "Problem": "Counting Bits",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/counting-bits/"
+ },
+ {
+  "Done": "☐",
+  "Day": 87,
+  "Pattern": "Bit Manipulation",
+  "#": 147,
+  "Problem": "Reverse Bits",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/reverse-bits/"
+ },
+ {
+  "Done": "☐",
+  "Day": 88,
+  "Pattern": "Bit Manipulation",
+  "#": 148,
+  "Problem": "Missing Number",
+  "Difficulty": "Easy",
+  "URL": "https://leetcode.com/problems/missing-number/"
+ },
+ {
+  "Done": "☐",
+  "Day": 88,
+  "Pattern": "Bit Manipulation",
+  "#": 149,
+  "Problem": "Sum of Two Integers",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/sum-of-two-integers/"
+ },
+ {
+  "Done": "☐",
+  "Day": 89,
+  "Pattern": "Bit Manipulation",
+  "#": 150,
+  "Problem": "Reverse Integer (then redo your 5 weakest problems)",
+  "Difficulty": "Medium",
+  "URL": "https://leetcode.com/problems/reverse-integer/"
+ },
+ {
+  "Done": "☐",
+  "Day": 90,
+  "Pattern": "Mock",
+  "Problem": "Final Mock: 2 random Mediums + 1 Hard, 45 min each"
+ }
+],
+"Progress":[
+ null,
+ {
+  "Progress Tracker": "Problems solved",
+  "Column2": 0
+ },
+ {
+  "Progress Tracker": "Total problems",
+  "Column2": 150
+ },
+ {
+  "Progress Tracker": "Completion",
+  "Column2": 0
+ },
+ {
+  "Progress Tracker": "Days completed (all rows in day ticked)",
+  "Column2": 0
+ },
+ null,
+ {
+  "Progress Tracker": "Pattern",
+  "Column2": "Solved",
+  "Column3": "Total",
+  "Column4": "Completion"
+ },
+ {
+  "Progress Tracker": "Arrays",
+  "Column2": 0,
+  "Column3": 3,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Hashing",
+  "Column2": 0,
+  "Column3": 6,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Two Pointers",
+  "Column2": 0,
+  "Column3": 6,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Sliding Window",
+  "Column2": 0,
+  "Column3": 7,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Stack",
+  "Column2": 0,
+  "Column3": 8,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Binary Search",
+  "Column2": 0,
+  "Column3": 8,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Linked List",
+  "Column2": 0,
+  "Column3": 12,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Trees",
+  "Column2": 0,
+  "Column3": 15,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Heap / Priority Queue",
+  "Column2": 0,
+  "Column3": 7,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Backtracking",
+  "Column2": 0,
+  "Column3": 9,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Tries",
+  "Column2": 0,
+  "Column3": 3,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Graphs",
+  "Column2": 0,
+  "Column3": 16,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "DP - 1D",
+  "Column2": 0,
+  "Column3": 12,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "DP - 2D",
+  "Column2": 0,
+  "Column3": 11,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Greedy",
+  "Column2": 0,
+  "Column3": 8,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Intervals",
+  "Column2": 0,
+  "Column3": 4,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Math & Geometry",
+  "Column2": 0,
+  "Column3": 8,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Bit Manipulation",
+  "Column2": 0,
+  "Column3": 7,
+  "Column4": 0
+ },
+ null,
+ {
+  "Progress Tracker": "Difficulty",
+  "Column2": "Solved",
+  "Column3": "Total",
+  "Column4": "Completion"
+ },
+ {
+  "Progress Tracker": "Easy",
+  "Column2": 0,
+  "Column3": 29,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Medium",
+  "Column2": 0,
+  "Column3": 101,
+  "Column4": 0
+ },
+ {
+  "Progress Tracker": "Hard",
+  "Column2": 0,
+  "Column3": 20,
+  "Column4": 0
+ },
+ null,
+ {
+  "Progress Tracker": "How to use: on the Roadmap sheet, click a cell in the Done column and pick ☑ from the dropdown. Rows turn green and this sheet updates automatically."
+ }
+]
+}

@@ -26,6 +26,7 @@ const SHEET_LABEL = {
   'neetcode-150': 'NC150',
   'blind-75': 'B75',
   'faang-2026': 'FAANG',
+  'sheet-150': 'S150',
   'ai-300': 'AI',
 };
 

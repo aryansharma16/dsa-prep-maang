@@ -4,8 +4,9 @@
   ---------------------------------------------------------------------------
   THE MATERIAL
 
-  The app is one canvas with glass on it. `.shell` paints an ambient wash — a
-  few soft radial lights that never move — and every panel above it is a
+  The app is one canvas with glass on it. `.shell` holds an ambient wash — four
+  soft radial lights that drift slowly behind everything (`.ambient` in
+  app.css; transform and opacity only, never a repaint) — and every panel above it is a
   translucent fill rather than a solid box, so the wash shows through and the
   page reads as one lit surface instead of forty grey rectangles.
 

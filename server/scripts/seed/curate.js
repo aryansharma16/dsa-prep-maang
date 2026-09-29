@@ -22,6 +22,8 @@ import {
   FAANG_FILES,
   FAANG_SHEET,
   RAW_DIR,
+  SHEET_150,
+  SHEET_150_FILE,
   companyWeight,
   slugFromUrl,
 } from './sources.js';
@@ -112,6 +114,40 @@ function loadFaang() {
   return parsed;
 }
 
+/**
+ * Sheet 150, keyed by slug, keeping its day and position for the sheet badge.
+ *
+ * Its rows are only ever checked against LeetCode, never against what curation
+ * would pick, because the sheet is added to CORE_SHEETS below: every problem on
+ * it is kept whatever its rank. A row that cannot be served — not on LeetCode,
+ * or premium — fails the run instead, the same way ai-sheet.js refuses to
+ * quietly ship a short sheet.
+ */
+function loadSheet150(lcBySlug) {
+  const file = path.join(RAW_DIR, SHEET_150_FILE);
+  if (!fs.existsSync(file)) {
+    console.error(`[seed:curate] missing ${SHEET_150_FILE} — it is hand-kept, not fetched`);
+    process.exit(1);
+  }
+
+  const bySlug = new Map();
+  const bad = [];
+  for (const row of JSON.parse(fs.readFileSync(file, 'utf8')).Roadmap) {
+    // Review and mock days have no problem attached.
+    const slug = slugFromUrl(row.URL);
+    if (!slug) continue;
+    const lc = lcBySlug.get(slug);
+    if (!lc || lc.paid_only) bad.push(slug);
+    bySlug.set(slug, { group: `Day ${row.Day}: ${row.Pattern}`, order: row['#'] });
+  }
+  if (bad.length) {
+    console.error(`[seed:curate] ${SHEET_150} rows with no free LeetCode problem: ${bad.join(', ')}`);
+    process.exit(1);
+  }
+  console.log(`  ${SHEET_150}: ${bySlug.size} problems`);
+  return bySlug;
+}
+
 function main() {
   requireRaw();
 
@@ -123,6 +159,7 @@ function main() {
 
   const lcBySlug = new Map(leetcode.map((p) => [p.title_slug, p]));
   const ncBySlug = new Map(neetcode.map((n) => [n.link.replace(/\/$/, ''), n]));
+  const sheet150 = loadSheet150(lcBySlug);
 
   // Striver's sheet, flattened, keeping the day grouping for the sheet badge.
   const striver = [];
@@ -153,6 +190,7 @@ function main() {
     ...ncBySlug.keys(),
     ...striverBySlug.keys(),
     ...faang.keys(),
+    ...sheet150.keys(),
   ]);
 
   for (const slug of consider) {
@@ -164,6 +202,7 @@ function main() {
     const nc = ncBySlug.get(slug);
     const sde = striverBySlug.get(slug);
     const recent = faang.get(slug);
+    const s150 = sheet150.get(slug);
 
     const companyScore = cos.reduce((sum, c) => sum + companyWeight(c.name) * (c.freq / 100), 0);
     let sheetScore = 0;
@@ -192,6 +231,10 @@ function main() {
     if (nc?.neetcode150) sheets.push({ sheet: 'neetcode-150', group: nc.pattern, order: 0 });
     if (nc?.blind75) sheets.push({ sheet: 'blind-75', group: nc.pattern, order: 0 });
     if (recent) sheets.push({ sheet: FAANG_SHEET, group: faangGroup(recent), order: 0 });
+    // Last of the imported sheets, so a row's badge and group column still show
+    // the list they showed before this one existed. No score bonus: it is a
+    // plan built from the same canon, and counting it would count NeetCode twice.
+    if (s150) sheets.push({ sheet: SHEET_150, group: s150.group, order: s150.order });
 
     candidates.push({
       slug,
@@ -242,7 +285,7 @@ function main() {
     It does push several patterns past their quota, which is the intended trade
     and is why the report below prints the overflow.
   */
-  const CORE_SHEETS = new Set(['striver-sde', 'neetcode-150', FAANG_SHEET]);
+  const CORE_SHEETS = new Set(['striver-sde', 'neetcode-150', FAANG_SHEET, SHEET_150]);
   const isCore = (c) => c.sheets.some((s) => CORE_SHEETS.has(s.sheet));
 
   for (const pattern of PATTERNS) {
@@ -382,6 +425,7 @@ function main() {
   console.log(
     `  striver-sde ${inSheet('striver-sde')} · neetcode-150 ${inSheet('neetcode-150')} · blind-75 ${inSheet('blind-75')} · ${FAANG_SHEET} ${inSheet(FAANG_SHEET)}`,
   );
+  console.log(`  ${SHEET_150}: ${inSheet(SHEET_150)}`);
   console.log(`  ${AI_SHEET}: ${inSheet(AI_SHEET)} across ${ai.filter((r) => r.picked).length} patterns`);
   console.log(`  with company tags:      ${problems.filter((p) => p.companies.length).length}`);
   console.log(

@@ -12,9 +12,9 @@ const companySchema = new mongoose.Schema(
 const sheetSchema = new mongoose.Schema(
   {
     /*
-      'striver-sde' | 'neetcode-150' | 'blind-75' | 'faang-2026' | 'ai-300'
+      'striver-sde' | 'neetcode-150' | 'blind-75' | 'faang-2026' | 'sheet-150' | 'ai-300'
 
-      Four are imported lists; `ai-300` is computed from the curated rows
+      Five are imported lists (sheet-150 from a hand-kept file in data/raw); `ai-300` is computed from the curated rows
       themselves at seed time — see server/scripts/seed/ai-sheet.js. Not an enum,
       deliberately: a sheet is a label the curation pass writes, and pinning the
       set here would mean a schema change every time one is added.

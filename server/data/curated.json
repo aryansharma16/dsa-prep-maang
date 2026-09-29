@@ -110,6 +110,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 2: Hashing",
+        "order": 5
+      },
+      {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
         "order": 0
@@ -216,6 +221,11 @@
         "sheet": "faang-2026",
         "group": "Recent",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 2: Hashing",
+        "order": 4
       },
       {
         "sheet": "ai-300",
@@ -389,6 +399,11 @@
         "sheet": "faang-2026",
         "group": "Recent",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 1: Arrays",
+        "order": 1
       },
       {
         "sheet": "ai-300",
@@ -1340,6 +1355,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 3: Hashing",
+        "order": 7
+      },
+      {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
         "order": 1
@@ -1455,6 +1475,11 @@
         "sheet": "faang-2026",
         "group": "FAANG Must Do",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 2: Hashing",
+        "order": 6
       },
       {
         "sheet": "ai-300",
@@ -1580,6 +1605,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 3: Hashing",
+        "order": 8
+      },
+      {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
         "order": 2
@@ -1679,6 +1709,11 @@
         "sheet": "faang-2026",
         "group": "7 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 1: Arrays",
+        "order": 2
       },
       {
         "sheet": "ai-300",
@@ -1792,6 +1827,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 6: Two Pointers",
+        "order": 12
+      },
+      {
         "sheet": "ai-300",
         "group": "Arrays & Hashing",
         "order": 7
@@ -1893,6 +1933,11 @@
         "sheet": "faang-2026",
         "group": "5 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 4: Hashing",
+        "order": 9
       },
       {
         "sheet": "ai-300",
@@ -2065,6 +2110,11 @@
         "sheet": "neetcode-150",
         "group": "Arrays & Hashing",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 1: Arrays",
+        "order": 3
       },
       {
         "sheet": "ai-300",
@@ -2389,6 +2439,11 @@
         "sheet": "faang-2026",
         "group": "Databricks",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 11: Sliding Window",
+        "order": 20
       },
       {
         "sheet": "ai-300",
@@ -3058,6 +3113,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 5: Two Pointers",
+        "order": 10
+      },
+      {
         "sheet": "ai-300",
         "group": "Two Pointers",
         "order": 3
@@ -3688,6 +3748,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 6: Two Pointers",
+        "order": 13
+      },
+      {
         "sheet": "ai-300",
         "group": "Two Pointers",
         "order": 0
@@ -3799,6 +3864,11 @@
         "sheet": "faang-2026",
         "group": "FAANG Must Do",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 8: Two Pointers",
+        "order": 14
       },
       {
         "sheet": "ai-300",
@@ -4062,6 +4132,11 @@
         "sheet": "neetcode-150",
         "group": "Two Pointers",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 5: Two Pointers",
+        "order": 11
       },
       {
         "sheet": "ai-300",
@@ -4480,6 +4555,11 @@
         "sheet": "faang-2026",
         "group": "11 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 8: Two Pointers",
+        "order": 15
       },
       {
         "sheet": "ai-300",
@@ -5409,6 +5489,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 9: Sliding Window",
+        "order": 16
+      },
+      {
         "sheet": "ai-300",
         "group": "Sliding Window",
         "order": 1
@@ -5655,6 +5740,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 9: Sliding Window",
+        "order": 17
+      },
+      {
         "sheet": "ai-300",
         "group": "Sliding Window",
         "order": 0
@@ -5744,6 +5834,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 10: Sliding Window",
+        "order": 18
+      },
+      {
         "sheet": "ai-300",
         "group": "Sliding Window",
         "order": 7
@@ -5831,6 +5926,11 @@
         "sheet": "faang-2026",
         "group": "2 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 10: Sliding Window",
+        "order": 19
       },
       {
         "sheet": "ai-300",
@@ -6375,6 +6475,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 12: Sliding Window",
+        "order": 22
+      },
+      {
         "sheet": "ai-300",
         "group": "Sliding Window",
         "order": 2
@@ -6481,6 +6586,11 @@
         "sheet": "faang-2026",
         "group": "FAANG Must Do",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 11: Sliding Window",
+        "order": 21
       },
       {
         "sheet": "ai-300",
@@ -7760,6 +7870,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 18: Binary Search",
+        "order": 31
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Search",
         "order": 0
@@ -8124,6 +8239,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 20: Binary Search",
+        "order": 36
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Search",
         "order": 12
@@ -8239,6 +8359,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 19: Binary Search",
+        "order": 34
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Search",
         "order": 16
@@ -8334,6 +8459,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 19: Binary Search",
+        "order": 33
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Search",
         "order": 4
@@ -8424,6 +8554,11 @@
         "sheet": "faang-2026",
         "group": "6 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 22: Binary Search",
+        "order": 37
       },
       {
         "sheet": "ai-300",
@@ -8524,6 +8659,11 @@
         "sheet": "faang-2026",
         "group": "Apple",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 20: Binary Search",
+        "order": 35
       },
       {
         "sheet": "ai-300",
@@ -8765,6 +8905,11 @@
         "sheet": "faang-2026",
         "group": "Amazon",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 18: Binary Search",
+        "order": 32
       },
       {
         "sheet": "ai-300",
@@ -9229,6 +9374,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 22: Binary Search",
+        "order": 38
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Search",
         "order": 3
@@ -9616,6 +9766,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 13: Stack",
+        "order": 23
+      },
+      {
         "sheet": "ai-300",
         "group": "Stack & Monotonic Stack",
         "order": 0
@@ -9692,6 +9847,11 @@
         "sheet": "faang-2026",
         "group": "2 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 13: Stack",
+        "order": 24
       },
       {
         "sheet": "ai-300",
@@ -9923,6 +10083,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 13: Stack",
+        "order": 25
+      },
+      {
         "sheet": "ai-300",
         "group": "Stack & Monotonic Stack",
         "order": 2
@@ -10029,6 +10194,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 16: Stack",
+        "order": 28
+      },
+      {
         "sheet": "ai-300",
         "group": "Stack & Monotonic Stack",
         "order": 3
@@ -10110,6 +10280,11 @@
         "sheet": "faang-2026",
         "group": "3 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 15: Stack",
+        "order": 27
       },
       {
         "sheet": "ai-300",
@@ -10275,6 +10450,11 @@
         "sheet": "neetcode-150",
         "group": "Stack",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 15: Stack",
+        "order": 26
       },
       {
         "sheet": "ai-300",
@@ -10635,6 +10815,11 @@
         "sheet": "neetcode-150",
         "group": "Stack",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 16: Stack",
+        "order": 29
       },
       {
         "sheet": "ai-300",
@@ -11180,6 +11365,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 17: Stack",
+        "order": 30
+      },
+      {
         "sheet": "ai-300",
         "group": "Stack & Monotonic Stack",
         "order": 1
@@ -11449,6 +11639,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 23: Linked List",
+        "order": 40
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 11
@@ -11562,6 +11757,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 23: Linked List",
+        "order": 39
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 9
@@ -11661,6 +11861,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 23: Linked List",
+        "order": 41
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 2
@@ -11735,6 +11940,11 @@
         "sheet": "faang-2026",
         "group": "Tesla",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 24: Linked List",
+        "order": 42
       },
       {
         "sheet": "ai-300",
@@ -12009,6 +12219,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 27: Linked List",
+        "order": 48
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 5
@@ -12124,6 +12339,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 26: Linked List",
+        "order": 46
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 7
@@ -12217,6 +12437,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 25: Linked List",
+        "order": 44
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 1
@@ -12306,6 +12531,11 @@
         "sheet": "faang-2026",
         "group": "2 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 26: Linked List",
+        "order": 47
       },
       {
         "sheet": "ai-300",
@@ -12408,6 +12638,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 25: Linked List",
+        "order": 45
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 8
@@ -12491,6 +12726,11 @@
         "sheet": "faang-2026",
         "group": "2 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 24: Linked List",
+        "order": 43
       },
       {
         "sheet": "ai-300",
@@ -12837,6 +13077,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 27: Linked List",
+        "order": 49
+      },
+      {
         "sheet": "ai-300",
         "group": "Linked List",
         "order": 3
@@ -12943,6 +13188,11 @@
         "sheet": "faang-2026",
         "group": "Microsoft",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 29: Linked List",
+        "order": 50
       },
       {
         "sheet": "ai-300",
@@ -13269,6 +13519,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 30: Trees",
+        "order": 52
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Trees",
         "order": 24
@@ -13347,6 +13602,11 @@
         "sheet": "faang-2026",
         "group": "FAANG Must Do",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 30: Trees",
+        "order": 53
       },
       {
         "sheet": "ai-300",
@@ -13436,6 +13696,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 31: Trees",
+        "order": 54
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Trees",
         "order": 10
@@ -13502,6 +13767,11 @@
         "sheet": "neetcode-150",
         "group": "Trees",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 31: Trees",
+        "order": 55
       },
       {
         "sheet": "ai-300",
@@ -13650,6 +13920,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 30: Trees",
+        "order": 51
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Trees",
         "order": 0
@@ -13716,6 +13991,11 @@
         "sheet": "faang-2026",
         "group": "Recent",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 31: Trees",
+        "order": 56
       },
       {
         "sheet": "ai-300",
@@ -14041,6 +14321,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 32: Trees",
+        "order": 58
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Trees",
         "order": 21
@@ -14136,6 +14421,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 34: Trees",
+        "order": 61
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Trees",
         "order": 11
@@ -14221,6 +14511,11 @@
         "sheet": "faang-2026",
         "group": "FAANG Must Do",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 36: Trees",
+        "order": 63
       },
       {
         "sheet": "ai-300",
@@ -14315,6 +14610,11 @@
         "sheet": "faang-2026",
         "group": "Uber",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 34: Trees",
+        "order": 62
       },
       {
         "sheet": "ai-300",
@@ -14496,6 +14796,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 32: Trees",
+        "order": 57
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Trees",
         "order": 8
@@ -14661,6 +14966,11 @@
         "sheet": "faang-2026",
         "group": "Meta",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 33: Trees",
+        "order": 59
       },
       {
         "sheet": "ai-300",
@@ -15122,6 +15432,11 @@
         "sheet": "neetcode-150",
         "group": "Trees",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 33: Trees",
+        "order": 60
       }
     ],
     "lcId": 1448,
@@ -15574,6 +15889,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 37: Trees",
+        "order": 65
+      },
+      {
         "sheet": "ai-300",
         "group": "Binary Trees",
         "order": 4
@@ -15688,6 +16008,11 @@
         "sheet": "faang-2026",
         "group": "3 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 36: Trees",
+        "order": 64
       },
       {
         "sheet": "ai-300",
@@ -16472,6 +16797,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 38: Heap / Priority Queue",
+        "order": 66
+      },
+      {
         "sheet": "ai-300",
         "group": "Heap / Priority Queue",
         "order": 4
@@ -16537,6 +16867,11 @@
         "sheet": "neetcode-150",
         "group": "Heap / Priority Queue",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 38: Heap / Priority Queue",
+        "order": 67
       },
       {
         "sheet": "ai-300",
@@ -16651,6 +16986,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 39: Heap / Priority Queue",
+        "order": 69
+      },
+      {
         "sheet": "ai-300",
         "group": "Heap / Priority Queue",
         "order": 1
@@ -16750,6 +17090,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 40: Heap / Priority Queue",
+        "order": 70
+      },
+      {
         "sheet": "ai-300",
         "group": "Heap / Priority Queue",
         "order": 3
@@ -16841,6 +17186,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 39: Heap / Priority Queue",
+        "order": 68
+      },
+      {
         "sheet": "ai-300",
         "group": "Heap / Priority Queue",
         "order": 2
@@ -16914,6 +17264,11 @@
         "sheet": "neetcode-150",
         "group": "Heap / Priority Queue",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 40: Heap / Priority Queue",
+        "order": 71
       },
       {
         "sheet": "ai-300",
@@ -17506,6 +17861,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 41: Heap / Priority Queue",
+        "order": 72
+      },
+      {
         "sheet": "ai-300",
         "group": "Heap / Priority Queue",
         "order": 0
@@ -17966,6 +18326,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 48: Tries",
+        "order": 82
+      },
+      {
         "sheet": "ai-300",
         "group": "Tries",
         "order": 0
@@ -18052,6 +18417,11 @@
         "sheet": "faang-2026",
         "group": "2 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 48: Tries",
+        "order": 83
       },
       {
         "sheet": "ai-300",
@@ -18404,6 +18774,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 50: Tries",
+        "order": 84
+      },
+      {
         "sheet": "ai-300",
         "group": "Tries",
         "order": 1
@@ -18686,6 +19061,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 45: Backtracking",
+        "order": 78
+      },
+      {
         "sheet": "ai-300",
         "group": "Backtracking",
         "order": 1
@@ -18782,6 +19162,11 @@
         "sheet": "faang-2026",
         "group": "FAANG Must Do",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 44: Backtracking",
+        "order": 75
       },
       {
         "sheet": "ai-300",
@@ -18888,6 +19273,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 45: Backtracking",
+        "order": 77
+      },
+      {
         "sheet": "ai-300",
         "group": "Backtracking",
         "order": 6
@@ -18980,6 +19370,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 46: Backtracking",
+        "order": 80
+      },
+      {
         "sheet": "ai-300",
         "group": "Backtracking",
         "order": 4
@@ -19069,6 +19464,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 44: Backtracking",
+        "order": 76
+      },
+      {
         "sheet": "ai-300",
         "group": "Backtracking",
         "order": 10
@@ -19136,6 +19536,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 46: Backtracking",
+        "order": 79
+      },
+      {
         "sheet": "ai-300",
         "group": "Backtracking",
         "order": 3
@@ -19195,6 +19600,11 @@
         "sheet": "neetcode-150",
         "group": "Backtracking",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 43: Backtracking",
+        "order": 74
       },
       {
         "sheet": "ai-300",
@@ -19276,6 +19686,11 @@
         "sheet": "faang-2026",
         "group": "Meta",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 43: Backtracking",
+        "order": 73
       },
       {
         "sheet": "ai-300",
@@ -19600,6 +20015,11 @@
         "sheet": "faang-2026",
         "group": "TikTok",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 47: Backtracking",
+        "order": 81
       },
       {
         "sheet": "ai-300",
@@ -20288,6 +20708,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 50: Graphs",
+        "order": 85
+      },
+      {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
         "order": 1
@@ -20418,6 +20843,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 54: Graphs",
+        "order": 92
+      },
+      {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
         "order": 2
@@ -20537,6 +20967,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 52: Graphs",
+        "order": 89
+      },
+      {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
         "order": 13
@@ -20648,6 +21083,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 54: Graphs",
+        "order": 93
+      },
+      {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
         "order": 4
@@ -20748,6 +21188,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 51: Graphs",
+        "order": 87
+      },
+      {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
         "order": 3
@@ -20841,6 +21286,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 51: Graphs",
+        "order": 86
+      },
+      {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
         "order": 9
@@ -20926,6 +21376,11 @@
         "sheet": "faang-2026",
         "group": "Google",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 53: Graphs",
+        "order": 90
       },
       {
         "sheet": "ai-300",
@@ -21081,6 +21536,11 @@
         "sheet": "neetcode-150",
         "group": "Graphs",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 53: Graphs",
+        "order": 91
       }
     ],
     "lcId": 130,
@@ -21227,6 +21687,11 @@
         "sheet": "neetcode-150",
         "group": "Graphs",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 55: Graphs",
+        "order": 94
       },
       {
         "sheet": "ai-300",
@@ -21891,6 +22356,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 55: Graphs",
+        "order": 95
+      },
+      {
         "sheet": "ai-300",
         "group": "Graphs (BFS / DFS)",
         "order": 5
@@ -22322,6 +22792,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 58: Graphs",
+        "order": 98
+      },
+      {
         "sheet": "ai-300",
         "group": "Advanced Graphs",
         "order": 2
@@ -22403,6 +22878,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 57: Graphs",
+        "order": 96
+      },
+      {
         "sheet": "ai-300",
         "group": "Advanced Graphs",
         "order": 3
@@ -22475,6 +22955,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 57: Graphs",
+        "order": 97
+      },
+      {
         "sheet": "ai-300",
         "group": "Advanced Graphs",
         "order": 4
@@ -22533,7 +23018,13 @@
         "freq": 31.9
       }
     ],
-    "sheets": [],
+    "sheets": [
+      {
+        "sheet": "sheet-150",
+        "group": "Day 52: Graphs",
+        "order": 88
+      }
+    ],
     "lcId": 547,
     "likes": 11391,
     "dislikes": 435,
@@ -22974,6 +23465,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 59: Graphs",
+        "order": 100
+      },
+      {
         "sheet": "ai-300",
         "group": "Advanced Graphs",
         "order": 6
@@ -23049,6 +23545,11 @@
         "sheet": "faang-2026",
         "group": "Google",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 58: Graphs",
+        "order": 99
       },
       {
         "sheet": "ai-300",
@@ -23479,6 +23980,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 74: Greedy",
+        "order": 124
+      },
+      {
         "sheet": "ai-300",
         "group": "Greedy",
         "order": 0
@@ -23582,6 +24088,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 74: Greedy",
+        "order": 125
+      },
+      {
         "sheet": "ai-300",
         "group": "Greedy",
         "order": 1
@@ -23671,6 +24182,11 @@
         "sheet": "faang-2026",
         "group": "TikTok",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 75: Greedy",
+        "order": 127
       },
       {
         "sheet": "ai-300",
@@ -23768,6 +24284,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 75: Greedy",
+        "order": 126
+      },
+      {
         "sheet": "ai-300",
         "group": "Greedy",
         "order": 6
@@ -23848,6 +24369,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 78: Greedy",
+        "order": 131
+      },
+      {
         "sheet": "ai-300",
         "group": "Greedy",
         "order": 3
@@ -23909,6 +24435,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 78: Greedy",
+        "order": 130
+      },
+      {
         "sheet": "ai-300",
         "group": "Greedy",
         "order": 4
@@ -23964,6 +24495,11 @@
         "sheet": "neetcode-150",
         "group": "Greedy",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 76: Greedy",
+        "order": 128
       },
       {
         "sheet": "ai-300",
@@ -24548,6 +25084,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 79: Intervals",
+        "order": 133
+      },
+      {
         "sheet": "ai-300",
         "group": "Intervals",
         "order": 0
@@ -24642,6 +25183,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 79: Intervals",
+        "order": 132
+      },
+      {
         "sheet": "ai-300",
         "group": "Intervals",
         "order": 2
@@ -24729,6 +25275,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 80: Intervals",
+        "order": 134
+      },
+      {
         "sheet": "ai-300",
         "group": "Intervals",
         "order": 1
@@ -24766,6 +25317,11 @@
         "sheet": "neetcode-150",
         "group": "Greedy",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 76: Greedy",
+        "order": 129
       },
       {
         "sheet": "ai-300",
@@ -25022,6 +25578,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 80: Intervals",
+        "order": 135
+      },
+      {
         "sheet": "ai-300",
         "group": "Intervals",
         "order": 4
@@ -25226,6 +25787,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 60: DP - 1D",
+        "order": 101
+      },
+      {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
         "order": 6
@@ -25279,6 +25845,11 @@
         "sheet": "neetcode-150",
         "group": "1-D Dynamic Programming",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 60: DP - 1D",
+        "order": 102
       }
     ],
     "lcId": 746,
@@ -25456,6 +26027,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 62: DP - 1D",
+        "order": 105
+      },
+      {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
         "order": 0
@@ -25563,6 +26139,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 64: DP - 1D",
+        "order": 108
+      },
+      {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
         "order": 1
@@ -25667,6 +26248,11 @@
         "sheet": "faang-2026",
         "group": "6 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 65: DP - 1D",
+        "order": 110
       },
       {
         "sheet": "ai-300",
@@ -25776,6 +26362,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 66: DP - 1D",
+        "order": 111
+      },
+      {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
         "order": 3
@@ -25871,6 +26462,11 @@
         "sheet": "faang-2026",
         "group": "2 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 65: DP - 1D",
+        "order": 109
       },
       {
         "sheet": "ai-300",
@@ -25977,6 +26573,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 61: DP - 1D",
+        "order": 103
+      },
+      {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
         "order": 9
@@ -26065,6 +26666,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 64: DP - 1D",
+        "order": 107
+      },
+      {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
         "order": 7
@@ -26145,6 +26751,11 @@
         "sheet": "neetcode-150",
         "group": "1-D Dynamic Programming",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 66: DP - 1D",
+        "order": 112
       },
       {
         "sheet": "ai-300",
@@ -26237,6 +26848,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 62: DP - 1D",
+        "order": 106
+      },
+      {
         "sheet": "ai-300",
         "group": "1-D Dynamic Programming",
         "order": 5
@@ -26312,6 +26928,11 @@
         "sheet": "faang-2026",
         "group": "2 companies",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 61: DP - 1D",
+        "order": 104
       },
       {
         "sheet": "ai-300",
@@ -27409,6 +28030,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 67: DP - 2D",
+        "order": 113
+      },
+      {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
         "order": 3
@@ -27502,6 +28128,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 69: DP - 2D",
+        "order": 118
+      },
+      {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
         "order": 9
@@ -27591,6 +28222,11 @@
         "sheet": "faang-2026",
         "group": "Recent",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 67: DP - 2D",
+        "order": 114
       },
       {
         "sheet": "ai-300",
@@ -27729,6 +28365,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 71: DP - 2D",
+        "order": 119
+      },
+      {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
         "order": 15
@@ -27787,6 +28428,11 @@
         "sheet": "neetcode-150",
         "group": "2-D Dynamic Programming",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 68: DP - 2D",
+        "order": 116
       },
       {
         "sheet": "ai-300",
@@ -27854,6 +28500,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 68: DP - 2D",
+        "order": 115
+      },
+      {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
         "order": 7
@@ -27911,6 +28562,11 @@
         "sheet": "neetcode-150",
         "group": "2-D Dynamic Programming",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 69: DP - 2D",
+        "order": 117
       }
     ],
     "lcId": 309,
@@ -28553,6 +29209,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 73: DP - 2D",
+        "order": 123
+      },
+      {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
         "order": 6
@@ -28646,6 +29307,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 71: DP - 2D",
+        "order": 120
+      },
+      {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
         "order": 5
@@ -28731,6 +29397,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 72: DP - 2D",
+        "order": 122
+      },
+      {
         "sheet": "ai-300",
         "group": "2-D Dynamic Programming",
         "order": 14
@@ -28791,6 +29462,11 @@
         "sheet": "neetcode-150",
         "group": "2-D Dynamic Programming",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 72: DP - 2D",
+        "order": 121
       }
     ],
     "lcId": 115,
@@ -29145,6 +29821,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 88: Bit Manipulation",
+        "order": 148
+      },
+      {
         "sheet": "ai-300",
         "group": "Bit Manipulation",
         "order": 2
@@ -29220,6 +29901,11 @@
         "sheet": "faang-2026",
         "group": "Tesla",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 87: Bit Manipulation",
+        "order": 147
       },
       {
         "sheet": "ai-300",
@@ -29300,6 +29986,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 86: Bit Manipulation",
+        "order": 144
+      },
+      {
         "sheet": "ai-300",
         "group": "Bit Manipulation",
         "order": 4
@@ -29377,6 +30068,11 @@
         "sheet": "faang-2026",
         "group": "Tesla",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 86: Bit Manipulation",
+        "order": 145
       },
       {
         "sheet": "ai-300",
@@ -29460,6 +30156,11 @@
         "sheet": "faang-2026",
         "group": "Tesla",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 87: Bit Manipulation",
+        "order": 146
       },
       {
         "sheet": "ai-300",
@@ -29690,6 +30391,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 89: Bit Manipulation",
+        "order": 150
+      },
+      {
         "sheet": "ai-300",
         "group": "Bit Manipulation",
         "order": 6
@@ -29753,6 +30459,11 @@
         "sheet": "faang-2026",
         "group": "Tesla",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 88: Bit Manipulation",
+        "order": 149
       },
       {
         "sheet": "ai-300",
@@ -30109,6 +30820,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 82: Math & Geometry",
+        "order": 139
+      },
+      {
         "sheet": "ai-300",
         "group": "Math & Geometry",
         "order": 4
@@ -30166,6 +30882,11 @@
         "sheet": "neetcode-150",
         "group": "Math & Geometry",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 83: Math & Geometry",
+        "order": 140
       },
       {
         "sheet": "ai-300",
@@ -30465,6 +31186,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 81: Math & Geometry",
+        "order": 136
+      },
+      {
         "sheet": "ai-300",
         "group": "Math & Geometry",
         "order": 0
@@ -30578,6 +31304,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 81: Math & Geometry",
+        "order": 137
+      },
+      {
         "sheet": "ai-300",
         "group": "Math & Geometry",
         "order": 2
@@ -30666,6 +31397,11 @@
         "sheet": "faang-2026",
         "group": "FAANG Must Do",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 82: Math & Geometry",
+        "order": 138
       },
       {
         "sheet": "ai-300",
@@ -30767,6 +31503,11 @@
         "order": 0
       },
       {
+        "sheet": "sheet-150",
+        "group": "Day 83: Math & Geometry",
+        "order": 141
+      },
+      {
         "sheet": "ai-300",
         "group": "Math & Geometry",
         "order": 3
@@ -30831,6 +31572,11 @@
         "sheet": "neetcode-150",
         "group": "Math & Geometry",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 85: Math & Geometry",
+        "order": 142
       },
       {
         "sheet": "ai-300",
@@ -30959,6 +31705,11 @@
         "sheet": "faang-2026",
         "group": "Google",
         "order": 0
+      },
+      {
+        "sheet": "sheet-150",
+        "group": "Day 85: Math & Geometry",
+        "order": 143
       },
       {
         "sheet": "ai-300",

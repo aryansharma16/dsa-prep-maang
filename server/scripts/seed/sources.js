@@ -39,6 +39,19 @@ export const FAANG_FILES = [
 export const FAANG_SHEET = 'faang-2026';
 
 /**
+ * Sheet 150 — a 90-day, pattern-by-pattern plan of 150 LeetCode problems.
+ *
+ * The one source with no upstream URL: it is a hand-kept list, committed as-is
+ * to data/raw/sheet-150.json (the `Roadmap` array of the spreadsheet export),
+ * so seed:fetch never touches it and there is nothing to re-download. Review and
+ * mock days carry no URL and are skipped; every other row must resolve to a
+ * free LeetCode problem or curation fails, rather than silently shrinking the
+ * sheet below 150.
+ */
+export const SHEET_150 = 'sheet-150';
+export const SHEET_150_FILE = 'sheet-150.json';
+
+/**
  * Weighted because a Google tag should count for more than a Cisco tag when
  * ranking what to study first.
  */

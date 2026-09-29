@@ -133,6 +133,15 @@ export function AppShell() {
 
   return (
     <div className={`shell ${navOpen ? 'nav-open' : ''}`}>
+      {/* The drifting lights behind all the glass — see `.ambient` in app.css.
+          First child on purpose: it paints before the positioned siblings. */}
+      <div className="ambient" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+
       <Sidebar
         collapsed={collapsed}
         peek={peek}

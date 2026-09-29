@@ -134,11 +134,12 @@ ordering *is* the ramp.
 | [Company tags](https://github.com/liquidslr/leetcode-company-wise-problems) | 20 companies, ask-frequency per problem |
 | [FAANG interview questions](https://github.com/ombharatiya/FAANG-Coding-Interview-Questions) | 271 problems reported asked at 22 companies in 2025-26 |
 | [LeetCode API](https://github.com/noworneverev/leetcode-api) | difficulty, topic tags, likes, statements on demand |
+| **Sheet 150** | a hand-kept 90-day plan of 150 problems, pattern by pattern — see below |
 | **AI-recommended 300** | computed here, not imported — see below |
 
 A problem's rank is `Σ(company weight × ask frequency)` plus a bonus for
-appearing on a curated sheet. Every problem on Striver's SDE Sheet, NeetCode 150
-or the FAANG list is kept regardless of rank, so those sheets stay complete.
+appearing on a curated sheet. Every problem on Striver's SDE Sheet, NeetCode 150,
+the FAANG list or Sheet 150 is kept regardless of rank, so those sheets stay complete.
 Premium problems are dropped — you can't open them.
 
 **The two company fields are not the same claim, which is why they are two
@@ -210,10 +211,30 @@ Re-running the seed is safe: it upserts by slug, prunes only retired problems
 nobody has touched, and never affects your progress or the problems you added
 yourself.
 
+### Sheet 150
+
+A 90-day plan — Arrays on day 1 through Bit Manipulation on day 89, a review day
+every seventh day and a final mock on day 90 — kept as a file rather than
+fetched: `server/data/raw/sheet-150.json`, the `Roadmap` array of the
+spreadsheet export. `seed:fetch` never touches it; to change the sheet, edit the
+file and run `npm run seed:curate && npm run seed:db`.
+
+Each row becomes a `sheet-150` membership whose group is `Day N: Pattern` and
+whose order is the row's `#`, so filtering by **Sheet 150** shows exactly the
+150, and the Sheets column tooltip tells you which day a problem belongs to.
+Review and mock days have no URL and are skipped. A row that does not resolve to
+a free LeetCode problem fails curation instead of shrinking the sheet.
+
+It carries no score bonus — 143 of its 150 are NeetCode 150 already, and
+counting it would count NeetCode twice — so adding it changed no problem's rank
+and no other sheet. All 150 were already among the 517. It sits after the FAANG
+list in `SHEET_LABEL`, so its `S150` badge only shows on a row that is on no
+other list, which today is one: Number of Provinces.
+
 ### The AI-recommended 300
 
-Four of the five sheets on the roadmap are imported — somebody else's list,
-carried in whole. The fifth is computed from the curated rows themselves at seed
+Five of the six sheets on the roadmap are imported — somebody else's list,
+carried in whole. The sixth is computed from the curated rows themselves at seed
 time by `server/scripts/seed/ai-sheet.js`, and it answers the question none of
 the others do: **if you only have time for three hundred, which three hundred?**
 
@@ -3205,9 +3226,10 @@ pastels wash out completely on white.
 
 ### The material
 
-The app is **one canvas with glass on it**. `.shell` paints an ambient wash —
-three soft radial lights that never move, the first of them in whichever accent
-you picked — and every panel above it is a translucent fill rather than a solid
+The app is **one canvas with glass on it**. `.shell` holds an ambient wash —
+four soft radial lights that drift slowly on out-of-phase loops, like Gemini's
+and YouTube's ambient backgrounds. Two are in whichever accent you picked
+(top-left and bottom-right), two are cool (indigo, fuchsia). Every panel above it is a translucent fill rather than a solid
 box, so the wash shows through and the whole app reads as one lit surface
 instead of forty grey rectangles. Hairline borders instead of hard ones, a
 single inset line of light along the top edge of each panel where a real pane
@@ -3246,13 +3268,17 @@ made that harmless for years, and translucency turned it into a double tint with
 a visible seam where the inner element stopped. The roadmap's pattern heading
 had exactly that — the row lit up brighter than the guide button beside it.
 
-**It costs nothing to scroll.** The wash lives on `.shell`, which is
-`height: 100%` and does not scroll — `.content` inside it owns the scrollbar —
-so it paints once at mount and again only on resize. Nothing in the material
-animates, nothing is on a scroll handler, and no part of it is a filter. On the
-roadmap with all 23 patterns expanded (517 rows in one scroll container),
-scrolling measures 32 fps against a 33 fps baseline before any of this landed —
-the same number, inside the noise.
+**It costs nothing to scroll.** The wash lives in `.ambient`, the first child
+of `.shell`, which is `height: 100%` and does not scroll — `.content` inside it
+owns the scrollbar. Each light is painted once; the drift animates only
+`transform` and `opacity`, which the compositor applies to the already-painted
+layer, so no frame of it repaints anything. Nothing is on a scroll handler and
+no part of it is a filter. `prefers-reduced-motion` stops the drift and leaves
+the lights parked, and background tabs throttle it. `.ambient` sits under the
+sidebar and `.main` by paint order (both are `position: relative`, no z-index),
+not by a stacking context, so modals and the chat dock still escape `.shell`.
+The 32 fps figure for the fully expanded roadmap (517 rows, against a 33 fps
+baseline) was measured with the static wash, before the drift.
 
 ## Adding your own problems
 
