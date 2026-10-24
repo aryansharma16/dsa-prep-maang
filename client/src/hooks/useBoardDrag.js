@@ -1,4 +1,96 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+/** How close to a scroll area's edge, in px, before a held card starts scrolling it. */
+const EDGE = 80;
+/** Pixels per frame at the very edge; it eases off linearly towards `EDGE`. */
+const MAX_SPEED = 22;
+
+const canScroll = (el, axis) => {
+  const style = getComputedStyle(el);
+  const overflow = axis === 'x' ? style.overflowX : style.overflowY;
+  if (!/(auto|scroll|overlay)/.test(overflow) && el !== document.scrollingElement) return false;
+  return axis === 'x' ? el.scrollWidth > el.clientWidth : el.scrollHeight > el.clientHeight;
+};
+
+/** Speed for a pointer at `pos` inside [start, end]: negative near start, positive near end. */
+const edgeSpeed = (pos, start, end) => {
+  if (pos < start + EDGE) return -MAX_SPEED * Math.min(1, (start + EDGE - pos) / EDGE);
+  if (pos > end - EDGE) return MAX_SPEED * Math.min(1, (pos - (end - EDGE)) / EDGE);
+  return 0;
+};
+
+/**
+ * Scrolls whatever is under a held card when it nears an edge.
+ *
+ * Native drag-and-drop barely auto-scrolls nested scroll areas, and on Linux
+ * the wheel is dead while a drag is in progress — so without this, a card at
+ * the bottom of a long column cannot reach a lane that is off screen.
+ *
+ * The areas considered are the ones around the pointer and the ones around the
+ * card being dragged — the second matters because the board's horizontal
+ * scroller can end well short of the window, so a pointer pushed to the screen
+ * edge is no longer over it. Per axis, the innermost area that can still move
+ * that way wins. Edges are measured on the on-screen part of each area, and a
+ * pointer past an edge counts as full speed.
+ */
+const ancestors = (el) => {
+  const list = [];
+  for (let node = el; node && node.nodeType === 1; node = node.parentElement) list.push(node);
+  return list;
+};
+
+function useDragAutoScroll(active, sourceRef) {
+  useEffect(() => {
+    if (!active) return undefined;
+    let point = null;
+    let frame = 0;
+
+    const onDragOver = (event) => {
+      point = { x: event.clientX, y: event.clientY, target: event.target };
+    };
+
+    const tick = () => {
+      frame = requestAnimationFrame(tick);
+      if (!point) return;
+      const done = { x: false, y: false };
+      const home = new Set(ancestors(sourceRef.current));
+      const areas = [...new Set([...ancestors(point.target), ...home])];
+      for (const el of areas) {
+        if (done.x && done.y) break;
+        const rect = el === document.documentElement
+          ? { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight }
+          : el.getBoundingClientRect();
+        const top = Math.max(rect.top, 0);
+        const bottom = Math.min(rect.bottom, window.innerHeight);
+        const left = Math.max(rect.left, 0);
+        const right = Math.min(rect.right, window.innerWidth);
+
+        for (const axis of ['x', 'y']) {
+          if (done[axis] || !canScroll(el, axis)) continue;
+          // An unrelated area (another column, say) only scrolls when the pointer is level with it.
+          // The board the card came from always does: it can be shorter than the window, and
+          // pushing the card to the screen edge below it should still scroll it.
+          const level = axis === 'x' ? point.y >= top && point.y <= bottom : point.x >= left && point.x <= right;
+          if (!level && !home.has(el)) continue;
+          const speed = axis === 'x' ? edgeSpeed(point.x, left, right) : edgeSpeed(point.y, top, bottom);
+          if (!speed) continue;
+          const before = axis === 'x' ? el.scrollLeft : el.scrollTop;
+          if (axis === 'x') el.scrollLeft += speed;
+          else el.scrollTop += speed;
+          // Already at the end that way — let an outer area take the scroll instead.
+          if ((axis === 'x' ? el.scrollLeft : el.scrollTop) !== before) done[axis] = true;
+        }
+      }
+    };
+
+    document.addEventListener('dragover', onDragOver, true);
+    frame = requestAnimationFrame(tick);
+    return () => {
+      document.removeEventListener('dragover', onDragOver, true);
+      cancelAnimationFrame(frame);
+    };
+  }, [active, sourceRef]);
+}
 
 /**
  * Dragging a card between and within the board's columns.
@@ -19,6 +111,10 @@ export function useBoardDrag({ idsIn, onDrop }) {
   const [dragging, setDragging] = useState(null);
   /** `{ status, index }` — where the line is drawn. */
   const [dropAt, setDropAt] = useState(null);
+
+  /** The card element in the hand, so auto-scroll can find the areas around it. */
+  const sourceRef = useRef(null);
+  useDragAutoScroll(Boolean(dragging), sourceRef);
 
   const reset = useCallback(() => {
     setDragging(null);
@@ -73,6 +169,7 @@ export function useBoardDrag({ idsIn, onDrop }) {
         event.dataTransfer.effectAllowed = 'move';
         // Firefox will not start a drag unless some data is set.
         event.dataTransfer.setData('text/plain', id);
+        sourceRef.current = event.currentTarget;
         setDragging({ id, status: statusId });
       },
       onDragEnd: reset,

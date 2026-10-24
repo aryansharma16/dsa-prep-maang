@@ -53,8 +53,78 @@ import {
 /** Long enough to swallow a burst of typing, short enough to feel saved. */
 const SAVE_DELAY = 600;
 
+/** A row of one-click answers under a field. The one matching the current value is lit. */
+function QuickChips({ chips, current, onPick }) {
+  return (
+    <span className="ap-quick">
+      {chips.map(({ label, value }) => (
+        <button
+          key={label}
+          type="button"
+          className={`toggle-chip ${value === current ? 'on' : ''}`}
+          onClick={() => onPick(value)}
+        >
+          {label}
+        </button>
+      ))}
+    </span>
+  );
+}
+
+/** Local midnight `days` from today, as the date input's `yyyy-mm-dd`. */
+const dayOffset = (days) => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return dateInputValue(date);
+};
+
+/*
+  Applied-on is almost always today or a day or two back (logging last night's
+  batch), and follow-up is almost always a fixed gap ahead. Chips make both one
+  click instead of a trip through the calendar picker.
+*/
+const APPLIED_CHIPS = [
+  ['Today', 0],
+  ['Yesterday', -1],
+  ['2 days ago', -2],
+  ['Last week', -7],
+];
+const FOLLOW_UP_CHIPS = [
+  ['In 3 days', 3],
+  ['In a week', 7],
+  ['In 2 weeks', 14],
+];
+
+/** A native date input with quick picks. Chips are rebuilt per render so "Today" never goes stale. */
+function QuickDate({ label, value, chips, onChange, hint, clearable }) {
+  const current = dateInputValue(value);
+  const options = chips.map(([chipLabel, days]) => ({ label: chipLabel, value: dayOffset(days) }));
+  return (
+    <div className="field">
+      <span>{label}</span>
+      <input
+        type="date"
+        aria-label={label}
+        value={current}
+        onChange={(e) => onChange(dateFromInput(e.target.value))}
+      />
+      <QuickChips
+        chips={clearable && current ? [...options, { label: 'Clear', value: '' }] : options}
+        current={current}
+        onPick={(picked) => onChange(dateFromInput(picked))}
+      />
+      {hint && <span className="field-hint">{hint}</span>}
+    </div>
+  );
+}
+
+const LEVEL_SUGGESTIONS = ['Intern', 'SDE-1', 'SDE-2', 'SDE-3'];
+const SOURCE_NOTE_SUGGESTIONS = ['Instahyre', 'Wellfound', 'Cutshort', 'Hirist', 'Off-campus sheet'];
+const ROLE_SUGGESTIONS = ['SDE-1', 'SDE-2', 'Senior SDE', 'EM', 'Recruiter'];
+
 /** A text field that commits on a debounce. Everything else commits on change. */
-function Debounced({ label, value, onCommit, hint, textarea, rows = 3, ...rest }) {
+function Debounced({ label, value, onCommit, hint, textarea, rows = 3, suggestions, ...rest }) {
   const [draft, setDraft] = useState(value || '');
   const committed = useRef(value || '');
 
@@ -75,6 +145,17 @@ function Debounced({ label, value, onCommit, hint, textarea, rows = 3, ...rest }
     return () => clearTimeout(timer);
   }, [draft, onCommit]);
 
+  /* Closing the drawer mid-debounce would otherwise drop the last few keystrokes. */
+  const latest = useRef({ draft, onCommit });
+  latest.current = { draft, onCommit };
+  useEffect(
+    () => () => {
+      const { draft: pending, onCommit: commit } = latest.current;
+      if (pending !== committed.current) commit(pending);
+    },
+    [],
+  );
+
   return (
     <label className="field">
       <span>{label}</span>
@@ -82,6 +163,18 @@ function Debounced({ label, value, onCommit, hint, textarea, rows = 3, ...rest }
         <textarea rows={rows} value={draft} onChange={(e) => setDraft(e.target.value)} {...rest} />
       ) : (
         <input value={draft} onChange={(e) => setDraft(e.target.value)} {...rest} />
+      )}
+      {suggestions && (
+        <QuickChips
+          chips={suggestions.map((s) => ({ label: s, value: s }))}
+          current={draft}
+          onPick={(picked) => {
+            // A click is a decision, not a burst of typing, so it saves now.
+            committed.current = picked;
+            setDraft(picked);
+            onCommit(picked);
+          }}
+        />
       )}
       {hint && <span className="field-hint">{hint}</span>}
     </label>
@@ -125,7 +218,8 @@ export function ApplicationDrawer({
 
   return (
     <>
-      <div className="ap-drawer-scrim" onMouseDown={onClose} aria-hidden="true" />
+      {/* onClick, not onMouseDown: the press must blur the field you were in first, so it saves. */}
+      <div className="ap-drawer-scrim" onClick={onClose} aria-hidden="true" />
 
       <aside className="ap-drawer" ref={panelRef} role="dialog" aria-label={app.company}>
         <header className="ap-drawer-head" data-hue={stageHue(app.stage)}>
@@ -232,6 +326,7 @@ export function ApplicationDrawer({
                   value={app.level}
                   maxLength={60}
                   placeholder="SDE-1, L4…"
+                  suggestions={LEVEL_SUGGESTIONS}
                   onCommit={(level) => onPatch({ level })}
                 />
               </div>
@@ -307,31 +402,26 @@ export function ApplicationDrawer({
                 value={app.sourceNote}
                 maxLength={200}
                 placeholder="Instahyre, the off-campus sheet…"
+                suggestions={SOURCE_NOTE_SUGGESTIONS}
                 onCommit={(sourceNote) => onPatch({ sourceNote })}
               />
 
               <div className="field-row">
-                <label className="field">
-                  <span>Applied on</span>
-                  <input
-                    type="date"
-                    value={dateInputValue(app.appliedAt)}
-                    onChange={(e) => onPatch({ appliedAt: dateFromInput(e.target.value) })}
-                  />
-                  <span className="field-hint">
-                    Every number in the report counts from this date, so set it if you are
-                    logging an old one.
-                  </span>
-                </label>
-                <label className="field">
-                  <span>Follow up by</span>
-                  <input
-                    type="date"
-                    value={dateInputValue(app.followUpBy)}
-                    onChange={(e) => onPatch({ followUpBy: dateFromInput(e.target.value) })}
-                  />
-                  <span className="field-hint">Overdue ones show in the top bar.</span>
-                </label>
+                <QuickDate
+                  label="Applied on"
+                  value={app.appliedAt}
+                  chips={APPLIED_CHIPS}
+                  onChange={(appliedAt) => onPatch({ appliedAt })}
+                  hint="Every number in the report counts from this date, so set it if you are logging an old one."
+                />
+                <QuickDate
+                  label="Follow up by"
+                  value={app.followUpBy}
+                  chips={FOLLOW_UP_CHIPS}
+                  clearable
+                  onChange={(followUpBy) => onPatch({ followUpBy })}
+                  hint="Overdue ones show in the top bar."
+                />
               </div>
 
               {/* --------------------------------------------------- links */}
@@ -418,6 +508,7 @@ export function ApplicationDrawer({
                     value={app.referrer?.title}
                     maxLength={120}
                     placeholder="SDE-2"
+                    suggestions={app.referrer?.name ? ROLE_SUGGESTIONS : undefined}
                     onCommit={(title) =>
                       app.referrer && onPatch({ referrer: { ...app.referrer, title } })
                     }

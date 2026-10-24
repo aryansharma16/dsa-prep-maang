@@ -8873,6 +8873,20 @@ a.tile.attention:hover {
 .tk-deadline .hint {
   margin: 7px 0 0;
 }
+
+/* One-click answers under an application field. More specific than
+   `.field > span`, which would otherwise style this row like a label. */
+.field > .ap-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 7px 0 0;
+}
+.ap-quick .toggle-chip {
+  height: 24px;
+  font-size: 11.5px;
+  padding: 0 8px;
+}
 .hint.danger {
   color: var(--danger);
 }

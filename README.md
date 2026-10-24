@@ -1667,6 +1667,12 @@ the guide editor's swap-on-hover, which mutates the list under the pointer while
 you are still deciding, so a drag across four cards shuffles all four and the
 drop lands somewhere you did not choose.
 
+Holding a card near the edge of the board, or of the page, scrolls it — faster
+the closer you get — so a card at the bottom of a long column can still reach a
+lane that is off screen. Native drag-and-drop barely does this for nested
+scroll areas and blocks the wheel on Linux, so `useBoardDrag` does it itself;
+the Applications board gets the same behaviour from the same hook.
+
 Drag is a shortcut, not the only path. Every card has a `…` menu with **Move
 to**, and `[` / `]` move a focused card between columns — a touchscreen has no
 hover and a keyboard has no drag. Same argument the column layout editor makes
@@ -1909,6 +1915,13 @@ channel that works and one that does not.
 reached, `appliedAt` the first time a card leaves the wishlist, and `closedAt`
 when it lands in Closed — with no form in the way. Closed defaults to
 *rejected*; the other two endings are one click on the chip.
+
+**The drawer's Details tab is built to fill in fast.** Applied on has *Today*,
+*Yesterday*, *2 days ago* and *Last week*; Follow up by has *In 3 days*, *In a
+week*, *In 2 weeks* and *Clear*; Level, Which one and the referrer's role offer
+the usual answers as chips. A chip saves on the click, and the one matching the
+current value is lit. Edits are never lost to closing the drawer — X, a click
+outside or Escape all save the field you were in first.
 
 The stages are fixed and the **column names are yours**. Rename In Process to
 *Grinding* and every number still lands in the same bucket, because the

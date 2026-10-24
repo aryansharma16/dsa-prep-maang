@@ -90,6 +90,20 @@ export function TaskDrawer({
     return () => clearTimeout(timer);
   }, [draft, onPatch]);
 
+  /* Closing the drawer mid-debounce would otherwise drop the last few keystrokes. */
+  const latest = useRef({ draft, onPatch });
+  latest.current = { draft, onPatch };
+  useEffect(
+    () => () => {
+      const { draft: pending, onPatch: patch } = latest.current;
+      const changed = {};
+      if (pending.title.trim() && pending.title !== saved.current.title) changed.title = pending.title.trim();
+      if (pending.notes !== saved.current.notes) changed.notes = pending.notes;
+      if (Object.keys(changed).length) patch(changed);
+    },
+    [],
+  );
+
   const status = statuses.find((entry) => String(entry.id) === String(task.status));
 
   /** A linked question, plus whatever the roadmap currently knows about it. */
@@ -143,7 +157,8 @@ export function TaskDrawer({
 
   return (
     <>
-      <div className="tk-drawer-scrim" onMouseDown={onClose} />
+      {/* onClick, not onMouseDown: the press must blur the field you were in first, so it saves. */}
+      <div className="tk-drawer-scrim" onClick={onClose} />
       <aside
         className="tk-drawer"
         ref={panelRef}

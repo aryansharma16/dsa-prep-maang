@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -22,6 +22,18 @@ export const isAnyModalOpen = () => stack.length > 0;
  * `ref` is the element that owns the focus trap — the dialog or drawer panel.
  */
 export function useDialog(ref, { onClose, initialFocus } = {}) {
+  /*
+    Callers pass `onClose` inline, so it is a new function on every render. If
+    it were an effect dependency, every parent re-render (an autosave landing,
+    say) would tear the dialog down and set it up again — and setup moves focus
+    to `initialFocus`, yanking the caret out of whatever field you were typing
+    in. So the effect runs once per open and reads the latest values from refs.
+  */
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const initialFocusRef = useRef(initialFocus);
+  initialFocusRef.current = initialFocus;
+
   useEffect(() => {
     // Dialogs can stack (a confirm over a panel). All their capture listeners see every key, and
     // stopPropagation cannot stop listeners on the same node — so each checks it is the top one.
@@ -31,14 +43,16 @@ export function useDialog(ref, { onClose, initialFocus } = {}) {
     const node = ref.current;
 
     const focusables = () => [...node.querySelectorAll(FOCUSABLE)];
-    (initialFocus?.current || focusables()[0] || node).focus();
+    (initialFocusRef.current?.current || focusables()[0] || node).focus();
 
     const onKey = (event) => {
       if (stack.at(-1) !== token) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        onClose();
+        // Blur first, so a field that saves on blur gets to save before it unmounts.
+        if (node.contains(document.activeElement)) document.activeElement.blur?.();
+        onCloseRef.current?.();
         return;
       }
       if (event.key !== 'Tab') return;
@@ -65,5 +79,5 @@ export function useDialog(ref, { onClose, initialFocus } = {}) {
       stack.splice(stack.indexOf(token), 1);
       restoreTo?.focus?.();
     };
-  }, [ref, onClose, initialFocus]);
+  }, [ref]);
 }

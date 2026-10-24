@@ -139,7 +139,13 @@ export function Applications() {
 
   /** One answer from the server replaces both copies. */
   const absorb = useCallback((application) => {
-    setRecord(application);
+    /*
+      Only into a drawer that is still open on this application. Clicking X
+      blurs the company/role input, which sends a save; its answer lands after
+      the drawer has closed, and writing it in unconditionally would bring the
+      drawer back — with `openId` already null, so X could not close it again.
+    */
+    setRecord((prev) => (prev && prev.id === application.id ? application : prev));
     setApps((prev) =>
       prev.map((app) => (app.id === application.id ? { ...app, ...application } : app)),
     );
@@ -468,7 +474,10 @@ export function Applications() {
           app={record}
           board={board}
           busy={busy}
-          onClose={() => setOpenId(null)}
+          onClose={() => {
+            setOpenId(null);
+            setRecord(null);
+          }}
           onPatch={(patch) =>
             run(() => applicationsApi.update(record.id, patch), 'Could not save that')
           }
