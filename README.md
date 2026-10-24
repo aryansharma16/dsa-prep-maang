@@ -1927,7 +1927,10 @@ The stages are fixed and the **column names are yours**. Rename In Process to
 *Grinding* and every number still lands in the same bucket, because the
 server knows what `in_process` means and would not know what a column you
 invented means. Columns cannot be added or deleted for the same reason; one
-you never use can be hidden.
+you never use can be hidden. **The order is yours too**: in the board dialog
+(the pencil by the live count), drag a lane by its grip or use its up/down
+arrows. Order is presentation only, so moving Closed first changes where it is
+drawn and nothing it counts.
 
 Two definitions are written down because the funnel is worthless without them:
 **Screening** is a human replied — a recruiter call or an online test is in
@@ -2082,7 +2085,13 @@ notes. Upload a PDF or Word file, or paste a link. "New version" uploads a newer
 version of a resume: versions share a `family`, the newest is the card and the
 older ones sit under "Older versions" with their own Preview, Open and Delete.
 Each card shows a live thumbnail of the resume's first page; clicking it (or
-the title) opens the full preview. Card actions: Open (green, new tab), Copy URL
+the title) opens the full preview. The server pulls each CV from storage on
+request, which can take over ten seconds, so while it is on its way the card
+shows a small page writing itself (name, sections, bullets, with a status line
+like *Laying out experience*) until the PDF has actually painted. A failed
+download retries on its own — 1s, 2s, 4s, 8s, then every 15s while the card is
+on screen, and an attempt silent for 60s is dropped and retried — with the
+loader saying *Storage is slow — trying again* instead of looking stuck. Card actions: Open (green, new tab), Copy URL
 (a direct link: the original URL for a link resume, the app's file address for
 an upload, which opens only when signed in, since a CV carries your contact
 details), New version, Edit and Delete (red). **Preview** shows the resume inside the app (PDFs in the browser's viewer; Word

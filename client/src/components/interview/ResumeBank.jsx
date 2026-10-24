@@ -35,12 +35,27 @@ const blobUrls = new Map();
 
 const isPdfResume = (r) => r.source !== 'link' && (r.format || '').toLowerCase() === 'pdf';
 
+/*
+  The server pulls each CV from storage on every request, and that can take
+  well over ten seconds on a slow link. One attempt gets this long; a request
+  that has gone silent past it is dropped and tried again, rather than leaving
+  the card on a spinner forever.
+*/
+const ATTEMPT_LIMIT_MS = 60_000;
+/** Waits between attempts: 1s, 2s, 4s, 8s, then every 15s for as long as the card is on screen. */
+const retryDelay = (attempt) => Math.min(15_000, 1000 * 2 ** (attempt - 1));
+
 async function resumeObjectUrl(resume) {
   if (blobUrls.has(resume.id)) return blobUrls.get(resume.id);
-  const pending = resumeBankApi.blob(resume.id).then((data) => {
-    const type = isPdfResume(resume) ? 'application/pdf' : data.type || 'application/octet-stream';
-    return URL.createObjectURL(new Blob([data], { type }));
-  });
+  const controller = new AbortController();
+  const limit = setTimeout(() => controller.abort(), ATTEMPT_LIMIT_MS);
+  const pending = resumeBankApi
+    .blob(resume.id, { signal: controller.signal })
+    .then((data) => {
+      const type = isPdfResume(resume) ? 'application/pdf' : data.type || 'application/octet-stream';
+      return URL.createObjectURL(new Blob([data], { type }));
+    })
+    .finally(() => clearTimeout(limit));
   blobUrls.set(resume.id, pending);
   try {
     const url = await pending;
@@ -52,20 +67,119 @@ async function resumeObjectUrl(resume) {
   }
 }
 
-/** The object URL for a PDF resume, or null while loading / for non-PDFs. */
+/**
+ * The object URL for a PDF resume, retried until it arrives.
+ *
+ * Never gives up while mounted: a failed or timed-out attempt waits a little
+ * (longer each time, capped at 15s) and goes again. `attempt` and `error` are
+ * there so the loader can say it is retrying rather than look stuck.
+ */
 function useResumeUrl(resume) {
-  const [state, setState] = useState({ url: null, error: '' });
+  const [state, setState] = useState({ url: null, error: '', attempt: 1 });
   useEffect(() => {
     if (!isPdfResume(resume)) return undefined;
     let cancelled = false;
-    resumeObjectUrl(resume)
-      .then((url) => !cancelled && setState({ url, error: '' }))
-      .catch((err) => !cancelled && setState({ url: null, error: errorMessage(err, 'Could not load the file') }));
+    let timer;
+    const tryLoad = (attempt) => {
+      resumeObjectUrl(resume)
+        .then((url) => !cancelled && setState({ url, error: '', attempt }))
+        .catch((err) => {
+          if (cancelled) return;
+          setState({ url: null, error: errorMessage(err, 'Could not load the file'), attempt: attempt + 1 });
+          timer = setTimeout(() => tryLoad(attempt + 1), retryDelay(attempt));
+        });
+    };
+    setState({ url: null, error: '', attempt: 1 });
+    tryLoad(1);
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, [resume.id]); // eslint-disable-line react-hooks/exhaustive-deps
   return state;
+}
+
+const BUILD_STEPS = [
+  'Collecting your details',
+  'Laying out experience',
+  'Lining up projects',
+  'Polishing bullet points',
+  'Setting the type',
+  'Rendering the page',
+];
+
+/**
+ * What shows while a resume is on its way: a little page that writes itself —
+ * name, contact line, sections, bullets — with a status line underneath. It
+ * keeps going through retries, and says so, so a slow file reads as work in
+ * progress rather than a broken card.
+ */
+function ResumeBuilding({ attempt = 1, error = '', large = false }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setStep((s) => (s + 1) % BUILD_STEPS.length), 1600);
+    return () => clearInterval(id);
+  }, []);
+  const retrying = attempt > 1;
+  return (
+    <span className={`rbk-build ${large ? 'large' : ''}`} role="status" aria-live="polite">
+      <span className="rbk-build-page" aria-hidden="true">
+        <span className="rbk-build-line name" />
+        <span className="rbk-build-line contact" />
+        <span className="rbk-build-line head" />
+        <span className="rbk-build-line" />
+        <span className="rbk-build-line short" />
+        <span className="rbk-build-line" />
+        <span className="rbk-build-line head" />
+        <span className="rbk-build-line" />
+        <span className="rbk-build-line short" />
+        <span className="rbk-build-scan" />
+      </span>
+      <span className="rbk-build-status">
+        {retrying ? (
+          <>
+            <b>Storage is slow — trying again</b>
+            <small title={error}>attempt {attempt}</small>
+          </>
+        ) : (
+          <b key={step} className="rbk-build-step">
+            {BUILD_STEPS[step]}
+            <span className="rbk-build-dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+          </b>
+        )}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * A PDF in the browser's viewer, with the builder over it until the viewer has
+ * actually drawn — the file arriving is not the same as the page being on
+ * screen, and a blank white box in between is the annoying part.
+ */
+function PdfFrame({ url, title, hash, attempt, error, large }) {
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => setDrawn(false), [url]);
+  return (
+    <>
+      {url && (
+        <iframe
+          title={title}
+          src={`${url}${hash}`}
+          tabIndex={large ? 0 : -1}
+          aria-hidden={large ? undefined : 'true'}
+          className={drawn ? 'drawn' : ''}
+          // The PDF viewer fires load a beat before it paints; a short grace hides the white flash.
+          onLoad={() => setTimeout(() => setDrawn(true), 350)}
+        />
+      )}
+      {!drawn && <ResumeBuilding attempt={attempt} error={error} large={large} />}
+    </>
+  );
 }
 
 /**
@@ -75,25 +189,24 @@ function useResumeUrl(resume) {
  */
 function Thumb({ resume, onOpen }) {
   const pdf = isPdfResume(resume);
-  const { url, error } = useResumeUrl(resume);
+  const { url, error, attempt } = useResumeUrl(resume);
   return (
     <button type="button" className="rbk-thumb" onClick={onOpen} title="Open the full preview">
-      {pdf && url ? (
-        <iframe
+      {pdf ? (
+        <PdfFrame
+          url={url}
           title={`Thumbnail of ${resume.label}`}
-          src={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-          tabIndex={-1}
-          aria-hidden="true"
+          hash="#toolbar=0&navpanes=0&scrollbar=0&view=FitH"
+          attempt={attempt}
+          error={error}
         />
       ) : (
         <span className="rbk-thumb-none">
           <IconFile size={26} />
           <small>
-            {!pdf
-              ? resume.source === 'link'
-                ? 'Link · click to open'
-                : `${(resume.format || 'File').toUpperCase()} · no preview`
-              : error || 'Loading…'}
+            {resume.source === 'link'
+              ? 'Link · click to open'
+              : `${(resume.format || 'File').toUpperCase()} · no preview`}
           </small>
         </span>
       )}
@@ -143,22 +256,27 @@ const toLines = (resumes) => {
  */
 function Preview({ resume, onClose }) {
   const isPdf = isPdfResume(resume);
-  const { url, error } = useResumeUrl(resume);
+  const { url, error, attempt } = useResumeUrl(resume);
 
   return (
     <Modal title={resume.label} onClose={onClose} size="xl">
       <div className="rbk-preview">
-        {isPdf && url ? (
-          <iframe title={`Preview of ${resume.label}`} src={`${url}#view=FitH`} />
+        {isPdf ? (
+          <PdfFrame
+            url={url}
+            title={`Preview of ${resume.label}`}
+            hash="#view=FitH"
+            attempt={attempt}
+            error={error}
+            large
+          />
         ) : (
           <div className="rbk-preview-none">
             <IconFile size={28} />
             <p>
-              {!isPdf
-                ? resume.source === 'link'
-                  ? 'This resume is a link to another site, which cannot be shown inside the app.'
-                  : `${(resume.format || 'This file').toUpperCase()} files cannot be previewed in the browser. Upload a PDF version to preview it here.`
-                : error || 'Loading the resume…'}
+              {resume.source === 'link'
+                ? 'This resume is a link to another site, which cannot be shown inside the app.'
+                : `${(resume.format || 'This file').toUpperCase()} files cannot be previewed in the browser. Upload a PDF version to preview it here.`}
             </p>
           </div>
         )}

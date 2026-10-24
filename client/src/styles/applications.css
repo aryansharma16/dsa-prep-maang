@@ -1250,6 +1250,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-bottom: 16px;
 }
 .ap-lane-row {
   display: flex;
@@ -1271,6 +1272,17 @@
 }
 .ap-lane-row > input:focus {
   border-color: rgb(var(--accent-rgb) / 0.5);
+}
+.ap-lane-row.dragging {
+  opacity: 0.55;
+}
+.ap-lane-grip {
+  display: flex;
+  color: var(--text-3);
+  cursor: grab;
+}
+.ap-lane-grip:hover {
+  color: var(--text);
 }
 .ap-lane-hide {
   display: inline-flex;

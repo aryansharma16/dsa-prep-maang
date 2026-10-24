@@ -1,8 +1,17 @@
 import { useRef, useState } from 'react';
 
 import { Dropdown } from '../ui/Dropdown.jsx';
+import { IconChevronRight, IconGrip } from '../ui/Icons.jsx';
 import { Modal } from '../ui/Modal.jsx';
 import { CURRENCY_OPTIONS } from './vocab.js';
+
+const move = (list, from, to) => {
+  if (to < 0 || to >= list.length || from === to) return list;
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+};
 
 /**
  * What you call each lane.
@@ -19,9 +28,19 @@ import { CURRENCY_OPTIONS } from './vocab.js';
  * the vocabulary, so an application already sitting in a hidden lane is still
  * valid data and still counts — it is reachable from search and from the
  * drawer's stage dropdown, which offers all nine regardless.
+ *
+ * Order is yours too. It is presentation only — `order` on each column — so
+ * putting Closed first changes where the lane is drawn and nothing about what
+ * it counts.
  */
 export function ColumnLabelsModal({ board, onSave, onClose }) {
   const firstRef = useRef(null);
+
+  /** Lane keys in the order they will be drawn. */
+  const [order, setOrder] = useState(() => board.columns.map((column) => column.key));
+  /** Index of the row in the hand, while dragging. */
+  const [dragging, setDragging] = useState(null);
+  const byKey = Object.fromEntries(board.columns.map((column) => [column.key, column]));
 
   const [labels, setLabels] = useState(
     Object.fromEntries(board.columns.map((column) => [column.key, column.label])),
@@ -41,10 +60,11 @@ export function ColumnLabelsModal({ board, onSave, onClose }) {
 
     try {
       await onSave({
-        columns: board.columns.map((column) => ({
-          key: column.key,
-          label: (labels[column.key] || '').trim() || column.label,
-          hidden: Boolean(hidden[column.key]),
+        columns: order.map((key, index) => ({
+          key,
+          label: (labels[key] || '').trim() || byKey[key].label,
+          hidden: Boolean(hidden[key]),
+          order: index,
         })),
         defaultCurrency: currency,
         staleAfterDays: Number(staleAfterDays) || 21,
@@ -61,13 +81,44 @@ export function ColumnLabelsModal({ board, onSave, onClose }) {
       <form onSubmit={submit}>
         <div className="modal-body">
           <p className="ap-muted">
-            Rename a lane to whatever you call it. The stages underneath do not change, so nothing
-            in the report moves.
+            Rename a lane to whatever you call it, and drag the grip to reorder. The stages
+            underneath do not change, so nothing in the report moves.
           </p>
 
           <div className="ap-lane-rows">
-            {board.columns.map((column, index) => (
-              <div key={column.key} className="ap-lane-row" data-hue={column.hue}>
+            {order.map((key, index) => {
+              const column = byKey[key];
+              return (
+              <div
+                key={column.key}
+                className={`ap-lane-row ${dragging === index ? 'dragging' : ''}`}
+                data-hue={column.hue}
+                onDragOver={(event) => {
+                  if (dragging === null) return;
+                  event.preventDefault();
+                  if (dragging === index) return;
+                  // Live reorder: six rows, so moving them under the pointer reads clearly.
+                  setOrder((prev) => move(prev, dragging, index));
+                  setDragging(index);
+                }}
+                onDrop={(event) => event.preventDefault()}
+              >
+                {/* Only the grip drags, so selecting text in the name still works. */}
+                <span
+                  className="ap-lane-grip"
+                  title="Drag to reorder"
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', column.key);
+                    const row = event.currentTarget.parentElement;
+                    event.dataTransfer.setDragImage(row, 12, row.offsetHeight / 2);
+                    setDragging(index);
+                  }}
+                  onDragEnd={() => setDragging(null)}
+                >
+                  <IconGrip size={14} />
+                </span>
                 <i className="ap-dot" aria-hidden="true" />
                 <input
                   ref={index === 0 ? firstRef : undefined}
@@ -91,8 +142,31 @@ export function ColumnLabelsModal({ board, onSave, onClose }) {
                   />
                   <span>Show</span>
                 </label>
+                <span className="col-move">
+                  <button
+                    type="button"
+                    className="icon-btn up"
+                    disabled={index === 0}
+                    title="Move up"
+                    aria-label={`Move ${labels[key] || column.label} up`}
+                    onClick={() => setOrder((prev) => move(prev, index, index - 1))}
+                  >
+                    <IconChevronRight size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn down"
+                    disabled={index === order.length - 1}
+                    title="Move down"
+                    aria-label={`Move ${labels[key] || column.label} down`}
+                    onClick={() => setOrder((prev) => move(prev, index, index + 1))}
+                  >
+                    <IconChevronRight size={12} />
+                  </button>
+                </span>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="field-row">

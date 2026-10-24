@@ -388,7 +388,8 @@ export const resumeBankApi = {
    * refresh an expired access token, so it fails with 401 once the session's
    * short-lived token has lapsed. This one refreshes and retries like any call.
    */
-  blob: (id) => http.get(`/interview/resumes/${id}/file`, { responseType: 'blob' }).then((r) => r.data),
+  blob: (id, { signal } = {}) =>
+    http.get(`/interview/resumes/${id}/file`, { responseType: 'blob', signal }).then((r) => r.data),
 };
 
 export const feedbackApi = {

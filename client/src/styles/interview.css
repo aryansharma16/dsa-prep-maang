@@ -2840,8 +2840,201 @@ a.rd-li {
 
 /* In-app preview. */
 .rbk-preview {
+  position: relative;
   height: min(78vh, 980px);
   background: var(--surface-2);
+}
+
+/* -------------------------------------------------- the resume "building" loader */
+
+/* The PDF stays invisible until the viewer has painted, then fades in over the builder. */
+.rbk-thumb iframe,
+.rbk-preview iframe {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.rbk-thumb iframe.drawn,
+.rbk-preview iframe.drawn {
+  opacity: 1;
+}
+
+.rbk-build {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background:
+    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 65%),
+    var(--surface-2);
+  pointer-events: none;
+}
+
+/* A small sheet of paper. Its lines write themselves in, top to bottom, on a loop. */
+.rbk-build-page {
+  --w: 128px;
+  position: relative;
+  width: var(--w);
+  aspect-ratio: 1 / 1.3;
+  padding: 12px 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 5px;
+  /* Its own paper and ink: theme surfaces can be translucent, which would wash the lines out. */
+  --ink: #2b313c;
+  background: #f3f4f6;
+  box-shadow:
+    0 10px 28px rgb(0 0 0 / 0.35),
+    0 0 0 1px color-mix(in srgb, var(--text) 20%, transparent);
+  overflow: hidden;
+  animation: rbk-float 3.2s ease-in-out infinite;
+}
+.rbk-build.large .rbk-build-page {
+  --w: 210px;
+  padding: 20px 20px 0;
+  gap: 10px;
+}
+
+.rbk-build-line {
+  display: block;
+  height: 4px;
+  width: 100%;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 38%, transparent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: rbk-write 4.8s ease-out infinite;
+}
+.rbk-build.large .rbk-build-line {
+  height: 6px;
+}
+.rbk-build-line.name {
+  width: 62%;
+  height: 8px;
+  background: var(--ink);
+}
+.rbk-build.large .rbk-build-line.name {
+  height: 12px;
+}
+.rbk-build-line.contact {
+  width: 80%;
+  height: 3px;
+  margin-bottom: 4px;
+}
+.rbk-build-line.head {
+  width: 38%;
+  margin-top: 4px;
+  background: var(--accent);
+}
+.rbk-build-line.short {
+  width: 72%;
+}
+/* Stagger: each line starts a beat after the one above it. */
+.rbk-build-line:nth-child(1) { animation-delay: 0s; }
+.rbk-build-line:nth-child(2) { animation-delay: 0.25s; }
+.rbk-build-line:nth-child(3) { animation-delay: 0.55s; }
+.rbk-build-line:nth-child(4) { animation-delay: 0.8s; }
+.rbk-build-line:nth-child(5) { animation-delay: 1.05s; }
+.rbk-build-line:nth-child(6) { animation-delay: 1.3s; }
+.rbk-build-line:nth-child(7) { animation-delay: 1.6s; }
+.rbk-build-line:nth-child(8) { animation-delay: 1.85s; }
+.rbk-build-line:nth-child(9) { animation-delay: 2.1s; }
+
+/* A soft light sweeping down the page, like it is being scanned in. */
+.rbk-build-scan {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 26%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--accent) 28%, transparent),
+    transparent
+  );
+  animation: rbk-scan 2.4s ease-in-out infinite;
+}
+
+.rbk-build-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 34px;
+  padding: 0 12px;
+  text-align: center;
+}
+.rbk-build-status b {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.rbk-build.large .rbk-build-status b {
+  font-size: 14px;
+}
+.rbk-build-status small {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.rbk-build-step {
+  animation: rbk-step-in 0.35s ease-out;
+}
+.rbk-build-dots {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 3px;
+}
+.rbk-build-dots i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: rbk-dot 1.2s ease-in-out infinite;
+}
+.rbk-build-dots i:nth-child(2) { animation-delay: 0.2s; }
+.rbk-build-dots i:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes rbk-write {
+  0% { transform: scaleX(0); opacity: 0.4; }
+  18% { transform: scaleX(1); opacity: 1; }
+  82% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes rbk-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(400%); }
+}
+@keyframes rbk-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes rbk-step-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rbk-dot {
+  0%, 80%, 100% { opacity: 0.25; }
+  40% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rbk-build-page,
+  .rbk-build-scan,
+  .rbk-build-step,
+  .rbk-build-dots i {
+    animation: none;
+  }
+  .rbk-build-line {
+    animation: none;
+    transform: none;
+  }
+  .rbk-build-scan {
+    display: none;
+  }
 }
 
 .rbk-preview iframe {
