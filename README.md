@@ -1394,8 +1394,10 @@ a box that does nothing.
 it cuts across the sections — binary search turns up inside Sorting and inside
 Intervals, and picking it collects both.
 
-Topics and companies are multi-select. Ticking several is OR within the field and
-AND across fields: two companies and Hard means *asked at either, and hard*. The
+Sheets, topics and companies are multi-select. Ticking several is OR within the field and
+AND across fields: two companies and Hard means *asked at either, and hard*;
+Blind 75 plus NeetCode 150 is the union of the two lists. A sheet saved before
+this was multi-select comes back as a one-sheet set. The
 menu stays open across picks and keeps what you typed into it, so choosing four
 companies is one gesture; what you chose shows as accent chips under the control,
 and clicking a chip takes it back off. The count on the **Filters** chip counts

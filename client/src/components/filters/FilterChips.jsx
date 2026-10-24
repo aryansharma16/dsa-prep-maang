@@ -13,7 +13,7 @@ import { IconClose } from '../ui/Icons.jsx';
  * pattern's outline, the active filter chip, the ticked row in the menu. A
  * selected filter is the same fact, so it should not be a different colour.
  */
-export function FilterChips({ values, onRemove, onClear, noun = 'filter' }) {
+export function FilterChips({ values, onRemove, onClear, noun = 'filter', labelOf = (v) => v }) {
   if (!values.length) return null;
 
   return (
@@ -24,10 +24,10 @@ export function FilterChips({ values, onRemove, onClear, noun = 'filter' }) {
           type="button"
           className="filter-chip"
           onClick={() => onRemove(value)}
-          title={`Remove ${value}`}
-          aria-label={`Remove ${noun} ${value}`}
+          title={`Remove ${labelOf(value)}`}
+          aria-label={`Remove ${noun} ${labelOf(value)}`}
         >
-          <span className="nm">{value}</span>
+          <span className="nm">{labelOf(value)}</span>
           <IconClose size={9} />
         </button>
       ))}

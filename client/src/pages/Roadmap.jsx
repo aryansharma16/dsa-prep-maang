@@ -90,7 +90,7 @@ export function Roadmap() {
     pattern sections. Nothing else on the page, and no count outside this
     view, ever sees them.
   */
-  const wantsExtras = filters.sheet === 'kit-360';
+  const wantsExtras = filters.sheet.includes('kit-360');
   useEffect(() => {
     if (wantsExtras || filtersOpen) loadExtras();
   }, [wantsExtras, filtersOpen, loadExtras]);
@@ -154,14 +154,11 @@ export function Roadmap() {
         for (const s of p.sheets || []) sheetCounts.set(s.sheet, (sheetCounts.get(s.sheet) || 0) + 1);
       }
     }
-    const sheet = [
-      { value: '', label: 'All sheets' },
-      ...SHEETS.map((s) => {
-        const n = sheetCounts.get(s.value) || 0;
-        const gap = s.listed && n < s.listed ? ` of ${s.listed}` : '';
-        return { value: s.value, label: s.label, note: `${n}${gap} problems · ${s.desc}` };
-      }),
-    ];
+    const sheet = SHEETS.map((s) => {
+      const n = sheetCounts.get(s.value) || 0;
+      const gap = s.listed && n < s.listed ? ` of ${s.listed}` : '';
+      return { value: s.value, label: s.label, note: `${n}${gap} problems · ${s.desc}` };
+    });
 
     return {
       companies: [...companies].sort(),

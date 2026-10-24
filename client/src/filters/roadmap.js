@@ -84,11 +84,13 @@ export const ROADMAP_FILTERS = defineFilters([
   },
   {
     id: 'sheet',
-    kind: 'one',
+    kind: 'many',
     label: 'Sheet',
-    // Three long names — a row of segments would wrap to three lines.
-    options: [{ value: '', label: 'All sheets' }, ...SHEETS],
-    match: (p, value) => (p.sheets || []).some((s) => s.sheet === value),
+    placeholder: 'Any sheet',
+    // A set, like Companies: "Blind 75 or NeetCode 150" is the union of the two.
+    // Long names, so a dropdown rather than a row of segments.
+    options: SHEETS,
+    match: (p, values) => (p.sheets || []).some((s) => values.includes(s.sheet)),
   },
   {
     id: 'topics',

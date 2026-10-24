@@ -159,6 +159,9 @@ function Field({ field, value, options, onChange }) {
   }
 
   if (field.kind === 'many') {
+    const list = asOptions(options ?? field.options);
+    // Chips show the label — a sheet's value is a slug like `striver-sde`.
+    const labelOf = (v) => list.find((o) => o.value === v)?.label ?? v;
     return (
       <div className="field">
         <span>{field.label}</span>
@@ -166,12 +169,13 @@ function Field({ field, value, options, onChange }) {
           multiple
           ariaLabel={field.label}
           value={value}
-          options={asOptions(options ?? field.options)}
+          options={list}
           placeholder={field.placeholder ?? `Any ${field.label.toLowerCase()}`}
           onChange={set}
         />
         <FilterChips
           values={value}
+          labelOf={labelOf}
           noun={field.label.toLowerCase()}
           onRemove={(v) => set(toggleValue(value, v))}
           onClear={() => set([])}

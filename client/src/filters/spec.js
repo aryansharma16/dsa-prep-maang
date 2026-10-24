@@ -105,7 +105,10 @@ export function normalizeFilters(spec, raw) {
         return [field.id, min != null && max != null && min > max ? { min: max, max: min } : { min, max }];
       }
 
-      const list = Array.isArray(value) ? value.filter((v) => typeof v === 'string' && v) : [];
+      // A bare string is a field that used to be `one` and is now `many` (the
+      // roadmap's Sheet did this) — keep the old choice as a one-item set.
+      const raw = typeof value === 'string' && value ? [value] : value;
+      const list = Array.isArray(raw) ? raw.filter((v) => typeof v === 'string' && v) : [];
       // A duplicate would render two identical chips, and removing one would
       // look like it did nothing.
       return [field.id, [...new Set(list)]];
