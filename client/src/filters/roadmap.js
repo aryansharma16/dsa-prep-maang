@@ -13,7 +13,14 @@ import { defineFilters } from './spec.js';
  * are a search and a scroll.
  */
 
-const SHEETS = [
+/*
+  `listed` is how many problems the original list has; the count shown in the
+  dialog is how many are actually in Ember (computed from the loaded roadmap in
+  Roadmap.jsx). They differ where the seed left out LeetCode Premium problems
+  (they cannot be opened without a subscription) or where a list names the same
+  LeetCode problem twice. `note` is the fallback before data has loaded.
+*/
+export const SHEETS = [
   /*
     First, because it is the only one of the six that was built for this
     roadmap rather than imported into it — 300 of the 517, chosen for coverage
@@ -23,12 +30,27 @@ const SHEETS = [
     value: 'ai-300',
     label: 'AI-recommended 300',
     note: 'Every pattern, least overlap — the shortest path',
+    desc: 'Every pattern, least overlap',
+    listed: 300,
   },
-  { value: 'striver-sde', label: "Striver's SDE Sheet", note: '191 problems, day by day' },
-  { value: 'neetcode-150', label: 'NeetCode 150', note: 'The pattern-first 150' },
-  { value: 'blind-75', label: 'Blind 75', note: 'The original short list' },
-  { value: 'faang-2026', label: 'FAANG 2025-26', note: 'Reported in recent interviews' },
-  { value: 'sheet-150', label: 'Sheet 150', note: '150 problems over 90 days, pattern by pattern' },
+  { value: 'striver-sde', label: "Striver's SDE Sheet", note: 'Day by day', desc: 'Day by day', listed: 191 },
+  { value: 'neetcode-150', label: 'NeetCode 150', note: 'The pattern-first 150', desc: 'Pattern first', listed: 150 },
+  { value: 'blind-75', label: 'Blind 75', note: 'The original short list', desc: 'The original short list', listed: 75 },
+  { value: 'faang-2026', label: 'FAANG 2025-26', note: 'Reported in recent interviews', desc: 'Reported in recent interviews' },
+  { value: 'sheet-150', label: 'Sheet 150', note: '150 problems over 90 days, pattern by pattern', desc: 'Over 90 days, pattern by pattern', listed: 150 },
+  /*
+    The 30-Day Sprint (Interview Helper): the AI 300 re-ordered easy → hard per
+    pattern, and the resource kit's problems that are in this bank. Written by
+    server/scripts/interview/build-sprint.js.
+  */
+  { value: 'sprint-300', label: 'Sprint 300', note: 'The 30-day sprint, easy to hard per pattern', desc: '30-day sprint, easy to hard', listed: 300 },
+  {
+    value: 'kit-360',
+    label: 'Kit 360',
+    note: "The resource kit's 30-day list, all Hard",
+    desc: "Resource kit's 30-day list, all Hard",
+    listed: 360,
+  },
 ];
 
 export const ROADMAP_FILTERS = defineFilters([

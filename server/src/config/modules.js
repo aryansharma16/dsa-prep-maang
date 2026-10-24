@@ -157,6 +157,17 @@ export const MODULES = Object.freeze([
     page to everyone for as long as it takes somebody to open the panel.
   */
   { key: 'applications', label: 'Applications', path: '/applications', defaultHidden: true },
+  /*
+    Interview Helper — reference pages for the hiring process itself, starting
+    with Resume Building. It is a sidebar group, like System Design, so more
+    pages can join it later.
+
+    Resume Building is content shipped in the client bundle. The MAANG Recruiter
+    Directory has an API (a private contact book per account), claimed by
+    `requireModule('interview')` in routes/index.js, so hiding the module takes
+    the menu group, the pages and the API together.
+  */
+  { key: 'interview', label: 'Interview Helper', path: '/interview' },
 ]);
 
 export const MODULE_KEYS = MODULES.map((module) => module.key);

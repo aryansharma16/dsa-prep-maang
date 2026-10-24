@@ -28,6 +28,10 @@ const SHEET_LABEL = {
   'faang-2026': 'FAANG',
   'sheet-150': 'S150',
   'ai-300': 'AI',
+  // After everything else, so they never replace a problem's existing badge;
+  // sprint membership gets its own chip in the title cell instead.
+  'sprint-300': 'S300',
+  'kit-360': 'KIT',
 };
 
 const STATUS_LABEL = {
@@ -123,6 +127,11 @@ export const COLUMNS = [
           {/* Ownership, not source. A LeetCode problem you added is
               `source: 'leetcode'` and still yours, and keying this off source
               left half of anyone's own additions looking seeded. */}
+          {badge?.sheet !== 'sprint-300' && problem.sheets?.some((s) => s.sheet === 'sprint-300') && (
+            <span className="tag-mini sprint" title="In the 30-day Sprint 300">
+              S300
+            </span>
+          )}
           {problem.mine && <span className="tag-mini">MINE</span>}
           {problem.source === 'gfg' && <span className="tag-mini">GFG</span>}
         </div>

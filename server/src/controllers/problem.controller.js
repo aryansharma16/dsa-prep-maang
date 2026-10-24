@@ -44,8 +44,11 @@ const ROADMAP_EXCLUDE = {
 export const listGrouped = asyncHandler(async (req, res) => {
   const userId = oid(req.userId);
 
+  // Extras (problems outside the default roadmap) only when asked for, and
+  // then only them: the default payload, and every count built on it, is unchanged.
+  const extras = req.query.extras === 'only';
   const groups = await Problem.aggregate([
-    { $match: visibleTo(req.userId) },
+    { $match: { ...visibleTo(req.userId), extra: extras ? true : { $ne: true } } },
     { $project: ROADMAP_EXCLUDE },
     { $sort: { patternOrder: 1, score: -1 } },
     {

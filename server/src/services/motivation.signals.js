@@ -100,7 +100,7 @@ export async function buildSignals(userId) {
 
     // Per-pattern completion, over what this user can actually see.
     Problem.aggregate([
-      { $match: visibleTo(user) },
+      { $match: { ...visibleTo(user), extra: { $ne: true } } },
       {
         $lookup: {
           from: 'progresses',

@@ -42,6 +42,7 @@ breaks when a credential is missing.
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
 | **System Design** | *In development, super admin only.* A whiteboard for designing systems: projects hold nested folders, folders hold boards. Canvas boards have frames, boxes, ellipses, diamonds, cylinders, connectors that attach to shapes or to other connectors' lines, route around shapes and can animate traffic, text, markdown paragraphs, sticky notes, a pressure-shaped pen, highlighter and eraser — with snapping, undo, copy/paste across boards and continuous autosave that survives going offline. Schema boards keep DBML text and the diagram in sync, with a type picker, column types guessed from names, one-click common columns and hover explanations for every column, relation and DBML word. Rich components and scale/bottleneck analysis are the next phases — see [System Design](#system-design) |
 | **Applications** | *In development, super admin only.* The job hunt: a board of every company across six lanes and nine stages you move by dragging, a derived timeline per application, rounds with an eighteen-kind vocabulary and a question log built for the ten minutes after an interview, a post-mortem, an offer panel, and a CV library that never stores the same file twice. Where you found it, how you applied (Easy Apply or their own site) and whether you were referred are three separate fields, so the report can compare them. Board, table, calendar, timeline and insights views, and a reminder in the top bar — see [Applications](#applications) |
+| **Interview Helper** | A side-menu group for the hiring process itself. Its first page, Resume Building, shows what a resume has to prove at each of five levels (SDE I to Principal), the format rules that hold at every level, and a level-calibrated AI rewrite prompt to copy, as four numbered steps. MAANG Recruiter Directory is a shared, locked list of 100 recruiters that users can add to, with per-user outreach status and notes. Outreach Messages writes referral, openings, follow-up, thank-you and recruiter-reply messages for LinkedIn, WhatsApp, email or a call, from your profile and saved pitches. 30-Day Sprint spreads the AI 300 over 30–90 days with a day grid, synced with the roadmap — see [Interview Helper](#interview-helper) |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
@@ -2050,6 +2051,180 @@ A reminder in the top bar names the soonest round this week, an offer deadline,
 or how many follow-ups are overdue, and draws nothing when there is nothing.
 Stats gains a job-hunt panel once something has been sent. Company logos come
 from the same cache the roadmap uses.
+
+## Interview Helper
+
+A sidebar group, like System Design, for guides about the hiring process rather
+than the curriculum. Every page in it sits behind one module key, `interview`,
+so a super admin can hide the whole group from the admin panel. `/interview`
+redirects to the first page.
+
+**Resume Building** (`/interview/resume`) is the resume ladder, laid out as four
+numbered steps, top to bottom:
+
+1. **Find your level**: five cards (SDE I, SDE II, Senior, Staff, Principal)
+   with years and scope, plus a years-of-experience box that picks one for you.
+2. **What the resume must show**: the level's main signal and checklist on the
+   left; an example bullet and the bar it is judged against on the right.
+3. **Rewrite it with AI**: how to use it on the left, the prompt and its Copy
+   button on the right.
+4. **Check the format**: the rules for every level, namely length, file name,
+   layout, the bullet formula, order and keywords.
+
+The level you last picked is remembered in the browser.
+
+The step 3 prompt is built from the chosen
+level's data, to copy into Claude or ChatGPT with your resume pasted under it.
+It rewrites every bullet as result, number, method; puts `[placeholders]` where
+a number is missing instead of inventing one; keeps claims inside the level's
+scope; and ends with a list of numbers to go and measure.
+
+The content is plain data in `client/src/interview/resumeLadder.js`. To add a
+page, add a child to the `interview` group in `client/src/store/modules.js` and
+a route in `App.jsx`.
+
+**MAANG Recruiter Directory** (`/interview/recruiters`) is a shared directory
+of recruiters hiring engineers in India: search, filter by company, status or
+"Added by me", and separate Email, Phone and LinkedIn columns with icons and
+one-click copy. It loads **20 contacts per request** with page controls; search
+and filters run on the server (`?page=&limit=&q=&company=&status=&mine=`, limit
+capped at 50), and each response also carries the company counts and totals for
+the chips and stat cards.
+
+Who can do what:
+
+| | See | Edit / delete |
+|---|---|---|
+| **Main list** (the imported 100, `locked`) | Everyone | Nobody, super admin included |
+| **Contacts a user adds** (shared by default) | Everyone | The person who added it, and the super admin |
+| **Contacts added as private** | Only that person, and the super admin | The person who added it, and the super admin |
+
+Outreach **status** (not contacted, messaged, replied, call, closed) and a
+**note** are per user, kept in `recruiteroutreaches`, so each person tracks
+their own progress and nobody sees anyone else's. The rules are enforced in
+`recruiter.controller.js`, not just hidden in the page. API, behind
+`requireModule('interview')`:
+
+- `GET /api/interview/recruiters`, `POST /api/interview/recruiters`
+- `PATCH` / `DELETE /api/interview/recruiters/:id` (owner or super admin; never a locked contact)
+- `PUT /api/interview/recruiters/:id/outreach` (your own status and note)
+
+The contact data is real people's phone numbers, so it is **not in the repo**.
+Import a JSON array with:
+
+```bash
+cd server
+node scripts/interview/import-recruiters.js --email you@example.com --file /path/to/recruiters.json --shared --locked
+```
+
+Each row is `{ name, title, seniority, company, location, phone, email, linkedin }`.
+`--shared` makes the rows visible to everyone and `--locked` makes them part of
+the main list that nobody can edit in the app; without them the rows are private
+to that account. Re-running is safe: contacts are matched by email (or name +
+company) and refreshed, and nobody's status or notes are touched.
+
+**Outreach Messages** (`/interview/messages`) writes outreach messages from your
+profile. It replaced a separate Outreach Templates page; `/interview/outreach`
+redirects here, and those templates are the "Classic" and "Kit" choices below. Pick:
+
+1. **Platform**: LinkedIn (connection note with a 300-character counter, or
+   message/InMail), WhatsApp, email (with subject) or a call script.
+2. **Purpose**: ask for a referral, ask about openings, after applying,
+   follow-up, thank you after an interview, or reply to a recruiter.
+3. **Pitch**: one of the pitches saved on your profile (e.g. SDE II · Backend,
+   SDE I · Full stack), then the two proof points to lead with.
+4. **Template**: "Pro" (written for the builder), "Classic" (the shorter
+   originals, from `client/src/interview/outreachTemplates.js`), and for *Ask about openings → Email* also "Kit", the resource kit's original word for word: its cold email
+   (openings → email), connection note (openings → LinkedIn) and follow-up
+   (follow-up → email or chat).
+
+It fits on one screen with no page scroll: compact controls on the left
+(segmented platform and pitch pickers, a purpose dropdown, two-column inputs,
+proof-point dropdowns) and the message filling the right. Your own details sit
+behind the name chip in the corner, in a small dialog, and the "Before you send"
+tips behind a Tips button. The form only asks for
+what that purpose needs (e.g. job ID for a referral,
+round and topic for a thank-you). Your own details (title, company, years,
+notice period, phone, LinkedIn) load from your profile and can be saved back to
+it. The message is editable; empty fields show as `[hints]` with a count, and
+WhatsApp and email get an "Open in…" button when you give their number or
+address. The Recruiter Directory's **Message** button opens the builder with
+that recruiter's name, company, email and phone filled in. Proof-point dropdowns also offer **Live** points built from your real
+Ember progress: DSA problems solved (by difficulty and pattern, from `/stats`)
+and system-design (HLD) topics read (from `/learn/progress`). They only appear
+once there is progress, and they update as you practise, so every claim stays
+true. Templates live in
+`client/src/interview/messageBuilder.js`.
+
+Profile fields added for this (all optional, private to the account):
+`phone`, `currentCompany`, `currentTitle`, `yearsExp`, `noticePeriod`, and
+`pitches` (up to 4 of `{ key, label, headline, short, proofs[] }`).
+
+**30-Day Sprint** (`/interview/sprint`) has two plans, switchable at the top:
+
+- **Sprint 300**: the AI-recommended 300, re-ordered for a sprint (pattern by
+  pattern in roadmap order, Easy → Medium → Hard inside each pattern).
+- **Kit 360**: the resource kit's own 30-day list in its own order (360
+  problems, all Hard, 12 a day).
+
+Either spreads over **30 days by default, or 45, 60, 75 or 90**. Pick a length
+and start; the page shows a day grid (a finished day gets a green tick badge in
+its corner), that day's problems, progress, problems per day and how far behind
+schedule you are. Changing the length keeps your start date; Restart moves it to
+today; Stop drops the schedule but keeps every solve. Each plan has its own
+enrollment.
+
+Ticks are ordinary roadmap progress, read from and written through
+`RoadmapContext`, so solving a problem here marks it on the roadmap and the
+other way round.
+
+Storage, in their own collections:
+
+- `sprints`: one document per plan (`key`, `title`, `summary`, `lengths`,
+  `items[]` of `{ problem, slug, pattern, difficulty, kit }`). Read-only in the app.
+- `sprintenrollments`: per user and plan, `{ sprint, days, startedAt }`.
+
+API, behind `requireModule('interview')`: `GET /api/interview/sprints/:key`,
+`PUT /api/interview/sprints/:key/enrollment` (`{ days, startedAt? }`), and
+`DELETE` on the same path.
+
+**Extra problems.** Only 62 of the kit's 360 were in the bank. The other 298
+were added as **extra** problems (`extra: true` on `Problem`): real rows with
+difficulty and LeetCode tags looked up from LeetCode and a pattern from the seed
+classifier, but kept **off the default roadmap**. The roadmap, its 518 count,
+Stats and the motivation lines all skip them. They load only when asked for
+(`GET /api/problems?extras=only`): when you pick **Sheet → Kit 360** on the
+roadmap (all 360 then show, merged into their pattern sections) and on the
+sprint page.
+
+**On the roadmap and sheets.** The Sheet filter has **Sprint 300** and
+**Kit 360**, and every Sprint 300 problem carries an **S300** chip. Each sheet's
+count in the filter is computed from the problems actually in Ember, shown
+against the original list's size where they differ (e.g. "180 of 191"). The
+gaps are LeetCode Premium problems the seed leaves out on purpose, and lists
+that name the same problem twice (Striver's Z-Function and KMP rows both point
+at strStr).
+
+Build or rebuild (safe to re-run; re-run after a seed, which can rewrite sheets):
+
+```bash
+cd server
+node scripts/interview/import-kit-problems.js --kit /path/to/kit-plan.json   # adds the missing kit problems as extras
+node scripts/interview/build-sprint.js --kit /path/to/kit-plan.json          # builds both plans and the sheet tags
+```
+
+The kit file is kept outside the repo.
+
+**Offer Negotiation** (`/interview/negotiation`) has scripts for seven moments
+of an offer: ask for more time, a competing offer, no competing offer (market
+data and scope), joining bonus / notice buyout, a live-call script, confirming
+the final numbers in writing, and declining while keeping the door open. Pick
+the moment, fill only the details it needs (offer, ask, other offer, notice
+period…), and copy the editable message; a "Rules of the game" dialog has the
+principles (walk-away number, let them name a range, one ask for the whole
+package, never invent an offer, read the whole CTC, get it in writing). It
+reuses the Outreach Messages layout and remembers what you type in this browser
+only. Scripts live in `client/src/interview/negotiation.js`.
 
 ## Profile
 

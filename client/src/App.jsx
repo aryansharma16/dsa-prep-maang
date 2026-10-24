@@ -18,6 +18,11 @@ import { SqlLab } from './pages/SqlLab.jsx';
 import { Register } from './pages/Register.jsx';
 import { ForgotPassword } from './pages/ForgotPassword.jsx';
 import { ResetPassword } from './pages/ResetPassword.jsx';
+import { MessageBuilder } from './pages/MessageBuilder.jsx';
+import { OfferNegotiation } from './pages/OfferNegotiation.jsx';
+import { SprintPage } from './pages/SprintPage.jsx';
+import { RecruiterDirectory } from './pages/RecruiterDirectory.jsx';
+import { ResumeLadder } from './pages/ResumeLadder.jsx';
 import { Revision } from './pages/Revision.jsx';
 import { Roadmap } from './pages/Roadmap.jsx';
 import { Stats } from './pages/Stats.jsx';
@@ -197,6 +202,26 @@ export function App() {
                 {/* No provider of its own: the drill reads the roadmap that is
                     already in memory, and a run is one POST when you stop. */}
                 {has('practice') && <Route path="/practice" element={<Practice />} />}
+                {/* Interview Helper: a group of reference pages. The bare path
+                    goes to the first page so it never lands on nothing. */}
+                {has('interview') && (
+                  <Route path="/interview" element={<Navigate to="/interview/resume" replace />} />
+                )}
+                {has('interview') && <Route path="/interview/resume" element={<ResumeLadder />} />}
+                {has('interview') && (
+                  <Route path="/interview/recruiters" element={<RecruiterDirectory />} />
+                )}
+                {has('interview') && (
+                  // Outreach Templates was merged into Outreach Messages; old links still land.
+                  <Route path="/interview/outreach" element={<Navigate to="/interview/messages" replace />} />
+                )}
+                {has('interview') && (
+                  <Route path="/interview/messages" element={<MessageBuilder />} />
+                )}
+                {has('interview') && <Route path="/interview/sprint" element={<SprintPage />} />}
+                {has('interview') && (
+                  <Route path="/interview/negotiation" element={<OfferNegotiation />} />
+                )}
                 {has('feedback') && <Route path="/feedback" element={<Feedback />} />}
                 {has('design') && <Route path="/design" element={lazyPage(<DesignHome />)} />}
                 <Route path="/docs" element={<Docs />} />

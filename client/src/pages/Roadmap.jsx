@@ -15,7 +15,7 @@ import {
 } from '../components/ui/Icons.jsx';
 import { isAnyModalOpen } from '../components/ui/Modal.jsx';
 import { PageSearch } from '../components/ui/PageSearch.jsx';
-import { ROADMAP_FILTERS } from '../filters/roadmap.js';
+import { ROADMAP_FILTERS, SHEETS } from '../filters/roadmap.js';
 import { activeCount, clearPatch, matchesFilters } from '../filters/spec.js';
 import { useLocalState } from '../hooks/useLocalState.js';
 import { useSavedFilters } from '../hooks/useSavedFilters.js';
@@ -30,7 +30,8 @@ import { MotivationLine } from '../components/ui/MotivationLine.jsx';
 // This page renders it and matches rows with it; it does not enumerate it.
 
 export function Roadmap() {
-  const { groups, loading, loadError, setProgress, reload } = useRoadmap();
+  const { groups: baseGroups, extraGroups, loadExtras, loading, loadError, setProgress, reload } =
+    useRoadmap();
   const { toast } = useToast();
   const { modules } = useAuth();
   // Cosmetic, like every module check in the client — the route is not declared
@@ -58,6 +59,7 @@ export function Roadmap() {
 
   const { flagged, revision, mine } = filters;
 
+
   const [openSections, setOpenSections] = useLocalState('open-sections', []);
   /*
     The patterns you have closed *while a filter is on*, which is a different
@@ -81,6 +83,35 @@ export function Roadmap() {
   const [openNotesId, setOpenNotesId] = useState(null);
   const [columnsOpen, setColumnsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  /*
+    The Kit 360 sheet is the one list whose problems are mostly off the default
+    roadmap (`extra` rows). Picking it, or opening the filter dialog (so the
+    sheet counts are complete), loads them once and merges them into their
+    pattern sections. Nothing else on the page, and no count outside this
+    view, ever sees them.
+  */
+  const wantsExtras = filters.sheet === 'kit-360';
+  useEffect(() => {
+    if (wantsExtras || filtersOpen) loadExtras();
+  }, [wantsExtras, filtersOpen, loadExtras]);
+
+  const groups = useMemo(() => {
+    if (!wantsExtras || !extraGroups?.length) return baseGroups;
+    const extraBySlug = new Map(extraGroups.map((g) => [g.slug, g]));
+    const merged = baseGroups.map((g) => {
+      const extra = extraBySlug.get(g.slug);
+      return extra
+        ? {
+            ...g,
+            problems: [...g.problems, ...extra.problems],
+            total: (g.total || 0) + (extra.total || 0),
+            solved: (g.solved || 0) + (extra.solved || 0),
+          }
+        : g;
+    });
+    const known = new Set(baseGroups.map((g) => g.slug));
+    return [...merged, ...extraGroups.filter((g) => !known.has(g.slug))];
+  }, [baseGroups, extraGroups, wantsExtras]);
   // One reader for the page, not one per section.
   const [guidePattern, setGuidePattern] = useState(null);
   // { id, seq } rather than a bare id: picking the same problem twice has to
@@ -116,12 +147,29 @@ export function Roadmap() {
         for (const name of p.askedRecently || []) askedRecently.add(name);
       }
     }
+    // Each sheet's real size in Ember, counting the extras when they are loaded.
+    const sheetCounts = new Map();
+    for (const g of [...baseGroups, ...(extraGroups || [])]) {
+      for (const p of g.problems) {
+        for (const s of p.sheets || []) sheetCounts.set(s.sheet, (sheetCounts.get(s.sheet) || 0) + 1);
+      }
+    }
+    const sheet = [
+      { value: '', label: 'All sheets' },
+      ...SHEETS.map((s) => {
+        const n = sheetCounts.get(s.value) || 0;
+        const gap = s.listed && n < s.listed ? ` of ${s.listed}` : '';
+        return { value: s.value, label: s.label, note: `${n}${gap} problems · ${s.desc}` };
+      }),
+    ];
+
     return {
       companies: [...companies].sort(),
       topics: [...topics].sort(),
       askedRecently: [...askedRecently].sort(),
+      sheet,
     };
-  }, [groups]);
+  }, [groups, baseGroups, extraGroups]);
 
   const narrowingCount = activeCount(ROADMAP_FILTERS, filters, 'dialog');
   const filterCount = activeCount(ROADMAP_FILTERS, filters);

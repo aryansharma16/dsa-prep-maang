@@ -8,6 +8,7 @@ import {
   IconCode,
   IconDatabase,
   IconDice,
+  IconFile,
   IconRotate,
   IconShapes,
 } from '../components/ui/Icons.jsx';
@@ -95,6 +96,24 @@ export const MODULE_NAV = [
     rooms you prepare in.
   */
   { key: 'applications', to: '/applications', label: 'Applications', Icon: IconBriefcase },
+  /*
+    A group, like System Design, because it will hold several pages: Resume
+    Building now, more interview guides later. Every child shares the one
+    `interview` module key, so hiding it hides the whole group.
+  */
+  {
+    group: 'interview',
+    label: 'Interview Helper',
+    Icon: IconFile,
+    children: [
+      { key: 'interview', to: '/interview/resume', label: 'Resume Building' },
+      { key: 'interview', to: '/interview/recruiters', label: 'MAANG Recruiter Directory' },
+      { key: 'interview', to: '/interview/messages', label: 'Outreach Messages' },
+      { key: 'interview', to: '/interview/sprint', label: '30-Day Sprint' },
+      { key: 'interview', to: '/interview/negotiation', label: 'Offer Negotiation' },
+      // More interview pages join here.
+    ],
+  },
   /*
     Feedback is deliberately absent. It is a module like the rest — the server
     still gates /feedback on it, and `moduleVisible(modules, 'feedback')` still

@@ -21,6 +21,22 @@ export const profileSchema = z
     leetcode: z.string().max(200),
     website: z.string().max(200),
     targetCompanies: z.array(z.string().min(1).max(60)).max(15),
+    phone: z.string().max(40),
+    currentCompany: z.string().max(80),
+    currentTitle: z.string().max(80),
+    yearsExp: z.string().max(10),
+    noticePeriod: z.string().max(40),
+    pitches: z
+      .array(
+        z.object({
+          key: z.string().regex(/^[a-z0-9-]{1,20}$/),
+          label: z.string().min(1).max(40),
+          headline: z.string().max(200),
+          short: z.string().max(120),
+          proofs: z.array(z.string().trim().min(1).max(300)).max(8),
+        }),
+      )
+      .max(4),
   })
   .partial();
 

@@ -71,6 +71,16 @@ const problemSchema = new mongoose.Schema(
     // LeetCode's own problem number — the one everyone quotes ("LC 42").
     lcId: { type: Number, default: 0 },
 
+    /**
+     * In the bank but not on the default roadmap. Set for problems imported
+     * only because a list needs them (the resource kit's 360, via
+     * scripts/interview/import-kit-problems.js). The roadmap, its counts,
+     * Stats and the Playbook all skip these; the roadmap shows them only when
+     * asked (`GET /problems?extras=only`, used by the Kit 360 sheet filter and
+     * the 30-Day Sprint page).
+     */
+    extra: { type: Boolean, default: false, index: true },
+
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
     // Share of votes that are likes, 0-100. A better quality signal than raw

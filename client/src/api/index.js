@@ -338,6 +338,24 @@ export const modulesApi = {
  * behind `feedback:read`, which is what keeps the two audiences off a single
  * route that would have to remember which one is asking.
  */
+/** Interview Helper: the MAANG Recruiter Directory (shared contacts, per-user outreach). */
+export const interviewApi = {
+  /** One page: { recruiters, total, page, limit, pages, companies, stats }. */
+  recruiters: (params) => http.get('/interview/recruiters', { params }).then((r) => r.data),
+  addRecruiter: (body) => http.post('/interview/recruiters', body).then((r) => r.data),
+  updateRecruiter: (id, body) => http.patch(`/interview/recruiters/${id}`, body).then((r) => r.data),
+  removeRecruiter: (id) => http.delete(`/interview/recruiters/${id}`),
+  /** Your own status and note for a contact. */
+  setOutreach: (id, body) => http.put(`/interview/recruiters/${id}/outreach`, body).then((r) => r.data),
+};
+
+/** Interview Helper: the 30-day sprint plan and your length / start date. */
+export const sprintApi = {
+  get: (key) => http.get(`/interview/sprints/${key}`).then((r) => r.data),
+  enroll: (key, body) => http.put(`/interview/sprints/${key}/enrollment`, body).then((r) => r.data.enrollment),
+  leave: (key) => http.delete(`/interview/sprints/${key}/enrollment`),
+};
+
 export const feedbackApi = {
   mine: (params) => http.get('/feedback', { params }).then((r) => r.data),
   create: (body) => http.post('/feedback', body).then((r) => r.data),

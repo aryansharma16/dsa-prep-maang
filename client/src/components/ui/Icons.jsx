@@ -192,6 +192,29 @@ export const IconPlay = (p) => (
   </Svg>
 );
 
+export const IconMail = (p) => (
+  <Svg {...p}>
+    <rect x="2" y="3.5" width="12" height="9" rx="1.4" />
+    <path d="M2.4 4.3L8 8.6l5.6-4.3" />
+  </Svg>
+);
+
+export const IconPhone = (p) => (
+  <Svg {...p}>
+    <path d="M5.6 2.3l1.3 2.9a.9.9 0 01-.2 1L5.6 7.3a7.4 7.4 0 003.1 3.1l1.1-1.1a.9.9 0 011-.2l2.9 1.3a.9.9 0 01.5 1v1.3a1.2 1.2 0 01-1.3 1.2A11.3 11.3 0 012.1 3.6 1.2 1.2 0 013.3 2.3h1.3a.9.9 0 011 0z" />
+  </Svg>
+);
+
+/* A plain "in" mark in a rounded square; a generic glyph, not the brand logo. */
+export const IconLinkedin = (p) => (
+  <Svg {...p}>
+    <rect x="2" y="2" width="12" height="12" rx="2.2" />
+    <path d="M5.3 7.2v3.9" />
+    <path d="M5.3 4.9v.1" />
+    <path d="M8 11.1V7.2M8 9a1.8 1.8 0 013.4.6v1.5" />
+  </Svg>
+);
+
 export const IconCopy = (p) => (
   <Svg {...p}>
     <path d="M5.8 5.8h7.4v7.4H5.8z" />

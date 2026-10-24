@@ -67,6 +67,7 @@ import { chatRouter } from './chat.routes.js';
 import { cpRouter } from './cp.routes.js';
 import { designRouter } from './design.routes.js';
 import { feedbackRouter } from './feedback.routes.js';
+import { interviewRouter } from './interview.routes.js';
 import { learnRouter } from './learn.routes.js';
 import { sqlRouter } from './sql.routes.js';
 import { taskRouter } from './task.routes.js';
@@ -326,5 +327,12 @@ router.use('/feedback', requireModule('feedback'), feedbackRouter);
   bookmark.
 */
 router.use('/applications', requireModule('applications'), applicationRouter);
+
+/*
+  Interview Helper. The pages are mostly content in the client bundle; the API
+  is the MAANG Recruiter Directory, a private contact book per account. Real
+  people's phone numbers live here, so it is gated like Applications.
+*/
+router.use('/interview', requireModule('interview'), interviewRouter);
 
 router.get('/motivation', validate(surfaceQuery, 'query'), getMotivation);

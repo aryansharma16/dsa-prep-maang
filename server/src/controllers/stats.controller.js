@@ -15,7 +15,7 @@ export const getStats = asyncHandler(async (req, res) => {
   const [byDifficulty, byPattern, byCompany, totals, activity, byLeak] = await Promise.all([
     // Solved vs available, split by difficulty
     Problem.aggregate([
-      { $match: { $or: [{ owner: null }, { owner: user }] } },
+      { $match: { $or: [{ owner: null }, { owner: user }], extra: { $ne: true } } },
       {
         $lookup: {
           from: 'progresses',
@@ -43,7 +43,7 @@ export const getStats = asyncHandler(async (req, res) => {
     ]),
 
     Problem.aggregate([
-      { $match: { $or: [{ owner: null }, { owner: user }] } },
+      { $match: { $or: [{ owner: null }, { owner: user }], extra: { $ne: true } } },
       {
         $lookup: {
           from: 'progresses',
@@ -84,7 +84,7 @@ export const getStats = asyncHandler(async (req, res) => {
     // Coverage per company — "how ready am I for Google?" needs solved AND the
     // total they ask, otherwise 12 solved means nothing.
     Problem.aggregate([
-      { $match: { $or: [{ owner: null }, { owner: user }] } },
+      { $match: { $or: [{ owner: null }, { owner: user }], extra: { $ne: true } } },
       { $unwind: '$companies' },
       {
         $lookup: {

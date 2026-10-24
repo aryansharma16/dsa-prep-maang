@@ -42,6 +42,13 @@ const countSolved = (problems) =>
 export function RoadmapProvider({ children }) {
   const { error: toastError } = useToast();
   const [groups, setGroups] = useState([]);
+  /*
+    Problems kept off the default roadmap (`extra`: the resource kit's 360 that
+    were not already in the bank). Loaded only when something asks for them,
+    the Kit 360 sheet filter or the 30-Day Sprint page, and kept apart from
+    `groups` so every count and every other reader of the roadmap is unchanged.
+  */
+  const [extraGroups, setExtraGroups] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
@@ -64,8 +71,8 @@ export function RoadmapProvider({ children }) {
 
   /** Replaces one problem's progress everywhere and refreshes its group count. */
   const applyLocal = useCallback((problemId, patch) => {
-    setGroups((prev) =>
-      prev.map((g) => {
+    const update = (list) =>
+      list.map((g) => {
         if (!g.problems.some((p) => p._id === problemId)) return g;
         const problems = g.problems.map((p) =>
           p._id === problemId
@@ -73,19 +80,31 @@ export function RoadmapProvider({ children }) {
             : p,
         );
         return { ...g, problems, solved: countSolved(problems) };
-      }),
-    );
+      });
+    setGroups(update);
+    setExtraGroups((prev) => (prev ? update(prev) : prev));
   }, []);
+
+  /** Fetch the extra problems once; later calls are no-ops. */
+  const loadExtras = useCallback(async () => {
+    if (extraGroups) return;
+    try {
+      const data = await problemsApi.roadmap({ extras: 'only' });
+      setExtraGroups(data.groups);
+    } catch (err) {
+      toastError(errorMessage(err, 'Could not load the extra problems'));
+    }
+  }, [extraGroups, toastError]);
 
   const snapshot = useCallback(
     (problemId) => {
-      for (const g of groups) {
+      for (const g of [...groups, ...(extraGroups || [])]) {
         const p = g.problems.find((x) => x._id === problemId);
         if (p) return p.progress ? { ...p.progress } : { ...emptyProgress };
       }
       return { ...emptyProgress };
     },
-    [groups],
+    [groups, extraGroups],
   );
 
   /**
@@ -319,6 +338,8 @@ export function RoadmapProvider({ children }) {
   const value = useMemo(
     () => ({
       groups,
+      extraGroups,
+      loadExtras,
       totals,
       loading,
       loadError,
@@ -334,6 +355,8 @@ export function RoadmapProvider({ children }) {
     }),
     [
       groups,
+      extraGroups,
+      loadExtras,
       totals,
       loading,
       loadError,

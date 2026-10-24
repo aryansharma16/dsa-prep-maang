@@ -146,6 +146,30 @@ const userSchema = new mongoose.Schema(
       website: { type: String, default: '', maxlength: 200 },
       targetRole: { type: String, default: '', maxlength: 80 },
       targetCompanies: { type: [String], default: [] },
+      // Used by Interview Helper's Message Builder to fill outreach messages.
+      // Private: only the account holder (and staff in the admin panel) reads it.
+      phone: { type: String, default: '', maxlength: 40 },
+      currentCompany: { type: String, default: '', maxlength: 80 },
+      currentTitle: { type: String, default: '', maxlength: 80 },
+      yearsExp: { type: String, default: '', maxlength: 10 },
+      noticePeriod: { type: String, default: '', maxlength: 40 },
+      // How you pitch yourself for a level, e.g. "SDE II": a one-line headline,
+      // a short version for 300-character notes, and proof points to pick from.
+      pitches: {
+        type: [
+          new mongoose.Schema(
+            {
+              key: { type: String, required: true, maxlength: 20 },
+              label: { type: String, required: true, maxlength: 40 },
+              headline: { type: String, default: '', maxlength: 200 },
+              short: { type: String, default: '', maxlength: 120 },
+              proofs: { type: [String], default: [] },
+            },
+            { _id: false },
+          ),
+        ],
+        default: [],
+      },
     },
 
     /**

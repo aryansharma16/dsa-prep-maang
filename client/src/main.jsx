@@ -24,6 +24,8 @@ import './styles/practice.css';
   four sheets below — where it sits here is not load-bearing.
 */
 import './styles/applications.css';
+/* Interview Helper. Prefixed `rl-`, no token overrides, so order is free. */
+import './styles/interview.css';
 /*
   After cp.css, for the same reason cp.css is after app.css: the playbook
   borrows the ladder's panel language and overrides a handful of shared classes
