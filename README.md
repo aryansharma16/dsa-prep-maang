@@ -42,7 +42,7 @@ breaks when a credential is missing.
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
 | **System Design** | *In development, super admin only.* A whiteboard for designing systems: projects hold nested folders, folders hold boards. Canvas boards have frames, boxes, ellipses, diamonds, cylinders, connectors that attach to shapes or to other connectors' lines, route around shapes and can animate traffic, text, markdown paragraphs, sticky notes, a pressure-shaped pen, highlighter and eraser — with snapping, undo, copy/paste across boards and continuous autosave that survives going offline. Schema boards keep DBML text and the diagram in sync, with a type picker, column types guessed from names, one-click common columns and hover explanations for every column, relation and DBML word. Rich components and scale/bottleneck analysis are the next phases — see [System Design](#system-design) |
 | **Applications** | *In development, super admin only.* The job hunt: a board of every company across six lanes and nine stages you move by dragging, a derived timeline per application, rounds with an eighteen-kind vocabulary and a question log built for the ten minutes after an interview, a post-mortem, an offer panel, and a CV library that never stores the same file twice. Where you found it, how you applied (Easy Apply or their own site) and whether you were referred are three separate fields, so the report can compare them. Board, table, calendar, timeline and insights views, and a reminder in the top bar — see [Applications](#applications) |
-| **Interview Helper** | A side-menu group for the hiring process itself. Its first page, Resume Building, shows what a resume has to prove at each of five levels (SDE I to Principal), the format rules that hold at every level, and a level-calibrated AI rewrite prompt to copy, as four numbered steps. MAANG Recruiter Directory is a shared, locked list of 100 recruiters that users can add to, with per-user outreach status and notes. Outreach Messages writes referral, openings, follow-up, thank-you and recruiter-reply messages for LinkedIn, WhatsApp, email or a call, from your profile and saved pitches. 30-Day Sprint spreads the AI 300 over 30–90 days with a day grid, synced with the roadmap — see [Interview Helper](#interview-helper) |
+| **Interview Helper** | A side-menu group for the hiring process itself. Its first page, Resume Building, shows what a resume has to prove at each of five levels (SDE I to Principal), the format rules that hold at every level, and a level-calibrated AI rewrite prompt to copy, as four numbered steps. MAANG Recruiter Directory is a shared, locked list of 100 recruiters that users can add to, with per-user outreach status and notes. Outreach Messages writes referral, openings, follow-up, thank-you and recruiter-reply messages for LinkedIn, WhatsApp, email or a call, from your profile and saved pitches. 30-Day Sprint spreads the AI 300 or the kit's 360 over 30–90 days with a day grid, synced with the roadmap. Behavioral Prep has a private STAR story bank, a 40-question bank and timed practice. Offer Negotiation has scripts for each moment of an offer — see [Interview Helper](#interview-helper) |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
@@ -2214,6 +2214,49 @@ node scripts/interview/build-sprint.js --kit /path/to/kit-plan.json          # b
 ```
 
 The kit file is kept outside the repo.
+
+**Behavioral Prep** (`/interview/behavioral`) prepares the behavioural rounds,
+in three tabs on one screen:
+
+- **Practice**: a question picked at random (weighted towards ones you have not
+  answered, or answered badly), filterable by company style (Amazon LP, Google,
+  Meta, any) and theme. A timer aims for about 2½ minutes; the stories that fit
+  the question are shown beside it in STAR form. Pick the story you used and
+  rate the answer (Nailed it / Okay / Rough); every answer is logged.
+- **Stories**: your STAR stories (situation, task, action, result, learning),
+  each tagged with themes (ownership, conflict, failure, ambiguity, impact,
+  leadership, customer, deadline, learning, innovation), Amazon Leadership
+  Principles and the resume bullet it backs up. An action word count warns past
+  ~220 words. Drafts are marked.
+- **Questions**: the 40-question bank with how each went last time, and a
+  coverage list showing which themes have no story yet. Each row expands to
+  its guide and a sample answer.
+
+**Guides and sample answers.** Every question has a guide: what the
+interviewer is really testing, the angle to take, and the common mistake to
+avoid. Every question also has a **sample answer built from your own data**,
+never invented: for story questions, your best-matching story re-shaped into a
+spoken answer (an opening that answers the question in one line, situation and
+task, action, result, and a closing tied to the theme); for the three openers
+(tell me about yourself, why this company, why leave), your profile and saved
+pitch. Empty parts of a story show as `[brackets]`, so the sample gets better as
+you fill your stories in. Shown in Practice (Sample answer / STAR toggle) and in
+the Questions tab, with Copy.
+
+**Which story answers which question.** Each story records the questions it
+really answers (`questions` on the story, ticked in the story editor or with
+"This story answers it" in Practice). Linked stories are offered first, with a
+"check it shows: …" note saying what the answer must contain. When nothing is
+linked, the page offers the closest story by main theme, clearly marked as not
+confirmed; when nothing is close, it says what kind of story to write. Every
+question has its own opening line for the sample answer (`COACH` in
+`behavioral.js`), so the opener never claims something the story does not say.
+
+Stories and practice logs are private to each account, in `stories` and
+`storypractices`. API, behind `requireModule('interview')`:
+`GET/POST /api/interview/stories`, `PATCH/DELETE /api/interview/stories/:id`,
+`POST /api/interview/stories/practice`. Questions, themes and LP summaries live
+in `client/src/interview/behavioral.js`.
 
 **Offer Negotiation** (`/interview/negotiation`) has scripts for seven moments
 of an offer: ask for more time, a competing offer, no competing offer (market

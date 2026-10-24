@@ -18,6 +18,7 @@ import { SqlLab } from './pages/SqlLab.jsx';
 import { Register } from './pages/Register.jsx';
 import { ForgotPassword } from './pages/ForgotPassword.jsx';
 import { ResetPassword } from './pages/ResetPassword.jsx';
+import { BehavioralPrep } from './pages/BehavioralPrep.jsx';
 import { MessageBuilder } from './pages/MessageBuilder.jsx';
 import { OfferNegotiation } from './pages/OfferNegotiation.jsx';
 import { SprintPage } from './pages/SprintPage.jsx';
@@ -219,6 +220,7 @@ export function App() {
                   <Route path="/interview/messages" element={<MessageBuilder />} />
                 )}
                 {has('interview') && <Route path="/interview/sprint" element={<SprintPage />} />}
+                {has('interview') && <Route path="/interview/behavioral" element={<BehavioralPrep />} />}
                 {has('interview') && (
                   <Route path="/interview/negotiation" element={<OfferNegotiation />} />
                 )}

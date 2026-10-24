@@ -12,6 +12,17 @@ import {
   updateSchema,
 } from '../controllers/recruiter.controller.js';
 import { enroll, enrollSchema, getSprint, leave, sprintParam } from '../controllers/sprint.controller.js';
+import {
+  createStory,
+  deleteStory,
+  idParam as storyIdParam,
+  listStories,
+  logPractice,
+  practiceSchema,
+  storyPatchSchema,
+  storySchema,
+  updateStory,
+} from '../controllers/story.controller.js';
 import { validate } from '../middleware/validate.js';
 
 /**
@@ -47,3 +58,10 @@ interviewRouter.put(
   enroll,
 );
 interviewRouter.delete('/sprints/:key/enrollment', validate(sprintParam, 'params'), leave);
+
+// Behavioral Prep: your STAR stories and practice log, private to you.
+interviewRouter.get('/stories', listStories);
+interviewRouter.post('/stories', validate(storySchema), createStory);
+interviewRouter.patch('/stories/:id', validate(storyIdParam, 'params'), validate(storyPatchSchema), updateStory);
+interviewRouter.delete('/stories/:id', validate(storyIdParam, 'params'), deleteStory);
+interviewRouter.post('/stories/practice', validate(practiceSchema), logPractice);

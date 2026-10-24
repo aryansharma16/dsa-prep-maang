@@ -356,6 +356,15 @@ export const sprintApi = {
   leave: (key) => http.delete(`/interview/sprints/${key}/enrollment`),
 };
 
+/** Interview Helper: your behavioural STAR stories and practice log. */
+export const storiesApi = {
+  list: () => http.get('/interview/stories').then((r) => r.data),
+  create: (body) => http.post('/interview/stories', body).then((r) => r.data),
+  update: (id, body) => http.patch(`/interview/stories/${id}`, body).then((r) => r.data),
+  remove: (id) => http.delete(`/interview/stories/${id}`),
+  practice: (body) => http.post('/interview/stories/practice', body).then((r) => r.data),
+};
+
 export const feedbackApi = {
   mine: (params) => http.get('/feedback', { params }).then((r) => r.data),
   create: (body) => http.post('/feedback', body).then((r) => r.data),

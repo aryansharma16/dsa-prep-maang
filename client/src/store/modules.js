@@ -110,6 +110,7 @@ export const MODULE_NAV = [
       { key: 'interview', to: '/interview/recruiters', label: 'MAANG Recruiter Directory' },
       { key: 'interview', to: '/interview/messages', label: 'Outreach Messages' },
       { key: 'interview', to: '/interview/sprint', label: '30-Day Sprint' },
+      { key: 'interview', to: '/interview/behavioral', label: 'Behavioral Prep' },
       { key: 'interview', to: '/interview/negotiation', label: 'Offer Negotiation' },
       // More interview pages join here.
     ],
