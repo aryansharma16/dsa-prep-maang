@@ -2086,7 +2086,9 @@ a route in `App.jsx`.
 **MAANG Recruiter Directory** (`/interview/recruiters`) is a shared directory
 of recruiters hiring engineers in India: search, filter by company, status or
 "Added by me", and separate Email, Phone and LinkedIn columns with icons and
-one-click copy. It loads **20 contacts per request** with page controls; search
+one-click copy. Company logos appear in the Company column and on the company
+filter chips, from the same cached `/api/companies/:slug/logo` endpoint the
+roadmap's "Asked at" column uses (initials if a logo is missing). It loads **20 contacts per request** with page controls; search
 and filters run on the server (`?page=&limit=&q=&company=&status=&mine=`, limit
 capped at 50), and each response also carries the company counts and totals for
 the chips and stat cards.
@@ -2415,6 +2417,8 @@ Three regions, and the split is the whole design: a **head** with the toggle and
 the brand, a **scroller** holding the roadmap, the modules and the twenty-two
 patterns, and a **floor** pinned below it with **Guide**, **Admin** and one
 switch.
+
+Rows inside a group (System Design, Interview Helper) carry their own icon too, a little smaller and quieter than a top-level row's until hovered or active. The icon is set per child in `client/src/store/modules.js`.
 
 The floor is not a leftover. Nothing on it is a stop on the way through the app
 — the guide is what you open when you are stuck, admin is a different job

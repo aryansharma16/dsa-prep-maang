@@ -239,6 +239,7 @@ export function Sidebar({
                           to={child.to}
                           className={({ isActive }) => `nav-item child ${isActive ? 'active' : ''}`}
                         >
+                          {child.Icon && <child.Icon size={13} />}
                           {child.label}
                           {modulePreview(modules, child.key) && (
                             <span className="dev-pill">Dev</span>

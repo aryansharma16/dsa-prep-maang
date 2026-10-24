@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
 import { interviewApi } from '../api/index.js';
+import { CompanyMark } from '../components/applications/CompanyMark.jsx';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog.jsx';
 import { Dropdown } from '../components/ui/Dropdown.jsx';
 import {
@@ -70,6 +71,18 @@ const EMPTY_FORM = {
   seniority: 'other',
   visibility: 'shared',
 };
+
+/*
+  The same slug the server derives for company logos (companySlug in
+  services/logo.service.js), so these hit the logo cache the roadmap's
+  "Asked at" column already fills.
+*/
+const companySlug = (name) =>
+  String(name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
 const initials = (name) =>
   name
@@ -438,6 +451,7 @@ export function RecruiterDirectory() {
               className={`rd-chip ${company === name ? 'active' : ''}`}
               onClick={() => setCompany(name)}
             >
+              {name !== 'All' && <CompanyMark company={name} slug={companySlug(name)} size={16} />}
               {name}
               <span>{count}</span>
             </button>
@@ -495,7 +509,12 @@ export function RecruiterDirectory() {
                         </div>
                       </div>
                     </td>
-                    <td className="rd-company">{r.company}</td>
+                    <td className="rd-company">
+                      <span className="rd-co">
+                        <CompanyMark company={r.company} slug={companySlug(r.company)} size={20} />
+                        {r.company}
+                      </span>
+                    </td>
                     <td className="rd-muted">{r.location || '—'}</td>
                     <td>
                       {r.email ? (

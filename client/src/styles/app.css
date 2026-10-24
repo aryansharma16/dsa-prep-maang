@@ -374,10 +374,21 @@
 .nav-item.child {
   height: 29px;
   padding-left: 15px;
+  gap: 9px;
   font-size: 12.5px;
   /* Its own left border is the active mark, so it sits on top of the spine
      rather than beside it — one line in the same place either way. */
   margin-left: -1px;
+}
+
+/* A child's icon is quieter than a top-level one until the row is active. */
+.nav-item.child svg {
+  flex: none;
+  opacity: 0.7;
+}
+.nav-item.child:hover svg,
+.nav-item.child.active svg {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

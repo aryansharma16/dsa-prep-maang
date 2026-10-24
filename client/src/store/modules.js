@@ -5,12 +5,19 @@ import {
   IconCalendar,
   IconChart,
   IconChat,
+  IconCheckSquare,
   IconCode,
   IconDatabase,
   IconDice,
   IconFile,
+  IconFlag,
+  IconLayers,
+  IconNetwork,
   IconRotate,
+  IconSend,
   IconShapes,
+  IconStar,
+  IconUsers,
 } from '../components/ui/Icons.jsx';
 
 /**
@@ -75,8 +82,8 @@ export const MODULE_NAV = [
     label: 'System Design',
     Icon: IconShapes,
     children: [
-      { key: 'learn', to: '/learn/hld', label: 'HLD' },
-      { key: 'design', to: '/design', label: 'Practice' },
+      { key: 'learn', to: '/learn/hld', label: 'HLD', Icon: IconNetwork },
+      { key: 'design', to: '/design', label: 'Practice', Icon: IconLayers },
       // LLD joins here when that Learn track exists.
     ],
   },
@@ -106,12 +113,13 @@ export const MODULE_NAV = [
     label: 'Interview Helper',
     Icon: IconFile,
     children: [
-      { key: 'interview', to: '/interview/resume', label: 'Resume Building' },
-      { key: 'interview', to: '/interview/recruiters', label: 'MAANG Recruiter Directory' },
-      { key: 'interview', to: '/interview/messages', label: 'Outreach Messages' },
-      { key: 'interview', to: '/interview/sprint', label: '30-Day Sprint' },
-      { key: 'interview', to: '/interview/behavioral', label: 'Behavioral Prep' },
-      { key: 'interview', to: '/interview/negotiation', label: 'Offer Negotiation' },
+      // Children carry their own icon, drawn smaller than a top-level row's.
+      { key: 'interview', to: '/interview/resume', label: 'Resume Building', Icon: IconFile },
+      { key: 'interview', to: '/interview/recruiters', label: 'MAANG Recruiter Directory', Icon: IconUsers },
+      { key: 'interview', to: '/interview/messages', label: 'Outreach Messages', Icon: IconSend },
+      { key: 'interview', to: '/interview/sprint', label: '30-Day Sprint', Icon: IconFlag },
+      { key: 'interview', to: '/interview/behavioral', label: 'Behavioral Prep', Icon: IconStar },
+      { key: 'interview', to: '/interview/negotiation', label: 'Offer Negotiation', Icon: IconCheckSquare },
       // More interview pages join here.
     ],
   },

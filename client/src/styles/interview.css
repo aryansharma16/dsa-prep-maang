@@ -2304,3 +2304,22 @@ a.rd-li {
 .bp-qpick input {
   margin-top: 3px;
 }
+
+/* Company logos in the recruiter directory (same cache as the roadmap). */
+.rd-co {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-co .ap-mark,
+.rd-chip .ap-mark {
+  flex: none;
+  border-radius: 5px;
+  background: #fff;
+  object-fit: contain;
+}
+
+.rd-chip .ap-mark {
+  border-radius: 4px;
+}
