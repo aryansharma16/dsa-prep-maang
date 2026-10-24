@@ -2323,3 +2323,785 @@ a.rd-li {
 .rd-chip .ap-mark {
   border-radius: 4px;
 }
+
+/* "Check before contacting" flags on directory rows. */
+.rd-check-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: help;
+  white-space: nowrap;
+}
+
+.rd-check-badge.warn {
+  background: color-mix(in srgb, var(--h-amber) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--h-amber) 50%, transparent);
+  color: var(--h-amber);
+}
+
+.rd-check-badge.info {
+  border: 1px solid var(--border);
+  color: var(--text-3);
+}
+
+.rd-cell.doubt,
+.rd-cell.doubt a {
+  color: var(--h-amber);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* ======================================================================== */
+/* Phones: everything built for Interview Helper, at ≤ 760px.               */
+/* ======================================================================== */
+
+@media (max-width: 760px) {
+  /* Shared one-screen layout (Outreach, Behavioral, Negotiation). */
+  .mb-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .mb-head-right {
+    justify-content: space-between;
+  }
+
+  .mb-head-right .btn {
+    white-space: nowrap;
+  }
+
+  .mb-me {
+    padding: 4px 12px 4px 4px;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .mb-me > span:last-child {
+    min-width: 0;
+  }
+
+  .mb-me b,
+  .mb-me small {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Segmented controls scroll sideways instead of wrapping into stacks. */
+  .mb-seg,
+  .sp-seg {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mb-seg button,
+  .sp-seg button {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .mb-head > .mb-seg {
+    align-self: stretch;
+  }
+
+  .mb-head > .mb-seg button {
+    flex: 1;
+  }
+
+  /* One input per row, so placeholders are readable. */
+  .mb-inputs,
+  .mb-me-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mb-side,
+  .mb-out {
+    padding: 12px;
+  }
+
+  .mb-text {
+    min-height: 300px;
+    font-size: 14px;
+  }
+
+  .mb-out-bar,
+  .bp-pane-bar {
+    flex-wrap: wrap;
+  }
+
+  .bp-fit {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bp-guide {
+    grid-template-columns: 1fr;
+  }
+
+  .bp-q {
+    font-size: 16px;
+  }
+
+  .bp-qlist li {
+    flex-wrap: wrap;
+  }
+
+  .bp-qdetail {
+    padding-left: 0;
+  }
+
+  /* 30-Day Sprint header controls wrap onto their own lines. */
+  .sp-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .sp-controls .sp-seg {
+    flex: 1 1 100%;
+  }
+
+  .sp-controls .sp-seg button {
+    flex: 1;
+  }
+
+  .sp-controls > .btn {
+    flex: 1;
+  }
+
+  .sp-grid {
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  }
+
+  .sp-problems li {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .sp-diff {
+    width: auto;
+  }
+
+  /* Recruiter Directory: chips in one swipeable row, rows become cards. */
+  .rd-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rd-companies {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .rd-chip {
+    flex: none;
+  }
+
+  .rd-search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .rd-count {
+    margin-left: 0;
+  }
+
+  .rd-table-wrap {
+    overflow: visible;
+  }
+
+  .rd-table thead {
+    display: none;
+  }
+
+  .rd-table,
+  .rd-table tbody,
+  .rd-table tr,
+  .rd-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .rd-table tr {
+    position: relative;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .rd-table td {
+    padding: 3px 0;
+    border: 0;
+  }
+
+  .rd-person {
+    min-width: 0;
+    margin-bottom: 6px;
+  }
+
+  .rd-table td[data-label]::before {
+    content: attr(data-label) ' · ';
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  .rd-table td.rd-company[data-label]::before {
+    content: none;
+  }
+
+  .rd-cell {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .rd-cell .rd-icon {
+    opacity: 1;
+  }
+
+  .rd-actions {
+    display: flex !important;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-top: 8px !important;
+    text-align: left;
+  }
+
+  .rd-pager {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .rd-pages {
+    order: -1;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
+  /* Resume Building: the years matcher wraps under its label. */
+  .rl-years {
+    flex-wrap: wrap;
+  }
+}
+
+/* ======================================================================== */
+/* Resume Studio: header tabs, and the resume bank (`rbk-`)                  */
+/* ======================================================================== */
+
+.rl-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px 24px;
+}
+
+.rl-head .page-head {
+  margin-bottom: 0;
+}
+
+.rbk {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rbk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.rbk-n {
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.rbk-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-3);
+}
+
+.rbk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.rbk-card {
+  margin: 0;
+}
+
+.rbk-card .panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rbk-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rbk-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.rbk-title {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rbk-name {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rbk-name:hover {
+  color: var(--accent);
+}
+
+.rbk-title small {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.rbk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rbk-kind,
+.rbk-tag {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.rbk-kind.general {
+  color: var(--h-sky);
+  border-color: color-mix(in srgb, var(--h-sky) 45%, transparent);
+}
+
+.rbk-kind.company {
+  color: var(--h-violet);
+  border-color: color-mix(in srgb, var(--h-violet) 45%, transparent);
+}
+
+.rbk-kind.role {
+  color: var(--h-green);
+  border-color: color-mix(in srgb, var(--h-green) 45%, transparent);
+}
+
+.rbk-tag.muted {
+  color: var(--text-3);
+}
+
+.rbk-notes {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+.rbk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rbk-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rbk-del:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.rbk-older {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.rbk-older ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rbk-older li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+}
+
+.rbk-older li small {
+  color: var(--text-3);
+}
+
+.rbk-older-actions {
+  flex: none;
+  display: flex;
+  gap: 10px;
+}
+
+.rbk-older-actions a {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Add / edit form. */
+.rbk-mode {
+  margin-bottom: 12px;
+}
+
+.rbk-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 18px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.rbk-drop:hover {
+  border-color: var(--accent);
+}
+
+.rbk-drop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.rbk-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.rbk-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+/* In-app preview. */
+.rbk-preview {
+  height: min(78vh, 980px);
+  background: var(--surface-2);
+}
+
+.rbk-preview iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+.rbk-preview-none {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-2);
+}
+
+@media (max-width: 760px) {
+  .rl-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rl-head .mb-seg button {
+    flex: 1;
+  }
+
+  .rbk-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rbk-bar .btn {
+    flex: 1;
+  }
+
+  .rbk-preview {
+    height: 70vh;
+  }
+}
+
+/* Long resume titles shorten with "…" instead of running past the card. */
+.rbk-head {
+  min-width: 0;
+}
+
+.rbk-title {
+  flex: 1;
+  overflow: hidden;
+}
+
+.rbk-name {
+  max-width: 100%;
+}
+
+/* Bigger cards with a first-page thumbnail on top. */
+.rbk-grid {
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+}
+
+.rbk-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.rbk-card .panel-body {
+  flex: 1;
+}
+
+.rbk-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 280px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.rbk-thumb iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* A soft fade at the bottom, so the cut-off page reads as a preview. */
+.rbk-thumb::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 56px;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--surface) 85%, transparent));
+  pointer-events: none;
+}
+
+.rbk-thumb-hint {
+  position: absolute;
+  z-index: 1;
+  right: 10px;
+  bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.65);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.rbk-thumb:hover .rbk-thumb-hint,
+.rbk-thumb:focus-visible .rbk-thumb-hint {
+  opacity: 1;
+  transform: none;
+}
+
+.rbk-thumb:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.rbk-thumb-none {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-3);
+}
+
+@media (max-width: 760px) {
+  .rbk-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rbk-thumb {
+    height: 240px;
+  }
+
+  .rbk-thumb-hint {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Card actions: Open reads as go (green), Delete as danger (red), from the theme. */
+.rbk-actions .btn.rbk-open {
+  border-color: color-mix(in srgb, var(--h-green) 55%, transparent);
+  background: color-mix(in srgb, var(--h-green) 14%, transparent);
+  color: var(--h-green);
+}
+
+.rbk-actions .btn.rbk-open:hover {
+  background: color-mix(in srgb, var(--h-green) 24%, transparent);
+}
+
+.rbk-actions .btn.rbk-del {
+  border-color: color-mix(in srgb, var(--danger) 50%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+}
+
+.rbk-actions .btn.rbk-del:hover {
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+}
+
+/* ---- Card design, round 3 ---------------------------------------------- */
+
+/* The thumbnail's frame is drawn a little larger than its box, so the PDF
+   viewer's scrollbar (which some Chrome builds show despite scrollbar=0) and
+   its page margin fall outside the visible area. */
+.rbk-thumb iframe {
+  width: calc(100% + 24px);
+  height: calc(100% + 24px);
+  margin: -4px 0 0 -4px;
+}
+
+.rbk-card .panel-body {
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.rbk-name {
+  font-size: 15px;
+}
+
+/* One row of actions: main actions left, icon actions right. */
+.rbk-actions {
+  flex-wrap: nowrap;
+  align-items: center;
+  margin-top: auto;
+}
+
+.rbk-actions .btn {
+  padding: 6px 11px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.rbk-actions-end {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.rbk-iconbtn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.rbk-iconbtn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.rbk-iconbtn.danger {
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+  color: var(--danger);
+}
+
+.rbk-iconbtn.danger:hover {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
+/* Phones: tighter buttons and no inline icons, so the row still fits. */
+@media (max-width: 480px) {
+  .rbk-actions {
+    gap: 5px;
+  }
+
+  .rbk-actions .btn {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .rbk-actions .btn svg {
+    display: none;
+  }
+
+  .rbk-iconbtn {
+    width: 30px;
+    height: 30px;
+  }
+}

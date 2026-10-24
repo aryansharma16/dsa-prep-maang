@@ -365,6 +365,32 @@ export const storiesApi = {
   practice: (body) => http.post('/interview/stories/practice', body).then((r) => r.data),
 };
 
+/** Interview Helper: the resume bank (same CV library as Applications, more fields). */
+export const resumeBankApi = {
+  list: () => http.get('/interview/resumes').then((r) => r.data.resumes),
+  upload: (file, meta, onProgress) => {
+    const form = new FormData();
+    form.append('file', file);
+    for (const [k, v] of Object.entries(meta)) if (v !== undefined && v !== null && v !== '') form.append(k, v);
+    return http
+      .post('/interview/resumes', form, {
+        onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : 0),
+      })
+      .then((r) => r.data);
+  },
+  link: (body) => http.post('/interview/resumes/link', body).then((r) => r.data),
+  update: (id, body) => http.patch(`/interview/resumes/${id}`, body).then((r) => r.data.resume),
+  remove: (id) => http.delete(`/interview/resumes/${id}`),
+  fileUrl: (id) => `${import.meta.env.VITE_API_URL || ''}/api/interview/resumes/${id}/file`,
+  /**
+   * The file as a Blob, through the app's HTTP client. Use this rather than
+   * pointing an <iframe> or <a> at `fileUrl`: a plain browser request cannot
+   * refresh an expired access token, so it fails with 401 once the session's
+   * short-lived token has lapsed. This one refreshes and retries like any call.
+   */
+  blob: (id) => http.get(`/interview/resumes/${id}/file`, { responseType: 'blob' }).then((r) => r.data),
+};
+
 export const feedbackApi = {
   mine: (params) => http.get('/feedback', { params }).then((r) => r.data),
   create: (body) => http.post('/feedback', body).then((r) => r.data),

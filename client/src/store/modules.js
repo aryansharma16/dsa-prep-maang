@@ -114,7 +114,7 @@ export const MODULE_NAV = [
     Icon: IconFile,
     children: [
       // Children carry their own icon, drawn smaller than a top-level row's.
-      { key: 'interview', to: '/interview/resume', label: 'Resume Building', Icon: IconFile },
+      { key: 'interview', to: '/interview/resume', label: 'Resume Studio', Icon: IconFile },
       { key: 'interview', to: '/interview/recruiters', label: 'MAANG Recruiter Directory', Icon: IconUsers },
       { key: 'interview', to: '/interview/messages', label: 'Outreach Messages', Icon: IconSend },
       { key: 'interview', to: '/interview/sprint', label: '30-Day Sprint', Icon: IconFlag },

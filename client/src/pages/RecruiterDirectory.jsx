@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { errorMessage } from '../api/http.js';
 import { interviewApi } from '../api/index.js';
 import { CompanyMark } from '../components/applications/CompanyMark.jsx';
+import { contactChecks } from '../interview/contactChecks.js';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog.jsx';
 import { Dropdown } from '../components/ui/Dropdown.jsx';
 import {
@@ -482,7 +483,11 @@ export function RecruiterDirectory() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
+                {rows.map((r) => {
+                  const checks = contactChecks(r);
+                  const warns = checks.filter((c) => c.level === 'warn');
+                  const flag = (field) => checks.filter((c) => c.field === field && c.level === 'warn');
+                  return (
                   <tr key={r.id}>
                     <td>
                       <div className="rd-person">
@@ -500,6 +505,15 @@ export function RecruiterDirectory() {
                                 {r.visibility === 'private' && ' · private'}
                               </span>
                             )}
+                            {checks.length > 0 && (
+                              <span
+                                className={`rd-check-badge ${warns.length ? 'warn' : 'info'}`}
+                                title={checks.map((c) => `• ${c.text}`).join('\n')}
+                                tabIndex={0}
+                              >
+                                {warns.length ? `⚠ Check ${warns.length}` : 'ⓘ Senior'}
+                              </span>
+                            )}
                           </div>
                           <div className="rd-title">
                             {r.title || '—'}
@@ -509,16 +523,19 @@ export function RecruiterDirectory() {
                         </div>
                       </div>
                     </td>
-                    <td className="rd-company">
+                    <td className="rd-company" data-label="Company">
                       <span className="rd-co">
                         <CompanyMark company={r.company} slug={companySlug(r.company)} size={20} />
                         {r.company}
                       </span>
                     </td>
-                    <td className="rd-muted">{r.location || '—'}</td>
+                    <td className="rd-muted" data-label="Location">{r.location || '—'}</td>
                     <td>
                       {r.email ? (
-                        <span className="rd-cell">
+                        <span
+                          className={`rd-cell ${flag('email').length ? 'doubt' : ''}`}
+                          title={flag('email').map((c) => c.text).join('\n') || undefined}
+                        >
                           <IconMail size={13} />
                           <a href={`mailto:${r.email}`}>{r.email}</a>
                           <button type="button" className="rd-icon" onClick={() => copy(r.email, 'Email')} title="Copy email" aria-label="Copy email">
@@ -531,7 +548,10 @@ export function RecruiterDirectory() {
                     </td>
                     <td>
                       {r.phone ? (
-                        <span className="rd-cell">
+                        <span
+                          className={`rd-cell ${flag('phone').length ? 'doubt' : ''}`}
+                          title={flag('phone').map((c) => c.text).join('\n') || undefined}
+                        >
                           <IconPhone size={13} />
                           <a href={`tel:${r.phone.replace(/[^0-9+]/g, '')}`}>{r.phone}</a>
                           <button type="button" className="rd-icon" onClick={() => copy(r.phone, 'Number')} title="Copy number" aria-label="Copy number">
@@ -603,7 +623,8 @@ export function RecruiterDirectory() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

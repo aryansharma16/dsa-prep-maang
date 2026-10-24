@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { ResumeBank } from '../components/interview/ResumeBank.jsx';
 import {
   FORMAT_RULES,
   LEVELS,
@@ -8,7 +9,8 @@ import {
 } from '../interview/resumeLadder.js';
 
 /**
- * Interview Helper → Resume Building.
+ * Interview Helper → Resume Studio. Two tabs: "My Resumes" (the resume bank,
+ * components/interview/ResumeBank.jsx) and "Level Guide" (below).
  *
  * Laid out as four numbered steps read top to bottom: find your level, see what
  * a resume at that level must show, rewrite it with AI, check the format. Each
@@ -49,7 +51,25 @@ function Step({ n, title, sub, aside, children, style }) {
   );
 }
 
+const TAB_KEY = 'resume-studio-tab';
+const readTab = () => {
+  try {
+    return localStorage.getItem(TAB_KEY) === 'guide' ? 'guide' : 'bank';
+  } catch {
+    return 'bank';
+  }
+};
+
 export function ResumeLadder() {
+  const [tab, setTabState] = useState(readTab);
+  const setTab = (t) => {
+    setTabState(t);
+    try {
+      localStorage.setItem(TAB_KEY, t);
+    } catch {
+      // Remembering the tab is a convenience only.
+    }
+  };
   const [levelId, setLevelId] = useState(readLevel);
   const level = LEVELS.find((l) => l.id === levelId);
 
@@ -87,10 +107,38 @@ export function ResumeLadder() {
 
   return (
     <div className="rl">
-      <div className="page-head">
-        <h1>Resume Building</h1>
-        <p>Find your level, see what your resume has to prove there, then rewrite it to that bar.</p>
+      <div className="rl-head">
+        <div className="page-head">
+          <h1>Resume Studio</h1>
+          <p>
+            {tab === 'bank'
+              ? 'Every resume you have saved, by type and version. Preview, add new versions, and keep the old ones.'
+              : 'Find your level, see what your resume has to prove there, then rewrite it to that bar.'}
+          </p>
+        </div>
+        <div className="mb-seg" role="tablist" aria-label="Resume Studio">
+          {[
+            { id: 'bank', label: 'My Resumes' },
+            { id: 'guide', label: 'Level Guide' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={tab === t.id ? 'active' : ''}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {tab === 'bank' ? (
+        <ResumeBank />
+      ) : (
+        <>
 
       <Step
         n={1}
@@ -221,6 +269,8 @@ export function ResumeLadder() {
           only fixes the wording; the results in your bullets still have to be real.
         </p>
       </Step>
+        </>
+      )}
     </div>
   );
 }

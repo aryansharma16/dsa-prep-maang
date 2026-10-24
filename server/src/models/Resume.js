@@ -35,6 +35,9 @@ import mongoose from 'mongoose';
 
 export const RESUME_SOURCES = ['upload', 'link'];
 
+/** What a resume is for, set in Interview Helper → Resume Building's bank. */
+export const RESUME_KINDS = ['general', 'company', 'role'];
+
 const resumeSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -78,6 +81,16 @@ const resumeSchema = new mongoose.Schema(
      * application's own derived fields already make about drift.
      */
     usedCount: { type: Number, default: 0 },
+
+    // The resume bank (Interview Helper → Resume Building). All optional, so
+    // rows created from Applications keep working unchanged.
+    kind: { type: String, enum: RESUME_KINDS, default: 'general' },
+    company: { type: String, default: '', trim: true, maxlength: 80 },
+    role: { type: String, default: '', trim: true, maxlength: 80 },
+    notes: { type: String, default: '', trim: true, maxlength: 300 },
+    // Versions: every version points at the first one in its line (`family`),
+    // so the bank can show the latest and keep the older ones underneath.
+    family: { type: mongoose.Schema.Types.ObjectId, ref: 'Resume', default: null },
   },
   { timestamps: true },
 );
@@ -108,6 +121,11 @@ export const publicResume = (resume) => ({
   bytes: resume.bytes || 0,
   format: resume.format || '',
   usedCount: resume.usedCount || 0,
+  kind: resume.kind || 'general',
+  company: resume.company || '',
+  role: resume.role || '',
+  notes: resume.notes || '',
+  family: resume.family ? String(resume.family) : null,
   createdAt: resume.createdAt,
 });
 

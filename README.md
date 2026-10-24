@@ -42,7 +42,7 @@ breaks when a credential is missing.
 | **Tasks** | A board for what you meant to do — your own columns, drag between them, deadlines that default to unlimited, subtasks, files, and problems pulled from the roadmap that tick themselves off as you solve them. One stopwatch, running at a time, so you learn how long things actually take |
 | **System Design** | *In development, super admin only.* A whiteboard for designing systems: projects hold nested folders, folders hold boards. Canvas boards have frames, boxes, ellipses, diamonds, cylinders, connectors that attach to shapes or to other connectors' lines, route around shapes and can animate traffic, text, markdown paragraphs, sticky notes, a pressure-shaped pen, highlighter and eraser — with snapping, undo, copy/paste across boards and continuous autosave that survives going offline. Schema boards keep DBML text and the diagram in sync, with a type picker, column types guessed from names, one-click common columns and hover explanations for every column, relation and DBML word. Rich components and scale/bottleneck analysis are the next phases — see [System Design](#system-design) |
 | **Applications** | *In development, super admin only.* The job hunt: a board of every company across six lanes and nine stages you move by dragging, a derived timeline per application, rounds with an eighteen-kind vocabulary and a question log built for the ten minutes after an interview, a post-mortem, an offer panel, and a CV library that never stores the same file twice. Where you found it, how you applied (Easy Apply or their own site) and whether you were referred are three separate fields, so the report can compare them. Board, table, calendar, timeline and insights views, and a reminder in the top bar — see [Applications](#applications) |
-| **Interview Helper** | A side-menu group for the hiring process itself. Its first page, Resume Building, shows what a resume has to prove at each of five levels (SDE I to Principal), the format rules that hold at every level, and a level-calibrated AI rewrite prompt to copy, as four numbered steps. MAANG Recruiter Directory is a shared, locked list of 100 recruiters that users can add to, with per-user outreach status and notes. Outreach Messages writes referral, openings, follow-up, thank-you and recruiter-reply messages for LinkedIn, WhatsApp, email or a call, from your profile and saved pitches. 30-Day Sprint spreads the AI 300 or the kit's 360 over 30–90 days with a day grid, synced with the roadmap. Behavioral Prep has a private STAR story bank, a 40-question bank and timed practice. Offer Negotiation has scripts for each moment of an offer — see [Interview Helper](#interview-helper) |
+| **Interview Helper** | A side-menu group for the hiring process itself. Its first page, Resume Studio, holds your resume bank (versions, types, in-app preview) and shows what a resume has to prove at each of five levels (SDE I to Principal), the format rules that hold at every level, and a level-calibrated AI rewrite prompt to copy, as four numbered steps. MAANG Recruiter Directory is a shared, locked list of 100 recruiters that users can add to, with per-user outreach status and notes. Outreach Messages writes referral, openings, follow-up, thank-you and recruiter-reply messages for LinkedIn, WhatsApp, email or a call, from your profile and saved pitches. 30-Day Sprint spreads the AI 300 or the kit's 360 over 30–90 days with a day grid, synced with the roadmap. Behavioral Prep has a private STAR story bank, a 40-question bank and timed practice. Offer Negotiation has scripts for each moment of an offer — see [Interview Helper](#interview-helper) |
 | **Stats** | Solved ring, year-long heatmap, streaks, weakest patterns, company coverage |
 | **Profile** | Your numbers, plus a profile picture uploaded to Cloudinary |
 | **Auth** | Email + password, JWT in httpOnly cookies, silent refresh |
@@ -2059,8 +2059,32 @@ than the curriculum. Every page in it sits behind one module key, `interview`,
 so a super admin can hide the whole group from the admin panel. `/interview`
 redirects to the first page.
 
-**Resume Building** (`/interview/resume`) is the resume ladder, laid out as four
-numbered steps, top to bottom:
+**Resume Studio** (`/interview/resume`) has two tabs.
+
+**My Resumes** is the resume bank: every resume saved on your account, the same
+CV library Applications attaches to job applications (one `resumes`
+collection, deduped by file hash). Each resume has a title, a type (general,
+company-specific or role-specific), an optional target company and role, and
+notes. Upload a PDF or Word file, or paste a link. "New version" uploads a newer
+version of a resume: versions share a `family`, the newest is the card and the
+older ones sit under "Older versions" with their own Preview, Open and Delete.
+Each card shows a live thumbnail of the resume's first page; clicking it (or
+the title) opens the full preview. Card actions: Open (green, new tab), Copy URL
+(a direct link: the original URL for a link resume, the app's file address for
+an upload, which opens only when signed in, since a CV carries your contact
+details), New version, Edit and Delete (red). **Preview** shows the resume inside the app (PDFs in the browser's viewer; Word
+files and links get Open instead). Preview and Open fetch the file through the
+app's HTTP client as a blob, so an expired access token is refreshed and
+retried like any other call; pointing an iframe or link straight at the file URL
+fails with 401 once the short-lived token lapses. Files live in Cloudinary as
+private uploads and are streamed through the server, never linked publicly.
+Filter by type. API, behind
+`requireModule('interview')` so it works without the Applications module:
+`GET/POST /api/interview/resumes`, `POST /api/interview/resumes/link`,
+`GET /api/interview/resumes/:id/file`, `PATCH/DELETE /api/interview/resumes/:id`.
+
+**Level Guide** is the resume ladder, laid out as four numbered steps, top to
+bottom:
 
 1. **Find your level**: five cards (SDE I, SDE II, Senior, Staff, Principal)
    with years and scope, plus a years-of-experience box that picks one for you.
@@ -2088,7 +2112,17 @@ of recruiters hiring engineers in India: search, filter by company, status or
 "Added by me", and separate Email, Phone and LinkedIn columns with icons and
 one-click copy. Company logos appear in the Company column and on the company
 filter chips, from the same cached `/api/companies/:slug/logo` endpoint the
-roadmap's "Asked at" column uses (initials if a logo is missing). It loads **20 contacts per request** with page controls; search
+roadmap's "Asked at" column uses (initials if a logo is missing).
+
+**Check before contacting.** The contact data came from a list, not from the
+people themselves, so each row is checked (`client/src/interview/contactChecks.js`)
+and flagged with an amber "Check" badge whose tooltip lists the reasons, with
+the doubtful phone or email underlined: a non-Indian phone number for someone
+listed in India (likely a switchboard), a number that is not an Indian mobile
+(likely an office line), an email domain that is not the company's, a `v-`
+vendor/contractor address, or no email. VPs, directors and heads get a grey
+"Senior" note: they rarely reply to cold outreach. The checks are heuristics on
+the data; they say what to verify, not that a contact is wrong. It loads **20 contacts per request** with page controls; search
 and filters run on the server (`?page=&limit=&q=&company=&status=&mine=`, limit
 capped at 50), and each response also carries the company counts and totals for
 the chips and stat cards.
@@ -2270,6 +2304,13 @@ principles (walk-away number, let them name a range, one ask for the whole
 package, never invent an offer, read the whole CTC, get it in writing). It
 reuses the Outreach Messages layout and remembers what you type in this browser
 only. Scripts live in `client/src/interview/negotiation.js`.
+
+**On phones** (≤ 760px) every Interview Helper page stacks to one column with no
+sideways page scroll: headers stack, segmented controls scroll sideways instead
+of wrapping, form inputs go one per row, the sprint's plan / length / start
+controls each take a full row, and the Recruiter Directory turns each table row
+into a card (person, company, location, email, phone, LinkedIn, status and
+actions stacked) with the company chips in one swipeable row. Checked at 390px.
 
 ## Profile
 

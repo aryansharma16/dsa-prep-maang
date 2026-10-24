@@ -23,6 +23,21 @@ import {
   storySchema,
   updateStory,
 } from '../controllers/story.controller.js';
+import {
+  deleteResume,
+  listResumes,
+  openResumeFile,
+  resumeParam,
+} from '../controllers/application.controller.js';
+import {
+  bankLinkSchema,
+  bankUpdateSchema,
+  linkToBank,
+  updateInBank,
+  uploadToBank,
+} from '../controllers/resumeBank.controller.js';
+import { uploadLimiter } from '../middleware/rateLimit.js';
+import { singleResume } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
 
 /**
@@ -65,3 +80,12 @@ interviewRouter.post('/stories', validate(storySchema), createStory);
 interviewRouter.patch('/stories/:id', validate(storyIdParam, 'params'), validate(storyPatchSchema), updateStory);
 interviewRouter.delete('/stories/:id', validate(storyIdParam, 'params'), deleteStory);
 interviewRouter.post('/stories/practice', validate(practiceSchema), logPractice);
+
+// Resume bank: the same CV library as Applications, reachable here so it does
+// not depend on the Applications module being visible.
+interviewRouter.get('/resumes', listResumes);
+interviewRouter.post('/resumes', uploadLimiter, singleResume('file'), uploadToBank);
+interviewRouter.post('/resumes/link', validate(bankLinkSchema), linkToBank);
+interviewRouter.get('/resumes/:resumeId/file', validate(resumeParam, 'params'), openResumeFile);
+interviewRouter.patch('/resumes/:resumeId', validate(resumeParam, 'params'), validate(bankUpdateSchema), updateInBank);
+interviewRouter.delete('/resumes/:resumeId', validate(resumeParam, 'params'), deleteResume);
