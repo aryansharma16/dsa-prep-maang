@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IconChevronRight, IconInfo } from '../ui/Icons.jsx';
 import { ProblemRow } from './ProblemRow.jsx';
 import { cellProps } from './cellProps.js';
@@ -16,10 +16,25 @@ export const PatternSection = forwardRef(function PatternSection(
     onFocusRow,
     openNotesId,
     onToggleNotes,
+    grouped = false,
   },
   ref,
 ) {
   const pct = group.total ? Math.round((group.solved / group.total) * 100) : 0;
+
+  // Name and solved/total per sub-pattern, over the rows actually shown.
+  const subCounts = useMemo(() => {
+    const names = new Map((group.subPatterns || []).map((s) => [s.slug, s.name]));
+    const counts = new Map();
+    for (const p of group.problems) {
+      const key = p.subPattern || '';
+      const c = counts.get(key) || { name: names.get(key) || 'Other', total: 0, solved: 0 };
+      c.total += 1;
+      if (p.progress?.status === 'solved') c.solved += 1;
+      counts.set(key, c);
+    }
+    return counts;
+  }, [group.problems, group.subPatterns]);
 
   /*
     The table is fixed-layout, so the colgroup widths are honoured exactly.
@@ -152,19 +167,48 @@ export const PatternSection = forwardRef(function PatternSection(
                 </tr>
               </thead>
               <tbody>
-                {group.problems.map((problem, i) => (
-                  <ProblemRow
-                    key={problem._id}
-                    problem={problem}
-                    index={i}
-                    columns={columns}
-                    isCursor={cursorId === problem._id}
-                    isPicked={pickedId === problem._id}
-                    onFocus={() => onFocusRow(problem._id)}
-                    notesOpen={openNotesId === problem._id}
-                    onToggleNotes={() => onToggleNotes(problem._id)}
-                  />
-                ))}
+                {group.problems.map((problem, i) => {
+                  /*
+                    Grouped, the rows arrive already sorted by sub-pattern (see
+                    Roadmap.jsx), so a heading goes wherever the run changes.
+                    Each run keeps the easy-to-hard order it had.
+                  */
+                  const prev = group.problems[i - 1];
+                  const heading =
+                    // No list (a database not yet seeded with them) → no headings,
+                    // rather than one "Other" over every row.
+                    grouped &&
+                    group.subPatterns?.length > 0 &&
+                    (i === 0 || prev.subPattern !== problem.subPattern)
+                      ? subCounts.get(problem.subPattern || '')
+                      : null;
+                  return (
+                    <Fragment key={problem._id}>
+                      {heading && (
+                        <tr className="subpattern-row">
+                          <td colSpan={columns.length}>
+                            <span className="subpattern-label">
+                              {heading.name}
+                              <span className="mono">
+                                {heading.solved}/{heading.total}
+                              </span>
+                            </span>
+                          </td>
+                        </tr>
+                      )}
+                      <ProblemRow
+                        problem={problem}
+                        index={i}
+                        columns={columns}
+                        isCursor={cursorId === problem._id}
+                        isPicked={pickedId === problem._id}
+                        onFocus={() => onFocusRow(problem._id)}
+                        notesOpen={openNotesId === problem._id}
+                        onToggleNotes={() => onToggleNotes(problem._id)}
+                      />
+                    </Fragment>
+                  );
+                })}
                 {group.problems.length === 0 && (
                   <tr>
                     <td

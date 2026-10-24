@@ -1,3 +1,5 @@
+import { SUB_PATTERNS } from './subpatterns.js';
+
 /**
  * The curriculum. `order` is the learning ramp — arrays before two pointers,
  * two pointers before sliding window, graphs before DP. `quota` is how many
@@ -219,4 +221,5 @@ export const patternDocs = PATTERNS.map((p, i) => ({
   order: i + 1,
   blurb: p.blurb,
   keyTechniques: p.keyTechniques,
+  subPatterns: SUB_PATTERNS[p.slug] || [],
 }));

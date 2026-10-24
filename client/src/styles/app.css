@@ -1399,6 +1399,39 @@ table.problems tbody tr.solved .title-link {
 }
 
 /*
+  A sub-pattern's heading inside its pattern's table — the second level of the
+  tree. One cell across every column; the label inside is sticky so it stays
+  in view while a wide table scrolls sideways under it.
+*/
+table.problems tbody tr.subpattern-row {
+  height: auto;
+}
+table.problems tbody tr.subpattern-row:hover {
+  background: none;
+}
+table.problems tbody tr.subpattern-row td {
+  padding: 10px 0 5px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.subpattern-label {
+  position: sticky;
+  left: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.subpattern-label .mono {
+  font-weight: 400;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+/*
   A random pick usually lands off screen, so the row has to say "here" once the
   scroll arrives — the cursor bar alone is too quiet to find in a long table.
 

@@ -156,6 +156,7 @@ export const listGrouped = asyncHandler(async (req, res) => {
         name: { $ifNull: ['$pattern.name', '$_id'] },
         blurb: { $ifNull: ['$pattern.blurb', ''] },
         keyTechniques: { $ifNull: ['$pattern.keyTechniques', []] },
+        subPatterns: { $ifNull: ['$pattern.subPatterns', []] },
         order: { $ifNull: ['$pattern.order', 999] },
         total: 1,
         solved: 1,
@@ -397,6 +398,8 @@ export const updateCustom = asyncHandler(async (req, res) => {
       .sort({ patternOrder: -1 })
       .select('patternOrder');
     problem.patternSlug = patternSlug;
+    // A sub-pattern belongs to one pattern's list; it does not travel.
+    problem.subPattern = '';
     problem.patternOrder = (last?.patternOrder ?? 0) + 1;
   }
 

@@ -89,6 +89,7 @@ them everything works except uploading a profile picture, which answers
 | `npm run seed:fetch` | downloads the source lists into `data/raw/` |
 | `npm run seed:curate` | ranks, dedupes and assigns patterns |
 | `npm run seed:db` | upserts problems and patterns into MongoDB |
+| `npm run seed:subpatterns` | files every shared problem under its sub-pattern (also runs at the end of `seed:db`); touches only `Pattern.subPatterns` and `Problem.subPattern` |
 | `npm run seed` | all three, in order |
 | `npm run seed:guides` | writes the pattern guides |
 | `npm run seed:learn` | writes the 6 Learn tracks and their 309 topics. `-- --dry-run` validates every block and prints the totals without opening a connection; `-- --force` overwrites topics the admin panel has edited |
@@ -305,6 +306,34 @@ and it runs last, so no existing membership changes and the roadmap is the same
 badge shows the first sheet it finds, so a row that read `SDE` yesterday still
 reads `SDE`, and `AI` only ever appears on the 39 picks that are on no other
 list.
+
+### Sub-patterns
+
+Each pattern is split into the moves it is made of — Two Pointers into opposite
+ends, read/write, fast and slow, k-sum, partitioning; Sliding Window into fixed,
+variable, at-most-k, monotonic deque; and so on, 261 across the 23 patterns. The
+lists live in `server/scripts/seed/subpatterns.js`, in display order.
+
+Every shared problem — the 517 on the roadmap and the 298 Kit 360 extras — is
+filed under exactly one, by slug, in `server/data/subpatterns.json`
+(`slug → "pattern/sub"`). The file was written by reading each problem for the
+trick its intended solution turns on, not derived from LeetCode's tags, which
+say what a problem touches rather than what it drills. Where a problem sits
+awkwardly in its pattern (an Eulerian-path problem filed under Advanced Graphs,
+a digit-string problem under Math), it went to the closest sub-pattern; edit
+the map and re-run `npm run seed:subpatterns` to move one.
+
+The pattern is part of each map value on purpose: a problem the admin panel has
+moved to another pattern no longer matches, so it is left alone instead of being
+filed under a list it is not in, and moving a problem clears its sub-pattern.
+Your own additions have none and show under **Other**, last.
+
+On the roadmap, **Sub-patterns** in the bar (on by default, remembered per
+browser) draws each pattern's rows under sub-pattern headings with a solved
+count; inside each heading the rows keep their easy-to-hard order, and `j`/`k`
+walk them in the order drawn. Off, it is the flat ramp again. The Filters dialog
+has a **Sub-pattern** multi-select labelled `Pattern › Sub-pattern`, the search
+box matches sub-pattern names, and there is an optional **Sub-pattern** column.
 
 ## Pattern guides
 
@@ -1383,7 +1412,7 @@ The whole curated list — ~520 problems — ships in one response and the clien
 filters locally. Search and filters are instant, and the server keeps a single
 query shape.
 
-**Filters** opens the dialog: difficulty · status · sheet · topics · companies.
+**Filters** opens the dialog: difficulty · status · sheet · sub-pattern · topics · companies.
 **Flagged**, **Needs revision** and **Added by me** stay out in the bar, because
 those are the ones you flip mid-session and flip back. The search box in the top
 bar (`/`) covers titles, companies and topic tags; searching from Stats or

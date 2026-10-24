@@ -93,6 +93,18 @@ export const ROADMAP_FILTERS = defineFilters([
     match: (p, values) => (p.sheets || []).some((s) => values.includes(s.sheet)),
   },
   {
+    /*
+      The second level of the tree — "Sliding Window › Monotonic deque". Values
+      are `pattern/sub`, because a sub-pattern slug is only unique inside its
+      pattern. Options come from the loaded roadmap.
+    */
+    id: 'subPattern',
+    kind: 'many',
+    label: 'Sub-pattern',
+    placeholder: 'Any sub-pattern',
+    match: (p, values) => Boolean(p.subPattern) && values.includes(`${p.patternSlug}/${p.subPattern}`),
+  },
+  {
     id: 'topics',
     kind: 'many',
     label: 'Topics',

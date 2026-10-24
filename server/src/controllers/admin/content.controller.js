@@ -153,7 +153,9 @@ export const updateProblem = asyncHandler(async (req, res) => {
   }
 
   const before = problem.toObject();
-  problem.set({ ...req.body, ...stamp(req) });
+  const moved = req.body.patternSlug && req.body.patternSlug !== problem.patternSlug;
+  // A sub-pattern belongs to one pattern's list, so it does not survive a move.
+  problem.set({ ...req.body, ...(moved ? { subPattern: '' } : {}), ...stamp(req) });
   await problem.save();
 
   await recordAudit(req, {

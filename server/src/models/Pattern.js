@@ -8,6 +8,15 @@ const patternSchema = new mongoose.Schema(
     order: { type: Number, required: true },
     blurb: { type: String, default: '' },
     keyTechniques: { type: [String], default: [] },
+    /**
+     * The second level of the tree, in display order. Problems point at these
+     * by `slug` (Problem.subPattern). Seeded from scripts/seed/subpatterns.js;
+     * not edited from the admin panel, so the seeder always refreshes it.
+     */
+    subPatterns: {
+      type: [new mongoose.Schema({ slug: String, name: String }, { _id: false })],
+      default: [],
+    },
 
     /**
      * Same contract as Problem.editedAt and PatternGuide.editedAt: set by the

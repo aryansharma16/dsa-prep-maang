@@ -47,6 +47,12 @@ const problemSchema = new mongoose.Schema(
     patternSlug: { type: String, required: true, index: true },
     // Position inside the pattern. Easy problems first — this ordering is the learning ramp.
     patternOrder: { type: Number, default: 0 },
+    /**
+     * Which move inside the pattern this problem drills — a slug from that
+     * pattern's `subPatterns` (scripts/seed/subpatterns.js). Empty for problems
+     * nobody has filed yet, which the roadmap shows under "Other".
+     */
+    subPattern: { type: String, default: '' },
 
     topicTags: { type: [String], default: [] },
     companies: { type: [companySchema], default: [] },

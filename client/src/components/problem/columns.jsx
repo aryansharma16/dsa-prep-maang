@@ -183,6 +183,16 @@ export const COLUMNS = [
       ),
   },
   {
+    id: 'subPattern',
+    label: 'Sub-pattern',
+    width: 170,
+    hidden: true,
+    className: 'cell-dim cell-truncate',
+    // The name is attached on the roadmap page, which has the pattern's list.
+    cell: ({ problem }) =>
+      problem.subPatternName ? <span title={problem.subPatternName}>{problem.subPatternName}</span> : <Empty />,
+  },
+  {
     id: 'topics',
     label: 'Topics',
     width: 190,

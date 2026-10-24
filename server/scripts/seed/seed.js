@@ -10,6 +10,7 @@ import { connectDb, disconnectDb } from '../../src/config/db.js';
 import { Pattern } from '../../src/models/Pattern.js';
 import { Problem } from '../../src/models/Problem.js';
 import { Progress } from '../../src/models/Progress.js';
+import { applySubPatterns } from './apply-subpatterns.js';
 import { patternDocs } from './patterns.js';
 import { CURATED_PATH } from './sources.js';
 
@@ -144,6 +145,14 @@ async function main() {
     await Problem.deleteMany({ _id: { $in: stale.map((s) => s._id) } });
     console.log(`[seed:db] pruned ${stale.length} stale problems`);
   }
+
+  // Last, so it also reaches hand-edited problems the upsert skipped — the
+  // admin panel does not edit sub-patterns, so there is nothing to protect.
+  const sub = await applySubPatterns();
+  console.log(
+    `[seed:db] sub-patterns: ${sub.modified} problems filed` +
+      (sub.unfiled.length ? `, ${sub.unfiled.length} shared problem(s) still unfiled` : ''),
+  );
 
   const total = await Problem.countDocuments();
   const seeded = await Problem.countDocuments({ owner: null });

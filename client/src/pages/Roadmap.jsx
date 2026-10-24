@@ -62,6 +62,12 @@ export function Roadmap() {
 
   const [openSections, setOpenSections] = useLocalState('open-sections', []);
   /*
+    Rows under sub-pattern headings — the tree inside each pattern — or the flat
+    easy-to-hard ramp. A way of drawing the page rather than a filter, so it
+    lives in this browser beside the open sections, not in the saved filters.
+  */
+  const [bySub, setBySub] = useLocalState('roadmap-by-subpattern', true);
+  /*
     The patterns you have closed *while a filter is on*, which is a different
     question from which patterns are open normally.
 
@@ -122,6 +128,30 @@ export function Roadmap() {
   const { layout, setLayout, columns } = useTableLayout();
   const sectionRefs = useRef({});
 
+  /*
+    Each problem gets its sub-pattern's display name (the column and the search
+    read it), and, grouped, the rows are stably sorted by the pattern's
+    sub-pattern order — so each run keeps its easy-to-hard ramp. Unfiled rows
+    (your own additions) go last, under "Other".
+  */
+  const ordered = useMemo(
+    () =>
+      groups.map((g) => {
+        const rank = new Map((g.subPatterns || []).map((s, i) => [s.slug, i]));
+        const names = new Map((g.subPatterns || []).map((s) => [s.slug, s.name]));
+        const problems = g.problems.map((p) => ({
+          ...p,
+          subPatternName: names.get(p.subPattern) || '',
+        }));
+        if (bySub) {
+          const at = (p) => rank.get(p.subPattern) ?? Number.MAX_SAFE_INTEGER;
+          problems.sort((a, b) => at(a) - at(b));
+        }
+        return { ...g, problems };
+      }),
+    [groups, bySub],
+  );
+
   const ownedCount = useMemo(
     () => groups.reduce((n, g) => n + g.problems.filter((p) => p.mine).length, 0),
     [groups],
@@ -160,7 +190,23 @@ export function Roadmap() {
       return { value: s.value, label: s.label, note: `${n}${gap} problems · ${s.desc}` };
     });
 
+    /*
+      Only sub-patterns something is filed under, labelled with their pattern:
+      "Min Stack" is in two lists, and typing a pattern's name in the menu's
+      search should bring up its whole list.
+    */
+    const subPattern = [];
+    for (const g of groups) {
+      const counts = new Map();
+      for (const p of g.problems) if (p.subPattern) counts.set(p.subPattern, (counts.get(p.subPattern) || 0) + 1);
+      for (const s of g.subPatterns || []) {
+        const n = counts.get(s.slug);
+        if (n) subPattern.push({ value: `${g.slug}/${s.slug}`, label: `${g.name} › ${s.name}`, note: `${n} problem${n === 1 ? '' : 's'}` });
+      }
+    }
+
     return {
+      subPattern,
       companies: [...companies].sort(),
       topics: [...topics].sort(),
       askedRecently: [...askedRecently].sort(),
@@ -175,13 +221,14 @@ export function Roadmap() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    return groups.map((g) => {
+    return ordered.map((g) => {
       if (!isFiltering) return g;
       const problems = g.problems.filter((p) => {
         if (!matchesFilters(ROADMAP_FILTERS, filters, p)) return false;
         if (q) {
           const haystack = [
             p.title,
+            p.subPatternName,
             ...(p.topicTags || []),
             ...(p.companies || []).map((c) => c.name),
             // Typing "Anthropic" has to find something. Those names exist only
@@ -197,7 +244,7 @@ export function Roadmap() {
       });
       return { ...g, problems };
     });
-  }, [groups, query, filters, isFiltering]);
+  }, [ordered, query, filters, isFiltering]);
 
   const visible = useMemo(() => filtered.filter((g) => g.problems.length > 0), [filtered]);
 
@@ -457,8 +504,9 @@ export function Roadmap() {
       <div className="page-head">
         <h1>Pattern Roadmap</h1>
         <p>
-          Work top to bottom. Inside each pattern the problems run easy to hard — that order is the
-          ramp.
+          {bySub
+            ? 'Work top to bottom. Each pattern is split into its sub-patterns, and inside each one the problems run easy to hard.'
+            : 'Work top to bottom. Inside each pattern the problems run easy to hard — that order is the ramp.'}
         </p>
       </div>
 
@@ -482,7 +530,7 @@ export function Roadmap() {
         <button
           className={`toggle-chip ${narrowingCount ? 'on' : ''}`}
           onClick={() => setFiltersOpen(true)}
-          title="Difficulty, status, sheet, topics and companies, and who asked recently"
+          title="Difficulty, status, sheet, sub-pattern, topics and companies, and who asked recently"
         >
           <IconFilter size={12} />
           Filters
@@ -589,6 +637,19 @@ export function Roadmap() {
           {allOpen ? 'Collapse all' : 'Expand all'}
         </button>
 
+        <button
+          className={`toggle-chip ${bySub ? 'on' : ''}`}
+          onClick={() => setBySub((v) => !v)}
+          aria-pressed={bySub}
+          title={
+            bySub
+              ? 'Showing rows under sub-pattern headings — click for one easy-to-hard list per pattern'
+              : 'Group each pattern\'s rows under its sub-patterns'
+          }
+        >
+          Sub-patterns
+        </button>
+
         <button className="toggle-chip" onClick={() => setColumnsOpen(true)} title="Choose columns">
           <IconColumns size={12} />
           Columns
@@ -632,6 +693,7 @@ export function Roadmap() {
             onFocusRow={setCursorId}
             openNotesId={openNotesId}
             onToggleNotes={(id) => setOpenNotesId((cur) => (cur === id ? null : id))}
+            grouped={bySub}
           />
           );
         })
