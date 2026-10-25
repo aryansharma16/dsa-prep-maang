@@ -219,6 +219,18 @@ const SECTIONS = [
     eyebrow: 'The job hunt',
     module: 'applications',
   },
+  /*
+    Straight after Applications: that page tracks the hunt, this one is the kit
+    for running it. Gated on the one `interview` key every page in the group
+    shares, so the section comes and goes with the sidebar group.
+  */
+  {
+    id: 'interview',
+    label: 'Interview Helper',
+    hue: 'violet',
+    eyebrow: 'Getting hired',
+    module: 'interview',
+  },
   { id: 'stats', label: 'Stats', hue: 'green', eyebrow: 'The honest view' },
   { id: 'yours', label: 'Making it yours', hue: 'sky', eyebrow: 'Setup' },
   { id: 'keys', label: 'Shortcuts', hue: 'slate', eyebrow: 'Faster' },
@@ -971,6 +983,22 @@ export function Docs() {
                   problems are ordered easy to hard. Resist jumping around — the ramp is the point.
                 </p>
 
+                <h3>Sub-patterns: the tree inside each pattern</h3>
+                <p>
+                  A pattern is a family of tricks, not one trick. Two Pointers is opposite ends,
+                  read/write pointers, fast and slow, k-sum and partitioning; Sliding Window is
+                  fixed, variable, at-most-k and the monotonic deque. So each pattern is split into
+                  its <b>sub-patterns</b> — 261 across the 23 — and every problem is filed under the
+                  one move its intended solution turns on, not under whatever its tags mention.
+                </p>
+                <p>
+                  With <b>Sub-patterns</b> on in the bar (the default), a pattern&rsquo;s rows sit
+                  under headings like <i>Opposite-direction pointers 2/5</i>, each still running easy
+                  to hard, so you can see which move inside a pattern you have not drilled yet. Turn
+                  it off for the single flat ramp. <kbd>j</kbd> and <kbd>k</kbd> walk the rows in
+                  whichever order is on screen.
+                </p>
+
                 <h3>The circle is the whole of your status</h3>
                 <TryStatus />
 
@@ -1005,18 +1033,24 @@ export function Docs() {
                 <h3>Finding things</h3>
                 <ul className="docs-list">
                   <li>
-                    Press <kbd>/</kbd> to search titles, companies and topic tags at once.
+                    Press <kbd>/</kbd> to search titles, companies, topic tags and sub-pattern names
+                    at once.
                   </li>
                   <li>
-                    <b>Filters</b> covers difficulty, status, sheet, topics and companies.
+                    <b>Filters</b> covers difficulty, status, sheet, sub-pattern, topics, companies
+                    and who asked it in 2025-26. Sheet, sub-pattern, topics and companies are
+                    multi-select: ticking two means <i>either</i>, so Blind 75 plus NeetCode 150 is
+                    both lists together.
                   </li>
                   <li>
-                    <b>Five sheets to narrow to</b>, four of them imported — Striver&rsquo;s SDE
-                    Sheet, NeetCode 150, Blind 75, and everything reported asked at a named company
-                    in 2025-26. The fifth, <b>AI-recommended 300</b>, is built from the other four
-                    plus the company data and deduplicated by technique: it contains every Blind 75
-                    problem and almost all of NeetCode 150, and it is the one to pick if you want
-                    the shortest path rather than somebody else&rsquo;s list.
+                    <b>Eight sheets to narrow to.</b> Imported: Striver&rsquo;s SDE Sheet, NeetCode
+                    150, Blind 75, Sheet 150 (a 90-day plan, pattern by pattern), and everything
+                    reported asked at a named company in 2025-26. <b>AI-recommended 300</b> is built
+                    from those plus the company data and deduplicated by technique: it contains every
+                    Blind 75 problem and almost all of NeetCode 150, and it is the one to pick if you
+                    want the shortest path rather than somebody else&rsquo;s list. <b>Sprint 300</b>{' '}
+                    is that list re-ordered easy to hard for a 30-day sprint, and <b>Kit 360</b> is a
+                    30-day list of Hard problems, most of them off the default roadmap.
                   </li>
                   <li>
                     <b>Flagged</b>, <b>Needs revision</b> and <b>Added by me</b> stay out in the
@@ -1360,7 +1394,7 @@ export function Docs() {
 
                   Everything above is about interviews. <b>Pro Coder</b> is the other thing this app
 
-                  does: a competitive-programming ladder of <b>800 problems</b> from Codeforces and
+                  does: a competitive-programming ladder of <b>1,100 problems</b> from Codeforces and
 
                   CodeChef, for getting your rating up rather than getting through a loop. It has its
 
@@ -1389,7 +1423,7 @@ export function Docs() {
 
                   One toggle (or <kbd className="mono">g</kbd>) regroups the whole ladder by{' '}
 
-                  <b>technique</b> instead — 49 CP patterns, more granular than the roadmap&rsquo;s 22,
+                  <b>technique</b> instead — 49 CP patterns, more granular than the roadmap&rsquo;s 23,
 
                   because &ldquo;dynamic programming&rdquo; is one interview pattern and eight CP ones.
 
@@ -1834,6 +1868,105 @@ export function Docs() {
               </Section>
             )}
 
+            {moduleVisible(shown, 'interview') && (
+              <Section meta={byId.interview}>
+                <Reveal>
+                  <p>
+                    Everything between &ldquo;I can solve the problems&rdquo; and &ldquo;I signed
+                    the offer&rdquo;: the resume, the people to contact, what to say to them, a
+                    sprint to get sharp, the behavioural rounds, and the negotiation at the end. Six
+                    pages under <b>Interview Helper</b> in the sidebar.
+                  </p>
+
+                  <h3>Resume Studio</h3>
+                  <p>
+                    <b>My Resumes</b> is your resume bank — the same library Applications attaches
+                    CVs from. Upload a PDF or Word file or paste a link, tag it general,
+                    company-specific or role-specific, and add a <b>new version</b> when you
+                    rewrite it: the newest is the card, older ones sit underneath with their own
+                    preview. Each card shows a live thumbnail of the first page; files stay private
+                    and open only when you are signed in, because a CV carries your phone number.
+                  </p>
+                  <p>
+                    <b>Level Guide</b> is the resume ladder from SDE I to Principal in four steps:
+                    find your level (or let your years of experience pick it), see what a resume at
+                    that level must show with an example bullet, copy a ready-made AI prompt that
+                    rewrites every bullet as <i>result, number, method</i> — leaving{' '}
+                    <code>[placeholders]</code> where a number is missing rather than inventing one
+                    — and check the format rules.
+                  </p>
+
+                  <h3>MAANG Recruiter Directory</h3>
+                  <p>
+                    Recruiters hiring engineers in India, with company logos, search, company
+                    filters, and email, phone and LinkedIn each one click to copy. Track your own
+                    outreach on every row — not contacted, messaged, replied, call, closed — with a
+                    note; nobody else sees your status. Add contacts of your own, shared or private.
+                  </p>
+                  <p>
+                    An amber <b>Check</b> badge marks contact details worth verifying first — an
+                    office line instead of a mobile, an email that is not the company&rsquo;s, a
+                    vendor address — and a grey <b>Senior</b> note marks the VPs and directors who
+                    rarely answer cold messages. <b>Message</b> on a row opens the next page with
+                    that recruiter already filled in.
+                  </p>
+
+                  <h3>Outreach Messages</h3>
+                  <p>
+                    Pick the <b>platform</b> (LinkedIn note with its 300-character counter, LinkedIn
+                    message, WhatsApp, email or a call script), the <b>purpose</b> (referral,
+                    openings, after applying, follow-up, thank-you, replying to a recruiter), your{' '}
+                    <b>pitch</b> and the two proof points to lead with — and the message writes
+                    itself from your profile. Proof points can be <b>live</b>: problems solved and
+                    system-design topics read, straight from your progress here, so every claim
+                    stays true. Empty details show as <code>[hints]</code>; edit the result, then
+                    copy it or open it in WhatsApp or your mail app.
+                  </p>
+
+                  <h3>30-Day Sprint</h3>
+                  <p>
+                    Two plans: <b>Sprint 300</b> (the AI-recommended 300, pattern by pattern, easy
+                    to hard) and <b>Kit 360</b> (360 Hard problems, 12 a day). Spread either over
+                    30, 45, 60, 75 or 90 days and start; you get a day grid with a tick on every
+                    finished day, today&rsquo;s problems, and how far behind schedule you are.
+                    Ticks are ordinary roadmap progress — solve a problem here and it is solved on
+                    the roadmap too, and the other way round. Stopping a sprint keeps every solve.
+                  </p>
+
+                  <h3>Behavioral Prep</h3>
+                  <ul className="docs-list">
+                    <li>
+                      <b>Practice</b> — a random question (weighted toward ones you have not
+                      answered or answered badly), filterable by Amazon LP, Google or Meta style,
+                      with a 2½-minute timer and your matching stories beside it. Rate the answer
+                      and it is logged.
+                    </li>
+                    <li>
+                      <b>Stories</b> — your STAR stories, tagged with themes and Amazon Leadership
+                      Principles, with a warning when the action part runs long.
+                    </li>
+                    <li>
+                      <b>Questions</b> — a 40-question bank with how each went last time, a guide
+                      to what the interviewer is really testing, and a <b>sample answer built from
+                      your own stories and profile</b> — never invented. A coverage list shows
+                      which themes still have no story.
+                    </li>
+                  </ul>
+
+                  <h3>Offer Negotiation</h3>
+                  <p>
+                    Scripts for seven moments of an offer: asking for more time, using a competing
+                    offer, negotiating without one, a joining bonus or notice buyout, a live-call
+                    script, confirming the final numbers in writing, and declining while keeping the
+                    door open. Fill in only what that moment needs and copy the message.{' '}
+                    <b>Rules of the game</b> has the principles — know your walk-away number, let
+                    them name a range, one ask for the whole package, never invent an offer, get it
+                    in writing.
+                  </p>
+                </Reveal>
+              </Section>
+            )}
+
             <Section meta={byId.stats}>
               <Reveal>
                 <p>Four panels, and one of them is the one to act on:</p>
@@ -1894,7 +2027,7 @@ export function Docs() {
               <Reveal>
                 <h3>The table</h3>
                 <p>
-                  Twenty-four columns exist; you choose which you see. <b>Columns</b> in the toolbar
+                  Twenty-six columns exist, a <b>Sub-pattern</b> column among them; you choose which you see. <b>Columns</b> in the toolbar
                   opens the editor — show and hide, reorder, five width presets, and pinning. You
                   can freeze up to three columns to the left edge so they stay put as you scroll
                   sideways. The layout is saved per browser, so your laptop and your monitor can be
